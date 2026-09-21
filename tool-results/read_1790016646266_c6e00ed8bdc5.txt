@@ -1,0 +1,1142 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+     5→import { toast } from "sonner";
+     6→import {
+     7→  Plus,
+     8→  AlertCircle,
+     9→  CalendarDays,
+    10→  Link2,
+    11→  ListTodo,
+    12→  Loader2,
+    13→  CheckCheck,
+    14→  KanbanSquare,
+    15→  GraduationCap,
+    16→  Star,
+    17→  CheckSquare,
+    18→  Clock,
+    19→} from "lucide-react";
+    20→import { PageHeader } from "@/components/atelier/PageHeader";
+    21→import { SectionCard } from "@/components/atelier/SectionCard";
+    22→import { PremiumMetric } from "@/components/atelier/PremiumMetric";
+    23→import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
+    24→import {
+    25→  EmptyState,
+    26→  SkeletonCard,
+    27→} from "@/components/atelier/EmptyState";
+    28→import { StatusBadge } from "@/components/atelier/StatusBadge";
+    29→import { PremiumButton } from "@/components/atelier/PremiumButton";
+    30→import {
+    31→  Select,
+    32→  SelectContent,
+    33→  SelectItem,
+    34→  SelectTrigger,
+    35→  SelectValue,
+    36→} from "@/components/ui/select";
+    37→import { Input } from "@/components/ui/input";
+    38→import { Label } from "@/components/ui/label";
+    39→import { Textarea } from "@/components/ui/textarea";
+    40→import {
+    41→  Dialog,
+    42→  DialogContent,
+    43→  DialogDescription,
+    44→  DialogFooter,
+    45→  DialogHeader,
+    46→  DialogTitle,
+    47→} from "@/components/ui/dialog";
+    48→import { apiGet, apiPatch, apiPost } from "@/lib/api";
+    49→import { isOverdue, PRIORITY_LEVELS, shortDate, todayISO } from "@/lib/format";
+    50→import type { Order, Task, User } from "@/lib/types";
+    51→import { useNav } from "@/stores/nav";
+    52→import { useAuth } from "@/stores/auth";
+    53→import { useRole } from "@/stores/role";
+    54→import { cn } from "@/lib/utils";
+    55→
+    56→interface TaskWithRelations extends Task {
+    57→  order?: (Order & { customer: Order["customer"] }) | null;
+    58→  staff?: User | null;
+    59→}
+    60→
+    61→const COLUMNS = ["To Do", "In Progress", "Done"] as const;
+    62→type ColumnStatus = (typeof COLUMNS)[number];
+    63→
+    64→const PRIORITY_FILTER_OPTIONS = ["All Priority", ...PRIORITY_LEVELS] as const;
+    65→
+    66→const COLUMN_ICON: Record<ColumnStatus, React.ComponentType<{ className?: string }>> = {
+    67→  "To Do": ListTodo,
+    68→  "In Progress": Loader2,
+    69→  Done: CheckCheck,
+    70→};
+    71→
+    72→// ---------------------------------------------------------------------------
+    73→// Grade helpers
+    74→// ---------------------------------------------------------------------------
+    75→
+    76→function scorePercent(score?: number | null, max?: number | null): number | null {
+    77→  if (score == null || max == null || max === 0) return null;
+    78→  return (score / max) * 100;
+    79→}
+    80→
+    81→function letterGrade(pct: number): string {
+    82→  if (pct >= 90) return "A";
+    83→  if (pct >= 80) return "B";
+    84→  if (pct >= 70) return "C";
+    85→  if (pct >= 60) return "D";
+    86→  return "F";
+    87→}
+    88→
+    89→function pctTone(pct: number | null): "emerald" | "amber" | "orange" | "muted" {
+    90→  if (pct == null) return "muted";
+    91→  if (pct >= 80) return "emerald";
+    92→  if (pct >= 60) return "amber";
+    93→  return "orange";
+    94→}
+    95→
+    96→const TONE_BADGE: Record<string, string> = {
+    97→  emerald: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    98→  amber: "bg-amber-100 text-amber-800 border-amber-200",
+    99→  orange: "bg-orange-100 text-orange-800 border-orange-200",
+   100→  muted: "bg-stone-100 text-stone-600 border-stone-200",
+   101→};
+   102→
+   103→const TONE_DOT: Record<string, string> = {
+   104→  emerald: "bg-emerald-600",
+   105→  amber: "bg-amber-600",
+   106→  orange: "bg-orange-600",
+   107→  muted: "bg-stone-400",
+   108→};
+   109→
+   110→/** Small pill showing "18/20" colored by percentage. */
+   111→function ScoreBadge({
+   112→  score,
+   113→  max,
+   114→  className,
+   115→}: {
+   116→  score: number;
+   117→  max: number;
+   118→  className?: string;
+   119→}) {
+   120→  const pct = scorePercent(score, max);
+   121→  const tone = pctTone(pct);
+   122→  return (
+   123→    <span
+   124→      className={cn(
+   125→        "inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold border rounded-md tabular-nums",
+   126→        TONE_BADGE[tone],
+   127→        className
+   128→      )}
+   129→    >
+   130→      <Star className="w-3 h-3" />
+   131→      {score}/{max}
+   132→    </span>
+   133→  );
+   134→}
+   135→
+   136→/** Letter grade pill (A/B/C/D/F) colored by percentage. */
+   137→function LetterGradeBadge({ pct }: { pct: number }) {
+   138→  const tone = pctTone(pct);
+   139→  return (
+   140→    <span
+   141→      className={cn(
+   142→        "inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide border rounded-md",
+   143→        TONE_BADGE[tone]
+   144→      )}
+   145→    >
+   146→      <span className={cn("w-1.5 h-1.5 rounded-full", TONE_DOT[tone])} />
+   147→      {letterGrade(pct)}
+   148→    </span>
+   149→  );
+   150→}
+   151→
+   152→// ---------------------------------------------------------------------------
+   153→
+   154→export default function Tasks() {
+   155→  const go = useNav((s) => s.go);
+   156→  const queryClient = useQueryClient();
+   157→  const { user } = useAuth();
+   158→  const isTrainee = useRole((s) => s.isTrainee);
+   159→  const isStaff = useRole((s) => s.isStaff);
+   160→  const isTrainer = useRole((s) => s.isTrainer);
+   161→  const isOwner = useRole((s) => s.isOwner);
+   162→
+   163→  const traineeMode = isTrainee();
+   164→  const graderMode = isTrainer() || isOwner();
+   165→  // Staff (non-trainee) keeps existing behaviour — their own tasks, can change status.
+   166→  const staffMode = isStaff() && !traineeMode;
+   167→  // Trainees cannot create tasks; everyone else with access can.
+   168→  const canCreate = !traineeMode;
+   169→  // Trainees are read-only (status set by mentor). Everyone else can move tasks.
+   170→  const canChangeStatus = !traineeMode;
+   171→
+   172→  const [dialogOpen, setDialogOpen] = useState(false);
+   173→  const [gradeDialogTask, setGradeDialogTask] = useState<TaskWithRelations | null>(null);
+   174→  const [staffFilter, setStaffFilter] = useState<string>("All");
+   175→  const [priorityFilter, setPriorityFilter] = useState<string>("All Priority");
+   176→
+   177→  const { data: tasks = [], isLoading, isError } = useQuery<TaskWithRelations[]>({
+   178→    queryKey: ["tasks"],
+   179→    queryFn: () => apiGet<TaskWithRelations[]>("/api/tasks"),
+   180→  });
+   181→
+   182→  const { data: orders = [] } = useQuery<Order[]>({
+   183→    queryKey: ["orders"],
+   184→    queryFn: () => apiGet<Order[]>("/api/orders"),
+   185→  });
+   186→
+   187→  // Role-based scoping — what tasks this viewer should see.
+   188→  const scopedTasks = useMemo(() => {
+   189→    if (traineeMode) {
+   190→      // Trainee: ONLY their own assignments.
+   191→      return tasks.filter((t) => t.staffId === user?.id);
+   192→    }
+   193→    if (graderMode) {
+   194→      // Trainer/Owner: ALL tasks assigned to trainees (filter staff?.role === 'trainee').
+   195→      return tasks.filter((t) => t.staff?.role === "trainee");
+   196→    }
+   197→    // Staff (non-trainee): keep existing — their own tasks.
+   198→    return tasks.filter((t) => t.staffId === user?.id);
+   199→  }, [tasks, traineeMode, graderMode, user?.id]);
+   200→
+   201→  const staffOptions = useMemo(() => {
+   202→    const map = new Map<string, User>();
+   203→    for (const t of scopedTasks) {
+   204→      if (t.staff) map.set(t.staff.id, t.staff);
+   205→    }
+   206→    return Array.from(map.values());
+   207→  }, [scopedTasks]);
+   208→
+   209→  const filtered = useMemo(() => {
+   210→    return scopedTasks.filter((t) => {
+   211→      if (staffFilter !== "All") {
+   212→        if (staffFilter === "Unassigned" && t.staff) return false;
+   213→        if (staffFilter !== "Unassigned" && t.staff?.id !== staffFilter)
+   214→          return false;
+   215→      }
+   216→      if (priorityFilter !== "All Priority" && t.priority !== priorityFilter)
+   217→        return false;
+   218→      return true;
+   219→    });
+   220→  }, [scopedTasks, staffFilter, priorityFilter]);
+   221→
+   222→  const grouped = useMemo(() => {
+   223→    const map: Record<ColumnStatus, TaskWithRelations[]> = {
+   224→      "To Do": [],
+   225→      "In Progress": [],
+   226→      Done: [],
+   227→    };
+   228→    for (const t of filtered) {
+   229→      const status = (COLUMNS as readonly string[]).includes(t.status)
+   230→        ? (t.status as ColumnStatus)
+   231→        : "To Do";
+   232→      map[status].push(t);
+   233→    }
+   234→    return map;
+   235→  }, [filtered]);
+   236→
+   237→  const stats = useMemo(
+   238→    () => ({
+   239→      todo: grouped["To Do"].length,
+   240→      inProgress: grouped["In Progress"].length,
+   241→      done: grouped.Done.length,
+   242→    }),
+   243→    [grouped]
+   244→  );
+   245→
+   246→  // Grade summary
+   247→  const gradedTasks = useMemo(
+   248→    () => filtered.filter((t) => t.score != null && t.maxScore != null),
+   249→    [filtered]
+   250→  );
+   251→  const doneCount = filtered.filter((t) => t.status === "Done").length;
+   252→  const avgPct = useMemo(() => {
+   253→    if (gradedTasks.length === 0) return null;
+   254→    const sum = gradedTasks.reduce(
+   255→      (acc, t) => acc + ((t.score ?? 0) / (t.maxScore ?? 1)) * 100,
+   256→      0
+   257→    );
+   258→    return sum / gradedTasks.length;
+   259→  }, [gradedTasks]);
+   260→
+   261→  const createMutation = useMutation({
+   262→    mutationFn: (payload: {
+   263→      title: string;
+   264→      priority: string;
+   265→      dueDate?: string;
+   266→      orderId?: string;
+   267→      notes?: string;
+   268→    }) => apiPost<Task>("/api/tasks", payload),
+   269→    onSuccess: () => {
+   270→      toast.success("Task created");
+   271→      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+   272→      setDialogOpen(false);
+   273→    },
+   274→    onError: (err: Error) => toast.error(err.message),
+   275→  });
+   276→
+   277→  const statusMutation = useMutation({
+   278→    mutationFn: ({ id, status }: { id: string; status: string }) =>
+   279→      apiPatch<Task>(`/api/tasks/${id}`, { status }),
+   280→    onSuccess: (task) => {
+   281→      toast.success(`Task moved to ${task.status}`);
+   282→      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+   283→    },
+   284→    onError: (err: Error) => toast.error(err.message),
+   285→  });
+   286→
+   287→  const gradeMutation = useMutation({
+   288→    mutationFn: ({
+   289→      id,
+   290→      maxScore,
+   291→      score,
+   292→      feedback,
+   293→    }: {
+   294→      id: string;
+   295→      maxScore: number;
+   296→      score: number;
+   297→      feedback?: string;
+   298→    }) =>
+   299→      apiPatch<Task>(`/api/tasks/${id}`, {
+   300→        maxScore,
+   301→        score,
+   302→        feedback,
+   303→        gradedById: user?.id,
+   304→      }),
+   305→    onSuccess: (task) => {
+   306→      toast.success("Grade saved", {
+   307→        description: `${task.title} — ${task.score}/${task.maxScore}`,
+   308→      });
+   309→      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+   310→      setGradeDialogTask(null);
+   311→    },
+   312→    onError: (err: Error) => toast.error(err.message),
+   313→  });
+   314→
+   315→  const showFilters = !traineeMode && staffOptions.length > 0;
+   316→
+   317→  const subtitle = traineeMode
+   318→    ? "Your practice assignments and graded work from the atelier."
+   319→    : graderMode
+   320→    ? "Trainee assignments across the studio. Grade completed work to track progress."
+   321→    : "Everything the atelier needs to do.";
+   322→
+   323→  return (
+   324→    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+   325→      <PageHeader
+   326→        eyebrow={
+   327→          traineeMode
+   328→            ? "My assignments"
+   329→            : graderMode
+   330→            ? "Trainee assignments"
+   331→            : "Studio workflow"
+   332→        }
+   333→        eyebrowIcon={traineeMode || graderMode ? GraduationCap : KanbanSquare}
+   334→        title="Tasks"
+   335→        subtitle={subtitle}
+   336→        actions={
+   337→          canCreate ? (
+   338→            <PremiumButton onClick={() => setDialogOpen(true)} size="md">
+   339→              <Plus className="w-4 h-4" />
+   340→              New Task
+   341→            </PremiumButton>
+   342→          ) : undefined
+   343→        }
+   344→      />
+   345→
+   346→      {/* Premium stat strip */}
+   347→      <div className="grid grid-cols-3 gap-4 mb-6">
+   348→        <PremiumMetric
+   349→          label="To Do"
+   350→          value={<AnimatedNumber value={stats.todo} />}
+   351→          icon={ListTodo}
+   352→          accent
+   353→        />
+   354→        <PremiumMetric
+   355→          label="In Progress"
+   356→          value={<AnimatedNumber value={stats.inProgress} />}
+   357→          icon={Loader2}
+   358→        />
+   359→        <PremiumMetric
+   360→          label="Done"
+   361→          value={<AnimatedNumber value={stats.done} />}
+   362→          icon={CheckCheck}
+   363→        />
+   364→      </div>
+   365→
+   366→      {/* Grade summary — trainee + trainer/owner modes */}
+   367→      {(traineeMode || graderMode) && (
+   368→        <SectionCard
+   369→          className="mb-5"
+   370→          bodyClassName="py-4"
+   371→          title={traineeMode ? "Your grades" : "Trainee grading"}
+   372→          action={
+   373→            avgPct != null ? (
+   374→              <LetterGradeBadge pct={avgPct} />
+   375→            ) : (
+   376→              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   377→                No grades yet
+   378→              </span>
+   379→            )
+   380→          }
+   381→        >
+   382→          <div className="flex flex-wrap items-center gap-6 sm:gap-10">
+   383→            <div className="flex flex-col gap-1">
+   384→              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+   385→                {traineeMode ? "Your average" : "Studio average"}
+   386→              </span>
+   387→              <div className="font-display font-semibold text-[#1C1917] leading-none tabular-nums flex items-baseline gap-1">
+   388→                {avgPct != null ? (
+   389→                  <>
+   390→                    <span
+   391→                      style={{ fontSize: "clamp(28px, 3.5vw, 40px)" }}
+   392→                      className={cn(
+   393→                        pctTone(avgPct) === "emerald" && "text-emerald-700",
+   394→                        pctTone(avgPct) === "amber" && "text-amber-700",
+   395→                        pctTone(avgPct) === "orange" && "text-orange-700",
+   396→                        pctTone(avgPct) === "muted" && "text-stone-700"
+   397→                      )}
+   398→                    >
+   399→                      <AnimatedNumber value={Math.round(avgPct)} />
+   400→                    </span>
+   401→                    <span className="text-lg text-stone-400">%</span>
+   402→                  </>
+   403→                ) : (
+   404→                  <span className="text-base text-stone-400 font-sans font-normal">
+   405→                    No graded work yet
+   406→                  </span>
+   407→                )}
+   408→              </div>
+   409→            </div>
+   410→
+   411→            {graderMode && (
+   412→              <div className="flex flex-col gap-1">
+   413→                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+   414→                  Graded
+   415→                </span>
+   416→                <div className="font-display font-semibold text-[#1C1917] leading-none tabular-nums flex items-baseline gap-1.5">
+   417→                  <span style={{ fontSize: "clamp(28px, 3.5vw, 40px)" }}>
+   418→                    <AnimatedNumber value={gradedTasks.length} />
+   419→                  </span>
+   420→                  <span className="text-lg text-stone-400">
+   421→                    / <AnimatedNumber value={doneCount} /> tasks
+   422→                  </span>
+   423→                </div>
+   424→              </div>
+   425→            )}
+   426→
+   427→            <div className="flex flex-col gap-1 ml-auto">
+   428→              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+   429→                {traineeMode ? "Graded assignments" : "Graded assignments"}
+   430→              </span>
+   431→              <span className="text-2xl font-display font-semibold text-[#1C1917] tabular-nums">
+   432→                <AnimatedNumber value={gradedTasks.length} />
+   433→                <span className="text-sm text-stone-400 font-sans font-normal ml-1">
+   434→                  of {filtered.length}
+   435→                </span>
+   436→              </span>
+   437→            </div>
+   438→          </div>
+   439→        </SectionCard>
+   440→      )}
+   441→
+   442→      {/* Filter bar (trainees have no staff filter — they only see their own) */}
+   443→      {showFilters && (
+   444→        <SectionCard bodyClassName="py-3" className="mb-5">
+   445→          <div className="flex flex-wrap items-center gap-4">
+   446→            <div className="flex items-center gap-2">
+   447→              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+   448→                {graderMode ? "Trainee" : "Staff"}
+   449→              </span>
+   450→              <Select value={staffFilter} onValueChange={setStaffFilter}>
+   451→                <SelectTrigger
+   452→                  className="w-[180px] h-8 bg-white"
+   453→                  aria-label="Filter by staff"
+   454→                >
+   455→                  <SelectValue />
+   456→                </SelectTrigger>
+   457→                <SelectContent>
+   458→                  <SelectItem value="All">
+   459→                    {graderMode ? "All Trainees" : "All Staff"}
+   460→                  </SelectItem>
+   461→                  {staffOptions.map((s) => (
+   462→                    <SelectItem key={s.id} value={s.id}>
+   463→                      {s.fullName}
+   464→                    </SelectItem>
+   465→                  ))}
+   466→                  <SelectItem value="Unassigned">Unassigned</SelectItem>
+   467→                </SelectContent>
+   468→              </Select>
+   469→            </div>
+   470→
+   471→            <div className="flex items-center gap-2">
+   472→              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+   473→                Priority
+   474→              </span>
+   475→              <Select
+   476→                value={priorityFilter}
+   477→                onValueChange={setPriorityFilter}
+   478→              >
+   479→                <SelectTrigger
+   480→                  className="w-[160px] h-8 bg-white"
+   481→                  aria-label="Filter by priority"
+   482→                >
+   483→                  <SelectValue />
+   484→                </SelectTrigger>
+   485→                <SelectContent>
+   486→                  {PRIORITY_FILTER_OPTIONS.map((p) => (
+   487→                    <SelectItem key={p} value={p}>
+   488→                      {p}
+   489→                    </SelectItem>
+   490→                  ))}
+   491→                </SelectContent>
+   492→              </Select>
+   493→            </div>
+   494→          </div>
+   495→        </SectionCard>
+   496→      )}
+   497→
+   498→      {/* Board */}
+   499→      {isError ? (
+   500→        <SectionCard title="Error">
+   501→          <div className="flex items-center gap-2 text-sm text-stone-500">
+   502→            <AlertCircle className="w-4 h-4 text-[#800020]" />
+   503→            Could not load tasks. Please try again.
+   504→          </div>
+   505→        </SectionCard>
+   506→      ) : isLoading ? (
+   507→        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+   508→          {[0, 1, 2].map((i) => (
+   509→            <SkeletonCard key={i} className="h-72" />
+   510→          ))}
+   511→        </div>
+   512→      ) : filtered.length === 0 ? (
+   513→        <SectionCard>
+   514→          <EmptyState
+   515→            icon={traineeMode ? GraduationCap : ListTodo}
+   516→            title={
+   517→              traineeMode
+   518→                ? "No assignments yet"
+   519→                : graderMode
+   520→                ? "No trainee assignments"
+   521→                : "No tasks yet"
+   522→            }
+   523→            description={
+   524→              traineeMode
+   525→                ? "Your mentor will assign practice work and graded assignments here."
+   526→                : graderMode
+   527→                ? "Assign tasks to trainees to start tracking their grades."
+   528→                : "Create a new task to get started."
+   529→            }
+   530→            action={
+   531→              canCreate ? (
+   532→                <PremiumButton onClick={() => setDialogOpen(true)} size="sm">
+   533→                  <Plus className="w-4 h-4" />
+   534→                  New Task
+   535→                </PremiumButton>
+   536→              ) : undefined
+   537→            }
+   538→          />
+   539→        </SectionCard>
+   540→      ) : (
+   541→        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+   542→          {COLUMNS.map((col) => {
+   543→            const Icon = COLUMN_ICON[col];
+   544→            const count = grouped[col].length;
+   545→            return (
+   546→              <SectionCard
+   547→                key={col}
+   548→                bodyClassName="p-3 flex flex-col gap-2.5"
+   549→                title={col}
+   550→                action={
+   551→                  <div className="flex items-center gap-2">
+   552→                    <Icon
+   553→                      className={cn(
+   554→                        "w-3.5 h-3.5",
+   555→                        col === "To Do" && "text-[#800020]",
+   556→                        col === "In Progress" && "text-blue-600",
+   557→                        col === "Done" && "text-[#15803D]"
+   558→                      )}
+   559→                    />
+   560→                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] text-[10px] font-semibold text-stone-600 tabular-nums">
+   561→                      {count}
+   562→                    </span>
+   563→                  </div>
+   564→                }
+   565→              >
+   566→                {grouped[col].length === 0 ? (
+   567→                  <EmptyState
+   568→                    className="py-8"
+   569→                    title={`No ${col.toLowerCase()} tasks`}
+   570→                    description={
+   571→                      col === "To Do"
+   572→                        ? "New assignments will appear here."
+   573→                        : "Tasks will appear here as they progress."
+   574→                    }
+   575→                  />
+   576→                ) : (
+   577→                  grouped[col].map((task) => (
+   578→                    <TaskCard
+   579→                      key={task.id}
+   580→                      task={task}
+   581→                      onStatusChange={(status) =>
+   582→                        statusMutation.mutate({ id: task.id, status })
+   583→                      }
+   584→                      onClick={() =>
+   585→                        task.orderId && go("order", { id: task.orderId })
+   586→                      }
+   587→                      canChangeStatus={canChangeStatus}
+   588→                      showGradeControl={graderMode}
+   589→                      onGrade={() => setGradeDialogTask(task)}
+   590→                      showStaff={!traineeMode}
+   591→                    />
+   592→                  ))
+   593→                )}
+   594→              </SectionCard>
+   595→            );
+   596→          })}
+   597→        </div>
+   598→      )}
+   599→
+   600→      {canCreate && (
+   601→        <NewTaskDialog
+   602→          open={dialogOpen}
+   603→          onOpenChange={setDialogOpen}
+   604→          orders={orders}
+   605→          onSubmit={(payload) => createMutation.mutate(payload)}
+   606→          submitting={createMutation.isPending}
+   607→        />
+   608→      )}
+   609→
+   610→      <GradeDialog
+   611→        task={gradeDialogTask}
+   612→        onOpenChange={(v) => !v && setGradeDialogTask(null)}
+   613→        onSubmit={(payload) =>
+   614→          gradeMutation.mutate({ id: gradeDialogTask!.id, ...payload })
+   615→        }
+   616→        submitting={gradeMutation.isPending}
+   617→      />
+   618→    </div>
+   619→  );
+   620→}
+   621→
+   622→// ---------------------------------------------------------------------------
+   623→
+   624→function TaskCard({
+   625→  task,
+   626→  onStatusChange,
+   627→  onClick,
+   628→  canChangeStatus,
+   629→  showGradeControl,
+   630→  onGrade,
+   631→  showStaff,
+   632→}: {
+   633→  task: TaskWithRelations;
+   634→  onStatusChange: (status: string) => void;
+   635→  onClick: () => void;
+   636→  canChangeStatus: boolean;
+   637→  showGradeControl: boolean;
+   638→  onGrade: () => void;
+   639→  showStaff: boolean;
+   640→}) {
+   641→  const overdue =
+   642→    !!task.dueDate && isOverdue(task.dueDate) && task.status !== "Done";
+   643→  const garment = task.order?.garmentDesign;
+   644→  const customerName = task.order?.customer?.name;
+   645→  const staffName = task.staff?.fullName;
+   646→  const initial = staffName ? staffName.charAt(0).toUpperCase() : "?";
+   647→
+   648→  const isGraded = task.score != null && task.maxScore != null;
+   649→  const isDone = task.status === "Done";
+   650→  const showAwaiting = isDone && !isGraded;
+   651→
+   652→  return (
+   653→    <div className="rounded-lg bg-white border border-[#E7E5E4] p-3.5 elevate-sm lift flex flex-col gap-2.5">
+   654→      <div className="flex items-start justify-between gap-2">
+   655→        <button
+   656→          onClick={onClick}
+   657→          disabled={!task.orderId}
+   658→          className={cn(
+   659→            "text-left flex-1 min-w-0",
+   660→            task.orderId && "hover:underline"
+   661→          )}
+   662→        >
+   663→          <p className="text-sm font-medium text-[#1C1917] leading-snug">
+   664→            {task.title}
+   665→          </p>
+   666→        </button>
+   667→        <StatusBadge status={task.priority} />
+   668→      </div>
+   669→
+   670→      {garment && (
+   671→        <button
+   672→          onClick={onClick}
+   673→          disabled={!task.orderId}
+   674→          className="text-left text-xs text-stone-500 truncate inline-flex items-center gap-1.5 hover:text-stone-700"
+   675→        >
+   676→          {task.orderId && <Link2 className="w-3 h-3 text-stone-400 shrink-0" />}
+   677→          <span className="truncate">
+   678→            {garment}
+   679→            {customerName ? ` · ${customerName}` : ""}
+   680→          </span>
+   681→        </button>
+   682→      )}
+   683→
+   684→      <div className="flex items-center justify-between gap-2 pt-0.5">
+   685→        <div className="flex items-center gap-2 min-w-0">
+   686→          {showStaff && staffName ? (
+   687→            <span className="inline-flex items-center gap-1.5 min-w-0">
+   688→              <span className="w-5 h-5 rounded-full bg-[#800020]/10 text-[#800020] text-[10px] font-semibold flex items-center justify-center shrink-0">
+   689→                {initial}
+   690→              </span>
+   691→              <span className="text-xs text-stone-500 truncate">
+   692→                {staffName}
+   693→              </span>
+   694→            </span>
+   695→          ) : !showStaff ? (
+   696→            <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-stone-400">
+   697→              <span className="w-1.5 h-1.5 rounded-full bg-[#800020]/40" />
+   698→              Your assignment
+   699→            </span>
+   700→          ) : (
+   701→            <span className="text-[10px] uppercase tracking-wide text-stone-400">
+   702→              Unassigned
+   703→            </span>
+   704→          )}
+   705→        </div>
+   706→
+   707→        {task.dueDate && (
+   708→          <span
+   709→            className={cn(
+   710→              "inline-flex items-center gap-1 text-[11px] shrink-0",
+   711→              overdue ? "text-amber-700 font-medium" : "text-stone-500"
+   712→            )}
+   713→          >
+   714→            {overdue ? (
+   715→              <AlertCircle className="w-3 h-3" />
+   716→            ) : (
+   717→              <CalendarDays className="w-3 h-3" />
+   718→            )}
+   719→            {shortDate(task.dueDate)}
+   720→          </span>
+   721→        )}
+   722→      </div>
+   723→
+   724→      {/* Grading area — Done tasks show grade + feedback or "Awaiting grade". */}
+   725→      {isDone && isGraded && (
+   726→        <div className="rounded-md bg-[#800020]/4 border-l-2 border-[#800020]/30 pl-3 pr-2 py-2 flex flex-col gap-1.5">
+   727→          <div className="flex items-center justify-between gap-2 flex-wrap">
+   728→            <ScoreBadge score={task.score!} max={task.maxScore!} />
+   729→            {task.gradedBy && (
+   730→              <span className="text-[10px] text-stone-500 tabular-nums">
+   731→                by {task.gradedBy.fullName}
+   732→                {task.gradedAt ? ` · ${shortDate(task.gradedAt)}` : ""}
+   733→              </span>
+   734→            )}
+   735→          </div>
+   736→          {task.feedback && (
+   737→            <p className="text-xs text-stone-600 italic leading-snug">
+   738→              &ldquo;{task.feedback}&rdquo;
+   739→            </p>
+   740→          )}
+   741→          {showGradeControl && (
+   742→            <PremiumButton
+   743→              size="sm"
+   744→              variant="outline"
+   745→              onClick={onGrade}
+   746→              className="self-start mt-0.5 h-7"
+   747→            >
+   748→              <GraduationCap className="w-3.5 h-3.5" />
+   749→              Re-grade
+   750→            </PremiumButton>
+   751→          )}
+   752→        </div>
+   753→      )}
+   754→
+   755→      {showAwaiting && (
+   756→        <div
+   757→          className={cn(
+   758→            "flex items-center gap-2 pt-2 border-t border-[#E7E5E4]/70",
+   759→            showGradeControl && "justify-between"
+   760→          )}
+   761→        >
+   762→          <span className="inline-flex items-center gap-1.5 text-[11px] text-stone-500">
+   763→            <Clock className="w-3 h-3 text-amber-600" />
+   764→            Awaiting grade
+   765→          </span>
+   766→          {showGradeControl && (
+   767→            <PremiumButton
+   768→              size="sm"
+   769→              variant="outline"
+   770→              onClick={onGrade}
+   771→              className="h-7"
+   772→            >
+   773→              <GraduationCap className="w-3.5 h-3.5" />
+   774→              Grade
+   775→            </PremiumButton>
+   776→          )}
+   777→        </div>
+   778→      )}
+   779→
+   780→      {/* Status row */}
+   781→      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#E7E5E4]/70">
+   782→        <span className="text-[10px] uppercase tracking-[0.16em] text-stone-400">
+   783→          Status
+   784→        </span>
+   785→        {canChangeStatus ? (
+   786→          <Select value={task.status} onValueChange={onStatusChange}>
+   787→            <SelectTrigger size="sm" className="h-7 w-[140px] text-xs bg-white">
+   788→              <SelectValue />
+   789→            </SelectTrigger>
+   790→            <SelectContent>
+   791→              {COLUMNS.map((c) => (
+   792→                <SelectItem key={c} value={c}>
+   793→                  {c}
+   794→                </SelectItem>
+   795→              ))}
+   796→            </SelectContent>
+   797→          </Select>
+   798→        ) : (
+   799→          <StatusBadge status={task.status} dot={false} />
+   800→        )}
+   801→      </div>
+   802→    </div>
+   803→  );
+   804→}
+   805→
+   806→// ---------------------------------------------------------------------------
+   807→
+   808→interface NewTaskPayload {
+   809→  title: string;
+   810→  priority: string;
+   811→  dueDate?: string;
+   812→  orderId?: string;
+   813→  notes?: string;
+   814→}
+   815→
+   816→function NewTaskDialog({
+   817→  open,
+   818→  onOpenChange,
+   819→  orders,
+   820→  onSubmit,
+   821→  submitting,
+   822→}: {
+   823→  open: boolean;
+   824→  onOpenChange: (v: boolean) => void;
+   825→  orders: Order[];
+   826→  onSubmit: (payload: NewTaskPayload) => void;
+   827→  submitting: boolean;
+   828→}) {
+   829→  const [title, setTitle] = useState("");
+   830→  const [priority, setPriority] = useState<string>("Medium");
+   831→  const [dueDate, setDueDate] = useState<string>("");
+   832→  const [orderId, setOrderId] = useState<string>("none");
+   833→  const [notes, setNotes] = useState<string>("");
+   834→
+   835→  const reset = () => {
+   836→    setTitle("");
+   837→    setPriority("Medium");
+   838→    setDueDate("");
+   839→    setOrderId("none");
+   840→    setNotes("");
+   841→  };
+   842→
+   843→  const handleSubmit = (e: React.FormEvent) => {
+   844→    e.preventDefault();
+   845→    if (!title.trim()) {
+   846→      toast.error("Task title is required");
+   847→      return;
+   848→    }
+   849→    const payload: NewTaskPayload = {
+   850→      title: title.trim(),
+   851→      priority,
+   852→    };
+   853→    if (dueDate) payload.dueDate = dueDate;
+   854→    if (orderId && orderId !== "none") payload.orderId = orderId;
+   855→    if (notes.trim()) payload.notes = notes.trim();
+   856→    onSubmit(payload);
+   857→  };
+   858→
+   859→  return (
+   860→    <Dialog
+   861→      open={open}
+   862→      onOpenChange={(v) => {
+   863→        onOpenChange(v);
+   864→        if (!v) setTimeout(reset, 150);
+   865→      }}
+   866→    >
+   867→      <DialogContent className="sm:max-w-md rounded-lg">
+   868→        <DialogHeader>
+   869→          <DialogTitle className="font-display text-[#1C1917]">
+   870→            New Task
+   871→          </DialogTitle>
+   872→          <DialogDescription>
+   873→            Capture a quick to-do. You can attach it to an existing order.
+   874→          </DialogDescription>
+   875→        </DialogHeader>
+   876→
+   877→        <form onSubmit={handleSubmit} className="grid gap-4">
+   878→          <div className="grid gap-1.5">
+   879→            <Label htmlFor="task-title">Title</Label>
+   880→            <Input
+   881→              id="task-title"
+   882→              value={title}
+   883→              onChange={(e) => setTitle(e.target.value)}
+   884→              placeholder="e.g. Source buttons for Akosua gown"
+   885→              autoFocus
+   886→              required
+   887→            />
+   888→          </div>
+   889→
+   890→          <div className="grid grid-cols-2 gap-3">
+   891→            <div className="grid gap-1.5">
+   892→              <Label htmlFor="task-priority">Priority</Label>
+   893→              <Select value={priority} onValueChange={setPriority}>
+   894→                <SelectTrigger id="task-priority" className="w-full bg-white">
+   895→                  <SelectValue />
+   896→                </SelectTrigger>
+   897→                <SelectContent>
+   898→                  {PRIORITY_LEVELS.map((p) => (
+   899→                    <SelectItem key={p} value={p}>
+   900→                      {p}
+   901→                    </SelectItem>
+   902→                  ))}
+   903→                </SelectContent>
+   904→              </Select>
+   905→            </div>
+   906→
+   907→            <div className="grid gap-1.5">
+   908→              <Label htmlFor="task-due">Due Date</Label>
+   909→              <Input
+   910→                id="task-due"
+   911→                type="date"
+   912→                value={dueDate}
+   913→                min={todayISO()}
+   914→                onChange={(e) => setDueDate(e.target.value)}
+   915→              />
+   916→            </div>
+   917→          </div>
+   918→
+   919→          <div className="grid gap-1.5">
+   920→            <Label htmlFor="task-order">Linked Order</Label>
+   921→            <Select value={orderId} onValueChange={setOrderId}>
+   922→              <SelectTrigger id="task-order" className="w-full bg-white">
+   923→                <SelectValue />
+   924→              </SelectTrigger>
+   925→              <SelectContent className="max-h-72">
+   926→                <SelectItem value="none">None — general task</SelectItem>
+   927→                {orders.map((o) => (
+   928→                  <SelectItem key={o.id} value={o.id}>
+   929→                    {o.garmentDesign}
+   930→                    {o.customer?.name ? ` · ${o.customer.name}` : ""}
+   931→                  </SelectItem>
+   932→                ))}
+   933→              </SelectContent>
+   934→            </Select>
+   935→          </div>
+   936→
+   937→          <div className="grid gap-1.5">
+   938→            <Label htmlFor="task-notes">Notes</Label>
+   939→            <Textarea
+   940→              id="task-notes"
+   941→              value={notes}
+   942→              onChange={(e) => setNotes(e.target.value)}
+   943→              placeholder="Optional details, links, supplier contacts…"
+   944→              rows={3}
+   945→            />
+   946→          </div>
+   947→
+   948→          <DialogFooter>
+   949→            <PremiumButton
+   950→              type="button"
+   951→              variant="ghost"
+   952→              onClick={() => onOpenChange(false)}
+   953→            >
+   954→              Cancel
+   955→            </PremiumButton>
+   956→            <PremiumButton type="submit" loading={submitting}>
+   957→              Create Task
+   958→            </PremiumButton>
+   959→          </DialogFooter>
+   960→        </form>
+   961→      </DialogContent>
+   962→    </Dialog>
+   963→  );
+   964→}
+   965→
+   966→// ---------------------------------------------------------------------------
+   967→
+   968→interface GradePayload {
+   969→  maxScore: number;
+   970→  score: number;
+   971→  feedback?: string;
+   972→}
+   973→
+   974→function GradeDialog({
+   975→  task,
+   976→  onOpenChange,
+   977→  onSubmit,
+   978→  submitting,
+   979→}: {
+   980→  task: TaskWithRelations | null;
+   981→  onOpenChange: (v: boolean) => void;
+   982→  onSubmit: (payload: GradePayload) => void;
+   983→  submitting: boolean;
+   984→}) {
+   985→  return (
+   986→    <Dialog open={!!task} onOpenChange={onOpenChange}>
+   987→      <DialogContent className="sm:max-w-md rounded-lg">
+   988→        {task && (
+   989→          <GradeForm
+   990→            key={task.id}
+   991→            task={task}
+   992→            submitting={submitting}
+   993→            onCancel={() => onOpenChange(false)}
+   994→            onSubmit={onSubmit}
+   995→          />
+   996→        )}
+   997→      </DialogContent>
+   998→    </Dialog>
+   999→  );
+  1000→}
+  1001→
+  1002→function GradeForm({
+  1003→  task,
+  1004→  onSubmit,
+  1005→  onCancel,
+  1006→  submitting,
+  1007→}: {
+  1008→  task: TaskWithRelations;
+  1009→  onSubmit: (payload: GradePayload) => void;
+  1010→  onCancel: () => void;
+  1011→  submitting: boolean;
+  1012→}) {
+  1013→  // Lazy initializers — fields prefilled from the task (incl. already-graded tasks).
+  1014→  // The parent uses `key={task.id}` so this component remounts per task.
+  1015→  const [maxScore, setMaxScore] = useState<number>(
+  1016→    () => (task.maxScore != null ? task.maxScore : 20)
+  1017→  );
+  1018→  const [score, setScore] = useState<number>(() => task.score ?? 0);
+  1019→  const [feedback, setFeedback] = useState<string>(() => task.feedback ?? "");
+  1020→
+  1021→  const safeMax = maxScore > 0 ? maxScore : 0;
+  1022→  const pct = safeMax > 0 ? (score / safeMax) * 100 : 0;
+  1023→  const valid =
+  1024→    safeMax > 0 && Number.isFinite(score) && score >= 0 && score <= safeMax;
+  1025→
+  1026→  const handleSubmit = (e: React.FormEvent) => {
+  1027→    e.preventDefault();
+  1028→    if (safeMax <= 0) {
+  1029→      toast.error("Max score must be greater than 0");
+  1030→      return;
+  1031→    }
+  1032→    if (score < 0 || score > safeMax) {
+  1033→      toast.error(`Score must be between 0 and ${safeMax}`);
+  1034→      return;
+  1035→    }
+  1036→    onSubmit({
+  1037→      maxScore: safeMax,
+  1038→      score,
+  1039→      feedback: feedback.trim() || undefined,
+  1040→    });
+  1041→  };
+  1042→
+  1043→  return (
+  1044→    <>
+  1045→      <DialogHeader>
+  1046→        <DialogTitle className="font-display text-[#1C1917] flex items-center gap-2">
+  1047→          <span className="w-7 h-7 rounded-full bg-[#800020]/10 text-[#800020] flex items-center justify-center">
+  1048→            <GraduationCap className="w-4 h-4" />
+  1049→          </span>
+  1050→          Grade assignment
+  1051→        </DialogTitle>
+  1052→        <DialogDescription className="text-stone-500">
+  1053→          {task.title}
+  1054→          {task.staff?.fullName ? ` · ${task.staff.fullName}` : ""}
+  1055→        </DialogDescription>
+  1056→      </DialogHeader>
+  1057→
+  1058→      <form onSubmit={handleSubmit} className="grid gap-4">
+  1059→        <div className="grid grid-cols-2 gap-3">
+  1060→          <div className="grid gap-1.5">
+  1061→            <Label htmlFor="grade-max">Max score</Label>
+  1062→            <Input
+  1063→              id="grade-max"
+  1064→              type="number"
+  1065→              min={1}
+  1066→              value={maxScore}
+  1067→              onChange={(e) => setMaxScore(Number(e.target.value))}
+  1068→              className="tabular-nums"
+  1069→            />
+  1070→          </div>
+  1071→          <div className="grid gap-1.5">
+  1072→            <Label htmlFor="grade-score">
+  1073→              Score
+  1074→              <span className="ml-1 text-[10px] font-normal text-stone-400">
+  1075→                0 – {safeMax || "—"}
+  1076→              </span>
+  1077→            </Label>
+  1078→            <Input
+  1079→              id="grade-score"
+  1080→              type="number"
+  1081→              min={0}
+  1082→              max={safeMax || undefined}
+  1083→              value={score}
+  1084→              onChange={(e) => setScore(Number(e.target.value))}
+  1085→              className="tabular-nums"
+  1086→            />
+  1087→          </div>
+  1088→        </div>
+  1089→
+  1090→        {/* Live percentage + letter grade preview */}
+  1091→        <div className="rounded-md bg-[#FBF9F7] border border-[#E7E5E4] px-3 py-2.5 flex items-center justify-between gap-2">
+  1092→          <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+  1093→            Percentage · Grade
+  1094→          </span>
+  1095→          <div className="flex items-center gap-2.5">
+  1096→            <span
+  1097→              className={cn(
+  1098→                "text-sm font-semibold tabular-nums",
+  1099→                pctTone(pct) === "emerald" && "text-emerald-700",
+  1100→                pctTone(pct) === "amber" && "text-amber-700",
+  1101→                pctTone(pct) === "orange" && "text-orange-700",
+  1102→                pctTone(pct) === "muted" && "text-stone-500"
+  1103→              )}
+  1104→            >
+  1105→              {safeMax > 0 ? `${pct.toFixed(0)}%` : "—"}
+  1106→            </span>
+  1107→            {safeMax > 0 && <LetterGradeBadge pct={pct} />}
+  1108→          </div>
+  1109→        </div>
+  1110→
+  1111→        <div className="grid gap-1.5">
+  1112→          <Label htmlFor="grade-feedback">Feedback</Label>
+  1113→          <Textarea
+  1114→            id="grade-feedback"
+  1115→            value={feedback}
+  1116→            onChange={(e) => setFeedback(e.target.value)}
+  1117→            placeholder="Constructive notes for the trainee…"
+  1118→            rows={4}
+  1119→          />
+  1120→          <p className="text-[10px] text-stone-400">
+  1121→            Visible to the trainee on their assignment card.
+  1122→          </p>
+  1123→        </div>
+  1124→
+  1125→        <DialogFooter>
+  1126→          <PremiumButton type="button" variant="ghost" onClick={onCancel}>
+  1127→            Cancel
+  1128→          </PremiumButton>
+  1129→          <PremiumButton
+  1130→            type="submit"
+  1131→            loading={submitting}
+  1132→            disabled={!valid}
+  1133→          >
+  1134→            <CheckSquare className="w-4 h-4" />
+  1135→            Save grade
+  1136→          </PremiumButton>
+  1137→        </DialogFooter>
+  1138→      </form>
+  1139→    </>
+  1140→  );
+  1141→}
+  1142→

@@ -1,8 +1,32 @@
 import { db } from "@/lib/db";
 
+interface CustomerContact {
+  id: string;
+  whatsapp?: string | null;
+  phone?: string | null;
+  email?: string | null;
+}
+
 /**
- * Create a customer-facing notification about an order event.
- * Used by the order/payment/fitting routes to alert the customer.
+ * Detect the best channel to reach a customer.
+ * Priority: WhatsApp > SMS > Email > in-app.
+ */
+export function detectChannel(customer: CustomerContact): {
+  channel: "whatsapp" | "sms" | "email" | "in_app";
+  recipient: string;
+} {
+  if (customer.whatsapp) return { channel: "whatsapp", recipient: customer.whatsapp };
+  if (customer.phone) return { channel: "sms", recipient: customer.phone };
+  if (customer.email) return { channel: "email", recipient: customer.email };
+  return { channel: "in_app", recipient: "" };
+}
+
+/**
+ * Create a customer-facing notification about an order event AND auto-send it
+ * to the customer's preferred channel (WhatsApp/SMS/email/in-app).
+ *
+ * In production, wire this to Twilio (SMS/WhatsApp) + an email provider.
+ * Here the send is logged with deliveryStatus="sent".
  */
 export async function notifyCustomer(opts: {
   shopId: string;
@@ -20,8 +44,26 @@ export async function notifyCustomer(opts: {
   body: string;
   statusFrom?: string;
   statusTo?: string;
+  direction?: "auto" | "manual";
+  channel?: "whatsapp" | "sms" | "email" | "in_app";
 }) {
   try {
+    // Fetch the customer to detect the channel (unless explicitly provided).
+    const customer = await db.customer.findUnique({
+      where: { id: opts.customerId },
+      select: { id: true, whatsapp: true, phone: true, email: true },
+    });
+    const detected = opts.channel
+      ? { channel: opts.channel, recipient: "" }
+      : detectChannel(customer || { id: opts.customerId });
+    // Resolve recipient for explicit channel.
+    let recipient = detected.recipient;
+    if (opts.channel && customer) {
+      if (opts.channel === "whatsapp") recipient = customer.whatsapp || "";
+      else if (opts.channel === "sms") recipient = customer.phone || "";
+      else if (opts.channel === "email") recipient = customer.email || "";
+    }
+
     await db.customerNotification.create({
       data: {
         shopId: opts.shopId,
@@ -32,6 +74,11 @@ export async function notifyCustomer(opts: {
         body: opts.body,
         statusFrom: opts.statusFrom || null,
         statusTo: opts.statusTo || null,
+        direction: opts.direction || "auto",
+        channel: detected.channel,
+        recipient: recipient || null,
+        deliveryStatus: "sent",
+        sentAt: new Date(),
       },
     });
   } catch (err) {
@@ -42,7 +89,6 @@ export async function notifyCustomer(opts: {
 
 /**
  * Generate (or regenerate) a portal token for a customer.
- * Returns the token. The customer uses it to access /portal?token=...
  */
 export async function ensurePortalToken(customerId: string): Promise<string> {
   const existing = await db.customer.findUnique({
@@ -50,7 +96,6 @@ export async function ensurePortalToken(customerId: string): Promise<string> {
     select: { portalToken: true },
   });
   if (existing?.portalToken) return existing.portalToken;
-  // Generate a URL-safe token.
   const token =
     Math.random().toString(36).slice(2, 10) +
     Math.random().toString(36).slice(2, 10);
@@ -64,7 +109,7 @@ export async function ensurePortalToken(customerId: string): Promise<string> {
 /** Human-readable status-change message for a customer. */
 export function statusChangeMessage(
   garment: string,
-  from: string,
+  _from: string,
   to: string
 ): { title: string; body: string } {
   const friendly: Record<string, string> = {

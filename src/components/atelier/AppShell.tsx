@@ -16,6 +16,8 @@ import {
   GraduationCap,
   Image as ImageIcon,
   Award,
+  Send,
+  Briefcase,
 } from "lucide-react";
 import { useRole } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
@@ -26,39 +28,44 @@ type NavItem = {
   to: ViewKey;
   label: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  /** visible to staff users (non-owners, non-trainees). */
+  /** visible to staff users (non-owners, non-trainees, non-freelancers). */
   staff: boolean;
   /** visible to trainees. */
   trainee: boolean;
+  /** visible to freelancers. */
+  freelancer: boolean;
 };
 
 const NAV: NavItem[] = [
-  { to: "dashboard", label: "Dashboard", icon: LayoutDashboard, staff: true, trainee: true },
-  { to: "customers", label: "Customers", icon: Users, staff: false, trainee: false },
-  { to: "orders", label: "Orders", icon: ShoppingBag, staff: true, trainee: true },
-  { to: "board", label: "Board", icon: LayoutGrid, staff: true, trainee: true },
-  { to: "fittings", label: "Fittings", icon: CalendarDays, staff: true, trainee: false },
-  { to: "quote", label: "Quotes", icon: Zap, staff: false, trainee: false },
-  { to: "tasks", label: "Tasks", icon: CheckSquare, staff: true, trainee: true },
-  { to: "style-assist", label: "Style Assist", icon: Sparkles, staff: false, trainee: false },
-  { to: "progress", label: "Progress", icon: GraduationCap, staff: false, trainee: true },
-  { to: "portfolio", label: "Portfolio", icon: ImageIcon, staff: true, trainee: true },
-  { to: "certificate", label: "Certificate", icon: Award, staff: false, trainee: true },
-  { to: "team", label: "Team", icon: UsersRound, staff: false, trainee: false },
-  { to: "community", label: "Community", icon: MessageSquare, staff: true, trainee: true },
+  { to: "dashboard", label: "Dashboard", icon: LayoutDashboard, staff: true, trainee: true, freelancer: true },
+  { to: "customers", label: "Customers", icon: Users, staff: false, trainee: false, freelancer: false },
+  { to: "orders", label: "Orders", icon: ShoppingBag, staff: true, trainee: true, freelancer: false },
+  { to: "my-jobs", label: "My Jobs", icon: Briefcase, staff: false, trainee: false, freelancer: true },
+  { to: "board", label: "Board", icon: LayoutGrid, staff: true, trainee: true, freelancer: false },
+  { to: "fittings", label: "Fittings", icon: CalendarDays, staff: true, trainee: false, freelancer: false },
+  { to: "quote", label: "Quotes", icon: Zap, staff: false, trainee: false, freelancer: false },
+  { to: "tasks", label: "Tasks", icon: CheckSquare, staff: true, trainee: true, freelancer: false },
+  { to: "style-assist", label: "Style Assist", icon: Sparkles, staff: false, trainee: false, freelancer: false },
+  { to: "progress", label: "Progress", icon: GraduationCap, staff: false, trainee: true, freelancer: false },
+  { to: "portfolio", label: "Portfolio", icon: ImageIcon, staff: true, trainee: true, freelancer: true },
+  { to: "certificate", label: "Certificate", icon: Award, staff: false, trainee: true, freelancer: false },
+  { to: "messages", label: "Messages", icon: Send, staff: false, trainee: false, freelancer: false },
+  { to: "team", label: "Team", icon: UsersRound, staff: false, trainee: false, freelancer: false },
+  { to: "community", label: "Community", icon: MessageSquare, staff: true, trainee: true, freelancer: true },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { studioName, isStaff, isTrainee } = useRole();
+  const { studioName, isStaff, isTrainee, isFreelancer } = useRole();
   const { view, go } = useNav();
   const { user, logout } = useAuth();
 
   // Real shop name (multi-tenant) — fall back to role-store studioName while hydrating.
   const shopDisplayName = user?.shop?.name || studioName;
 
-  // Scope: owners see everything; staff see their workbench subset; trainees see a focused learning subset.
+  // Scope: owners see everything; staff see their workbench subset; trainees see a focused learning subset; freelancers see their jobs subset.
   const items = NAV.filter((n) => {
     if (isTrainee()) return n.trainee;
+    if (isFreelancer()) return n.freelancer;
     if (isStaff()) return n.staff;
     return true; // owner
   });

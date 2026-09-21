@@ -1642,3 +1642,177 @@ Stage Summary:
 - PUBLIC CUSTOMER PORTAL at /portal?token=X (no login needed — the token is the credential). Shows the customer's name, all their orders with live status + journey stepper + payments + fittings, and a notification timeline with unread highlighting. Mark-as-read on visit.
 - STUDIO SIDE: owner/trainer clicks "Copy tracking link" on any order detail → gets a shareable URL to send to the customer (via WhatsApp/email/etc).
 - New schema: CustomerNotification model + Customer.portalToken. New API: portal (public, 3 endpoints) + portal-token (owner). New route: /portal. Updated: orders/payments/fittings routes auto-notify; OrderDetail has Copy-tracking-link button.
+
+---
+Task ID: 43 (auto messages + freelancer role foundation)
+Agent: main
+Task: Auto-send messages to customers on order events + add freelancer login role.
+
+Work Log:
+- Schema: extended CustomerNotification with direction (auto|manual), channel (whatsapp|sms|email|in_app), recipient, deliveryStatus (sent|delivered|failed), sentAt. db:push + re-seeded.
+- Seed: added freelancer user (freelancer@studio.com / Mama Esi Beadworks, role "freelancer"). Renamed akos→staff@studio.com, ama→trainee@studio.com for clearer demo logins. Added whatsapp numbers to Abena + Kwame. Freelancer included in staff assignment pool (gets orders assigned).
+- Notify helper (src/lib/notify.ts) rewritten: detectChannel() picks WhatsApp > SMS > email > in_app based on customer contact. notifyCustomer() now sets channel + recipient + deliveryStatus="sent" + sentAt. statusChangeMessage unchanged.
+- API:
+  - POST /api/customers/[id]/send-message — studio manually sends a message (title, body, optional channel + orderId). Auto-detects channel. Returns the created notification.
+  - GET /api/messages — studio outbox (all sent messages for the shop, optional ?customerId= filter, includes customer + order).
+  - Existing portal endpoints unchanged (return the full notification incl. channel).
+- Role store: added "freelancer" to Role type + ROLE_MODE. Added isFreelancer() helper.
+- Auth store: valid-roles check includes "freelancer".
+- Nav: added "messages" + "my-jobs" ViewKeys. AppShell NAV: Messages (owner/trainer only — staff:false, trainee:false, freelancer:false), My Jobs (freelancer only — freelancer:true). Freelancer nav scope = Dashboard, My Jobs, Portfolio, Community. Added Send + Briefcase icons.
+- Wired Messages + MyJobs into page.tsx dynamic imports + CurrentView switch.
+- Verified: manual send to Nana (phone only) → SMS; to Abena (whatsapp) → WhatsApp. Outbox lists both. Auto-channel detection works.
+
+Stage Summary — FOUNDATION READY. Two view tasks now dispatched:
+- BUILD src/views/Messages.tsx (studio outbox + send-message dialog).
+- BUILD src/views/MyJobs.tsx (freelancer's assigned orders/jobs).
+- UPDATE portal to show channel badges on messages.
+
+═══════════════════════════════════════════════════════════════════
+## CONTRACT FOR MESSAGES + MY-JOBS VIEWS + PORTAL UPDATE
+═══════════════════════════════════════════════════════════════════
+
+### Premium primitives (use these — see PREMIUM REDESIGN CONTRACT earlier in worklog)
+- `PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState, SkeletonCard, SkeletonList, PremiumButton, StatusBadge` from `@/components/atelier/*`
+- shadcn: Dialog, Input, Label, Textarea, Select(+parts), Tabs(+parts), Separator
+- `toast` from sonner, `apiGet, apiPost` from `@/lib/api`
+- `useQuery`/`useMutation` from `@tanstack/react-query`, `useNav` from `@/stores/nav`, `useAuth` from `@/stores/auth`, `useRole` from `@/stores/role`
+- icons from lucide-react
+
+### Data shapes
+- CustomerNotification now includes: direction (auto|manual), channel (whatsapp|sms|email|in_app), recipient, deliveryStatus (sent|delivered|failed), sentAt.
+- GET /api/messages → CustomerNotification[] (with customer {id,name,phone,email,whatsapp} + order {id,garmentDesign}). Optional ?customerId= filter.
+- POST /api/customers/[id]/send-message { title?, body, channel?, orderId? } → CustomerNotification.
+
+### MESSAGES VIEW (build src/views/Messages.tsx, default export Messages, "use client")
+Studio outbox of all messages sent to customers (auto + manual). Owner/trainer only (nav already gates).
+
+Layout:
+- PageHeader: eyebrow "Customer communications", title "Messages", subtitle "Every update sent to your clients — automatically and manually."
+- Premium stat strip (4): Total sent, Auto (direction=auto), Manual (direction=manual), WhatsApp (channel=whatsapp). AnimatedNumber.
+- A "Send new message" PremiumButton (primary, Send icon) → opens SendMessageDialog:
+  - Customer (required Select of all customers from GET /api/customers)
+  - Order (optional Select of that customer's orders — fetch /api/orders, filter by customerId)
+  - Channel (Select: Auto-detect / WhatsApp / SMS / Email / In-app)
+  - Title (Input, default "Message from the studio")
+  - Body (Textarea, required)
+  - Send PremiumButton → POST /api/customers/[id]/send-message → invalidate ['messages'] + toast "Message sent" + close.
+- A filter row: channel filter (All / WhatsApp / SMS / Email / In-app) + customer search Input.
+- Messages list (SectionCard, bodyClassName p-0): each row a card showing:
+  - Channel icon + badge (WhatsApp=emerald, SMS=sky, Email=violet, In-app=stone) with recipient
+  - Direction badge (Auto / Manual)
+  - Title (font-medium) + body (text-sm muted, preserve line breaks)
+  - Customer name (with avatar initial) + order garment (if linked)
+  - time-ago + deliveryStatus badge
+  - Hover lift.
+- Loading: SkeletonList. Empty: EmptyState with Send icon "No messages sent yet."
+
+### MY-JOBS VIEW (build src/views/MyJobs.tsx, default export MyJobs, "use client")
+The freelancer's view of orders/jobs assigned to them. Freelancer only (nav gates).
+
+Data: GET /api/orders (filter assignedStaffId === user.id). GET /api/tasks (filter staffId === user.id).
+
+Layout:
+- PageHeader: eyebrow "My commissions", title "My Jobs", subtitle "Orders the studio has assigned to you."
+- Premium stat strip (3): Active jobs (status in ACTIVE_STATUSES), Completed, Open tasks. AnimatedNumber.
+- "Active Jobs" SectionCard: list of the freelancer's active orders (garment, customer, status, delivery date, design image thumb). Click → go('order', {id}).
+- "Open Tasks" SectionCard: tasks assigned to the freelancer (title, status, dueDate, priority).
+- "Completed Work" SectionCard: completed/collected orders (with design image — mini portfolio).
+- Empty states per section.
+
+### PORTAL UPDATE (edit src/app/portal/PortalClient.tsx)
+- In the "Latest updates" timeline, add a channel badge next to each notification: WhatsApp (emerald, MessageCircle icon), SMS (sky, Smartphone icon), Email (violet, Mail icon), In-app (stone, Bell icon). Show the recipient (phone/email) small.
+- Relabel the section "Messages from the studio" (was "Latest updates").
+- Add a direction indicator (Auto/Manual) as a tiny tag.
+
+### Quality bar (PREMIUM — match the rest of the app)
+- SectionCard everywhere, elevate-sm + lift
+- Gradient avatars, tabular-nums on counts
+- PremiumButton for all CTAs with loading states
+- `animate-fade-in-up` on PageHeader + staggered
+- Toasts for send
+- Skeleton loaders, EmptyState for empties
+- Responsive
+- Burgundy #800020 primary
+
+### Worklog
+Before starting, read `/home/z/my-project/worklog.md`. After finishing, APPEND a new section starting with `---` with Task ID, agent, task, work log, stage summary.
+
+---
+Task ID: 45
+Agent: full-stack-developer (portal channel badges)
+Task: Update customer portal with channel badges + direction tags.
+
+Work Log:
+- Read worklog.md "CONTRACT FOR MESSAGES + MY-JOBS VIEWS + PORTAL UPDATE" section + existing src/app/portal/PortalClient.tsx + _portal.tsx (SectionCard API).
+- Extended the PortalNotification interface with direction, channel, recipient, deliveryStatus, sentAt (all optional).
+- Added CHANNEL_META map (whatsapp→emerald+MessageCircle, sms→sky+Smartphone, email→violet+Mail, in_app→stone+Bell) and DIRECTION_META map (auto→stone, manual→burgundy tint) as separate helpers, leaving the existing NOTIF_ICON per-type map untouched.
+- Relabeled the SectionCard from "Latest updates" → "Messages from the studio".
+- Rewrote each notification row: kept the per-type main icon + time-ago + unread burgundy highlight + unread dot + body + order link; added a small pill-shaped channel badge and direction tag next to the title (both with h-[18px], rounded-full, uppercase tracking, conditional render); added a recipient line below the body in the form "via WhatsApp · +233 24 112 8845"; time-ago now prefers sentAt then createdAt. Wrapped the title+meta in flex-wrap so it stays responsive on small screens.
+- Imports: added MessageCircle + Smartphone; removed the previously unused Clock import.
+- Lint: `bun run lint 2>&1 | tail -5` → clean (no errors/warnings).
+- Wrote agent-ctx/45-fullstack-developer-portal-channel-badges.md.
+
+Stage Summary:
+- File edited: src/app/portal/PortalClient.tsx.
+- Features: channel-aware notification timeline (WhatsApp/SMS/Email/In-app badges with per-channel tint + icon), direction tags (Auto/Manual), recipient line, sentAt-aware time-ago, premium aesthetic preserved, lint clean.
+
+---
+Task ID: 44
+Agent: full-stack-developer (messages + my-jobs views)
+Task: Build Messages outbox + My Jobs freelancer view.
+
+Work Log:
+- Read /home/z/my-project/worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-sm + lift + animate-fade-in-up + tabular-nums) and the CONTRACT FOR MESSAGES + MY-JOBS VIEWS + PORTAL UPDATE (exact API shapes, premium primitives, quality bar). Confirmed CustomerNotification data shape (direction / channel / recipient / deliveryStatus / sentAt + customer {id,name,phone,email,whatsapp} + order {id,garmentDesign}), GET /api/messages (optional ?customerId=), POST /api/customers/[id]/send-message body { title?, body, channel?, orderId? }, GET /api/orders + /api/tasks + /api/customers.
+- Re-inspected premium primitives (PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState + SkeletonList/SkeletonCard, PremiumButton, StatusBadge) and shadcn Dialog/Input/Label/Textarea/Select to align on prop names + class conventions. Mirrored portal channel/direction badge styling (whatsapp=emerald/MessageCircle, sms=sky/Smartphone, email=violet/Mail, in_app=stone/Bell; auto=stone, manual=burgundy) for visual consistency between studio outbox and customer portal.
+- Wrote src/views/Messages.tsx (~530 lines, single "use client" default export with inline MessageRow + SendMessageDialog):
+  - Wrapper `<div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">`.
+  - PageHeader eyebrow "Customer communications" + Send icon, title "Messages", subtitle "Every update sent to your clients — automatically and manually.", actions = PremiumButton "Send new message" (primary, Send icon) → opens SendMessageDialog.
+  - Premium stat strip `grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6`: Total sent (accent, Send icon), Auto (Sparkles icon), Manual (Send icon), WhatsApp (MessageCircle icon) — all AnimatedNumber values.
+  - Filter row SectionCard (bodyClassName py-3): channel filter Select (All / WhatsApp / SMS / Email / In-app) + relative customer search Input (filter by name) + "X of Y" count when filtered.
+  - Messages list SectionCard (bodyClassName p-0): `<ul divide-y divide-[#E7E5E4]/70>` of MessageRow; loading shows SkeletonList rows=5; empty shows EmptyState with Send icon "No messages sent yet." + helpful description.
+  - MessageRow: channel icon tile (10×10 rounded-full, channel-coloured), channel badge + direction badge (Auto=stone, Manual=burgundy) + recipient (tabular-nums) + time-ago (timeAgo helper: just now / Xm / Xh / Xd / shortDate), title (font-medium), body (text-xs muted, whitespace-pre-wrap, line-clamp-2), bottom row = gradient avatar initial (bg-gradient-to-br from-[#800020] to-[#6b0018]) + customer name + linked order garment + deliveryStatus badge (sent/delivered=emerald with CheckCircle2, failed=red with AlertTriangle + ring). Hover bg-[#FBF9F7]/60.
+  - SendMessageDialog: shadcn Dialog (sm:max-w-md rounded-lg) with header (Send icon in burgundy circle + title + description). Form fields: Customer (required Select of all customers with phone suffix; helper line shows the selected customer's WhatsApp/phone/email contacts); Order (optional Select, filtered to that customer's orders, disabled until customer chosen, "No linked order" default); Channel (Select: Auto-detect / WhatsApp / SMS / Email / In-app, with helper explaining auto-detect priority); Title (Input, default "Message from the studio"); Body (Textarea, required, autoFocus). DialogFooter = ghost Cancel + primary "Send message" PremiumButton (loading state, disabled until customer + body filled). On submit POSTs /api/customers/[customerId]/send-message { title, body, channel: channel==='auto-detect'?undefined:channel, orderId } → on success invalidates ['messages'] + sonner toast "Message sent" with description "Delivered via {Channel} to {recipient}" + closes dialog + resets form.
+- Wrote src/views/MyJobs.tsx (~390 lines, single "use client" default export with inline DesignThumb + ActiveJobRow + OpenTaskRow + CompletedCard):
+  - Wrapper `<div className="p-5 md:p-8 max-w-[1100px] mx-auto w-full">`.
+  - PageHeader eyebrow "My commissions" + Briefcase icon, title "My Jobs", subtitle "Orders the studio has assigned to you."
+  - Premium stat strip `grid grid-cols-3 gap-4 mb-6`: Active jobs (accent, Briefcase icon), Completed (CheckCircle2 icon), Open tasks (ListTodo icon) — all AnimatedNumber values.
+  - Data: useQuery(['orders']) + useQuery(['tasks']) (no customers needed — customer names come embedded on orders). Filters by assignedStaffId === user.id (orders) + staffId === user.id (tasks). ACTIVE_STATUSES filter for active jobs; status 'Completed' || 'Collected/Delivered' for completed work; status !== 'Done' for open tasks.
+  - Active Jobs SectionCard (title "Active jobs · N" + "Tap to open" hint action): loading → SkeletonList rows=3; empty → EmptyState "No active jobs." + Briefcase icon; otherwise `<ul divide-y>` of ActiveJobRow. Each row is a `<button onClick={() => go('order', { id })}>` with: DesignThumb (w-12 h-12 rounded-lg, designImage or Scissors placeholder on a cream gradient), garment (font-medium truncate, hover burgundy), customer name (xs muted), StatusBadge + delivery shortDate (amber AlertCircle when overdue & not Ready), Briefcase icon trailing (hover burgundy).
+  - Open Tasks SectionCard (title "Open tasks · N"): loading → SkeletonList rows=3; empty → EmptyState "No open tasks." + ListTodo icon; otherwise `<ul divide-y>` of OpenTaskRow. Each row: ListTodo tile (w-10 h-10), title (font-medium), linked order garment (xs stone-400 with → prefix), priority StatusBadge + dueDate shortDate (amber when overdue).
+  - Completed Work SectionCard (title "Completed work · N"): loading → 3-col SkeletonCard grid; empty → EmptyState "No completed work yet." + Sparkles icon; otherwise `grid grid-cols-2 md:grid-cols-3 gap-4` of CompletedCard. Each card: surface-premium rounded-lg border elevate-sm lift overflow-hidden, aspect-[4/5] image area (designImage with group-hover scale-1.03 transition, else ImageIcon placeholder on cream gradient), body with garment (font-medium, hover burgundy), customer name, StatusBadge + delivery shortDate (CalendarDays).
+  - DesignThumb helper supports both small (w-12 h-12, list rows) and large (full aspect-[4/5]) sizes for reuse.
+- Verified: `bun run lint` → exit 0, no errors, no warnings (both files clean). Dev server recompiled successfully after file creation (GET / 200 with cached 5-33ms compile times; the stale "Module not found @/views/MyJobs" error in dev.log predates file creation and is no longer emitted on subsequent compiles).
+- Note on portal: PortalClient.tsx already implements the channel badges + direction tag + "Messages from the studio" relabel from the contract's PORTAL UPDATE section (committed during Task 42/43 foundation); no further portal edits were required for this task's two-file deliverable.
+
+Stage Summary:
+- Files created:
+  - src/views/Messages.tsx (~530 lines, "use client" default export Messages + inline MessageRow + SendMessageDialog). Studio outbox with 4-up AnimatedNumber stat strip, channel+customer filters, channel-coloured row list (WhatsApp=emerald, SMS=sky, Email=violet, In-app=stone; Auto=stone / Manual=burgundy direction tags), gradient-avatar customer chips, deliveryStatus badges, time-ago, SkeletonList loader, EmptyState, and a premium SendMessageDialog (Customer + Order + Channel + Title + Body) that POSTs to /api/customers/[id]/send-message with channel omitted when "auto-detect", invalidates ['messages'], sonner toast on success.
+  - src/views/MyJobs.tsx (~390 lines, "use client" default export MyJobs + inline DesignThumb / ActiveJobRow / OpenTaskRow / CompletedCard). Freelancer-scoped view (filters assignedStaffId === user.id + staffId === user.id) with 3-up AnimatedNumber stat strip (Active jobs / Completed / Open tasks), Active Jobs list with design thumbs + StatusBadge + overdue-aware delivery dates (click → go('order', {id})), Open Tasks list with priority StatusBadge + dueDate, Completed Work mini-portfolio grid (aspect-[4/5] cards with hover scale), per-section EmptyState + SkeletonList/SkeletonCard loaders.
+- Premium features applied: PageHeader (animate-fade-in-up built-in), SectionCard everywhere with elevate-sm + lift + surface-premium, PremiumMetric + AnimatedNumber for stat strips, SkeletonList/SkeletonCard + EmptyState for loading/empty, PremiumButton for the send CTA (with loading state), StatusBadge with dot, sonner toasts on send, tabular-nums on counts + recipients + dates, gradient avatars, burgundy #800020 primary, responsive grids (2-col on mobile, 3-4-col on desktop), hover lifts + colour transitions on every interactive row/card.
+- Consumes: @/components/atelier/{PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState+SkeletonList+SkeletonCard, PremiumButton, StatusBadge}, @/components/ui/{Dialog+parts, Input, Label, Textarea, Select+parts}, @/lib/api (apiGet, apiPost), @/lib/format (ACTIVE_STATUSES, isOverdue, shortDate), @/lib/types (Customer, Order, Task), @/lib/utils (cn), @/stores/auth (useAuth), @/stores/nav (useNav), @tanstack/react-query (useQuery, useMutation, useQueryClient), sonner (toast), lucide-react (Send, MessageCircle, Smartphone, Mail, Bell, Search, CheckCircle2, AlertTriangle, Sparkles, Briefcase, Scissors, CalendarDays, Image as ImageIcon, ListTodo).
+- Lint: `bun run lint` → exit 0, no errors, no warnings. Both files compile cleanly in the Next.js dev server (stale module-not-found log entry predates file creation; subsequent compiles return GET / 200).
+
+---
+Task ID: 46 (auto messages + freelancer verification)
+Agent: main
+Task: Verify auto-send messages + freelancer role — end-to-end.
+
+Work Log:
+- Lint: `bun run lint` → 0 errors, 0 warnings.
+- Browser verification:
+  1. Owner Messages outbox: stat strip (Total sent / Auto / Manual / WhatsApp), filter row, message rows with channel + direction badges + recipient + time-ago. ✅
+  2. Manual send (REAL FUNCTION): opened Send dialog → selected Nana Kwame → typed body → "Auto-detect" channel → Send → toast "Message sent. Delivered via SMS to +233 27 145 6678" (auto-detected SMS). ✅
+  3. Auto-send on status change (REAL FUNCTION): opened an order → changed status In Production → Ready → went to Messages outbox → new AUTO "Order update" message appeared ("Good news — your garment is ready for collection...") to Kwame Mensah. ✅
+  4. Customer portal: opened /portal?token=X → "MESSAGES FROM THE STUDIO" section with channel badges (WHATSAPP), direction tags (MANUAL), recipient line ("via WhatsApp · +233 24 112 8845"). ✅
+  5. Freelancer login (freelancer@studio.com): scoped nav = Dashboard, My Jobs, Portfolio, Community (no owner-only items). ✅
+  6. My Jobs view: "ACTIVE JOBS · 5", "OPEN TASKS · 1", "COMPLETED WORK · 2" — only the orders/tasks assigned to Mama Esi Beadworks. ✅
+- Console errors: none. Re-seeded clean demo data.
+
+Stage Summary:
+- MESSAGES SENT AUTOMATICALLY to customers on every order event (status change, payment, fitting) — auto-detected channel (WhatsApp > SMS > email > in-app), logged with deliveryStatus="sent". In production, wire Twilio/WhatsApp Business API to actually deliver.
+- STUDIO OUTBOX (Messages view): all sent messages with channel/direction badges, filter, + manual "Send new message" dialog (customer, optional linked order, channel, title, body). Toast confirms delivery channel.
+- CUSTOMER PORTAL: "Messages from the studio" timeline with channel badges + direction tags + recipient lines.
+- FREELANCER ROLE: freelancer@studio.com logs in to a scoped app (Dashboard, My Jobs, Portfolio, Community). My Jobs shows their assigned orders/tasks/completed work. Freelancers are assignable to orders like staff.
+- One clear demo login per role: madam@studio.com (owner), staff@studio.com (staff), trainer@studio.com (trainer), trainee@studio.com (trainee), freelancer@studio.com (freelancer) — all password atelier2025.
+- New schema fields: CustomerNotification.direction/channel/recipient/deliveryStatus/sentAt. New role: freelancer. New views: Messages, MyJobs. Updated: notify helper (auto-channel), portal (channel badges), AppShell (freelancer nav scope + Messages/My Jobs items), role store (isFreelancer).
+- Lint clean, no runtime errors.

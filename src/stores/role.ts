@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 
-export type Role = "madam" | "staff" | "trainer" | "trainee";
+export type Role = "madam" | "staff" | "trainer" | "trainee" | "freelancer";
 export type Mode = "business" | "training";
 
 const ROLE_MODE: Record<Role, Mode> = {
@@ -10,6 +10,7 @@ const ROLE_MODE: Record<Role, Mode> = {
   staff: "business",
   trainer: "training",
   trainee: "training",
+  freelancer: "business",
 };
 
 interface RoleState {
@@ -25,6 +26,7 @@ interface RoleState {
   isStaff: () => boolean;
   isTrainer: () => boolean;
   isTrainee: () => boolean;
+  isFreelancer: () => boolean;
   /** can see sensitive business/financial info (owner + trainer) */
   canSeeBusiness: () => boolean;
   /** can create orders (owner only — trainees work on assigned tasks) */
@@ -67,6 +69,7 @@ export const useRole = create<RoleState>((set, get) => ({
   isStaff: () => get().role === "staff" || get().role === "trainee",
   isTrainer: () => get().role === "trainer",
   isTrainee: () => get().role === "trainee",
+  isFreelancer: () => get().role === "freelancer",
   canSeeBusiness: () => get().role === "madam" || get().role === "trainer",
   canCreateOrders: () => get().role === "madam",
   canSeeAllCustomers: () => get().role === "madam" || get().role === "trainer",

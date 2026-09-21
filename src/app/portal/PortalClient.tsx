@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Scissors,
   CheckCircle2,
-  Clock,
   CreditCard,
   CalendarDays,
   MessageSquare,
+  MessageCircle,
+  Smartphone,
   Sparkles,
   Phone,
   Mail,
@@ -37,6 +38,11 @@ interface PortalNotification {
   statusTo?: string | null;
   readAt?: string | null;
   createdAt: string;
+  direction?: string;
+  channel?: string;
+  recipient?: string | null;
+  deliveryStatus?: string;
+  sentAt?: string;
   order?: { id: string; garmentDesign: string } | null;
 }
 
@@ -61,6 +67,23 @@ const NOTIF_ICON: Record<string, React.ComponentType<{ className?: string }>> = 
   ready_for_collection: Sparkles,
   delivered: CheckCircle2,
   message: MessageSquare,
+};
+
+// Channel badge styling — emerald WhatsApp, sky SMS, violet Email, stone In-app.
+const CHANNEL_META: Record<
+  string,
+  { label: string; icon: React.ComponentType<{ className?: string }>; class: string }
+> = {
+  whatsapp: { label: "WhatsApp", icon: MessageCircle, class: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  sms: { label: "SMS", icon: Smartphone, class: "bg-sky-50 text-sky-700 border-sky-200" },
+  email: { label: "Email", icon: Mail, class: "bg-violet-50 text-violet-700 border-violet-200" },
+  in_app: { label: "In-app", icon: Bell, class: "bg-stone-100 text-stone-600 border-stone-200" },
+};
+
+// Direction tag — Auto = stone neutral, Manual = burgundy accent.
+const DIRECTION_META: Record<string, { label: string; class: string }> = {
+  auto: { label: "Auto", class: "bg-stone-100 text-stone-500 border-stone-200" },
+  manual: { label: "Manual", class: "bg-[#800020]/8 text-[#800020] border-[#800020]/20" },
 };
 
 export function PortalClient() {
@@ -232,12 +255,15 @@ export function PortalClient() {
       </div>
 
       <div className="max-w-3xl mx-auto px-5 md:px-6 py-8 space-y-6">
-        {/* Notifications timeline */}
+        {/* Messages timeline — channel-aware */}
         {notifications.length > 0 && (
-          <SectionCard title="Latest updates">
+          <SectionCard title="Messages from the studio">
             <div className="space-y-3">
               {notifications.slice(0, 8).map((n) => {
                 const Icon = NOTIF_ICON[n.type] || Bell;
+                const channel = n.channel ? CHANNEL_META[n.channel] : null;
+                const ChannelIcon = channel?.icon;
+                const direction = n.direction ? DIRECTION_META[n.direction] : null;
                 return (
                   <div
                     key={n.id}
@@ -252,12 +278,34 @@ export function PortalClient() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-medium text-[#1C1917]">{n.title}</p>
-                        <span className="text-[10px] text-stone-400 shrink-0">{timeAgo(n.createdAt)}</span>
+                        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                          <p className="text-sm font-medium text-[#1C1917] truncate">{n.title}</p>
+                          {channel && ChannelIcon && (
+                            <span
+                              className={`inline-flex items-center gap-1 px-1.5 h-[18px] rounded-full border text-[9px] font-semibold uppercase tracking-wide ${channel.class}`}
+                            >
+                              <ChannelIcon className="w-2.5 h-2.5" />
+                              {channel.label}
+                            </span>
+                          )}
+                          {direction && (
+                            <span
+                              className={`inline-flex items-center px-1.5 h-[18px] rounded-full border text-[9px] font-semibold uppercase tracking-wide ${direction.class}`}
+                            >
+                              {direction.label}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-stone-400 shrink-0">{timeAgo(n.sentAt || n.createdAt)}</span>
                       </div>
                       <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{n.body}</p>
                       {n.order && (
                         <p className="text-[10px] text-stone-400 mt-1 truncate">→ {n.order.garmentDesign}</p>
+                      )}
+                      {n.recipient && (
+                        <p className="text-[10px] text-stone-400 mt-1 truncate">
+                          {channel ? `via ${channel.label} · ` : ""}{n.recipient}
+                        </p>
                       )}
                     </div>
                     {!n.readAt && <span className="w-2 h-2 rounded-full bg-[#800020] shrink-0 mt-1.5" />}

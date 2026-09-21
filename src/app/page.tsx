@@ -26,6 +26,8 @@ const Community = dynamic(() => import("@/views/Community").then((m) => m.defaul
 const Progress = dynamic(() => import("@/views/Progress").then((m) => m.default), { ssr: false });
 const Portfolio = dynamic(() => import("@/views/Portfolio").then((m) => m.default), { ssr: false });
 const Certificate = dynamic(() => import("@/views/Certificate").then((m) => m.default), { ssr: false });
+const Messages = dynamic(() => import("@/views/Messages").then((m) => m.default), { ssr: false });
+const MyJobs = dynamic(() => import("@/views/MyJobs").then((m) => m.default), { ssr: false });
 
 function CurrentView() {
   const { view } = useNav();
@@ -62,6 +64,10 @@ function CurrentView() {
       return <Portfolio />;
     case "certificate":
       return <Certificate />;
+    case "messages":
+      return <Messages />;
+    case "my-jobs":
+      return <MyJobs />;
     default:
       return <Dashboard />;
   }

@@ -370,5 +370,11 @@ model CustomerNotification {
   statusFrom  String?  // previous status (for status_change)
   statusTo    String?  // new status (for status_change)
   readAt      DateTime?
+  // Message delivery (auto-sent to the customer's preferred channel)
+  direction   String   @default("auto") // auto | manual
+  channel     String   @default("in_app") // whatsapp | sms | email | in_app
+  recipient   String?  // phone/email the message was sent to
+  deliveryStatus String @default("sent") // sent | delivered | failed
+  sentAt      DateTime @default(now())
   createdAt   DateTime @default(now())
 }

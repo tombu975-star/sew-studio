@@ -1,8 +1,8 @@
 import { db } from "../src/lib/db";
 
 const CUSTOMERS = [
-  { name: "Abena Owusu", phone: "+233 24 112 8845", email: "abena.owusu@gmail.com", gender: "Female", occupation: "Lawyer", city: "Accra", country: "Ghana", entrySource: "Referral", referredBy: "Mama Esi", customerType: "VIP", preferredStyles: "Classic,Elegant", favouriteColours: "Burgundy, Navy, Gold", coloursToAvoid: "Neon", favouriteFabrics: "Silk, Lace, Kente", preferredFit: "Fitted", designPreferences: "Off-shoulder necklines, mermaid silhouette", styleNotes: "Loves statement pieces. Prefers modest but dramatic." },
-  { name: "Kwame Mensah", phone: "+233 20 778 2210", email: "k.mensah@outlook.com", gender: "Male", occupation: "Banker", city: "Kumasi", country: "Ghana", entrySource: "Instagram", customerType: "Corporate", preferredStyles: "Classic,Modern", favouriteColours: "Charcoal, Black, Navy", favouriteFabrics: "Wool, Cotton", preferredFit: "Regular", designPreferences: "Slim-fit suits, double-breasted blazers" },
+  { name: "Abena Owusu", phone: "+233 24 112 8845", whatsapp: "+233 24 112 8845", email: "abena.owusu@gmail.com", gender: "Female", occupation: "Lawyer", city: "Accra", country: "Ghana", entrySource: "Referral", referredBy: "Mama Esi", customerType: "VIP", preferredStyles: "Classic,Elegant", favouriteColours: "Burgundy, Navy, Gold", coloursToAvoid: "Neon", favouriteFabrics: "Silk, Lace, Kente", preferredFit: "Fitted", designPreferences: "Off-shoulder necklines, mermaid silhouette", styleNotes: "Loves statement pieces. Prefers modest but dramatic." },
+  { name: "Kwame Mensah", phone: "+233 20 778 2210", whatsapp: "+233 20 778 2210", email: "k.mensah@outlook.com", gender: "Male", occupation: "Banker", city: "Kumasi", country: "Ghana", entrySource: "Instagram", customerType: "Corporate", preferredStyles: "Classic,Modern", favouriteColours: "Charcoal, Black, Navy", favouriteFabrics: "Wool, Cotton", preferredFit: "Regular", designPreferences: "Slim-fit suits, double-breasted blazers" },
   { name: "Ama Serwaa", phone: "+233 55 904 1167", email: "ama.serwaa@yahoo.com", gender: "Female", occupation: "Event Planner", city: "Accra", country: "Ghana", entrySource: "Walk-in", customerType: "Bridal", preferredStyles: "Dramatic,Elegant", favouriteColours: "Ivory, Blush, Champagne", coloursToAvoid: "Black", favouriteFabrics: "Tulle, Satin, Chiffon", preferredFit: "Bodycon", designPreferences: "Ball gown, corset bodice, cathedral train" },
   { name: "Yaw Boateng", phone: "+233 27 330 5589", email: "yaw.boateng@gmail.com", gender: "Male", occupation: "Architect", city: "Takoradi", country: "Ghana", entrySource: "Repeat Client", customerType: "Returning Customer", preferredStyles: "Minimal,Classic", favouriteColours: "Olive, Camel, Cream", favouriteFabrics: "Linen, Cotton", preferredFit: "Relaxed", designPreferences: "Agbada, kaftan cuts" },
   { name: "Esi Owusu-Darko", phone: "+233 24 556 7700", email: "esi.darko@gmail.com", gender: "Female", occupation: "Doctor", city: "Accra", country: "Ghana", entrySource: "Referral", referredBy: "Abena Owusu", customerType: "Occasion Wear", preferredStyles: "Elegant,Modest", favouriteColours: "Emerald, Plum, Teal", coloursToAvoid: "Yellow", favouriteFabrics: "Crepe, Velvet", preferredFit: "Semi-Fitted", designPreferences: "Long sleeves, high neck, A-line" },
@@ -13,12 +13,13 @@ const CUSTOMERS = [
 
 const STAFF = [
   { email: "madam@studio.com", fullName: "Madam Adwoa", role: "madam", gender: "Female", phone: "+233 24 000 0001", password: "atelier2025" },
-  { email: "akos@studio.com", fullName: "Akos Mansa", role: "staff", gender: "Female", phone: "+233 24 000 0002", password: "atelier2025" },
+  { email: "staff@studio.com", fullName: "Akos Mansa", role: "staff", gender: "Female", phone: "+233 24 000 0002", password: "atelier2025" },
   { email: "yaw@studio.com", fullName: "Yaw Kofi", role: "staff", gender: "Male", phone: "+233 24 000 0003", password: "atelier2025" },
   { email: "esi@studio.com", fullName: "Esi Boatema", role: "staff", gender: "Female", phone: "+233 24 000 0004", password: "atelier2025" },
   { email: "trainer@studio.com", fullName: "Coach Afia", role: "trainer", gender: "Female", phone: "+233 24 000 0005", password: "atelier2025" },
-  { email: "ama@studio.com", fullName: "Ama Trainee", role: "trainee", gender: "Female", phone: "+233 24 000 0006", password: "atelier2025" },
+  { email: "trainee@studio.com", fullName: "Ama Trainee", role: "trainee", gender: "Female", phone: "+233 24 000 0006", password: "atelier2025" },
   { email: "kojo@studio.com", fullName: "Kojo Trainee", role: "trainee", gender: "Male", phone: "+233 24 000 0007", password: "atelier2025" },
+  { email: "freelancer@studio.com", fullName: "Mama Esi Beadworks", role: "freelancer", gender: "Female", phone: "+233 24 111 2233", password: "atelier2025" },
 ];
 
 const GARMENTS = [
@@ -77,7 +78,7 @@ async function main() {
     users.push(await db.user.create({ data: { ...s, shopId } }));
   }
   const madam = users[0];
-  const staff = users.filter((u) => u.role === "staff");
+  const staff = users.filter((u) => u.role === "staff" || u.role === "freelancer");
   const trainer = users.find((u) => u.role === "trainer");
   const trainees = users.filter((u) => u.role === "trainee");
 

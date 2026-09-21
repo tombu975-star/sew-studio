@@ -50,7 +50,7 @@ const syncRoleStore = (user: AuthUser) => {
   roleStore.setOwnerLabel(genderToOwnerLabel(user.gender));
   if (user.shop?.name) roleStore.setStudioName(user.shop.name);
   const userRole = user.role as Role;
-  if (["madam", "staff", "trainer", "trainee"].includes(userRole)) {
+  if (["madam", "staff", "trainer", "trainee", "freelancer"].includes(userRole)) {
     roleStore.setRole(userRole);
   }
 };
