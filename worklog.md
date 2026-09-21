@@ -1816,3 +1816,36 @@ Stage Summary:
 - One clear demo login per role: madam@studio.com (owner), staff@studio.com (staff), trainer@studio.com (trainer), trainee@studio.com (trainee), freelancer@studio.com (freelancer) — all password atelier2025.
 - New schema fields: CustomerNotification.direction/channel/recipient/deliveryStatus/sentAt. New role: freelancer. New views: Messages, MyJobs. Updated: notify helper (auto-channel), portal (channel badges), AppShell (freelancer nav scope + Messages/My Jobs items), role store (isFreelancer).
 - Lint clean, no runtime errors.
+
+---
+Task ID: 47 (nav redesign + privilege scoping)
+Agent: main
+Task: Redesign the nav and scope it well based on user privileges.
+
+Work Log:
+- Rewrote src/components/atelier/AppShell.tsx with a privilege-based sectioned navigation:
+  - Switched from a narrow 80px icon rail to a premium w-60 sectioned sidebar on desktop (inline labels + section groupings).
+  - Each role now has a curated SECTIONS config (role → array of {label, items[]}):
+    - OWNER: Overview (Dashboard) | Studio (Orders, Board, Fittings, Tasks, Quotes, Style Assist) | Clients (Customers, Messages) | People (Team, Community) | Learning (Progress, Portfolio, Certificates) — 15 items in 5 sections.
+    - TRAINER: Overview | Studio (Orders, Board, Fittings) | People (Community) | Learning (Trainee Progress, Portfolio) — 7 items.
+    - STAFF: Overview | Studio (Orders, Board, Fittings, Tasks) | People (Community) | Work (Portfolio) — 7 items.
+    - TRAINEE: Overview | Studio (Orders, Board, Tasks) | My Journey (My Progress, Portfolio, Certificate) | People (Community) — 8 items.
+    - FREELANCER: Overview | Work (My Jobs) | Showcase (Portfolio) | People (Community) — 4 items.
+  - Sidebar header: shop name + "{Role} portal" label (e.g. "OWNER PORTAL").
+  - User card at bottom: gradient avatar + name + "Sign out".
+  - Active item: burgundy left-bar + tinted bg + bold.
+- Mobile: bottom nav shows the top 5 priority items per role (MOBILE_PRIORITY map) + a "More" button.
+  - "More" opens a premium bottom sheet with the remaining items grouped by section (section labels + chevron arrows).
+  - Mobile header shows shop name + a role badge (OWNER/STAFF/etc.) + avatar (tap = sign out).
+- Verified all 5 roles in browser:
+  - Owner: 15 items in 5 sections (Overview/Studio/Clients/People/Learning). ✅
+  - Staff: 7 items (Dashboard, Orders, Board, Fittings, Tasks, Community, Portfolio) — no owner-only items. ✅
+  - Trainee: 8 items (Dashboard, Orders, Board, Tasks, My Progress, Portfolio, Certificate, Community). ✅
+  - Freelancer: 4 items (Dashboard, My Jobs, Portfolio, Community). ✅
+  - Mobile (owner): 5 priority bottom-nav items + More sheet with grouped remaining items. ✅
+- Console errors: none. Lint clean.
+
+Stage Summary:
+- NAV REDESIGNED: premium w-60 sectioned sidebar (desktop) replacing the cramped icon rail. Each role sees a curated, privilege-based set of items organized into logical sections (Overview / Studio / Clients / People / Work / Learning). Role label shown in the header ("OWNER PORTAL", "STAFF PORTAL", etc.).
+- MOBILE: smart bottom nav — top 5 priority items per role + a "More" bottom sheet with the rest grouped by section.
+- PRIVILEGE SCOPING: owner=full, trainer=production+trainees, staff=assigned work, trainee=learning journey, freelancer=their jobs. Each role sees exactly what they need, nothing they shouldn't.
