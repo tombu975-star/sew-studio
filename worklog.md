@@ -551,3 +551,27 @@ Stage Summary:
 - Demo accounts removed entirely (no chips, no pre-filled credentials).
 - Login redesigned mobile-first: hero header band + centered form, app-style, premium.
 - Real login verified working end-to-end on a phone viewport.
+
+---
+Task ID: 18 (scope app + remove role/mode toggles)
+Agent: main
+Task: Remove Business/Training mode toggle and Madam/Staff role toggle from the app UI; scope the app cleanly.
+
+Work Log:
+- Rewrote src/components/atelier/AppShell.tsx:
+  - Removed the MODE_ROLES map, the Business/Training mode toggle (desktop rail + mobile header), and the Madam/Staff view toggle (mobile header).
+  - Removed the `setRole`/`setMode`/`mode`/`ownerLabel`/`role` usage from the shell — no longer needed in the UI.
+  - Simplified NavItem to just `staff: boolean` (visible to staff). Dropped trainer/trainee fields.
+  - Nav filter is now simply: owners (madam) see all 8 items; staff see the 5 staff-allowed items (Dashboard, Orders, Board, Fittings, Tasks).
+  - Refined the desktop user area: avatar (gradient) + online dot + "Sign out" label under it, clicking signs out.
+  - Refined mobile header: just brand + avatar (click = sign out). Removed the toggle row entirely.
+- The role still flows from the logged-in user's DB role (auth store syncs it on login/hydrate), so views' isStaff() checks still work — no behavior change to the views themselves.
+- Verified in browser:
+  - Owner (madam@studio.com): sees full nav (Dashboard, Customers, Orders, Board, Fittings, Quotes, Tasks, Style Assist) + "Madam's Atelier" dashboard. No toggles.
+  - Staff (akos@studio.com): sees scoped nav (Dashboard, Orders, Board, Fittings, Tasks) + "Your Workbench" dashboard. No toggles.
+  - No runtime errors.
+- Lint clean.
+
+Stage Summary:
+- Business/Training/Madam/Staff toggles fully removed from the UI.
+- App is cleanly scoped: owners manage the whole atelier, staff get a focused workbench. Role follows the signed-in user automatically.
