@@ -1609,3 +1609,36 @@ Work Log:
 
 Stage Summary:
 - One shared login page for ALL shops. Email + password → auto-routed to the user's tenant. No per-shop login pages, no prominent signup tab competing with sign-in. New shop registration remains accessible via a subtle link.
+
+---
+Task ID: 42 (customer order alerts + portal)
+Agent: main
+Task: Customers receive alerts about their orders and stages anytime there's an update — via a public customer portal.
+
+Work Log:
+- Prisma schema: added CustomerNotification model (id, shopId, customerId, orderId, type, title, body, statusFrom, statusTo, readAt, createdAt). Added portalToken + portalPhone to Customer (unique token for the tracking link). Added relations on Shop, Customer, Order. db:push + re-seeded.
+- Notification helper: src/lib/notify.ts — notifyCustomer() (best-effort, never blocks parent op), ensurePortalToken() (generates a URL-safe token per customer), statusChangeMessage() (friendly per-status copy).
+- Auto-notify on order events:
+  - PATCH /api/orders/[id]: on status change → notifyCustomer with type status_change (or ready_for_collection / delivered for those statuses) + friendly message.
+  - POST /api/orders/[id]/payments: on payment → "Payment received — GHS X for your order...".
+  - POST /api/orders/[id]/fittings: on scheduled fitting → "Fitting scheduled for {date}...".
+- Portal API (public, token-based — no studio auth):
+  - GET /api/portal/[token] → customer + shop + their orders (with payments + fittings).
+  - GET /api/portal/[token]/notifications → alert timeline (newest first, 50 max).
+  - PATCH /api/portal/[token]/notifications → mark all as read.
+  - POST /api/customers/[id]/portal-token → owner generates/returns the customer's token (tenant-scoped).
+- Public Customer Portal (src/app/portal/page.tsx + PortalClient.tsx):
+  - /portal (no token): premium entry screen "Track your order" + token input field.
+  - /portal?token=X: customer-facing dashboard — burgundy header "Hello, {name} 👋", unread-count badge, "Latest updates" notification timeline (icon per type, time-ago, unread highlighting), "Your orders" list (expandable cards with design image, StatusBadge, order journey StatusStepper, delivery date, payment summary, payments + fittings), contact-studio buttons, bookmark hint.
+  - Self-contained (uses _portal.tsx lightweight components, no studio auth dependency).
+- Studio side: "Copy tracking link" PremiumButton on OrderDetail (Customer Snapshot card, owner/trainer only) → POST portal-token → copies {origin}/portal?token=X to clipboard + toast "Portal link copied — share it with the customer."
+- Verified end-to-end:
+  - API: owner login → generate token → portal fetch (no auth) returns customer + 3 orders. Status change Confirmed→Ready created a ready_for_collection notification. Payment recording created a payment_received notification. Both visible via portal notifications endpoint.
+  - Browser: portal link renders "Hello, Nana 👋" + LATEST UPDATES (Payment received + Ready for collection) + YOUR ORDERS · 3 with expandable order journey. Portal entry screen (no token) shows "Track your order" + token input. Studio "Copy tracking link" button → toast "Portal link copied".
+  - No console/runtime errors. Lint clean. Re-seeded clean demo data.
+
+Stage Summary:
+- CUSTOMERS RECEIVE ALERTS on every order update: status changes, payments, scheduled fittings — each auto-creates a CustomerNotification with friendly copy.
+- PUBLIC CUSTOMER PORTAL at /portal?token=X (no login needed — the token is the credential). Shows the customer's name, all their orders with live status + journey stepper + payments + fittings, and a notification timeline with unread highlighting. Mark-as-read on visit.
+- STUDIO SIDE: owner/trainer clicks "Copy tracking link" on any order detail → gets a shareable URL to send to the customer (via WhatsApp/email/etc).
+- New schema: CustomerNotification model + Customer.portalToken. New API: portal (public, 3 endpoints) + portal-token (owner). New route: /portal. Updated: orders/payments/fittings routes auto-notify; OrderDetail has Copy-tracking-link button.

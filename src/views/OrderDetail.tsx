@@ -18,6 +18,7 @@ import {
   MapPin,
   Sparkles,
   Image as ImageIcon,
+  Link2,
 } from "lucide-react";
 
 import { apiGet, apiPatch, apiPost } from "@/lib/api";
@@ -88,6 +89,7 @@ export default function OrderDetail() {
   const { canSeeBusiness } = useRole();
   const canSeeMoney = canSeeBusiness();
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [generatingPortal, setGeneratingPortal] = useState(false);
 
   const { data: order, isLoading } = useQuery<Order>({
     queryKey: ["order", selectedId],
@@ -700,6 +702,33 @@ export default function OrderDetail() {
                 >
                   <UserCircle2 className="w-3.5 h-3.5" /> View profile
                 </PremiumButton>
+
+                {canSeeMoney && (
+                  <PremiumButton
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    loading={generatingPortal}
+                    onClick={async () => {
+                      setGeneratingPortal(true);
+                      try {
+                        const res = await apiPost<{ token: string; url: string }>(
+                          `/api/customers/${order.customerId}/portal-token`,
+                          {}
+                        );
+                        const fullUrl = `${window.location.origin}${res.url}`;
+                        await navigator.clipboard.writeText(fullUrl);
+                        toast.success("Portal link copied — share it with the customer.");
+                      } catch {
+                        toast.error("Could not generate the portal link.");
+                      } finally {
+                        setGeneratingPortal(false);
+                      }
+                    }}
+                  >
+                    <Link2 className="w-3.5 h-3.5" /> Copy tracking link
+                  </PremiumButton>
+                )}
               </div>
             ) : (
               <p className="text-sm text-stone-400">No customer linked.</p>

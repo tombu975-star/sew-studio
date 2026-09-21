@@ -35,6 +35,7 @@ model Shop {
   communityPosts  CommunityPost[]
   trainingLogs    TrainingLog[]
   certificates    Certificate[]
+  customerNotifications CustomerNotification[]
 }
 
 // ─── People ────────────────────────────────────────────────────────
@@ -113,6 +114,8 @@ model Customer {
   loyaltyPoints Int      @default(0)
   notes         String?
   status        String   @default("Active")
+  portalToken   String?  @unique // secret token for the customer's order-tracking portal
+  portalPhone   String?  // last 4 of phone used to verify portal access (optional extra check)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -120,6 +123,7 @@ model Customer {
   measurements   MeasurementSet[]
   styleConcepts  StyleConcept[]
   feedback       CustomerFeedback[]
+  notifications  CustomerNotification[]
 }
 
 model MeasurementSet {
@@ -181,6 +185,7 @@ model Order {
   payments   Payment[]
   fittings   Fitting[]
   tasks      Task[]
+  notifications CustomerNotification[]
 }
 
 model Payment {
@@ -348,4 +353,22 @@ model Certificate {
   certificateNo   String   @unique
   issuedAt        DateTime @default(now())
   createdAt       DateTime @default(now())
+}
+
+// ─── Customer notifications (order alerts) ────────────────────────
+model CustomerNotification {
+  id          String   @id @default(cuid())
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderId     String?
+  order       Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type        String   // status_change | payment_received | fitting_scheduled | fitting_completed | message | ready_for_collection | delivered
+  title       String
+  body        String
+  statusFrom  String?  // previous status (for status_change)
+  statusTo    String?  // new status (for status_change)
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
 }

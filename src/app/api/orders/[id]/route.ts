@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getTenant } from "@/lib/tenant";
+import { notifyCustomer, statusChangeMessage } from "@/lib/notify";
 
 // GET /api/orders/[id] — single order with full relations
 export async function GET(
@@ -44,16 +45,20 @@ export async function PATCH(
 
   const { id } = await params;
 
-  // Verify ownership.
+  // Verify ownership + fetch current state for notification diffing.
   const existing = await db.order.findFirst({
     where: { id, shopId: ctx.shopId },
-    select: { id: true },
+    select: { id: true, status: true, customerId: true, garmentDesign: true },
   });
   if (!existing) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
   const body = await req.json();
+
+  // Track status change for customer notification.
+  const statusChanged =
+    body.status !== undefined && body.status !== existing.status;
 
   const data: any = {};
   if (body.garmentDesign !== undefined) data.garmentDesign = body.garmentDesign;
@@ -107,5 +112,31 @@ export async function PATCH(
       },
     },
   });
+
+  // Notify the customer about the status change.
+  if (statusChanged) {
+    const msg = statusChangeMessage(
+      existing.garmentDesign,
+      existing.status,
+      updated.status
+    );
+    const type =
+      updated.status === "Ready"
+        ? "ready_for_collection"
+        : updated.status === "Collected/Delivered" || updated.status === "Completed"
+          ? "delivered"
+          : "status_change";
+    await notifyCustomer({
+      shopId: ctx.shopId,
+      customerId: existing.customerId,
+      orderId: id,
+      type,
+      title: msg.title,
+      body: msg.body,
+      statusFrom: existing.status,
+      statusTo: updated.status,
+    });
+  }
+
   return NextResponse.json(updated);
 }
