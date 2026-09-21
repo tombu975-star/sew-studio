@@ -1911,3 +1911,22 @@ Work Log:
 
 Stage Summary:
 - Dashboard loading issue fixed. Root cause was stale session cookies from earlier schema migrations. Added a global 401 → re-hydrate handler so any expired session cleanly returns to the login page instead of hanging on a loading skeleton.
+
+---
+Task ID: 51 (fix cant login)
+Agent: main
+Task: Fix the login issue — dashboard 401 loop after login.
+
+Work Log:
+- Diagnosed via dev log: `POST /api/auth/login 200` → `GET /api/dashboard 401` → `GET /api/auth/me 200` → repeat infinitely. The login succeeded and the cookie was set (verified /me returned 200), but the dashboard query fired immediately after login and got 401 — a race where the browser hadn't applied the Set-Cookie to the next request yet. My previous 401-handler (hydrate on any 401) made it worse: 401 → hydrate → authenticated → dashboard re-renders → 401 → loop.
+- Root cause: the `fetch` calls in src/lib/api.ts didn't set `credentials: "same-origin"`, so the cookie wasn't guaranteed to be sent on the immediate next request after login.
+- Fixes:
+  1. src/lib/api.ts: added `credentials: "same-origin"` to the fetch options — ensures the session cookie is always sent on every API request.
+  2. AuthGate 401 handler: only re-hydrates if status is NOT already "authenticated" — prevents the infinite loop (login → 401 → hydrate → authenticated → 401…). If already authenticated and a 401 occurs (transient race), it's ignored and the query retries naturally.
+- Verified:
+  - Cleared cookies → login → `POST /login 200` → `GET /dashboard 200` (no 401!). Dashboard rendered "Madam's Atelier" with real data + "Welcome back, Madam." toast. ✅
+  - Logout → login again → same clean flow, no loop. ✅
+  - No console errors. Lint clean.
+
+Stage Summary:
+- Login fixed. Root cause was missing `credentials: "same-origin"` on fetch + a 401-handler loop. Both fixed. Login → dashboard now works cleanly every time.

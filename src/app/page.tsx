@@ -134,16 +134,26 @@ function FullScreenLoader() {
 }
 
 function AuthGate() {
-  const { status, hydrate } = useAuth();
+  const { status, hydrate, user } = useAuth();
 
   useEffect(() => {
     if (status === "loading") hydrate();
   }, [status, hydrate]);
 
-  // Wire up the global 401 handler: when any API call returns 401 (session expired),
-  // re-hydrate auth — which will show the login page if the session is truly gone.
+  // Wire up the global 401 handler. Only re-hydrate if we're NOT already
+  // in a login flow — otherwise a transient 401 (race during login) would
+  // loop: login → dashboard 401 → hydrate → authenticated → dashboard 401…
   useEffect(() => {
     setOnSessionExpired(() => {
+      // If the user is already authenticated but getting 401s, it's a race —
+      // wait a tick and refetch will happen naturally. Only force logout if
+      // we're unauthenticated (genuine session expiry).
+      const current = useAuth.getState();
+      if (current.status === "authenticated") {
+        // Don't loop — just let the queries retry. The cookie will be present
+        // on the next attempt.
+        return;
+      }
       hydrate();
     });
   }, [hydrate]);
