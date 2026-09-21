@@ -529,3 +529,25 @@ Stage Summary:
 - ALL real functions verified working end-to-end: login/logout, create customer, create order, record payment, drag-and-drop status change, AI style concept generation, AI image visualization, AI business insights, live quote calculation, task status changes.
 - VLM assessment: dashboard rated 8.5/10 "high-end boutique-style dashboard... sophisticated, fashion-house aesthetic".
 - Lint clean. No runtime errors. App is production-ready.
+
+---
+Task ID: 17 (mobile login redesign)
+Agent: main
+Task: Remove demo accounts + redesign login as a phone-first mobile screen.
+
+Work Log:
+- Removed DEMO_ACCOUNTS array, fillDemo function, and the entire demo-accounts section from LoginPage.tsx.
+- Cleared default email/password (fields now start empty — real login behavior).
+- Redesigned LoginPage as a mobile-first, app-style screen:
+  - Top hero band (42vh, min 300px): full-bleed atelier image with burgundy gradient overlay + grain, centered brand mark (scissors in a glassy circle) + "Madam Studio" display title + "Bespoke Atelier · Accra" eyebrow. Fades into the form below.
+  - Form section: "Welcome back" heading, email + password fields (rounded-xl, elevate-sm, focus rings), show/hide password, burgundy Sign in button (elevate-burgundy + lift), subtle footer tagline.
+  - Single column, centered max-w-md, works full-height on phone and centers nicely on desktop.
+- Verified on iPhone 14 viewport: renders cleanly, no demo accounts, empty fields.
+- VLM rated the mobile login 8.5/10 — "Excellent use of a split-screen aesthetic adapted for mobile... premium and evocative... immediately establishes a high-end, bespoke brand identity."
+- Verified real login flow: typed madam@studio.com / atelier2025 → signed in successfully to dashboard.
+- Lint clean.
+
+Stage Summary:
+- Demo accounts removed entirely (no chips, no pre-filled credentials).
+- Login redesigned mobile-first: hero header band + centered form, app-style, premium.
+- Real login verified working end-to-end on a phone viewport.
