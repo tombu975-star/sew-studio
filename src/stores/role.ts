@@ -21,9 +21,16 @@ interface RoleState {
   setOwnerLabel: (s: string) => void;
   setStudioName: (s: string) => void;
   mode: () => Mode;
+  isOwner: () => boolean;
   isStaff: () => boolean;
   isTrainer: () => boolean;
   isTrainee: () => boolean;
+  /** can see sensitive business/financial info (owner + trainer) */
+  canSeeBusiness: () => boolean;
+  /** can create orders (owner only — trainees work on assigned tasks) */
+  canCreateOrders: () => boolean;
+  /** can see all customers (owner + trainer); staff/trainees see only their assigned */
+  canSeeAllCustomers: () => boolean;
 }
 
 const loadRole = (): Role => {
@@ -56,7 +63,11 @@ export const useRole = create<RoleState>((set, get) => ({
   setOwnerLabel: (s) => set({ ownerLabel: s }),
   setStudioName: (s) => set({ studioName: s }),
   mode: () => ROLE_MODE[get().role],
+  isOwner: () => get().role === "madam",
   isStaff: () => get().role === "staff" || get().role === "trainee",
   isTrainer: () => get().role === "trainer",
   isTrainee: () => get().role === "trainee",
+  canSeeBusiness: () => get().role === "madam" || get().role === "trainer",
+  canCreateOrders: () => get().role === "madam",
+  canSeeAllCustomers: () => get().role === "madam" || get().role === "trainer",
 }));

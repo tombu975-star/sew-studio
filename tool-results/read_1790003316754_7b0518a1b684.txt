@@ -1,0 +1,966 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { useQuery } from "@tanstack/react-query";
+     5→import {
+     6→  AreaChart,
+     7→  Area,
+     8→  XAxis,
+     9→  YAxis,
+    10→  Tooltip,
+    11→  ResponsiveContainer,
+    12→  CartesianGrid,
+    13→} from "recharts";
+    14→import {
+    15→  Plus,
+    16→  CalendarDays,
+    17→  AlertCircle,
+    18→  ChevronRight,
+    19→  Sparkles,
+    20→  TrendingUp,
+    21→  Check,
+    22→  Wallet,
+    23→  ArrowRight,
+    24→  ClipboardList,
+    25→  PackageCheck,
+    26→  CircleDollarSign,
+    27→  Coins,
+    28→  Timer,
+    29→  UserCheck,
+    30→} from "lucide-react";
+    31→import { toast } from "sonner";
+    32→
+    33→import { apiGet, apiPost } from "@/lib/api";
+    34→import {
+    35→  formatCurrency,
+    36→  formatDate,
+    37→  shortDate,
+    38→  isWithinDays,
+    39→  isOverdue,
+    40→  ORDER_STATUSES,
+    41→  ACTIVE_STATUSES,
+    42→  ENTRY_SOURCES,
+    43→} from "@/lib/format";
+    44→import type {
+    45→  Order,
+    46→  Payment,
+    47→  Fitting,
+    48→  Task,
+    49→  User,
+    50→  Customer,
+    51→  Settings,
+    52→  StyleConcept,
+    53→} from "@/lib/types";
+    54→import { useNav } from "@/stores/nav";
+    55→import { useRole } from "@/stores/role";
+    56→
+    57→import { PageHeader } from "@/components/atelier/PageHeader";
+    58→import { SectionCard } from "@/components/atelier/SectionCard";
+    59→import { PremiumMetric } from "@/components/atelier/PremiumMetric";
+    60→import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
+    61→import {
+    62→  EmptyState,
+    63→  SkeletonCard,
+    64→  SkeletonList,
+    65→} from "@/components/atelier/EmptyState";
+    66→import { PremiumButton } from "@/components/atelier/PremiumButton";
+    67→import { StatusBadge } from "@/components/atelier/StatusBadge";
+    68→
+    69→interface DashboardData {
+    70→  orders: Order[];
+    71→  payments: Payment[];
+    72→  fittings: Fitting[];
+    73→  tasks: Task[];
+    74→  users: User[];
+    75→  customers: Customer[];
+    76→  settings: Settings | null;
+    77→  styleConcepts: StyleConcept[];
+    78→}
+    79→
+    80→/* ---------- local helpers ---------- */
+    81→
+    82→function orderPaidTotal(orderId: string, payments: Payment[]) {
+    83→  return payments
+    84→    .filter((p) => p.orderId === orderId)
+    85→    .reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    86→}
+    87→
+    88→function orderCostTotal(order: Order) {
+    89→  return (Number(order.fabricCost) || 0) + (Number(order.labourCost) || 0);
+    90→}
+    91→
+    92→function sameMonth(d: string | Date | null | undefined, ref: Date) {
+    93→  if (!d) return false;
+    94→  const x = new Date(d);
+    95→  if (isNaN(x.getTime())) return false;
+    96→  return x.getMonth() === ref.getMonth() && x.getFullYear() === ref.getFullYear();
+    97→}
+    98→
+    99→/** Build last `months` monthly buckets from a flat array using extractor fns. */
+   100→function monthlyBuckets<T>(
+   101→  items: T[],
+   102→  getDate: (x: T) => string | Date | null | undefined,
+   103→  getValue: (x: T) => number,
+   104→  months = 6
+   105→) {
+   106→  const now = new Date();
+   107→  const buckets: { key: string; label: string; total: number }[] = [];
+   108→  for (let i = months - 1; i >= 0; i--) {
+   109→    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+   110→    buckets.push({
+   111→      key: `${d.getFullYear()}-${d.getMonth()}`,
+   112→      label: d.toLocaleDateString("en-GB", { month: "short" }),
+   113→      total: 0,
+   114→    });
+   115→  }
+   116→  for (const item of items) {
+   117→    const dRaw = getDate(item);
+   118→    if (!dRaw) continue;
+   119→    const d = new Date(dRaw);
+   120→    if (isNaN(d.getTime())) continue;
+   121→    const key = `${d.getFullYear()}-${d.getMonth()}`;
+   122→    const b = buckets.find((x) => x.key === key);
+   123→    if (b) b.total += Number(getValue(item)) || 0;
+   124→  }
+   125→  return buckets;
+   126→}
+   127→
+   128→const ACTIVE = ACTIVE_STATUSES as readonly string[];
+   129→
+   130→/** Status category → text color class for the pipeline tile count. */
+   131→const STATUS_CATEGORY_COLOR: Record<string, string> = {
+   132→  Enquiry: "text-stone-700",
+   133→  Quoted: "text-stone-700",
+   134→  Consultation: "text-stone-700",
+   135→  Confirmed: "text-blue-700",
+   136→  "Deposit Paid": "text-blue-700",
+   137→  "In Production": "text-violet-700",
+   138→  Fitting: "text-cyan-700",
+   139→  Alterations: "text-cyan-700",
+   140→  Ready: "text-emerald-700",
+   141→  "Collected/Delivered": "text-teal-700",
+   142→  Completed: "text-teal-700",
+   143→};
+   144→
+   145→/* ---------- gradient avatar palette ---------- */
+   146→const AVATAR_GRADIENTS = [
+   147→  "from-[#800020] to-[#b30030]",
+   148→  "from-[#1C1917] to-[#44403c]",
+   149→  "from-[#7c2d12] to-[#b45309]",
+   150→  "from-[#15803D] to-[#22c55e]",
+   151→  "from-[#0e7490] to-[#06b6d4]",
+   152→  "from-[#7e22ce] to-[#a855f7]",
+   153→];
+   154→
+   155→function avatarGradient(seed: string) {
+   156→  let hash = 0;
+   157→  for (let i = 0; i < seed.length; i++)
+   158→    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+   159→  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+   160→}
+   161→
+   162→/* ---------- main view ---------- */
+   163→
+   164→export default function Dashboard() {
+   165→  const { go } = useNav();
+   166→  const { isStaff, ownerLabel } = useRole();
+   167→  const staff = isStaff();
+   168→
+   169→  const [insights, setInsights] = useState<string[] | null>(null);
+   170→  const [insightsLoading, setInsightsLoading] = useState(false);
+   171→
+   172→  const { data, isLoading, isError } = useQuery<DashboardData>({
+   173→    queryKey: ["dashboard"],
+   174→    queryFn: () => apiGet<DashboardData>("/api/dashboard"),
+   175→  });
+   176→
+   177→  const m = useMemo(() => {
+   178→    if (!data) return null;
+   179→    const { orders, payments, fittings, tasks, users, customers } = data;
+   180→    const now = new Date();
+   181→
+   182→    const salesThisMonth = orders
+   183→      .filter((o) => sameMonth(o.orderDate, now))
+   184→      .reduce((s, o) => s + (Number(o.sellingPrice) || 0), 0);
+   185→
+   186→    const receivedThisMonth = payments
+   187→      .filter((p) => sameMonth(p.date, now))
+   188→      .reduce((s, p) => s + (Number(p.amount) || 0), 0);
+   189→
+   190→    const outstanding = orders
+   191→      .filter(
+   192→        (o) => o.status !== "Completed" && o.status !== "Collected/Delivered"
+   193→      )
+   194→      .reduce((s, o) => {
+   195→        const paid = orderPaidTotal(o.id, payments);
+   196→        return s + Math.max(0, (Number(o.sellingPrice) || 0) - paid);
+   197→      }, 0);
+   198→
+   199→    const profit = orders.reduce(
+   200→      (s, o) => s + (Number(o.sellingPrice) || 0) - orderCostTotal(o),
+   201→      0
+   202→    );
+   203→
+   204→    const activeOrders = orders.filter((o) => ACTIVE.includes(o.status));
+   205→
+   206→    const statusCounts = ORDER_STATUSES.map((s) => ({
+   207→      status: s,
+   208→      count: orders.filter((o) => o.status === s).length,
+   209→    }));
+   210→
+   211→    const upcomingFittings = fittings
+   212→      .filter((f) => f.status === "Scheduled")
+   213→      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+   214→      .slice(0, 5);
+   215→
+   216→    const overdueTasks = tasks.filter(
+   217→      (t) => t.status !== "Done" && isOverdue(t.dueDate)
+   218→    );
+   219→    const openTasks = tasks.filter((t) => t.status !== "Done");
+   220→    const readyOrders = orders.filter((o) => o.status === "Ready");
+   221→    const dueSoon = orders.filter(
+   222→      (o) =>
+   223→        o.status !== "Completed" &&
+   224→        o.status !== "Collected/Delivered" &&
+   225→        isWithinDays(o.deliveryDate, 7)
+   226→    );
+   227→
+   228→    const staffWorkload = (users || []).map((u) => ({
+   229→      user: u,
+   230→      openTasks: tasks.filter(
+   231→        (t) => t.staffId === u.id && t.status !== "Done"
+   232→      ).length,
+   233→      activeOrders: orders.filter(
+   234→        (o) => o.assignedStaffId === u.id && ACTIVE.includes(o.status)
+   235→      ).length,
+   236→    }));
+   237→
+   238→    const margins = orders.map(
+   239→      (o) => (Number(o.sellingPrice) || 0) - orderCostTotal(o)
+   240→    );
+   241→    const avgMargin =
+   242→      margins.length > 0
+   243→        ? margins.reduce((a, b) => a + b, 0) / margins.length
+   244→        : 0;
+   245→
+   246→    const healthStatus =
+   247→      outstanding > 5000 || overdueTasks.length > 3
+   248→        ? "At Risk"
+   249→        : outstanding > 1000 || overdueTasks.length > 0
+   250→        ? "Needs Attention"
+   251→        : "On Track";
+   252→
+   253→    const incomeSeries = monthlyBuckets(
+   254→      payments,
+   255→      (p) => p.date,
+   256→      (p) => Number(p.amount) || 0,
+   257→      6
+   258→    );
+   259→    const salesSeries = monthlyBuckets(
+   260→      orders,
+   261→      (o) => o.orderDate,
+   262→      (o) => Number(o.sellingPrice) || 0,
+   263→      6
+   264→    );
+   265→    const totalReceived6m = incomeSeries.reduce((s, x) => s + x.total, 0);
+   266→
+   267→    const salesSpark = salesSeries.map((b) => b.total);
+   268→    const paymentsSpark = incomeSeries.map((b) => b.total);
+   269→
+   270→    const prevMonthIdx = incomeSeries.length - 2;
+   271→    const prevReceived = prevMonthIdx >= 0 ? incomeSeries[prevMonthIdx].total : 0;
+   272→    const receivedTrend =
+   273→      receivedThisMonth > prevReceived
+   274→        ? "up"
+   275→        : receivedThisMonth < prevReceived && prevReceived > 0
+   276→        ? "down"
+   277→        : "flat";
+   278→    const receivedTrendLabel =
+   279→      prevReceived > 0
+   280→        ? `${Math.round(
+   281→            ((receivedThisMonth - prevReceived) / prevReceived) * 100
+   282→          )}% vs last mo`
+   283→        : "vs last mo";
+   284→
+   285→    /* ----- Needs Attention items ----- */
+   286→    const attentionItems: string[] = [];
+   287→    dueSoon.slice(0, 3).forEach((o) => {
+   288→      attentionItems.push(
+   289→        `“${(o.garmentDesign || "Untitled garment").slice(0, 36)}” is due ${shortDate(
+   290→          o.deliveryDate
+   291→        )} — confirm progress with the customer.`
+   292→      );
+   293→    });
+   294→    if (overdueTasks.length > 0) {
+   295→      attentionItems.push(
+   296→        `${overdueTasks.length} overdue task${
+   297→          overdueTasks.length > 1 ? "s" : ""
+   298→        } need attention — review on the Tasks board.`
+   299→      );
+   300→    }
+   301→    if (readyOrders.length > 0) {
+   302→      attentionItems.push(
+   303→        `${readyOrders.length} order${
+   304→          readyOrders.length > 1 ? "s are" : " is"
+   305→        } Ready and awaiting collection.`
+   306→      );
+   307→    }
+   308→    const enquiryCount = orders.filter((o) => o.status === "Enquiry").length;
+   309→    if (enquiryCount > 3) {
+   310→      attentionItems.push(
+   311→        `${enquiryCount} enquiries are still open — follow up to convert them into confirmed orders.`
+   312→      );
+   313→    }
+   314→    const quotedCount = orders.filter((o) => o.status === "Quoted").length;
+   315→    if (quotedCount > 2) {
+   316→      attentionItems.push(
+   317→        `${quotedCount} quotes sent are awaiting a deposit — nudge the clients.`
+   318→      );
+   319→    }
+   320→    if (attentionItems.length === 0) {
+   321→      attentionItems.push(
+   322→        "Nothing pressing — the studio is in good shape today."
+   323→      );
+   324→    }
+   325→
+   326→    return {
+   327→      salesThisMonth,
+   328→      receivedThisMonth,
+   329→      outstanding,
+   330→      profit,
+   331→      activeOrders,
+   332→      statusCounts,
+   333→      upcomingFittings,
+   334→      staffWorkload,
+   335→      avgMargin,
+   336→      healthStatus,
+   337→      overdueTaskCount: overdueTasks.length,
+   338→      openTasks,
+   339→      readyOrders,
+   340→      incomeSeries,
+   341→      salesSpark,
+   342→      paymentsSpark,
+   343→      receivedTrend,
+   344→      receivedTrendLabel,
+   345→      totalReceived6m,
+   346→      attentionItems: attentionItems.slice(0, 6),
+   347→      orders,
+   348→      customers,
+   349→      upcomingFittingsCount: upcomingFittings.length,
+   350→    };
+   351→  }, [data]);
+   352→
+   353→  /* ----- AI Trend Suggestions ----- */
+   354→  const generateInsights = async () => {
+   355→    if (!m) return;
+   356→    setInsightsLoading(true);
+   357→    try {
+   358→      const statusBreakdown: Record<string, number> = {};
+   359→      ORDER_STATUSES.forEach((s) => {
+   360→        statusBreakdown[s] = m.orders.filter((o) => o.status === s).length;
+   361→      });
+   362→      const customerSources: Record<string, number> = {};
+   363→      ENTRY_SOURCES.forEach((s) => {
+   364→        customerSources[s] = m.customers.filter((c) => c.entrySource === s).length;
+   365→      });
+   366→      const payload = {
+   367→        orderCount: m.orders.length,
+   368→        totalSales: m.orders.reduce(
+   369→          (s, o) => s + (Number(o.sellingPrice) || 0),
+   370→          0
+   371→        ),
+   372→        outstanding: m.outstanding,
+   373→        statusBreakdown,
+   374→        paymentsThisMonth: m.receivedThisMonth,
+   375→        upcomingFittings: m.upcomingFittingsCount,
+   376→        customerSources,
+   377→      };
+   378→      const res = await apiPost<{ suggestions: string[] }>(
+   379→        "/api/insights/trends",
+   380→        payload
+   381→      );
+   382→      setInsights(res.suggestions || []);
+   383→      if (!res.suggestions || res.suggestions.length === 0) {
+   384→        toast("No suggestions returned — try again later.");
+   385→      } else {
+   386→        toast.success(`${res.suggestions.length} insights generated.`);
+   387→      }
+   388→    } catch (e) {
+   389→      const msg = e instanceof Error ? e.message : "Failed to generate insights.";
+   390→      toast.error(msg);
+   391→    } finally {
+   392→      setInsightsLoading(false);
+   393→    }
+   394→  };
+   395→
+   396→  /* ----- loading + error guards ----- */
+   397→  if (isLoading || !m) {
+   398→    return (
+   399→      <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
+   400→        <div className="mb-8">
+   401→          <div className="h-3 w-32 shimmer rounded mb-3" />
+   402→          <div className="h-9 w-72 shimmer rounded mb-3" />
+   403→          <div className="h-3 w-80 shimmer rounded" />
+   404→        </div>
+   405→        {!staff && (
+   406→          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+   407→            {Array.from({ length: 4 }).map((_, i) => (
+   408→              <SkeletonCard key={i} />
+   409→            ))}
+   410→          </div>
+   411→        )}
+   412→        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+   413→          <div className="lg:col-span-2 flex flex-col gap-4">
+   414→            <SkeletonCard />
+   415→            <SkeletonList rows={3} />
+   416→          </div>
+   417→          <SkeletonCard />
+   418→        </div>
+   419→      </div>
+   420→    );
+   421→  }
+   422→
+   423→  if (isError) {
+   424→    return (
+   425→      <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
+   426→        <SectionCard title="Could not load dashboard">
+   427→          <EmptyState
+   428→            icon={AlertCircle}
+   429→            title="Dashboard unavailable"
+   430→            description="We couldn't fetch the studio overview. Please refresh the page to try again."
+   431→            action={
+   432→              <PremiumButton
+   433→                variant="outline"
+   434→                size="sm"
+   435→                onClick={() => window.location.reload()}
+   436→              >
+   437→                Reload
+   438→              </PremiumButton>
+   439→            }
+   440→          />
+   441→        </SectionCard>
+   442→      </div>
+   443→    );
+   444→  }
+   445→
+   446→  const today = new Date().toLocaleDateString("en-GB", {
+   447→    weekday: "long",
+   448→    day: "numeric",
+   449→    month: "long",
+   450→    year: "numeric",
+   451→  });
+   452→
+   453→  const healthPillClass =
+   454→    m.healthStatus === "On Track"
+   455→      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+   456→      : m.healthStatus === "Needs Attention"
+   457→      ? "bg-amber-50 text-amber-700 border-amber-200"
+   458→      : "bg-[#800020]/10 text-[#800020] border-[#800020]/30";
+   459→  const healthDotClass =
+   460→    m.healthStatus === "On Track"
+   461→      ? "bg-emerald-500"
+   462→      : m.healthStatus === "Needs Attention"
+   463→      ? "bg-amber-500"
+   464→      : "bg-[#800020]";
+   465→
+   466→  return (
+   467→    <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
+   468→      {/* ---------- PageHeader ---------- */}
+   469→      <PageHeader
+   470→        eyebrow={`Atelier overview · ${today}`}
+   471→        eyebrowIcon={CalendarDays}
+   472→        title={staff ? "Your Workbench" : `${ownerLabel}'s Atelier`}
+   473→        subtitle={
+   474→          staff
+   475→            ? "Your orders, fittings and tasks across the studio — keep production moving today."
+   476→            : "A snapshot of the studio today."
+   477→        }
+   478→        actions={
+   479→          <PremiumButton
+   480→            variant="primary"
+   481→            size="md"
+   482→            onClick={() => go("new-order")}
+   483→            className="hidden md:inline-flex"
+   484→          >
+   485→            <Plus className="w-4 h-4" />
+   486→            New Custom Order
+   487→          </PremiumButton>
+   488→        }
+   489→      />
+   490→
+   491→      {/* ---------- Money row (Madam only) ---------- */}
+   492→      {!staff && (
+   493→        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 animate-fade-in-up">
+   494→          <PremiumMetric
+   495→            label="Sales This Month"
+   496→            accent
+   497→            icon={TrendingUp}
+   498→            spark={m.salesSpark}
+   499→            sub={`${
+   500→              m.orders.filter((o) => sameMonth(o.orderDate, new Date())).length
+   501→            } orders booked`}
+   502→            value={<AnimatedNumber value={m.salesThisMonth} format="currency" />}
+   503→          />
+   504→          <PremiumMetric
+   505→            label="Money Received"
+   506→            accent
+   507→            icon={Wallet}
+   508→            spark={m.paymentsSpark}
+   509→            trend={m.receivedTrend as "up" | "down" | "flat"}
+   510→            trendLabel={m.receivedTrendLabel}
+   511→            sub="Payments collected this month"
+   512→            value={<AnimatedNumber value={m.receivedThisMonth} format="currency" />}
+   513→          />
+   514→          <PremiumMetric
+   515→            label="Outstanding"
+   516→            icon={AlertCircle}
+   517→            sub="From open orders"
+   518→            value={<AnimatedNumber value={m.outstanding} format="currency" />}
+   519→          />
+   520→          <PremiumMetric
+   521→            label="Estimated Profit"
+   522→            icon={Sparkles}
+   523→            sub="Sales − fabric − labour"
+   524→            value={<AnimatedNumber value={m.profit} format="currency" />}
+   525→          />
+   526→        </div>
+   527→      )}
+   528→
+   529→      {/* ---------- Work + People grid ---------- */}
+   530→      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+   531→        {/* Left 2/3 column — stack of section cards */}
+   532→        <div className="lg:col-span-2 flex flex-col gap-4">
+   533→          {/* Active Orders */}
+   534→          <div className="animate-fade-in-up">
+   535→            <SectionCard
+   536→              title="Active Orders"
+   537→              action={
+   538→                <button
+   539→                  onClick={() => go("orders")}
+   540→                  className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+   541→                >
+   542→                  View all
+   543→                  <ChevronRight className="w-3 h-3" />
+   544→                </button>
+   545→              }
+   546→              bodyClassName="p-4"
+   547→            >
+   548→              {m.activeOrders.length === 0 ? (
+   549→                <EmptyState
+   550→                  icon={ClipboardList}
+   551→                  title="No active orders right now"
+   552→                  description="Start one with New Custom Order to see it appear here."
+   553→                />
+   554→              ) : (
+   555→                <div
+   556→                  className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1"
+   557→                  style={{ scrollbarWidth: "thin" }}
+   558→                >
+   559→                  {m.activeOrders.slice(0, 10).map((o) => (
+   560→                    <button
+   561→                      key={o.id}
+   562→                      onClick={() => go("order", { id: o.id })}
+   563→                      className="text-left shrink-0 w-60 rounded-lg border border-[#E7E5E4] p-4 lift hover:border-[#800020]/30 transition group bg-white"
+   564→                    >
+   565→                      <p className="text-sm font-medium text-[#1C1917] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#800020]">
+   566→                        {o.garmentDesign || "Untitled garment"}
+   567→                      </p>
+   568→                      <p className="text-xs text-stone-400 mt-2">
+   569→                        Deliver {shortDate(o.deliveryDate)}
+   570→                      </p>
+   571→                      <div className="mt-3">
+   572→                        <StatusBadge status={o.status} />
+   573→                      </div>
+   574→                    </button>
+   575→                  ))}
+   576→                </div>
+   577→              )}
+   578→            </SectionCard>
+   579→          </div>
+   580→
+   581→          {/* Status Pipeline */}
+   582→          <SectionCard title="Status Pipeline">
+   583→            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+   584→              {m.statusCounts.map(({ status, count }) => (
+   585→                <div
+   586→                  key={status}
+   587→                  className="rounded-lg border border-[#E7E5E4] p-3 hover:border-[#800020]/20 transition bg-white"
+   588→                >
+   589→                  <div
+   590→                    className={`font-display text-2xl font-semibold leading-none tabular-nums ${
+   591→                      STATUS_CATEGORY_COLOR[status] || "text-stone-700"
+   592→                    }`}
+   593→                  >
+   594→                    {count}
+   595→                  </div>
+   596→                  <div className="text-[10px] text-stone-400 mt-1.5 leading-tight uppercase tracking-wide">
+   597→                    {status}
+   598→                  </div>
+   599→                </div>
+   600→              ))}
+   601→            </div>
+   602→          </SectionCard>
+   603→
+   604→          {/* Upcoming Fittings */}
+   605→          <SectionCard
+   606→            title="Upcoming Fittings"
+   607→            action={
+   608→              <button
+   609→                onClick={() => go("fittings")}
+   610→                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+   611→              >
+   612→                All fittings
+   613→                <ChevronRight className="w-3 h-3" />
+   614→              </button>
+   615→            }
+   616→            bodyClassName="p-0"
+   617→          >
+   618→            {m.upcomingFittings.length === 0 ? (
+   619→              <EmptyState
+   620→                icon={CalendarDays}
+   621→                title="No fittings scheduled"
+   622→                description="Add one from an order's detail page."
+   623→              />
+   624→            ) : (
+   625→              <div className="divide-y divide-[#E7E5E4]">
+   626→                {m.upcomingFittings.map((f) => {
+   627→                  const order = m.orders.find((o) => o.id === f.orderId);
+   628→                  return (
+   629→                    <button
+   630→                      key={f.id}
+   631→                      onClick={() => order && go("order", { id: order.id })}
+   632→                      className="flex items-center justify-between px-5 py-3.5 w-full text-left hover:bg-[#FBF9F7] transition group"
+   633→                    >
+   634→                      <div className="min-w-0">
+   635→                        <p className="text-sm font-medium text-[#1C1917] group-hover:text-[#800020] truncate">
+   636→                          {order?.garmentDesign?.slice(0, 48) || "Order fitting"}
+   637→                        </p>
+   638→                        <p className="text-xs text-stone-400 mt-0.5">
+   639→                          {formatDate(f.date)}
+   640→                        </p>
+   641→                      </div>
+   642→                      <StatusBadge status={f.status} />
+   643→                    </button>
+   644→                  );
+   645→                })}
+   646→              </div>
+   647→            )}
+   648→          </SectionCard>
+   649→        </div>
+   650→
+   651→        {/* Right 1/3 — Staff Workload / My Open Tasks */}
+   652→        <SectionCard
+   653→          title={staff ? "My Open Tasks" : "Staff Workload"}
+   654→          action={
+   655→            <button
+   656→              onClick={() => go("tasks")}
+   657→              className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+   658→            >
+   659→              {staff ? "Open" : "All tasks"}
+   660→              <ChevronRight className="w-3 h-3" />
+   661→            </button>
+   662→          }
+   663→          bodyClassName={staff ? "p-5" : "p-0"}
+   664→        >
+   665→          {staff ? (
+   666→            <div className="flex flex-col items-center justify-center py-10 text-center">
+   667→              <div className="font-display text-6xl font-semibold text-[#800020] leading-none">
+   668→                <AnimatedNumber value={m.openTasks.length} />
+   669→              </div>
+   670→              <p className="text-xs text-stone-400 mt-3">
+   671→                open tasks in the studio
+   672→              </p>
+   673→              <PremiumButton
+   674→                variant="outline"
+   675→                size="sm"
+   676→                className="mt-5"
+   677→                onClick={() => go("tasks")}
+   678→              >
+   679→                Go to Tasks
+   680→                <ArrowRight className="w-3.5 h-3.5" />
+   681→              </PremiumButton>
+   682→            </div>
+   683→          ) : m.staffWorkload.length === 0 ? (
+   684→            <EmptyState
+   685→              icon={UserCheck}
+   686→              title="No team members yet"
+   687→              description="Add staff in Settings to see workload here."
+   688→            />
+   689→          ) : (
+   690→            <div className="divide-y divide-[#E7E5E4]">
+   691→              {m.staffWorkload.map(({ user, openTasks, activeOrders }) => (
+   692→                <div
+   693→                  key={user.id}
+   694→                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#FBF9F7] transition"
+   695→                >
+   696→                  <div
+   697→                    className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(
+   698→                      user.id || user.email || "?"
+   699→                    )} flex items-center justify-center text-xs font-semibold text-white shrink-0 shadow-sm`}
+   700→                  >
+   701→                    {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
+   702→                  </div>
+   703→                  <div className="flex-1 min-w-0">
+   704→                    <p className="text-sm font-medium text-[#1C1917] truncate">
+   705→                      {user.fullName || user.email}
+   706→                    </p>
+   707→                    <p className="text-[11px] text-stone-400">
+   708→                      {activeOrders} active order{activeOrders !== 1 ? "s" : ""}
+   709→                    </p>
+   710→                  </div>
+   711→                  <span
+   712→                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#800020] rounded-full"
+   713→                    title={`${openTasks} open task${openTasks !== 1 ? "s" : ""}`}
+   714→                  >
+   715→                    {openTasks}
+   716→                  </span>
+   717→                </div>
+   718→              ))}
+   719→            </div>
+   720→          )}
+   721→        </SectionCard>
+   722→      </div>
+   723→
+   724→      {/* ---------- Madam-only premium sections ---------- */}
+   725→      {!staff && (
+   726→        <>
+   727→          {/* Income Trend */}
+   728→          <div className="mb-4">
+   729→            <SectionCard
+   730→              title="Income Trend"
+   731→              action={
+   732→                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   733→                  Last 6 months · Total{" "}
+   734→                  <span className="text-[#1C1917] font-semibold tabular-nums">
+   735→                    {formatCurrency(m.totalReceived6m)}
+   736→                  </span>
+   737→                </span>
+   738→              }
+   739→              bodyClassName="p-4"
+   740→            >
+   741→              <div className="h-[260px] w-full">
+   742→                <ResponsiveContainer width="100%" height="100%">
+   743→                  <AreaChart
+   744→                    data={m.incomeSeries}
+   745→                    margin={{ top: 8, right: 8, bottom: 0, left: -8 }}
+   746→                  >
+   747→                    <defs>
+   748→                      <linearGradient
+   749→                        id="burgundyGrad"
+   750→                        x1="0"
+   751→                        y1="0"
+   752→                        x2="0"
+   753→                        y2="1"
+   754→                      >
+   755→                        <stop
+   756→                          offset="0%"
+   757→                          stopColor="#800020"
+   758→                          stopOpacity={0.35}
+   759→                        />
+   760→                        <stop
+   761→                          offset="100%"
+   762→                          stopColor="#800020"
+   763→                          stopOpacity={0.02}
+   764→                        />
+   765→                      </linearGradient>
+   766→                    </defs>
+   767→                    <CartesianGrid
+   768→                      stroke="#E7E5E4"
+   769→                      strokeDasharray="3 3"
+   770→                      vertical={false}
+   771→                    />
+   772→                    <XAxis
+   773→                      dataKey="label"
+   774→                      tick={{ fontSize: 11, fill: "#A8A29E" }}
+   775→                      axisLine={{ stroke: "#E7E5E4" }}
+   776→                      tickLine={false}
+   777→                    />
+   778→                    <YAxis
+   779→                      tick={{ fontSize: 11, fill: "#A8A29E" }}
+   780→                      axisLine={false}
+   781→                      tickLine={false}
+   782→                      width={64}
+   783→                      tickFormatter={(v: number | string) =>
+   784→                        formatCurrency(Number(v))
+   785→                      }
+   786→                    />
+   787→                    <Tooltip
+   788→                      formatter={(value: number | string) => [
+   789→                        formatCurrency(Number(value)),
+   790→                        "Received",
+   791→                      ]}
+   792→                      contentStyle={{
+   793→                        border: "1px solid #E7E5E4",
+   794→                        borderRadius: 8,
+   795→                        fontSize: 12,
+   796→                        background: "#FBF9F7",
+   797→                      }}
+   798→                      labelStyle={{ color: "#1C1917", fontWeight: 600 }}
+   799→                    />
+   800→                    <Area
+   801→                      type="monotone"
+   802→                      dataKey="total"
+   803→                      stroke="#800020"
+   804→                      strokeWidth={2}
+   805→                      fill="url(#burgundyGrad)"
+   806→                    />
+   807→                  </AreaChart>
+   808→                </ResponsiveContainer>
+   809→              </div>
+   810→            </SectionCard>
+   811→          </div>
+   812→
+   813→          {/* Business Health + Needs Attention */}
+   814→          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+   815→            <SectionCard title="Business Health">
+   816→              <div className="flex items-center gap-2.5 mb-5">
+   817→                <span
+   818→                  className={`inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide border rounded-md ${healthPillClass}`}
+   819→                >
+   820→                  <span
+   821→                    className={`w-1.5 h-1.5 rounded-full ${healthDotClass}`}
+   822→                  />
+   823→                  {m.healthStatus}
+   824→                </span>
+   825→              </div>
+   826→              <div className="grid grid-cols-2 gap-3">
+   827→                <HealthMetric
+   828→                  icon={Coins}
+   829→                  label="Avg Margin / Order"
+   830→                  value={m.avgMargin}
+   831→                  format="currency"
+   832→                />
+   833→                <HealthMetric
+   834→                  icon={CircleDollarSign}
+   835→                  label="Outstanding"
+   836→                  value={m.outstanding}
+   837→                  format="currency"
+   838→                />
+   839→                <HealthMetric
+   840→                  icon={Timer}
+   841→                  label="Overdue Tasks"
+   842→                  value={m.overdueTaskCount}
+   843→                  format="plain"
+   844→                />
+   845→                <HealthMetric
+   846→                  icon={PackageCheck}
+   847→                  label="Ready for Collection"
+   848→                  value={m.readyOrders.length}
+   849→                  format="plain"
+   850→                />
+   851→              </div>
+   852→            </SectionCard>
+   853→
+   854→            <SectionCard title="Needs Attention">
+   855→              <ul className="space-y-2">
+   856→                {m.attentionItems.map((item, i) => (
+   857→                  <li
+   858→                    key={i}
+   859→                    className="flex items-start gap-2.5 text-sm p-2.5 -mx-2.5 rounded-md hover:bg-[#FBF9F7] transition lift"
+   860→                  >
+   861→                    <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+   862→                    <span className="text-stone-700 leading-snug">{item}</span>
+   863→                  </li>
+   864→                ))}
+   865→              </ul>
+   866→            </SectionCard>
+   867→          </div>
+   868→
+   869→          {/* AI Trend Suggestions */}
+   870→          <div className="mb-4">
+   871→            <SectionCard
+   872→              title="AI Trend Suggestions"
+   873→              action={<Sparkles className="w-4 h-4 text-[#800020]" />}
+   874→            >
+   875→              <div className="flex flex-col gap-4">
+   876→                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+   877→                  <div className="w-10 h-10 rounded-full bg-[#800020]/10 flex items-center justify-center shrink-0">
+   878→                    <Sparkles className="w-4 h-4 text-[#800020]" />
+   879→                  </div>
+   880→                  <p className="text-sm text-stone-600 leading-snug flex-1">
+   881→                    Generate AI insights from your studio's recent orders,
+   882→                    payments and customer mix. Suggestions focus on cash flow,
+   883→                    status mix and where to focus next.
+   884→                  </p>
+   885→                  <PremiumButton
+   886→                    variant="outline"
+   887→                    size="md"
+   888→                    loading={insightsLoading}
+   889→                    onClick={generateInsights}
+   890→                  >
+   891→                    {insightsLoading ? "Generating…" : "Generate insights"}
+   892→                  </PremiumButton>
+   893→                </div>
+   894→
+   895→                {insights && insights.length > 0 && (
+   896→                  <ul className="space-y-2.5 border-t border-[#E7E5E4] pt-4">
+   897→                    {insights.map((s, i) => (
+   898→                      <li
+   899→                        key={i}
+   900→                        className="flex items-start gap-2.5 text-sm animate-fade-in-up"
+   901→                        style={{ animationDelay: `${i * 60}ms` }}
+   902→                      >
+   903→                        <span className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
+   904→                          <Check className="w-3 h-3 text-emerald-700" />
+   905→                        </span>
+   906→                        <span className="text-stone-700 leading-snug">{s}</span>
+   907→                      </li>
+   908→                    ))}
+   909→                  </ul>
+   910→                )}
+   911→
+   912→                {insights && insights.length === 0 && (
+   913→                  <div className="border-t border-[#E7E5E4] pt-4">
+   914→                    <EmptyState
+   915→                      icon={Sparkles}
+   916→                      title="No suggestions returned"
+   917→                      description="The AI couldn't generate insights this time — try again in a moment."
+   918→                    />
+   919→                  </div>
+   920→                )}
+   921→              </div>
+   922→            </SectionCard>
+   923→          </div>
+   924→        </>
+   925→      )}
+   926→
+   927→      {/* ---------- Mobile floating New Order ---------- */}
+   928→      <button
+   929→        onClick={() => go("new-order")}
+   930→        className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#800020] text-white flex items-center justify-center shadow-lg hover:bg-[#6b0018] transition elevate-burgundy"
+   931→        aria-label="New Custom Order"
+   932→      >
+   933→        <Plus className="w-6 h-6" />
+   934→      </button>
+   935→    </div>
+   936→  );
+   937→}
+   938→
+   939→/* ---------- inline premium mini-metric for Business Health ---------- */
+   940→
+   941→function HealthMetric({
+   942→  icon: Icon,
+   943→  label,
+   944→  value,
+   945→  format,
+   946→}: {
+   947→  icon: React.ComponentType<{ className?: string }>;
+   948→  label: string;
+   949→  value: number;
+   950→  format: "currency" | "plain";
+   951→}) {
+   952→  return (
+   953→    <div className="rounded-lg border border-[#E7E5E4] p-3.5 bg-white hover:border-[#800020]/20 transition">
+   954→      <div className="flex items-center gap-2 mb-2">
+   955→        <Icon className="w-3.5 h-3.5 text-stone-400" />
+   956→        <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+   957→          {label}
+   958→        </span>
+   959→      </div>
+   960→      <div className="font-display font-semibold text-xl text-[#1C1917] tabular-nums">
+   961→        <AnimatedNumber value={value} format={format} />
+   962→      </div>
+   963→    </div>
+   964→  );
+   965→}
+   966→

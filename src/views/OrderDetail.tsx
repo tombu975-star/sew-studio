@@ -17,10 +17,12 @@ import {
   UserCircle2,
   MapPin,
   Sparkles,
+  Image as ImageIcon,
 } from "lucide-react";
 
 import { apiGet, apiPatch, apiPost } from "@/lib/api";
 import { useNav } from "@/stores/nav";
+import { useRole } from "@/stores/role";
 import {
   formatCurrency,
   formatDate,
@@ -83,6 +85,9 @@ function hashIndex(s: string, mod: number) {
 export default function OrderDetail() {
   const { selectedId, go } = useNav();
   const qc = useQueryClient();
+  const { canSeeBusiness } = useRole();
+  const canSeeMoney = canSeeBusiness();
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
   const { data: order, isLoading } = useQuery<Order>({
     queryKey: ["order", selectedId],
@@ -190,6 +195,19 @@ export default function OrderDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Design image mutation
+  const imageMut = useMutation({
+    mutationFn: (designImage: string) =>
+      apiPatch<Order>(`/api/orders/${selectedId}`, { designImage }),
+    onSuccess: async (updated) => {
+      toast.success("Design image updated");
+      qc.setQueryData(["order", selectedId], updated);
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      setImageDialogOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (!selectedId) {
     return (
       <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
@@ -243,6 +261,40 @@ export default function OrderDetail() {
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
       </button>
+
+      {/* Hero design image */}
+      {order.designImage ? (
+        <div className="relative mb-6 animate-fade-in-up">
+          <img
+            src={order.designImage}
+            alt={order.garmentDesign || "Design image"}
+            className="w-full aspect-video rounded-xl object-cover elevate-md bg-[#FBF9F7]"
+          />
+          {canSeeMoney && (
+            <button
+              onClick={() => setImageDialogOpen(true)}
+              className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/95 backdrop-blur border border-[#E7E5E4] rounded-md hover:bg-white transition elevate-sm"
+            >
+              <Pencil className="w-3 h-3" /> Edit image
+            </button>
+          )}
+        </div>
+      ) : canSeeMoney ? (
+        <button
+          onClick={() => setImageDialogOpen(true)}
+          className="w-full mb-6 aspect-video rounded-xl border-2 border-dashed border-[#E7E5E4] bg-[#FBF9F7] flex flex-col items-center justify-center gap-2 hover:border-[#800020]/40 hover:bg-[#faf8f5] transition group animate-fade-in-up"
+        >
+          <div className="w-10 h-10 rounded-full bg-white border border-[#E7E5E4] flex items-center justify-center">
+            <ImageIcon className="w-4 h-4 text-stone-400 group-hover:text-[#800020] transition" />
+          </div>
+          <span className="text-xs text-stone-500 group-hover:text-[#800020] font-medium">
+            Add a design image
+          </span>
+          <span className="text-[10px] text-stone-400">
+            Paste a photo or illustration URL
+          </span>
+        </button>
+      ) : null}
 
       {/* Premium header band */}
       <div className="rounded-xl elevate-md surface-premium border border-[#E7E5E4] p-6 mb-6 animate-fade-in-up">
@@ -304,25 +356,26 @@ export default function OrderDetail() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Select
-              value={order.status}
-              onValueChange={(v) => statusMut.mutate(v)}
-              disabled={statusMut.isPending}
-            >
-              <SelectTrigger className="w-[180px] rounded-md h-9 text-sm bg-white">
-                <SelectValue placeholder="Change status" />
-              </SelectTrigger>
-              <SelectContent>
-                {ORDER_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <PremiumButton variant="outline" size="md">
-              <Pencil className="w-3.5 h-3.5" /> Edit
-            </PremiumButton>
+            {canSeeMoney ? (
+              <Select
+                value={order.status}
+                onValueChange={(v) => statusMut.mutate(v)}
+                disabled={statusMut.isPending}
+              >
+                <SelectTrigger className="w-[180px] rounded-md h-9 text-sm bg-white">
+                  <SelectValue placeholder="Change status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ORDER_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <StatusBadge status={order.status} />
+            )}
           </div>
         </div>
       </div>
@@ -340,7 +393,8 @@ export default function OrderDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* LEFT 2/3 */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Financials */}
+          {/* Financials (money viewers) OR Production (non-money viewers) */}
+          {canSeeMoney ? (
           <SectionCard
             title="Financials"
             action={<PaymentDialog onConfirm={(b) => payMut.mutate(b)} />}
@@ -437,6 +491,56 @@ export default function OrderDetail() {
               )}
             </div>
           </SectionCard>
+          ) : (
+            <SectionCard title="Production">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
+                <Stat
+                  label="Current Status"
+                  valueNode={<StatusBadge status={order.status} />}
+                />
+                <Stat
+                  label="Days in Production"
+                  value={`${daysInProduction}`}
+                  sub={daysInProduction === 1 ? "day" : "days"}
+                />
+                <Stat
+                  label="Fittings"
+                  value={`${order.fittings?.length ?? 0}`}
+                  sub={
+                    (order.fittings?.length ?? 0) === 1 ? "scheduled" : "scheduled"
+                  }
+                />
+                <Stat
+                  label="Open Tasks"
+                  value={`${(order.tasks ?? []).filter((t) => t.status !== "Done").length}`}
+                  sub={`${order.tasks?.length ?? 0} total`}
+                />
+                <Stat
+                  label="Priority"
+                  valueNode={
+                    order.priority ? (
+                      <StatusBadge status={order.priority} dot={false} />
+                    ) : (
+                      <span className="text-stone-400">—</span>
+                    )
+                  }
+                />
+                <Stat
+                  label="Assigned To"
+                  value={order.assignedStaff?.fullName || "Unassigned"}
+                />
+              </div>
+              <div className="rounded-md border border-[#E7E5E4] bg-[#FBF9F7] p-3.5 text-[12px] text-stone-600 leading-relaxed">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-1.5">
+                  <Sparkles className="w-3 h-3 text-[#800020]" />
+                  Note
+                </div>
+                Financial details are managed by the studio. Focus on the
+                production milestones below — fittings and tasks keep the
+                garment moving.
+              </div>
+            </SectionCard>
+          )}
 
           {/* Fittings */}
           <SectionCard
@@ -636,6 +740,15 @@ export default function OrderDetail() {
           </SectionCard>
         </div>
       </div>
+
+      {/* Design image editor */}
+      <EditImageDialog
+        open={imageDialogOpen}
+        onOpenChange={setImageDialogOpen}
+        initial={order.designImage || ""}
+        saving={imageMut.isPending}
+        onSave={(url) => imageMut.mutate(url)}
+      />
     </div>
   );
 }
@@ -645,12 +758,14 @@ export default function OrderDetail() {
 function Stat({
   label,
   value,
+  valueNode,
   primary,
   tone,
   sub,
 }: {
   label: string;
-  value: string;
+  value?: string;
+  valueNode?: React.ReactNode;
   primary?: boolean;
   tone?: "ok" | "warn";
   sub?: string;
@@ -660,17 +775,21 @@ function Stat({
       <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold">
         {label}
       </div>
-      <div
-        className={cn(
-          "mt-1 text-lg font-display font-semibold tabular-nums",
-          primary && "text-[#1C1917]",
-          tone === "ok" && "text-emerald-700",
-          tone === "warn" && "text-amber-700",
-          !primary && !tone && "text-[#1C1917]"
-        )}
-      >
-        {value}
-      </div>
+      {valueNode ? (
+        <div className="mt-1.5">{valueNode}</div>
+      ) : (
+        <div
+          className={cn(
+            "mt-1 text-lg font-display font-semibold tabular-nums",
+            primary && "text-[#1C1917]",
+            tone === "ok" && "text-emerald-700",
+            tone === "warn" && "text-amber-700",
+            !primary && !tone && "text-[#1C1917]"
+          )}
+        >
+          {value}
+        </div>
+      )}
       {sub && <div className="text-[10px] text-stone-400 mt-0.5">{sub}</div>}
     </div>
   );
@@ -1009,6 +1128,94 @@ function TaskDialog({
             }}
           >
             Add task
+          </PremiumButton>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ---------- Design image editor ---------- */
+
+function EditImageDialog({
+  open,
+  onOpenChange,
+  initial,
+  saving,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  initial: string;
+  saving: boolean;
+  onSave: (url: string) => void;
+}) {
+  const [url, setUrl] = useState(initial);
+  const [lastInitial, setLastInitial] = useState(initial);
+  if (initial !== lastInitial) {
+    setLastInitial(initial);
+    setUrl(initial);
+  }
+
+  const trimmed = url.trim();
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (v) {
+          setUrl(initial);
+        }
+        onOpenChange(v);
+      }}
+    >
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Design image</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Image URL</Label>
+            <Input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://…"
+              className="rounded-md mt-1"
+            />
+            <p className="text-[11px] text-stone-400 mt-1.5">
+              Paste a photo or illustration URL. Leave empty to remove the
+              current image.
+            </p>
+          </div>
+          {trimmed ? (
+            <div className="aspect-video rounded-md overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4]">
+              <img
+                src={trimmed}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="aspect-video rounded-md border-2 border-dashed border-[#E7E5E4] bg-[#FBF9F7] flex flex-col items-center justify-center gap-1.5">
+              <ImageIcon className="w-5 h-5 text-stone-400" />
+              <span className="text-[11px] text-stone-400">No preview yet</span>
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <PremiumButton
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
+            Cancel
+          </PremiumButton>
+          <PremiumButton
+            loading={saving}
+            disabled={saving}
+            onClick={() => onSave(trimmed)}
+          >
+            Save image
           </PremiumButton>
         </DialogFooter>
       </DialogContent>

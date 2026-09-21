@@ -10,11 +10,13 @@ import {
   ShoppingBag,
   CheckCircle2,
   Clock,
-  Loader2,
+  Scissors,
 } from "lucide-react";
 
 import { apiGet } from "@/lib/api";
 import { useNav } from "@/stores/nav";
+import { useAuth } from "@/stores/auth";
+import { useRole } from "@/stores/role";
 import {
   formatCurrency,
   shortDate,
@@ -74,6 +76,21 @@ function sameMonth(dateStr?: string | null) {
 
 export default function Orders() {
   const { go } = useNav();
+  const { user } = useAuth();
+  const {
+    isTrainee,
+    isStaff,
+    canSeeBusiness,
+    canCreateOrders,
+    canSeeAllCustomers,
+  } = useRole();
+  // Trainees always see only their own orders. Staff (non-trainee, non-trainer)
+  // also see only their own orders since they can't see all customers.
+  const scopeToMine =
+    !!user && (isTrainee() || (isStaff() && !canSeeAllCustomers()));
+  const canSeeMoney = canSeeBusiness();
+  const canCreate = canCreateOrders();
+
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [staffFilter, setStaffFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -88,12 +105,16 @@ export default function Orders() {
   });
 
   const enriched = useMemo(() => {
-    return (orders || []).map((o) => ({
+    const base = (orders || []).map((o) => ({
       ...o,
       paid:
         o.payments?.reduce((sum, p) => sum + (Number(p.amount) || 0), 0) ?? 0,
     }));
-  }, [orders]);
+    if (scopeToMine && user) {
+      return base.filter((o) => o.assignedStaffId === user.id);
+    }
+    return base;
+  }, [orders, scopeToMine, user]);
 
   const stats = useMemo(() => {
     const total = enriched.length;
@@ -133,14 +154,20 @@ export default function Orders() {
   return (
     <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
       <PageHeader
-        eyebrow="Production"
+        eyebrow={scopeToMine ? "My work" : "Production"}
         eyebrowIcon={ShoppingBag}
         title="Orders"
-        subtitle="Every garment, from enquiry to collection."
+        subtitle={
+          scopeToMine
+            ? "Garments assigned to you in the studio."
+            : "Every garment, from enquiry to collection."
+        }
         actions={
-          <PremiumButton onClick={() => go("new-order")}>
-            <Plus className="w-4 h-4" /> New Order
-          </PremiumButton>
+          canCreate ? (
+            <PremiumButton onClick={() => go("new-order")}>
+              <Plus className="w-4 h-4" /> New Order
+            </PremiumButton>
+          ) : undefined
         }
       />
 
@@ -194,19 +221,21 @@ export default function Orders() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={staffFilter} onValueChange={setStaffFilter}>
-            <SelectTrigger className="w-full md:w-[180px] rounded-md h-9 text-sm bg-white">
-              <SelectValue placeholder="All staff" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All staff</SelectItem>
-              {(users || []).map((u) => (
-                <SelectItem key={u.id} value={u.id}>
-                  {u.fullName || u.email}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!scopeToMine && (
+            <Select value={staffFilter} onValueChange={setStaffFilter}>
+              <SelectTrigger className="w-full md:w-[180px] rounded-md h-9 text-sm bg-white">
+                <SelectValue placeholder="All staff" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All staff</SelectItem>
+                {(users || []).map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.fullName || u.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </SectionCard>
 
@@ -217,25 +246,47 @@ export default function Orders() {
         ) : rows.length === 0 ? (
           <EmptyState
             icon={ShoppingBag}
-            title="No orders match your filters"
-            description="Try adjusting your search or filters, or create a new commission."
+            title={
+              scopeToMine
+                ? "No orders assigned to you yet"
+                : "No orders match your filters"
+            }
+            description={
+              scopeToMine
+                ? "When the studio assigns you a garment, it'll appear here."
+                : "Try adjusting your search or filters, or create a new commission."
+            }
             action={
-              <PremiumButton variant="outline" size="sm" onClick={clearFilters}>
-                Clear filters
-              </PremiumButton>
+              scopeToMine ? undefined : (
+                <PremiumButton variant="outline" size="sm" onClick={clearFilters}>
+                  Clear filters
+                </PremiumButton>
+              )
             }
           />
         ) : (
           <>
             {/* Table header (desktop) */}
-            <div className="hidden md:grid grid-cols-[1.4fr_2.1fr_0.85fr_0.85fr_1fr_0.95fr_1fr] gap-3 px-5 py-3 border-b border-[#E7E5E4] bg-[#faf8f5]/60 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+            <div
+              className={cn(
+                "hidden md:grid gap-3 px-5 py-3 border-b border-[#E7E5E4] bg-[#faf8f5]/60 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500",
+                canSeeMoney
+                  ? "grid-cols-[0.5fr_1.4fr_2.1fr_0.85fr_0.85fr_1fr_0.95fr_1fr]"
+                  : "grid-cols-[0.5fr_1.4fr_2.1fr_0.85fr_0.85fr_1fr]"
+              )}
+            >
+              <span className="sr-only">Image</span>
               <span>Customer</span>
               <span>Garment</span>
               <span>Ordered</span>
               <span>Delivery</span>
               <span>Status</span>
-              <span className="text-right">Amount</span>
-              <span className="text-right">Paid</span>
+              {canSeeMoney && (
+                <>
+                  <span className="text-right">Amount</span>
+                  <span className="text-right">Paid</span>
+                </>
+              )}
             </div>
 
             <div className="divide-y divide-[#E7E5E4]/70">
@@ -253,8 +304,26 @@ export default function Orders() {
                   <button
                     key={o.id}
                     onClick={() => go("order", { id: o.id })}
-                    className="w-full text-left px-5 py-3.5 hover:bg-[#faf8f5] transition-colors grid grid-cols-2 md:grid-cols-[1.4fr_2.1fr_0.85fr_0.85fr_1fr_0.95fr_1fr] gap-3 items-center group"
+                    className={cn(
+                      "w-full text-left px-5 py-3.5 hover:bg-[#faf8f5] transition-colors grid grid-cols-2 md:gap-3 items-center group",
+                      canSeeMoney
+                        ? "md:grid-cols-[0.5fr_1.4fr_2.1fr_0.85fr_0.85fr_1fr_0.95fr_1fr]"
+                        : "md:grid-cols-[0.5fr_1.4fr_2.1fr_0.85fr_0.85fr_1fr]"
+                    )}
                   >
+                    {/* Design image thumbnail (or placeholder) */}
+                    <div className="hidden md:flex w-12 h-12 rounded-md overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4] items-center justify-center shrink-0">
+                      {o.designImage ? (
+                        <img
+                          src={o.designImage}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Scissors className="w-4 h-4 text-stone-400" />
+                      )}
+                    </div>
+
                     {/* Customer */}
                     <div className="flex items-center gap-3 min-w-0">
                       <div
@@ -319,45 +388,48 @@ export default function Orders() {
                       <StatusBadge status={o.status} />
                     </div>
 
-                    {/* Amount */}
-                    <div className="text-sm font-medium text-[#1C1917] md:text-right tabular-nums">
-                      <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                        Amount
-                      </span>
-                      {formatCurrency(o.sellingPrice)}
-                    </div>
+                    {/* Amount + Paid — money viewers only */}
+                    {canSeeMoney && (
+                      <>
+                        <div className="text-sm font-medium text-[#1C1917] md:text-right tabular-nums">
+                          <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
+                            Amount
+                          </span>
+                          {formatCurrency(o.sellingPrice)}
+                        </div>
 
-                    {/* Paid */}
-                    <div className="text-sm md:text-right">
-                      <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                        Paid
-                      </span>
-                      <div
-                        className={cn(
-                          "font-medium tabular-nums",
-                          paidPct >= 100 && o.sellingPrice > 0
-                            ? "text-emerald-700"
-                            : paidPct > 0
-                              ? "text-[#1C1917]"
-                              : "text-stone-400"
-                        )}
-                      >
-                        {formatCurrency(o.paid)}
-                      </div>
-                      {o.sellingPrice > 0 && (
-                        <div className="mt-1 h-1 w-full md:w-20 md:ml-auto bg-[#E7E5E4] rounded-full overflow-hidden">
+                        <div className="text-sm md:text-right">
+                          <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
+                            Paid
+                          </span>
                           <div
                             className={cn(
-                              "h-full rounded-full transition-all",
-                              paidPct >= 100
-                                ? "bg-emerald-500"
-                                : "bg-[#800020]"
+                              "font-medium tabular-nums",
+                              paidPct >= 100 && o.sellingPrice > 0
+                                ? "text-emerald-700"
+                                : paidPct > 0
+                                  ? "text-[#1C1917]"
+                                  : "text-stone-400"
                             )}
-                            style={{ width: `${paidPct}%` }}
-                          />
+                          >
+                            {formatCurrency(o.paid)}
+                          </div>
+                          {o.sellingPrice > 0 && (
+                            <div className="mt-1 h-1 w-full md:w-20 md:ml-auto bg-[#E7E5E4] rounded-full overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  paidPct >= 100
+                                    ? "bg-emerald-500"
+                                    : "bg-[#800020]"
+                                )}
+                                style={{ width: `${paidPct}%` }}
+                              />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </>
+                    )}
                   </button>
                 );
               })}

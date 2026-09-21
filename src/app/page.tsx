@@ -24,6 +24,8 @@ const QuickQuote = dynamic(() => import("@/views/QuickQuote").then((m) => m.defa
 const Team = dynamic(() => import("@/views/Team").then((m) => m.default), { ssr: false });
 const Community = dynamic(() => import("@/views/Community").then((m) => m.default), { ssr: false });
 const Progress = dynamic(() => import("@/views/Progress").then((m) => m.default), { ssr: false });
+const Portfolio = dynamic(() => import("@/views/Portfolio").then((m) => m.default), { ssr: false });
+const Certificate = dynamic(() => import("@/views/Certificate").then((m) => m.default), { ssr: false });
 
 function CurrentView() {
   const { view } = useNav();
@@ -56,6 +58,10 @@ function CurrentView() {
       return <Community />;
     case "progress":
       return <Progress />;
+    case "portfolio":
+      return <Portfolio />;
+    case "certificate":
+      return <Certificate />;
     default:
       return <Dashboard />;
   }

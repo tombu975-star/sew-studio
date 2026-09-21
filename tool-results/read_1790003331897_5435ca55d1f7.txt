@@ -1,0 +1,1018 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+     5→import { toast } from "sonner";
+     6→import {
+     7→  ArrowLeft,
+     8→  Plus,
+     9→  CalendarDays,
+    10→  Phone,
+    11→  Mail,
+    12→  CheckCircle2,
+    13→  AlertCircle,
+    14→  Clock,
+    15→  StickyNote,
+    16→  Pencil,
+    17→  UserCircle2,
+    18→  MapPin,
+    19→  Sparkles,
+    20→} from "lucide-react";
+    21→
+    22→import { apiGet, apiPatch, apiPost } from "@/lib/api";
+    23→import { useNav } from "@/stores/nav";
+    24→import {
+    25→  formatCurrency,
+    26→  formatDate,
+    27→  shortDate,
+    28→  todayISO,
+    29→  isOverdue,
+    30→  ORDER_STATUSES,
+    31→  PRIORITY_LEVELS,
+    32→} from "@/lib/format";
+    33→import type { Order } from "@/lib/types";
+    34→
+    35→import { PageHeader } from "@/components/atelier/PageHeader";
+    36→import { SectionCard } from "@/components/atelier/SectionCard";
+    37→import { PremiumButton } from "@/components/atelier/PremiumButton";
+    38→import { StatusBadge } from "@/components/atelier/StatusBadge";
+    39→import { StatusStepper } from "@/components/atelier/StatusStepper";
+    40→import { EmptyState, SkeletonCard } from "@/components/atelier/EmptyState";
+    41→import { Input } from "@/components/ui/input";
+    42→import { Label } from "@/components/ui/label";
+    43→import { Textarea } from "@/components/ui/textarea";
+    44→import {
+    45→  Dialog,
+    46→  DialogContent,
+    47→  DialogFooter,
+    48→  DialogHeader,
+    49→  DialogTitle,
+    50→  DialogTrigger,
+    51→} from "@/components/ui/dialog";
+    52→import {
+    53→  Select,
+    54→  SelectContent,
+    55→  SelectItem,
+    56→  SelectTrigger,
+    57→  SelectValue,
+    58→} from "@/components/ui/select";
+    59→import { cn } from "@/lib/utils";
+    60→
+    61→const AVATAR_GRADIENTS = [
+    62→  "from-[#800020] to-[#b45309]",
+    63→  "from-[#0e7490] to-[#800020]",
+    64→  "from-[#15803D] to-[#0e7490]",
+    65→  "from-[#b45309] to-[#800020]",
+    66→];
+    67→
+    68→function initials(name: string) {
+    69→  return name
+    70→    .split(" ")
+    71→    .filter(Boolean)
+    72→    .slice(0, 2)
+    73→    .map((w) => w[0]?.toUpperCase())
+    74→    .join("");
+    75→}
+    76→
+    77→function hashIndex(s: string, mod: number) {
+    78→  let h = 0;
+    79→  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    80→  return h % mod;
+    81→}
+    82→
+    83→export default function OrderDetail() {
+    84→  const { selectedId, go } = useNav();
+    85→  const qc = useQueryClient();
+    86→
+    87→  const { data: order, isLoading } = useQuery<Order>({
+    88→    queryKey: ["order", selectedId],
+    89→    queryFn: () => apiGet<Order>(`/api/orders/${selectedId}`),
+    90→    enabled: !!selectedId,
+    91→  });
+    92→
+    93→  const paid = useMemo(
+    94→    () =>
+    95→      order?.payments?.reduce(
+    96→        (sum, p) => sum + (Number(p.amount) || 0),
+    97→        0
+    98→      ) ?? 0,
+    99→    [order]
+   100→  );
+   101→  const outstanding = useMemo(() => {
+   102→    const selling = Number(order?.sellingPrice) || 0;
+   103→    return Math.max(0, selling - paid);
+   104→  }, [order, paid]);
+   105→  const estMargin = useMemo(() => {
+   106→    const selling = Number(order?.sellingPrice) || 0;
+   107→    const fabric = Number(order?.fabricCost) || 0;
+   108→    const labour = Number(order?.labourCost) || 0;
+   109→    return selling - fabric - labour;
+   110→  }, [order]);
+   111→
+   112→  const paidPct = order && order.sellingPrice > 0
+   113→    ? Math.min(100, Math.round((paid / order.sellingPrice) * 100))
+   114→    : 0;
+   115→
+   116→  const daysInProduction = useMemo(() => {
+   117→    if (!order) return 0;
+   118→    const start = new Date(order.createdAt).getTime();
+   119→    const end = Date.now();
+   120→    return Math.max(0, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+   121→  }, [order]);
+   122→
+   123→  // Status change mutation
+   124→  const statusMut = useMutation({
+   125→    mutationFn: (status: string) =>
+   126→      apiPatch<Order>(`/api/orders/${selectedId}`, { status }),
+   127→    onSuccess: (updated) => {
+   128→      toast.success(`Status updated to ${updated.status}`);
+   129→      qc.setQueryData(["order", selectedId], updated);
+   130→      qc.invalidateQueries({ queryKey: ["orders"] });
+   131→    },
+   132→    onError: (e: Error) => toast.error(e.message),
+   133→  });
+   134→
+   135→  // Payment mutation
+   136→  const payMut = useMutation({
+   137→    mutationFn: (body: { amount: number; method?: string; note?: string }) =>
+   138→      apiPost(`/api/orders/${selectedId}/payments`, body),
+   139→    onSuccess: async () => {
+   140→      toast.success("Payment recorded");
+   141→      await qc.invalidateQueries({ queryKey: ["order", selectedId] });
+   142→      qc.invalidateQueries({ queryKey: ["orders"] });
+   143→    },
+   144→    onError: (e: Error) => toast.error(e.message),
+   145→  });
+   146→
+   147→  // Fitting mutation
+   148→  const fitMut = useMutation({
+   149→    mutationFn: (body: { date: string; notes?: string }) =>
+   150→      apiPost(`/api/orders/${selectedId}/fittings`, {
+   151→        ...body,
+   152→        status: "Scheduled",
+   153→      }),
+   154→    onSuccess: async () => {
+   155→      toast.success("Fitting scheduled");
+   156→      await qc.invalidateQueries({ queryKey: ["order", selectedId] });
+   157→    },
+   158→    onError: (e: Error) => toast.error(e.message),
+   159→  });
+   160→
+   161→  // Task mutation (uses /api/tasks with orderId)
+   162→  const taskMut = useMutation({
+   163→    mutationFn: (body: {
+   164→      title: string;
+   165→      priority: string;
+   166→      dueDate?: string;
+   167→    }) =>
+   168→      apiPost(`/api/tasks`, {
+   169→        ...body,
+   170→        orderId: selectedId,
+   171→        status: "To Do",
+   172→      }),
+   173→    onSuccess: async () => {
+   174→      toast.success("Task added");
+   175→      await qc.invalidateQueries({ queryKey: ["order", selectedId] });
+   176→      qc.invalidateQueries({ queryKey: ["tasks"] });
+   177→    },
+   178→    onError: (e: Error) => toast.error(e.message),
+   179→  });
+   180→
+   181→  // Notes mutation
+   182→  const notesMut = useMutation({
+   183→    mutationFn: (notes: string) =>
+   184→      apiPatch<Order>(`/api/orders/${selectedId}`, { notes }),
+   185→    onSuccess: async (updated) => {
+   186→      toast.success("Notes saved");
+   187→      qc.setQueryData(["order", selectedId], updated);
+   188→      qc.invalidateQueries({ queryKey: ["orders"] });
+   189→    },
+   190→    onError: (e: Error) => toast.error(e.message),
+   191→  });
+   192→
+   193→  if (!selectedId) {
+   194→    return (
+   195→      <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+   196→        <SectionCard>
+   197→          <EmptyState
+   198→            icon={AlertCircle}
+   199→            title="No order selected"
+   200→            description="Choose an order from the list to view its detail."
+   201→          />
+   202→        </SectionCard>
+   203→      </div>
+   204→    );
+   205→  }
+   206→
+   207→  if (isLoading || !order) {
+   208→    return (
+   209→      <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+   210→        <button
+   211→          onClick={() => go("orders")}
+   212→          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
+   213→        >
+   214→          <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
+   215→        </button>
+   216→        <div className="h-28 w-full rounded-xl bg-[#faf8f5] border border-[#E7E5E4] shimmer mb-6" />
+   217→        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+   218→          <div className="lg:col-span-2 space-y-4">
+   219→            <SkeletonCard />
+   220→            <SkeletonCard />
+   221→            <SkeletonCard />
+   222→          </div>
+   223→          <div className="space-y-4">
+   224→            <SkeletonCard />
+   225→            <SkeletonCard />
+   226→          </div>
+   227→        </div>
+   228→      </div>
+   229→    );
+   230→  }
+   231→
+   232→  const overdue = !!order.deliveryDate && isOverdue(order.deliveryDate);
+   233→  const custGrad =
+   234→    AVATAR_GRADIENTS[
+   235→      hashIndex(order.customer?.id || order.id, AVATAR_GRADIENTS.length)
+   236→    ];
+   237→
+   238→  return (
+   239→    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+   240→      <button
+   241→        onClick={() => go("orders")}
+   242→        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
+   243→      >
+   244→        <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
+   245→      </button>
+   246→
+   247→      {/* Premium header band */}
+   248→      <div className="rounded-xl elevate-md surface-premium border border-[#E7E5E4] p-6 mb-6 animate-fade-in-up">
+   249→        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+   250→          <div className="min-w-0 flex-1">
+   251→            <h1
+   252→              className="font-display font-semibold text-[#1C1917] leading-[1.1]"
+   253→              style={{ fontSize: "clamp(26px, 3.4vw, 34px)" }}
+   254→            >
+   255→              {order.garmentDesign}
+   256→            </h1>
+   257→            <button
+   258→              onClick={() => go("customer", { id: order.customerId })}
+   259→              className="inline-flex items-center gap-2 mt-2 group"
+   260→            >
+   261→              <div
+   262→                className={cn(
+   263→                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-semibold",
+   264→                  custGrad
+   265→                )}
+   266→              >
+   267→                {initials(order.customer?.name || "?")}
+   268→              </div>
+   269→              <span className="text-sm text-[#800020] hover:underline font-medium">
+   270→                {order.customer?.name || "—"}
+   271→              </span>
+   272→            </button>
+   273→
+   274→            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 text-[12px] text-stone-500">
+   275→              <span className="flex items-center gap-1.5">
+   276→                <CalendarDays className="w-3.5 h-3.5" />
+   277→                Ordered {formatDate(order.orderDate)}
+   278→              </span>
+   279→              <span
+   280→                className={cn(
+   281→                  "flex items-center gap-1.5",
+   282→                  overdue && "text-amber-700 font-semibold"
+   283→                )}
+   284→              >
+   285→                <Clock className="w-3.5 h-3.5" />
+   286→                Delivery{" "}
+   287→                {order.deliveryDate ? formatDate(order.deliveryDate) : "—"}
+   288→                {overdue && (
+   289→                  <span className="text-[10px] uppercase tracking-wide ml-1 flex items-center gap-1">
+   290→                    <AlertCircle className="w-3 h-3" /> overdue
+   291→                  </span>
+   292→                )}
+   293→              </span>
+   294→              {order.priority && (
+   295→                <StatusBadge status={order.priority} dot={false} />
+   296→              )}
+   297→              {order.assignedStaff && (
+   298→                <span className="flex items-center gap-1.5">
+   299→                  <UserCircle2 className="w-3.5 h-3.5" />
+   300→                  {order.assignedStaff.fullName}
+   301→                </span>
+   302→              )}
+   303→            </div>
+   304→          </div>
+   305→
+   306→          <div className="flex items-center gap-2 shrink-0">
+   307→            <Select
+   308→              value={order.status}
+   309→              onValueChange={(v) => statusMut.mutate(v)}
+   310→              disabled={statusMut.isPending}
+   311→            >
+   312→              <SelectTrigger className="w-[180px] rounded-md h-9 text-sm bg-white">
+   313→                <SelectValue placeholder="Change status" />
+   314→              </SelectTrigger>
+   315→              <SelectContent>
+   316→                {ORDER_STATUSES.map((s) => (
+   317→                  <SelectItem key={s} value={s}>
+   318→                    {s}
+   319→                  </SelectItem>
+   320→                ))}
+   321→              </SelectContent>
+   322→            </Select>
+   323→            <PremiumButton variant="outline" size="md">
+   324→              <Pencil className="w-3.5 h-3.5" /> Edit
+   325→            </PremiumButton>
+   326→          </div>
+   327→        </div>
+   328→      </div>
+   329→
+   330→      {/* Order Journey / Stepper */}
+   331→      <SectionCard
+   332→        title="Order Journey"
+   333→        className="mb-6"
+   334→        bodyClassName="pt-6"
+   335→      >
+   336→        <StatusStepper current={order.status} />
+   337→      </SectionCard>
+   338→
+   339→      {/* Grid */}
+   340→      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+   341→        {/* LEFT 2/3 */}
+   342→        <div className="lg:col-span-2 space-y-4">
+   343→          {/* Financials */}
+   344→          <SectionCard
+   345→            title="Financials"
+   346→            action={<PaymentDialog onConfirm={(b) => payMut.mutate(b)} />}
+   347→          >
+   348→            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
+   349→              <Stat
+   350→                label="Selling Price"
+   351→                value={formatCurrency(order.sellingPrice)}
+   352→                primary
+   353→              />
+   354→              <Stat
+   355→                label="Paid So Far"
+   356→                value={formatCurrency(paid)}
+   357→                sub={`${paidPct}% of total`}
+   358→              />
+   359→              <Stat
+   360→                label="Outstanding Balance"
+   361→                value={formatCurrency(outstanding)}
+   362→                tone={outstanding > 0 ? "warn" : "ok"}
+   363→              />
+   364→              <Stat
+   365→                label="Fabric Cost"
+   366→                value={formatCurrency(order.fabricCost)}
+   367→              />
+   368→              <Stat
+   369→                label="Labour Cost"
+   370→                value={formatCurrency(order.labourCost)}
+   371→              />
+   372→              <Stat
+   373→                label="Est. Margin"
+   374→                value={formatCurrency(estMargin)}
+   375→                tone={estMargin >= 0 ? "ok" : "warn"}
+   376→              />
+   377→            </div>
+   378→
+   379→            {/* Paid progress bar */}
+   380→            {order.sellingPrice > 0 && (
+   381→              <div className="mb-5">
+   382→                <div className="flex justify-between text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-1.5">
+   383→                  <span>Payment progress</span>
+   384→                  <span className="tabular-nums">{paidPct}%</span>
+   385→                </div>
+   386→                <div className="h-2 w-full bg-[#E7E5E4] rounded-full overflow-hidden">
+   387→                  <div
+   388→                    className={cn(
+   389→                      "h-full rounded-full transition-all",
+   390→                      paidPct >= 100 ? "bg-emerald-500" : "bg-[#800020]"
+   391→                    )}
+   392→                    style={{ width: `${paidPct}%` }}
+   393→                  />
+   394→                </div>
+   395→              </div>
+   396→            )}
+   397→
+   398→            <div>
+   399→              <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-2.5">
+   400→                Payments
+   401→              </div>
+   402→              {order.payments && order.payments.length > 0 ? (
+   403→                <div className="divide-y divide-[#E7E5E4]/70 border border-[#E7E5E4] rounded-md overflow-hidden">
+   404→                  {order.payments
+   405→                    .slice()
+   406→                    .sort(
+   407→                      (a, b) =>
+   408→                        new Date(b.date).getTime() - new Date(a.date).getTime()
+   409→                    )
+   410→                    .map((p) => (
+   411→                      <div
+   412→                        key={p.id}
+   413→                        className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-[#faf8f5]/60"
+   414→                      >
+   415→                        <div className="min-w-0 flex items-center gap-3">
+   416→                          <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+   417→                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+   418→                          </div>
+   419→                          <div className="min-w-0">
+   420→                            <div className="text-sm font-semibold text-[#1C1917] tabular-nums">
+   421→                              {formatCurrency(p.amount)}
+   422→                            </div>
+   423→                            <div className="text-[11px] text-stone-400">
+   424→                              {formatDate(p.date)}
+   425→                              {p.method ? ` · ${p.method}` : ""}
+   426→                              {p.note ? ` · ${p.note}` : ""}
+   427→                            </div>
+   428→                          </div>
+   429→                        </div>
+   430→                      </div>
+   431→                    ))}
+   432→                </div>
+   433→              ) : (
+   434→                <p className="text-sm text-stone-400">
+   435→                  No payments recorded yet.
+   436→                </p>
+   437→              )}
+   438→            </div>
+   439→          </SectionCard>
+   440→
+   441→          {/* Fittings */}
+   442→          <SectionCard
+   443→            title="Fittings"
+   444→            action={<FittingDialog onConfirm={(b) => fitMut.mutate(b)} />}
+   445→          >
+   446→            {order.fittings && order.fittings.length > 0 ? (
+   447→              <div className="space-y-2.5">
+   448→                {order.fittings.map((f) => (
+   449→                  <div
+   450→                    key={f.id}
+   451→                    className="flex items-start justify-between gap-3 p-3.5 border border-[#E7E5E4] rounded-md hover:bg-[#faf8f5]/50 transition-colors"
+   452→                  >
+   453→                    <div className="min-w-0">
+   454→                      <div className="text-sm font-medium text-[#1C1917] flex items-center gap-1.5">
+   455→                        <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
+   456→                        {formatDate(f.date)}
+   457→                      </div>
+   458→                      {f.notes && (
+   459→                        <div className="text-[12px] text-stone-500 mt-1">
+   460→                          {f.notes}
+   461→                        </div>
+   462→                      )}
+   463→                    </div>
+   464→                    <StatusBadge status={f.status} />
+   465→                  </div>
+   466→                ))}
+   467→              </div>
+   468→            ) : (
+   469→              <EmptyState
+   470→                icon={CalendarDays}
+   471→                title="No fittings scheduled"
+   472→                description="Schedule the first fitting when production begins."
+   473→              />
+   474→            )}
+   475→          </SectionCard>
+   476→
+   477→          {/* Tasks */}
+   478→          <SectionCard
+   479→            title="Tasks"
+   480→            action={<TaskDialog onConfirm={(b) => taskMut.mutate(b)} />}
+   481→          >
+   482→            {order.tasks && order.tasks.length > 0 ? (
+   483→              <div className="space-y-2.5">
+   484→                {order.tasks.map((t) => (
+   485→                  <div
+   486→                    key={t.id}
+   487→                    className="flex items-center justify-between gap-3 p-3.5 border border-[#E7E5E4] rounded-md hover:bg-[#faf8f5]/50 transition-colors"
+   488→                  >
+   489→                    <div className="min-w-0">
+   490→                      <div className="text-sm font-medium text-[#1C1917] truncate">
+   491→                        {t.title}
+   492→                      </div>
+   493→                      <div className="text-[11px] text-stone-400 mt-0.5">
+   494→                        {t.dueDate ? `Due ${shortDate(t.dueDate)}` : "No due date"}
+   495→                        {t.staff ? ` · ${t.staff.fullName}` : ""}
+   496→                      </div>
+   497→                    </div>
+   498→                    <div className="flex items-center gap-1.5 shrink-0">
+   499→                      <StatusBadge status={t.priority} dot={false} />
+   500→                      <StatusBadge status={t.status} />
+   501→                    </div>
+   502→                  </div>
+   503→                ))}
+   504→              </div>
+   505→            ) : (
+   506→              <EmptyState
+   507→                icon={CheckCircle2}
+   508→                title="No tasks for this order"
+   509→                description="Break the work into steps so nothing falls through the cracks."
+   510→              />
+   511→            )}
+   512→          </SectionCard>
+   513→
+   514→          {/* Notes */}
+   515→          <SectionCard title="Notes">
+   516→            <NotesEditor
+   517→              initial={order.notes || ""}
+   518→              onSave={(v) => notesMut.mutate(v)}
+   519→              saving={notesMut.isPending}
+   520→            />
+   521→          </SectionCard>
+   522→        </div>
+   523→
+   524→        {/* RIGHT 1/3 */}
+   525→        <div className="space-y-4">
+   526→          {/* Customer snapshot */}
+   527→          <SectionCard title="Customer Snapshot">
+   528→            {order.customer ? (
+   529→              <div className="space-y-4">
+   530→                <div className="flex items-center gap-3">
+   531→                  <div
+   532→                    className={cn(
+   533→                      "w-12 h-12 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-sm font-semibold elevate-xs",
+   534→                      custGrad
+   535→                    )}
+   536→                  >
+   537→                    {initials(order.customer.name)}
+   538→                  </div>
+   539→                  <div className="min-w-0">
+   540→                    <button
+   541→                      onClick={() =>
+   542→                        go("customer", { id: order.customerId })
+   543→                      }
+   544→                      className="text-sm font-semibold text-[#1C1917] hover:text-[#800020] transition-colors truncate block"
+   545→                    >
+   546→                      {order.customer.name}
+   547→                    </button>
+   548→                    {order.customer.customerType && (
+   549→                      <div className="mt-0.5">
+   550→                        <StatusBadge
+   551→                          status={order.customer.customerType}
+   552→                          dot={false}
+   553→                        />
+   554→                      </div>
+   555→                    )}
+   556→                  </div>
+   557→                </div>
+   558→
+   559→                <div className="space-y-2 text-[12px] text-stone-600">
+   560→                  {order.customer.phone && (
+   561→                    <div className="flex items-center gap-2">
+   562→                      <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+   563→                      {order.customer.phone}
+   564→                    </div>
+   565→                  )}
+   566→                  {order.customer.email && (
+   567→                    <div className="flex items-center gap-2">
+   568→                      <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+   569→                      <span className="truncate">{order.customer.email}</span>
+   570→                    </div>
+   571→                  )}
+   572→                  {order.customer.city && (
+   573→                    <div className="flex items-center gap-2">
+   574→                      <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+   575→                      {order.customer.city}
+   576→                    </div>
+   577→                  )}
+   578→                </div>
+   579→
+   580→                <div className="pt-3 border-t border-[#E7E5E4]/70 space-y-2 text-[12px]">
+   581→                  <Row
+   582→                    label="Entry Source"
+   583→                    value={order.customer.entrySource}
+   584→                  />
+   585→                  <Row
+   586→                    label="Preferred Styles"
+   587→                    value={order.customer.preferredStyles}
+   588→                  />
+   589→                </div>
+   590→
+   591→                <PremiumButton
+   592→                  variant="ghost"
+   593→                  size="sm"
+   594→                  className="w-full"
+   595→                  onClick={() => go("customer", { id: order.customerId })}
+   596→                >
+   597→                  <UserCircle2 className="w-3.5 h-3.5" /> View profile
+   598→                </PremiumButton>
+   599→              </div>
+   600→            ) : (
+   601→              <p className="text-sm text-stone-400">No customer linked.</p>
+   602→            )}
+   603→          </SectionCard>
+   604→
+   605→          {/* Timeline */}
+   606→          <SectionCard title="Timeline">
+   607→            <div className="space-y-3 text-[12px] text-stone-600">
+   608→              <div className="flex items-center gap-2">
+   609→                <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
+   610→                <span>
+   611→                  Created{" "}
+   612→                  <span className="text-[#1C1917] font-medium">
+   613→                    {formatDate(order.createdAt)}
+   614→                  </span>
+   615→                </span>
+   616→              </div>
+   617→              <div className="flex items-center gap-2">
+   618→                <Clock className="w-3.5 h-3.5 text-stone-400" />
+   619→                <span>
+   620→                  Last updated{" "}
+   621→                  <span className="text-[#1C1917] font-medium">
+   622→                    {formatDate(order.createdAt)}
+   623→                  </span>
+   624→                </span>
+   625→              </div>
+   626→              <div className="flex items-center gap-2">
+   627→                <Sparkles className="w-3.5 h-3.5 text-[#800020]" />
+   628→                <span>
+   629→                  In production for{" "}
+   630→                  <span className="text-[#1C1917] font-medium tabular-nums">
+   631→                    {daysInProduction} day{daysInProduction === 1 ? "" : "s"}
+   632→                  </span>
+   633→                </span>
+   634→              </div>
+   635→            </div>
+   636→          </SectionCard>
+   637→        </div>
+   638→      </div>
+   639→    </div>
+   640→  );
+   641→}
+   642→
+   643→/* ---------- Helpers ---------- */
+   644→
+   645→function Stat({
+   646→  label,
+   647→  value,
+   648→  primary,
+   649→  tone,
+   650→  sub,
+   651→}: {
+   652→  label: string;
+   653→  value: string;
+   654→  primary?: boolean;
+   655→  tone?: "ok" | "warn";
+   656→  sub?: string;
+   657→}) {
+   658→  return (
+   659→    <div>
+   660→      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold">
+   661→        {label}
+   662→      </div>
+   663→      <div
+   664→        className={cn(
+   665→          "mt-1 text-lg font-display font-semibold tabular-nums",
+   666→          primary && "text-[#1C1917]",
+   667→          tone === "ok" && "text-emerald-700",
+   668→          tone === "warn" && "text-amber-700",
+   669→          !primary && !tone && "text-[#1C1917]"
+   670→        )}
+   671→      >
+   672→        {value}
+   673→      </div>
+   674→      {sub && <div className="text-[10px] text-stone-400 mt-0.5">{sub}</div>}
+   675→    </div>
+   676→  );
+   677→}
+   678→
+   679→function Row({ label, value }: { label: string; value?: string | null }) {
+   680→  if (!value) return null;
+   681→  return (
+   682→    <div className="flex justify-between gap-3">
+   683→      <span className="text-stone-400">{label}</span>
+   684→      <span className="text-[#1C1917] text-right">{value}</span>
+   685→    </div>
+   686→  );
+   687→}
+   688→
+   689→function NotesEditor({
+   690→  initial,
+   691→  onSave,
+   692→  saving,
+   693→}: {
+   694→  initial: string;
+   695→  onSave: (v: string) => void;
+   696→  saving: boolean;
+   697→}) {
+   698→  const [val, setVal] = useState(initial);
+   699→  const [editing, setEditing] = useState(false);
+   700→  const [lastInitial, setLastInitial] = useState(initial);
+   701→  if (initial !== lastInitial) {
+   702→    setLastInitial(initial);
+   703→    setVal(initial);
+   704→  }
+   705→
+   706→  if (!editing) {
+   707→    return (
+   708→      <div>
+   709→        {initial ? (
+   710→          <p className="text-sm text-stone-700 whitespace-pre-wrap leading-relaxed">
+   711→            {initial}
+   712→          </p>
+   713→        ) : (
+   714→          <p className="text-sm text-stone-400">No notes yet.</p>
+   715→        )}
+   716→        <div className="mt-3">
+   717→          <PremiumButton
+   718→            variant="outline"
+   719→            size="sm"
+   720→            onClick={() => setEditing(true)}
+   721→          >
+   722→            <StickyNote className="w-3.5 h-3.5" /> Edit notes
+   723→          </PremiumButton>
+   724→        </div>
+   725→      </div>
+   726→    );
+   727→  }
+   728→  return (
+   729→    <div>
+   730→      <Textarea
+   731→        value={val}
+   732→        onChange={(e) => setVal(e.target.value)}
+   733→        rows={5}
+   734→        placeholder="Notes about this order…"
+   735→        className="rounded-md"
+   736→      />
+   737→      <div className="flex gap-2 mt-3">
+   738→        <PremiumButton
+   739→          size="sm"
+   740→          loading={saving}
+   741→          disabled={saving}
+   742→          onClick={() => {
+   743→            onSave(val);
+   744→            setEditing(false);
+   745→          }}
+   746→        >
+   747→          Save
+   748→        </PremiumButton>
+   749→        <PremiumButton
+   750→          variant="outline"
+   751→          size="sm"
+   752→          onClick={() => {
+   753→            setVal(initial);
+   754→            setEditing(false);
+   755→          }}
+   756→        >
+   757→          Cancel
+   758→        </PremiumButton>
+   759→      </div>
+   760→    </div>
+   761→  );
+   762→}
+   763→
+   764→/* ---------- Dialogs ---------- */
+   765→
+   766→function PaymentDialog({
+   767→  onConfirm,
+   768→}: {
+   769→  onConfirm: (b: { amount: number; method?: string; note?: string }) => void;
+   770→}) {
+   771→  const [open, setOpen] = useState(false);
+   772→  const [amount, setAmount] = useState("");
+   773→  const [method, setMethod] = useState("Cash");
+   774→  const [note, setNote] = useState("");
+   775→
+   776→  return (
+   777→    <Dialog
+   778→      open={open}
+   779→      onOpenChange={(v) => {
+   780→        setOpen(v);
+   781→        if (!v) {
+   782→          setAmount("");
+   783→          setNote("");
+   784→          setMethod("Cash");
+   785→        }
+   786→      }}
+   787→    >
+   788→      <DialogTrigger asChild>
+   789→        <PremiumButton size="sm">
+   790→          <Plus className="w-3.5 h-3.5" /> Record Payment
+   791→        </PremiumButton>
+   792→      </DialogTrigger>
+   793→      <DialogContent className="max-w-md">
+   794→        <DialogHeader>
+   795→          <DialogTitle>Record Payment</DialogTitle>
+   796→        </DialogHeader>
+   797→        <div className="space-y-3">
+   798→          <div>
+   799→            <Label>Amount (GHS) *</Label>
+   800→            <Input
+   801→              type="number"
+   802→              value={amount}
+   803→              onChange={(e) => setAmount(e.target.value)}
+   804→              placeholder="0"
+   805→              className="rounded-md mt-1 tabular-nums"
+   806→            />
+   807→          </div>
+   808→          <div>
+   809→            <Label>Method</Label>
+   810→            <Select value={method} onValueChange={setMethod}>
+   811→              <SelectTrigger className="rounded-md mt-1 w-full">
+   812→                <SelectValue />
+   813→              </SelectTrigger>
+   814→              <SelectContent>
+   815→                {["Cash", "Transfer", "Card", "Cheque"].map((m) => (
+   816→                  <SelectItem key={m} value={m}>
+   817→                    {m}
+   818→                  </SelectItem>
+   819→                ))}
+   820→              </SelectContent>
+   821→            </Select>
+   822→          </div>
+   823→          <div>
+   824→            <Label>Note</Label>
+   825→            <Textarea
+   826→              value={note}
+   827→              onChange={(e) => setNote(e.target.value)}
+   828→              rows={2}
+   829→              placeholder="Optional"
+   830→              className="rounded-md mt-1"
+   831→            />
+   832→          </div>
+   833→        </div>
+   834→        <DialogFooter>
+   835→          <PremiumButton
+   836→            variant="outline"
+   837→            onClick={() => setOpen(false)}
+   838→          >
+   839→            Cancel
+   840→          </PremiumButton>
+   841→          <PremiumButton
+   842→            disabled={!amount || Number(amount) <= 0}
+   843→            onClick={() => {
+   844→              onConfirm({
+   845→                amount: Number(amount),
+   846→                method,
+   847→                note: note || undefined,
+   848→              });
+   849→              setOpen(false);
+   850→            }}
+   851→          >
+   852→            Save payment
+   853→          </PremiumButton>
+   854→        </DialogFooter>
+   855→      </DialogContent>
+   856→    </Dialog>
+   857→  );
+   858→}
+   859→
+   860→function FittingDialog({
+   861→  onConfirm,
+   862→}: {
+   863→  onConfirm: (b: { date: string; notes?: string }) => void;
+   864→}) {
+   865→  const [open, setOpen] = useState(false);
+   866→  const [date, setDate] = useState(todayISO());
+   867→  const [notes, setNotes] = useState("");
+   868→
+   869→  return (
+   870→    <Dialog
+   871→      open={open}
+   872→      onOpenChange={(v) => {
+   873→        setOpen(v);
+   874→        if (!v) {
+   875→          setNotes("");
+   876→          setDate(todayISO());
+   877→        }
+   878→      }}
+   879→    >
+   880→      <DialogTrigger asChild>
+   881→        <PremiumButton variant="outline" size="sm">
+   882→          <Plus className="w-3.5 h-3.5" /> Schedule Fitting
+   883→        </PremiumButton>
+   884→      </DialogTrigger>
+   885→      <DialogContent className="max-w-md">
+   886→        <DialogHeader>
+   887→          <DialogTitle>Schedule Fitting</DialogTitle>
+   888→        </DialogHeader>
+   889→        <div className="space-y-3">
+   890→          <div>
+   891→            <Label>Date *</Label>
+   892→            <Input
+   893→              type="date"
+   894→              value={date}
+   895→              onChange={(e) => setDate(e.target.value)}
+   896→              className="rounded-md mt-1"
+   897→            />
+   898→          </div>
+   899→          <div>
+   900→            <Label>Notes</Label>
+   901→            <Textarea
+   902→              value={notes}
+   903→              onChange={(e) => setNotes(e.target.value)}
+   904→              rows={3}
+   905→              placeholder="Any prep notes for this fitting…"
+   906→              className="rounded-md mt-1"
+   907→            />
+   908→          </div>
+   909→        </div>
+   910→        <DialogFooter>
+   911→          <PremiumButton variant="outline" onClick={() => setOpen(false)}>
+   912→            Cancel
+   913→          </PremiumButton>
+   914→          <PremiumButton
+   915→            onClick={() => {
+   916→              onConfirm({ date, notes: notes || undefined });
+   917→              setOpen(false);
+   918→            }}
+   919→          >
+   920→            Schedule
+   921→          </PremiumButton>
+   922→        </DialogFooter>
+   923→      </DialogContent>
+   924→    </Dialog>
+   925→  );
+   926→}
+   927→
+   928→function TaskDialog({
+   929→  onConfirm,
+   930→}: {
+   931→  onConfirm: (b: { title: string; priority: string; dueDate?: string }) => void;
+   932→}) {
+   933→  const [open, setOpen] = useState(false);
+   934→  const [title, setTitle] = useState("");
+   935→  const [priority, setPriority] = useState("Medium");
+   936→  const [dueDate, setDueDate] = useState("");
+   937→
+   938→  return (
+   939→    <Dialog
+   940→      open={open}
+   941→      onOpenChange={(v) => {
+   942→        setOpen(v);
+   943→        if (!v) {
+   944→          setTitle("");
+   945→          setPriority("Medium");
+   946→          setDueDate("");
+   947→        }
+   948→      }}
+   949→    >
+   950→      <DialogTrigger asChild>
+   951→        <PremiumButton variant="outline" size="sm">
+   952→          <Plus className="w-3.5 h-3.5" /> Add Task
+   953→        </PremiumButton>
+   954→      </DialogTrigger>
+   955→      <DialogContent className="max-w-md">
+   956→        <DialogHeader>
+   957→          <DialogTitle>Add Task</DialogTitle>
+   958→        </DialogHeader>
+   959→        <div className="space-y-3">
+   960→          <div>
+   961→            <Label>Title *</Label>
+   962→            <Input
+   963→              value={title}
+   964→              onChange={(e) => setTitle(e.target.value)}
+   965→              placeholder="e.g. Source fabric"
+   966→              className="rounded-md mt-1"
+   967→            />
+   968→          </div>
+   969→          <div className="grid grid-cols-2 gap-3">
+   970→            <div>
+   971→              <Label>Priority</Label>
+   972→              <Select value={priority} onValueChange={setPriority}>
+   973→                <SelectTrigger className="rounded-md mt-1 w-full">
+   974→                  <SelectValue />
+   975→                </SelectTrigger>
+   976→                <SelectContent>
+   977→                  {PRIORITY_LEVELS.map((p) => (
+   978→                    <SelectItem key={p} value={p}>
+   979→                      {p}
+   980→                    </SelectItem>
+   981→                  ))}
+   982→                </SelectContent>
+   983→              </Select>
+   984→            </div>
+   985→            <div>
+   986→              <Label>Due date</Label>
+   987→              <Input
+   988→                type="date"
+   989→                value={dueDate}
+   990→                onChange={(e) => setDueDate(e.target.value)}
+   991→                className="rounded-md mt-1"
+   992→              />
+   993→            </div>
+   994→          </div>
+   995→        </div>
+   996→        <DialogFooter>
+   997→          <PremiumButton variant="outline" onClick={() => setOpen(false)}>
+   998→            Cancel
+   999→          </PremiumButton>
+  1000→          <PremiumButton
+  1001→            disabled={!title.trim()}
+  1002→            onClick={() => {
+  1003→              onConfirm({
+  1004→                title: title.trim(),
+  1005→                priority,
+  1006→                dueDate: dueDate || undefined,
+  1007→              });
+  1008→              setOpen(false);
+  1009→            }}
+  1010→          >
+  1011→            Add task
+  1012→          </PremiumButton>
+  1013→        </DialogFooter>
+  1014→      </DialogContent>
+  1015→    </Dialog>
+  1016→  );
+  1017→}
+  1018→

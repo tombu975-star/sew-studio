@@ -7,6 +7,7 @@ import { ArrowLeft, Pencil, TrendingUp } from "lucide-react";
 
 import { apiGet, apiPost } from "@/lib/api";
 import { useNav } from "@/stores/nav";
+import { useRole } from "@/stores/role";
 import { ORDER_STATUSES, PRIORITY_LEVELS, todayISO, formatCurrency } from "@/lib/format";
 import type { Customer, Order, User } from "@/lib/types";
 
@@ -14,6 +15,7 @@ import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
+import { EmptyState } from "@/components/atelier/EmptyState";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,10 +27,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { Image as ImageIcon, Lock } from "lucide-react";
 
 export default function NewOrder() {
   const { go, params } = useNav();
   const qc = useQueryClient();
+  const { canCreateOrders } = useRole();
+  const canCreate = canCreateOrders();
 
   const { data: customers } = useQuery<Customer[]>({
     queryKey: ["customers"],
@@ -51,6 +56,7 @@ export default function NewOrder() {
 
   const [customerId, setCustomerId] = useState(params.customerId || "");
   const [garmentDesign, setGarmentDesign] = useState(decodedGarment);
+  const [designImage, setDesignImage] = useState("");
   const [orderDate, setOrderDate] = useState(todayISO());
   const [deliveryDate, setDeliveryDate] = useState("");
   const [status, setStatus] = useState<string>("Enquiry");
@@ -84,6 +90,7 @@ export default function NewOrder() {
       if (deliveryDate) body.deliveryDate = deliveryDate;
       if (assignedStaffId && assignedStaffId !== "none")
         body.assignedStaffId = assignedStaffId;
+      if (designImage.trim()) body.designImage = designImage.trim();
       return apiPost<Order>("/api/orders", body);
     },
     onSuccess: async (created) => {
@@ -95,6 +102,44 @@ export default function NewOrder() {
   });
 
   const valid = !!customerId && !!garmentDesign.trim() && !!orderDate;
+
+  // Safety-net guard: only owners can create orders. The nav hides this view
+  // from non-owners, but if a trainee/staff reaches it directly we render an
+  // EmptyState instead of the form.
+  if (!canCreate) {
+    return (
+      <div className="p-5 md:p-8 max-w-[820px] mx-auto w-full">
+        <button
+          onClick={() => go("orders")}
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
+        </button>
+        <PageHeader
+          eyebrow="New commission"
+          eyebrowIcon={Pencil}
+          title="New Custom Order"
+          subtitle="Capture every detail so production can begin."
+        />
+        <SectionCard>
+          <EmptyState
+            icon={Lock}
+            title="You don't have permission to create orders"
+            description="Only the studio owner can commission new orders. If you believe this is a mistake, please speak with Madam."
+            action={
+              <PremiumButton
+                variant="outline"
+                size="sm"
+                onClick={() => go("dashboard")}
+              >
+                Back to dashboard
+              </PremiumButton>
+            }
+          />
+        </SectionCard>
+      </div>
+    );
+  }
 
   return (
     <div className="p-5 md:p-8 max-w-[820px] mx-auto w-full">
@@ -151,6 +196,35 @@ export default function NewOrder() {
               placeholder="Describe the garment: silhouette, fabric, detailing…"
               className="rounded-md mt-1.5"
             />
+          </div>
+
+          {/* Design image URL (optional, with live preview) */}
+          <div>
+            <Label>Design Image URL</Label>
+            <Input
+              value={designImage}
+              onChange={(e) => setDesignImage(e.target.value)}
+              placeholder="https://… (optional)"
+              className="rounded-md mt-1.5"
+            />
+            <p className="text-[11px] text-stone-400 mt-1.5">
+              Paste a photo or illustration URL to attach a style reference to this order.
+            </p>
+            {designImage.trim() && (
+              <div className="mt-3 aspect-video rounded-lg overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4] animate-fade-in">
+                <img
+                  src={designImage.trim()}
+                  alt="Design preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            {!designImage.trim() && (
+              <div className="mt-3 aspect-video rounded-lg border-2 border-dashed border-[#E7E5E4] bg-[#FBF9F7] flex flex-col items-center justify-center gap-1.5">
+                <ImageIcon className="w-5 h-5 text-stone-400" />
+                <span className="text-[11px] text-stone-400">Live preview will appear here</span>
+              </div>
+            )}
           </div>
 
           {/* Dates */}

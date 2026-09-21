@@ -227,4 +227,20 @@ export interface TrainingLog {
   createdAt: string;
 }
 
+export interface Certificate {
+  id: string;
+  traineeId: string;
+  trainee?: { id: string; fullName: string; email: string; gender?: string | null };
+  issuedById: string;
+  issuedBy?: { id: string; fullName: string };
+  programName: string;
+  durationWeeks: number;
+  skillsAchieved: string;
+  honors?: string | null;
+  certificateNo: string;
+  issuedAt: string;
+  createdAt: string;
+}
+
+
 

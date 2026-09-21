@@ -24,6 +24,8 @@ import {
   PREFERRED_STYLES,
 } from "@/lib/format";
 import { useNav } from "@/stores/nav";
+import { useAuth } from "@/stores/auth";
+import { useRole } from "@/stores/role";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,6 +91,11 @@ const ALL_STYLES = "All Styles";
 
 export default function Customers() {
   const { go } = useNav();
+  const { user } = useAuth();
+  const { canSeeAllCustomers, canCreateOrders } = useRole();
+  // Staff + trainees only see customers whose orders are assigned to them.
+  const scopeToMine = !!user && !canSeeAllCustomers();
+  const canCreate = canCreateOrders();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState("all");
@@ -101,28 +108,45 @@ export default function Customers() {
   });
 
   // Fallback for client-side order counts when the collection endpoint
-  // doesn't include `_orderCount`.
+  // doesn't include `_orderCount`. Also used to derive the visible customer
+  // set for staff/trainees (only customers of orders assigned to them).
   const { data: orders = [] } = useQuery<Order[]>({
     queryKey: ["orders"],
     queryFn: () => apiGet<Order[]>("/api/orders"),
     retry: false,
   });
 
+  const myCustomerIds = useMemo(() => {
+    if (!scopeToMine || !user) return null;
+    const set = new Set<string>();
+    for (const o of orders) {
+      if (o.assignedStaffId === user.id && o.customerId) {
+        set.add(o.customerId);
+      }
+    }
+    return set;
+  }, [orders, scopeToMine, user]);
+
   const orderCounts = useMemo(() => {
     const map = new Map<string, number>();
-    for (const o of orders) {
+    const visible = scopeToMine && user
+      ? orders.filter((o) => o.assignedStaffId === user.id)
+      : orders;
+    for (const o of visible) {
       map.set(o.customerId, (map.get(o.customerId) ?? 0) + 1);
     }
     return map;
-  }, [orders]);
+  }, [orders, scopeToMine, user]);
 
   const enriched = useMemo(
     () =>
-      customers.map((c) => ({
-        ...c,
-        _orderCount: c._orderCount ?? orderCounts.get(c.id) ?? 0,
-      })),
-    [customers, orderCounts]
+      customers
+        .filter((c) => !myCustomerIds || myCustomerIds.has(c.id))
+        .map((c) => ({
+          ...c,
+          _orderCount: c._orderCount ?? orderCounts.get(c.id) ?? 0,
+        })),
+    [customers, orderCounts, myCustomerIds]
   );
 
   const filtered = useMemo(() => {
@@ -179,18 +203,24 @@ export default function Customers() {
   return (
     <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
       <PageHeader
-        eyebrow="Client roster"
+        eyebrow={scopeToMine ? "My clients" : "Client roster"}
         eyebrowIcon={Users}
         title="Customers"
-        subtitle="Everyone who's sat in your chair."
+        subtitle={
+          scopeToMine
+            ? "Clients whose garments you're working on in the studio."
+            : "Everyone who's sat in your chair."
+        }
         actions={
-          <PremiumButton
-            variant="primary"
-            size="md"
-            onClick={() => setAddOpen(true)}
-          >
-            <UserPlus className="w-4 h-4" /> Add Customer
-          </PremiumButton>
+          canCreate ? (
+            <PremiumButton
+              variant="primary"
+              size="md"
+              onClick={() => setAddOpen(true)}
+            >
+              <UserPlus className="w-4 h-4" /> Add Customer
+            </PremiumButton>
+          ) : undefined
         }
       />
 
@@ -300,23 +330,44 @@ export default function Customers() {
           <EmptyState
             icon={Users}
             title={
-              search || sourceFilter !== "all" || typeFilter !== "all"
+              scopeToMine
+                ? "No clients assigned to you yet"
+                : search || sourceFilter !== "all" || typeFilter !== "all"
                 ? "No customers match your filters"
                 : "No customers found"
             }
             description={
-              search || sourceFilter !== "all" || typeFilter !== "all"
+              scopeToMine
+                ? "When the studio assigns you an order, the client will appear here."
+                : search || sourceFilter !== "all" || typeFilter !== "all"
                 ? "Try clearing your search or filters."
                 : "Add your first customer to start building the roster."
             }
             action={
-              !search && sourceFilter === "all" && typeFilter === "all" ? (
+              !scopeToMine &&
+              !search &&
+              sourceFilter === "all" &&
+              typeFilter === "all" &&
+              canCreate ? (
                 <PremiumButton
                   variant="primary"
                   size="sm"
                   onClick={() => setAddOpen(true)}
                 >
                   <UserPlus className="w-4 h-4" /> Add Customer
+                </PremiumButton>
+              ) : !scopeToMine &&
+                (search || sourceFilter !== "all" || typeFilter !== "all") ? (
+                <PremiumButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearch("");
+                    setSourceFilter("all");
+                    setTypeFilter("all");
+                  }}
+                >
+                  Clear filters
                 </PremiumButton>
               ) : undefined
             }

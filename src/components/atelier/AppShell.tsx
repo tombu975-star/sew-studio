@@ -14,6 +14,8 @@ import {
   UsersRound,
   MessageSquare,
   GraduationCap,
+  Image as ImageIcon,
+  Award,
 } from "lucide-react";
 import { useRole } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
@@ -40,6 +42,8 @@ const NAV: NavItem[] = [
   { to: "tasks", label: "Tasks", icon: CheckSquare, staff: true, trainee: true },
   { to: "style-assist", label: "Style Assist", icon: Sparkles, staff: false, trainee: false },
   { to: "progress", label: "Progress", icon: GraduationCap, staff: false, trainee: true },
+  { to: "portfolio", label: "Portfolio", icon: ImageIcon, staff: true, trainee: true },
+  { to: "certificate", label: "Certificate", icon: Award, staff: false, trainee: true },
   { to: "team", label: "Team", icon: UsersRound, staff: false, trainee: false },
   { to: "community", label: "Community", icon: MessageSquare, staff: true, trainee: true },
 ];

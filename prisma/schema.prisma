@@ -26,6 +26,8 @@ model User {
   measurements   MeasurementSet[]
   trainingAsTrainee TrainingLog[] @relation("TraineeLogs")
   trainingAsMentor  TrainingLog[] @relation("MentorLogs")
+  certificatesAsTrainee Certificate[] @relation("TraineeCerts")
+  certificatesAsIssuer Certificate[] @relation("IssuerCerts")
 }
 
 model Customer {
@@ -262,4 +264,20 @@ model TrainingLog {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Certificate {
+  id              String   @id @default(cuid())
+  traineeId       String   // User id (role trainee)
+  trainee         User     @relation("TraineeCerts", fields: [traineeId], references: [id], onDelete: Cascade)
+  issuedById      String   // User id (trainer or madam issuing)
+  issuedBy        User     @relation("IssuerCerts", fields: [issuedById], references: [id])
+  programName     String   @default("Atelier Apprenticeship Programme")
+  durationWeeks   Int      @default(12)
+  skillsAchieved  String   // comma-separated skills mastered
+  honors          String?  // e.g. "Distinction", "Merit", "Pass"
+  certificateNo   String   @unique
+  issuedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
+}
+
 

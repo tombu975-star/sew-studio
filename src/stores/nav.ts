@@ -16,7 +16,9 @@ export type ViewKey =
   | "quote"
   | "team"
   | "community"
-  | "progress";
+  | "progress"
+  | "portfolio"
+  | "certificate";
 
 interface NavState {
   view: ViewKey;

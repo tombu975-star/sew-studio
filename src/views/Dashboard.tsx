@@ -27,6 +27,10 @@ import {
   Coins,
   Timer,
   UserCheck,
+  GraduationCap,
+  Scissors,
+  MessageSquare,
+  ShoppingBag,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,9 +54,12 @@ import type {
   Customer,
   Settings,
   StyleConcept,
+  TrainingLog,
+  CommunityPost,
 } from "@/lib/types";
 import { useNav } from "@/stores/nav";
 import { useRole } from "@/stores/role";
+import { useAuth } from "@/stores/auth";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -162,9 +169,31 @@ function avatarGradient(seed: string) {
 /* ---------- main view ---------- */
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const { isTrainee } = useRole();
+
+  // Trainee gets a focused apprenticeship dashboard.
+  if (user && isTrainee()) {
+    return <TraineeDashboard userId={user.id} />;
+  }
+  return <MainDashboard />;
+}
+
+function MainDashboard() {
   const { go } = useNav();
-  const { isStaff, ownerLabel } = useRole();
-  const staff = isStaff();
+  const {
+    ownerLabel,
+    isStaff,
+    isOwner,
+    isTrainer,
+    canCreateOrders,
+  } = useRole();
+  // The "workbench" view applies to staff, trainee-fallback (never reached
+  // here because trainee returns early above) and trainers. Only the owner
+  // (madam) sees the full atelier overview with money + business health.
+  const staff = isStaff() || isTrainer();
+  const owner = isOwner();
+  const trainer = isTrainer();
 
   const [insights, setInsights] = useState<string[] | null>(null);
   const [insightsLoading, setInsightsLoading] = useState(false);
@@ -469,22 +498,32 @@ export default function Dashboard() {
       <PageHeader
         eyebrow={`Atelier overview · ${today}`}
         eyebrowIcon={CalendarDays}
-        title={staff ? "Your Workbench" : `${ownerLabel}'s Atelier`}
+        title={
+          owner
+            ? `${ownerLabel}'s Atelier`
+            : trainer
+            ? "Mentor's Workbench"
+            : "Your Workbench"
+        }
         subtitle={
-          staff
-            ? "Your orders, fittings and tasks across the studio — keep production moving today."
-            : "A snapshot of the studio today."
+          owner
+            ? "A snapshot of the studio today."
+            : trainer
+            ? "Your trainees, fittings and orders across the atelier."
+            : "Your orders, fittings and tasks across the studio — keep production moving today."
         }
         actions={
-          <PremiumButton
-            variant="primary"
-            size="md"
-            onClick={() => go("new-order")}
-            className="hidden md:inline-flex"
-          >
-            <Plus className="w-4 h-4" />
-            New Custom Order
-          </PremiumButton>
+          canCreateOrders() ? (
+            <PremiumButton
+              variant="primary"
+              size="md"
+              onClick={() => go("new-order")}
+              className="hidden md:inline-flex"
+            >
+              <Plus className="w-4 h-4" />
+              New Custom Order
+            </PremiumButton>
+          ) : undefined
         }
       />
 
@@ -648,7 +687,10 @@ export default function Dashboard() {
           </SectionCard>
         </div>
 
-        {/* Right 1/3 — Staff Workload / My Open Tasks */}
+        {/* Right 1/3 — Staff Workload / My Open Tasks / My Trainees (trainer) */}
+        {trainer ? (
+          <TrainerTraineesCard users={m.staffWorkload.map((w) => w.user)} />
+        ) : (
         <SectionCard
           title={staff ? "My Open Tasks" : "Staff Workload"}
           action={
@@ -719,6 +761,7 @@ export default function Dashboard() {
             </div>
           )}
         </SectionCard>
+        )}
       </div>
 
       {/* ---------- Madam-only premium sections ---------- */}
@@ -925,13 +968,15 @@ export default function Dashboard() {
       )}
 
       {/* ---------- Mobile floating New Order ---------- */}
-      <button
-        onClick={() => go("new-order")}
-        className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#800020] text-white flex items-center justify-center shadow-lg hover:bg-[#6b0018] transition elevate-burgundy"
-        aria-label="New Custom Order"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
+      {canCreateOrders() && (
+        <button
+          onClick={() => go("new-order")}
+          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#800020] text-white flex items-center justify-center shadow-lg hover:bg-[#6b0018] transition elevate-burgundy"
+          aria-label="New Custom Order"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }
@@ -959,6 +1004,487 @@ function HealthMetric({
       </div>
       <div className="font-display font-semibold text-xl text-[#1C1917] tabular-nums">
         <AnimatedNumber value={value} format={format} />
+      </div>
+    </div>
+  );
+}
+
+/* ---------- trainer right-column: My Trainees summary ---------- */
+
+function TrainerTraineesCard({ users }: { users: User[] }) {
+  const { go } = useNav();
+  const trainees = useMemo(
+    () =>
+      users
+        .filter((u) => u.role === "trainee")
+        .sort((a, b) => a.fullName.localeCompare(b.fullName)),
+    [users]
+  );
+
+  const logsQ = useQuery<TrainingLog[]>({
+    queryKey: ["training-logs"],
+    queryFn: () => apiGet<TrainingLog[]>("/api/training-logs"),
+  });
+
+  const perTrainee = useMemo(() => {
+    const map = new Map<
+      string,
+      { total: number; proficient: number; practicing: number; learning: number }
+    >();
+    for (const log of logsQ.data ?? []) {
+      const tid = log.traineeId;
+      if (!tid) continue;
+      const entry = map.get(tid) ?? {
+        total: 0,
+        proficient: 0,
+        practicing: 0,
+        learning: 0,
+      };
+      entry.total++;
+      if (log.status === "Proficient") entry.proficient++;
+      else if (log.status === "Practicing") entry.practicing++;
+      else if (log.status === "Learning") entry.learning++;
+      map.set(tid, entry);
+    }
+    return map;
+  }, [logsQ.data]);
+
+  return (
+    <SectionCard
+      title="My Trainees"
+      action={
+        <button
+          onClick={() => go("progress")}
+          className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+        >
+          All trainees
+          <ChevronRight className="w-3 h-3" />
+        </button>
+      }
+      bodyClassName="p-0"
+    >
+      {trainees.length === 0 ? (
+        <EmptyState
+          icon={GraduationCap}
+          title="No trainees yet"
+          description="Add trainees from the Team view to follow their progress."
+        />
+      ) : (
+        <div className="divide-y divide-[#E7E5E4]">
+          {trainees.map((t) => {
+            const stats = perTrainee.get(t.id) ?? {
+              total: 0,
+              proficient: 0,
+              practicing: 0,
+              learning: 0,
+            };
+            return (
+              <button
+                key={t.id}
+                onClick={() => go("progress", { id: t.id })}
+                className="flex items-center gap-3 px-5 py-3.5 w-full text-left hover:bg-[#FBF9F7] transition group"
+              >
+                <div
+                  className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(
+                    t.id || t.email || "?"
+                  )} flex items-center justify-center text-xs font-semibold text-white shrink-0 shadow-sm`}
+                >
+                  {(t.fullName || t.email || "?").charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[#1C1917] truncate group-hover:text-[#800020] transition-colors">
+                    {t.fullName || t.email}
+                  </p>
+                  <p className="text-[11px] text-stone-400">
+                    {stats.total === 0
+                      ? "No logs yet"
+                      : `${stats.total} log${stats.total !== 1 ? "s" : ""}`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {stats.proficient > 0 && (
+                    <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full tabular-nums">
+                      {stats.proficient}P
+                    </span>
+                  )}
+                  {stats.practicing > 0 && (
+                    <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 text-[10px] font-semibold text-sky-700 bg-sky-50 border border-sky-200 rounded-full tabular-nums">
+                      {stats.practicing}p
+                    </span>
+                  )}
+                  {stats.learning > 0 && (
+                    <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full tabular-nums">
+                      {stats.learning}L
+                    </span>
+                  )}
+                  {stats.total === 0 && (
+                    <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
+/* ---------- trainee apprenticeship dashboard ---------- */
+
+function timeAgo(iso: string) {
+  const d = new Date(iso).getTime();
+  const diff = Date.now() - d;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const days = Math.floor(h / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function TraineeDashboard({ userId }: { userId: string }) {
+  const { go } = useNav();
+
+  const tasksQ = useQuery<Task[]>({
+    queryKey: ["tasks"],
+    queryFn: () => apiGet<Task[]>("/api/tasks"),
+  });
+  const logsQ = useQuery<TrainingLog[]>({
+    queryKey: ["training-logs", userId],
+    queryFn: () =>
+      apiGet<TrainingLog[]>(`/api/training-logs?traineeId=${userId}`),
+  });
+  const ordersQ = useQuery<Order[]>({
+    queryKey: ["orders"],
+    queryFn: () => apiGet<Order[]>("/api/orders"),
+  });
+  const communityQ = useQuery<CommunityPost[]>({
+    queryKey: ["community"],
+    queryFn: () => apiGet<CommunityPost[]>("/api/community"),
+  });
+
+  const myOpenTasks = useMemo(
+    () =>
+      (tasksQ.data ?? [])
+        .filter((t) => t.staffId === userId && t.status !== "Done")
+        .sort((a, b) => {
+          const ad = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+          const bd = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+          return ad - bd;
+        }),
+    [tasksQ.data, userId]
+  );
+
+  const myOrders = useMemo(
+    () =>
+      (ordersQ.data ?? [])
+        .filter((o) => o.assignedStaffId === userId)
+        .sort(
+          (a, b) =>
+            new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
+        )
+        .slice(0, 5),
+    [ordersQ.data, userId]
+  );
+
+  const skills = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        count: number;
+        latest: TrainingLog | null;
+        proficient: number;
+        practicing: number;
+        learning: number;
+      }
+    >();
+    for (const log of logsQ.data ?? []) {
+      const skill = log.skill?.trim() || "General";
+      const entry = map.get(skill) ?? {
+        count: 0,
+        latest: null as TrainingLog | null,
+        proficient: 0,
+        practicing: 0,
+        learning: 0,
+      };
+      entry.count++;
+      if (log.status === "Proficient") entry.proficient++;
+      else if (log.status === "Practicing") entry.practicing++;
+      else if (log.status === "Learning") entry.learning++;
+      if (
+        !entry.latest ||
+        new Date(log.date).getTime() > new Date(entry.latest.date).getTime()
+      ) {
+        entry.latest = log;
+      }
+      map.set(skill, entry);
+    }
+    return Array.from(map.entries())
+      .map(([skill, data]) => ({ skill, ...data }))
+      .sort((a, b) => b.count - a.count);
+  }, [logsQ.data]);
+
+  const recentPosts = useMemo(
+    () => (communityQ.data ?? []).slice(0, 2),
+    [communityQ.data]
+  );
+
+  const loading =
+    tasksQ.isLoading || logsQ.isLoading || ordersQ.isLoading;
+
+  if (loading) {
+    return (
+      <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
+        <div className="mb-8">
+          <div className="h-3 w-32 shimmer rounded mb-3" />
+          <div className="h-9 w-72 shimmer rounded mb-3" />
+          <div className="h-3 w-80 shimmer rounded" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+        <div className="mt-4">
+          <SkeletonList rows={3} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
+      <PageHeader
+        eyebrow="My apprenticeship"
+        eyebrowIcon={GraduationCap}
+        title="My Workbench"
+        subtitle="Your tasks, training and assigned work at the atelier — keep honing your craft today."
+      />
+
+      {/* Hero metric — My Open Tasks */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div className="lg:col-span-1 animate-fade-in-up">
+          <PremiumMetric
+            label="My Open Tasks"
+            accent
+            icon={ClipboardList}
+            sub={
+              myOpenTasks.length === 0
+                ? "All caught up — nice work."
+                : "Tasks assigned to you in the studio"
+            }
+            value={<AnimatedNumber value={myOpenTasks.length} />}
+          />
+          <PremiumButton
+            variant="outline"
+            size="sm"
+            className="mt-3 w-full"
+            onClick={() => go("tasks")}
+          >
+            Go to Tasks
+            <ArrowRight className="w-3.5 h-3.5" />
+          </PremiumButton>
+        </div>
+
+        {/* My Training Progress */}
+        <div className="lg:col-span-2">
+          <SectionCard
+            title="My Training Progress"
+            action={
+              <button
+                onClick={() => go("progress")}
+                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+              >
+                View progress
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            }
+            bodyClassName="p-0"
+          >
+            {skills.length === 0 ? (
+              <EmptyState
+                icon={GraduationCap}
+                title="No training logs yet"
+                description="Log your first learning from the Progress view to start tracking your skills."
+                action={
+                  <PremiumButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => go("progress")}
+                  >
+                    Go to Progress
+                  </PremiumButton>
+                }
+              />
+            ) : (
+              <div className="divide-y divide-[#E7E5E4]/70">
+                {skills.slice(0, 5).map((s) => (
+                  <div
+                    key={s.skill}
+                    className="flex items-center gap-3 px-5 py-3.5"
+                  >
+                    <div className="w-8 h-8 rounded-md bg-[#800020]/8 border border-[#800020]/15 flex items-center justify-center shrink-0">
+                      <Scissors className="w-3.5 h-3.5 text-[#800020]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-[#1C1917] truncate">
+                        {s.skill}
+                      </div>
+                      <div className="text-[11px] text-stone-400 tabular-nums">
+                        {s.count} {s.count === 1 ? "entry" : "entries"}
+                        {s.proficient > 0 && ` · ${s.proficient} proficient`}
+                      </div>
+                    </div>
+                    {s.latest && (
+                      <StatusBadge status={s.latest.status} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        </div>
+      </div>
+
+      {/* My Assigned Orders + Recent Community */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* My Assigned Orders (NO prices) */}
+        <div className="lg:col-span-2">
+          <SectionCard
+            title="My Assigned Orders"
+            action={
+              <button
+                onClick={() => go("orders")}
+                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+              >
+                All orders
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            }
+            bodyClassName="p-0"
+          >
+            {myOrders.length === 0 ? (
+              <EmptyState
+                icon={ShoppingBag}
+                title="No orders assigned yet"
+                description="When the studio assigns you a garment, it'll appear here for you to follow."
+              />
+            ) : (
+              <div className="divide-y divide-[#E7E5E4]/70">
+                {myOrders.map((o) => {
+                  const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
+                  return (
+                    <button
+                      key={o.id}
+                      onClick={() => go("order", { id: o.id })}
+                      className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-[#FBF9F7] transition group"
+                    >
+                      <div className="w-11 h-11 rounded-md overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center shrink-0">
+                        {o.designImage ? (
+                          <img
+                            src={o.designImage}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Scissors className="w-4 h-4 text-stone-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-[#1C1917] truncate group-hover:text-[#800020] transition-colors">
+                          {o.garmentDesign || "Untitled garment"}
+                        </div>
+                        <div className="text-[11px] text-stone-400 truncate">
+                          {o.customer?.name || "—"}
+                          {o.deliveryDate
+                            ? ` · due ${shortDate(o.deliveryDate)}`
+                            : ""}
+                          {overdue && (
+                            <span className="text-amber-700 font-medium">
+                              {" "}
+                              · overdue
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <StatusBadge status={o.status} />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+        {/* Recent Community teaser */}
+        <div>
+          <SectionCard
+            title="Recent Community"
+            action={
+              <button
+                onClick={() => go("community")}
+                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+              >
+                Wall
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            }
+            bodyClassName="p-0"
+          >
+            {recentPosts.length === 0 ? (
+              <EmptyState
+                icon={MessageSquare}
+                title="No posts yet"
+                description="Share an update or question on the studio wall."
+                action={
+                  <PremiumButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => go("community")}
+                  >
+                    Open Community
+                  </PremiumButton>
+                }
+              />
+            ) : (
+              <div className="divide-y divide-[#E7E5E4]/70">
+                {recentPosts.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => go("community")}
+                    className="w-full text-left px-5 py-3.5 hover:bg-[#FBF9F7] transition group"
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
+                        {(p.authorName || "?").charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-[11px] text-stone-500 truncate">
+                        {p.authorName}
+                      </span>
+                      <span className="text-[10px] text-stone-400 ml-auto shrink-0">
+                        {timeAgo(p.createdAt)}
+                      </span>
+                    </div>
+                    {p.title && (
+                      <div className="text-sm font-medium text-[#1C1917] truncate group-hover:text-[#800020] transition-colors">
+                        {p.title}
+                      </div>
+                    )}
+                    <p className="text-[12px] text-stone-500 line-clamp-2 mt-0.5">
+                      {p.body}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        </div>
       </div>
     </div>
   );

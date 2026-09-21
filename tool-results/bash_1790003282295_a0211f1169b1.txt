@@ -1,0 +1,464 @@
+
+═══════════════════════════════════════════════════════════════════
+## CONTRACT FOR TEAM + COMMUNITY VIEWS
+═══════════════════════════════════════════════════════════════════
+
+### Premium primitives (use these — see PREMIUM REDESIGN CONTRACT earlier in this worklog)
+- `PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState, SkeletonCard, SkeletonList, PremiumButton, StatusBadge` from `@/components/atelier/*`
+- shadcn: Dialog, Input, Label, Textarea, Select(+parts), Tabs(+parts), Separator
+- `toast` from sonner, `apiGet, apiPost, apiPatch, apiDelete` from `@/lib/api`
+- `useQuery` from `@tanstack/react-query`, `useNav` from `@/stores/nav`, `useAuth` from `@/stores/auth`, `useRole` from `@/stores/role`
+- icons from lucide-react
+
+### Auth/role context
+- `const { user } = useAuth()` — the logged-in user { id, email, fullName, role, gender }
+- `const { isStaff } = useRole()` — true for non-owners. Team view is owner-only (the nav already hides it from staff), so you don't need to gate inside, but you can show the owner's name in compose.
+
+### Team view (src/views/Team.tsx, default export Team, "use client")
+Owner-only atelier people management. Three tabs: Staff, Freelancers, (optional) Roles summary.
+
+Data:
+- `GET /api/users` → User[]
+- `GET /api/freelancers` → Freelancer[]
+
+Layout:
+- PageHeader: eyebrow "Atelier people", title "Team", subtitle "Manage staff, trainers and the freelancers you commission."
+- A premium stat strip (4 PremiumMetrics): Staff count, Trainers count (role trainer), Freelancers count, Available freelancers.
+- Tabs: "Staff & Trainers" | "Freelancers"
+  - Staff tab: SectionCard list of users (gradient avatar with initial, fullName, role StatusBadge, email, phone, gender). Each row has an Edit (PATCH) affordance. An "Add Member" PremiumButton (primary) opens a Dialog: fullName, email, role (Select: Staff/Trainer/Trainee — owner is implicit, don't allow creating madam), gender (Select Female/Male/Other), phone, password (default "atelier2025"). POST /api/users → invalidate + toast.
+  - Freelancers tab: SectionCard list of freelancers (avatar with specialty icon, name, specialty chip, skills, phone, rate formatCurrency, status StatusBadge Available/Busy/Unavailable). "Add Freelancer" PremiumButton → Dialog: name, specialty (Select: Beader/Embroiderer/Cutter/Tailor/Designer/Photographer/Other), skills (comma text), phone, email, rate (number), status (Select), notes (Textarea). POST /api/freelancers. Each freelancer card also has a small status-change Select (PATCH) and a delete (DELETE with confirm).
+- Loading: SkeletonList. Empty: EmptyState with UsersRound icon.
+
+### Community view (src/views/Community.tsx, default export Community, "use client")
+The studio's internal wall/feed. Everyone (owner + staff) can post, like, comment.
+
+Data:
+- `GET /api/community` → CommunityPost[] (each with comments[] + _count.likes). NOTE: the API doesn't set `likedByMe` — compute client-side using `useAuth().user.id` matching any... actually simpler: track liked posts in local state keyed by postId. On like click, POST /api/community/[id]/like { authorId: user.id } → toggle local state + refetch or optimistic count.
+
+Layout:
+- PageHeader: eyebrow "Studio wall", title "Community", subtitle "Updates, questions, inspiration and showcases from the atelier."
+- A premium composer at top (SectionCard "Share something"): type Select (Update/Question/Inspiration/Announcement/Showcase — owners see all 5, staff see Update/Question/Inspiration/Showcase), optional title Input, body Textarea, "Post" PremiumButton (primary, loading). POST /api/community { authorId: user.id, authorName: user.fullName, authorRole: user.role, type, title, body } → invalidate + toast + clear form.
+- A filter row: small pill buttons to filter by type (All, Updates, Questions, Inspiration, Showcases, Announcements). Active pill = burgundy.
+- Feed: list of CommunityPost cards (SectionCard style, `animate-fade-in-up` staggered). Each card:
+  - Header: gradient avatar (initial), authorName + authorRole badge, time-ago (use a relative time helper or formatDate), pinned indicator (Pin icon, amber) if pinned.
+  - Type chip (colored by type: announcement=burgundy, showcase=emerald, question=sky, inspiration=amber, update=stone).
+  - Title (font-display, if present) + body (preserve line breaks).
+  - If imageUrl, show the image in a rounded frame.
+  - Actions row: Like button (Heart icon, fills burgundy if liked, count), Comment button (MessageSquare icon, toggles comment input), count.
+  - Comments: list under the card (authorName + body + time). A small input + send to POST /api/community/[id]/comments.
+- Loading: 3-4 SkeletonCards. Empty: EmptyState with MessageSquare icon "No posts yet — start the conversation."
+
+### Time-ago helper (inline in Community)
+```
+function timeAgo(iso: string) {
+  const d = new Date(iso).getTime();
+  const diff = Date.now() - d;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const days = Math.floor(h / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+```
+
+### Quality bar (PREMIUM — match the rest of the app)
+- SectionCard everywhere, elevate-sm + lift on interactive cards
+- Gradient avatars (burgundy gradient), tabular-nums on rates
+- PremiumButton for all CTAs with loading states
+- `animate-fade-in-up` on PageHeader + staggered on feed cards
+- Toasts for all mutations
+- Skeleton loaders, EmptyState for empties
+- Responsive: tabs scroll on mobile, feed cards full-width
+- Burgundy #800020 primary, no blue/indigo as primary
+
+### Worklog
+Before starting, read `/home/z/my-project/worklog.md`. After finishing, APPEND a new section starting with `---` with Task ID, agent, task, work log, stage summary.
+
+---
+Task ID: 20
+Agent: full-stack-developer (team view)
+Task: Build Team view (owner-only people management).
+
+Work Log:
+- Read /home/z/my-project/worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-* + lift + animate-fade-in-up) and the CONTRACT FOR TEAM + COMMUNITY VIEWS (exact API shapes, layout, quality bar).
+- Inspected premium primitives (PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState/SkeletonList, PremiumButton, StatusBadge) and the existing Customers.tsx/CustomerProfile.tsx for gradient-avatar + premium-tabs patterns.
+- Verified backend routes already exist (Task 19): GET/POST /api/users, GET/POST /api/freelancers, PATCH/DELETE /api/freelancers/[id]. No backend work needed.
+- Extended StatusBadge.tsx (additive, non-breaking) with three new statuses so the freelancer pill matches the contract colours: Available=emerald, Busy=amber, Unavailable=stone (both STATUS_STYLES + DOT_COLOR maps).
+- Wrote src/views/Team.tsx (~970 lines, single "use client" default export with inline sub-components):
+  - PageHeader: eyebrow "Atelier people" (UsersRound icon), title "Team", subtitle, actions slot showing a compact owner chip (gradient avatar initial + "Owner" label + signed-in name) sourced from useAuth().
+  - Premium stat strip (grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6): 4 PremiumMetric cards — Staff (accent, UsersRound), Trainers (GraduationCap), Freelancers (Briefcase), Available (Sparkles) — each value rendered via AnimatedNumber for the count-up effect.
+  - Tabs (shadcn premium pill style — burgundy active, white surface, scrollable on mobile): "Staff & Trainers" | "Freelancers".
+  - StaffTrainersCard (SectionCard bodyClassName="p-0", header action = PremiumButton "Add Member" with UserPlus icon): divide-y list sorted by role hierarchy (madam→staff→trainer→trainee) then name. Each row: burgundy gradient avatar (initial), fullName (font-medium), role StatusBadge, email/phone subtext with Mail/Phone icons, gender chip. The owner (role=madam) row gets a burgundy "Owner" tag (Crown icon) + "Permanent" label and is non-deletable. The signed-in owner's own row also gets a "You" chip.
+  - FreelancersCard (SectionCard bodyClassName="p-0", header action = PremiumButton "Add Freelancer" with Plus icon): divide-y list. Each row: burgundy gradient avatar with specialty icon (Beader=Sparkles, Embroiderer=Flower2, Cutter=Scissors, Tailor=Shirt, Designer=PenTool, Photographer=Camera, Other=Briefcase), name, burgundy specialty chip, italic skills, phone/email subtext, rate (formatCurrency + tabular-nums) with "per piece" hint, StatusBadge (emerald/amber/stone), compact status-change Select (PATCH on change with toast), ghost-icon delete button (Trash2) opening an AlertDialog confirm → DELETE.
+  - AddMemberDialog: Full Name (required), Email (required), Role Select (Staff/Trainer/Trainee — madam not offered), Gender Select (Female/Male/Other/Prefer not to say), Phone, Password (prefilled "atelier2025" + hint). PremiumButton "Add member" (loading). useMutation POST /api/users → invalidate ['users'] + success toast; onError detects 409 (email exists) and shows a specific error toast.
+  - AddFreelancerDialog: Name (required), Specialty Select, Skills (text), Phone, Email, Rate (number, tabular-nums), Status Select, Notes (Textarea). PremiumButton "Add freelancer" (loading). POST /api/freelancers → invalidate ['freelancers'] + toast.
+  - Loading: SkeletonList (4 rows) in each tab. Empty: EmptyState with UsersRound icon + contextual copy + add CTA.
+  - Field helper renders a consistent uppercase-tracked label with burgundy required asterisk.
+- Fixed icon import: `Worker` is not exported by lucide-react — swapped to `Briefcase` for both the "Other" specialty avatar and the Freelancers metric.
+- Verified: `bun run lint` clean (no errors); `bunx tsc --noEmit` clean for my files; dev log shows successful recompile (✓ Compiled in 9.9s, GET / 200) after file creation.
+
+Stage Summary:
+- Files created/modified:
+  - src/views/Team.tsx — premium owner-only people management view (default export Team, "use client").
+  - src/components/atelier/StatusBadge.tsx — additive extension with Available/Busy/Unavailable statuses (emerald/amber/stone) so freelancer pills match the contract.
+- Features delivered: premium stat strip with AnimatedNumber counts, burgundy pill tabs, gradient-avatar roster (owner marked + non-deletable), gradient-avatar freelancer list with per-specialty icons + rate + status badge + inline status-change Select + AlertDialog-confirmed delete, two full premium dialogs (Add Member with 409 handling, Add Freelancer), SkeletonList loaders, EmptyState empties, sonner toasts on every mutation, fully responsive (tabs scroll, rows stack on mobile, dialogs max-w-lg), burgundy #800020 primary throughout, tabular-nums on rates, animate-fade-in-up on PageHeader.
+- Consumes: @/components/atelier/{PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState, SkeletonList, PremiumButton, StatusBadge}, @/components/ui/{Tabs, Dialog, AlertDialog, Input, Label, Textarea, Select}, @/lib/api (apiGet/apiPost/apiPatch/apiDelete), @/lib/format (formatCurrency), @/lib/types (User, Freelancer), @/stores/auth (useAuth), @tanstack/react-query (useQuery + useMutation + invalidate), sonner (toast), lucide-react.
+
+---
+Task ID: 21
+Agent: full-stack-developer (community view)
+Task: Build Community view (studio internal wall/feed).
+
+Work Log:
+- Read /home/z/my-project/worklog.md completely — bound to the PREMIUM REDESIGN CONTRACT + the CONTRACT FOR TEAM + COMMUNITY VIEWS (burgundy #800020 / cream #faf8f5 tokens, premium primitives PageHeader/SectionCard/PremiumButton/EmptyState/SkeletonCard, surface-premium + elevate-sm + lift + animate-fade-in-up + tabular-nums utilities, sonner toasts, TanStack Query + apiGet/apiPost, useAuth user context, CommunityPost/CommunityComment/CommunityPostType types).
+- Inspected premium primitives (PageHeader, SectionCard, PremiumButton, EmptyState/SkeletonCard) + shadcn Input/Label/Textarea/Select to confirm exact prop shapes and class conventions.
+- Confirmed backend already exists: GET/POST /api/community (returns posts with comments + _count.likes, ordered pinned-then-recent), POST /api/community/[id]/like { authorId } → { liked: boolean } (toggle), POST /api/community/[id]/comments { authorId, authorName, body } → CommunityComment.
+- Confirmed page.tsx already routes `case "community": return <Community />` via dynamic import.
+- Created src/views/Community.tsx — single "use client" default export `Community` + inline `PostCard` sub-component, ~580 lines.
+- PageHeader: eyebrow "Studio wall" + MessageSquare icon, title "Community", subtitle "Updates, questions, inspiration and showcases from the atelier.", actions = burgundy MessageSquare-in-circle accent.
+- Composer (SectionCard "Share something", `lg:sticky lg:top-6 z-10` on desktop, animate-fade-in-up):
+  - Row 1: type Select (Update/Question/Inspiration/Showcase; Announcement gated to user.role === "madam") + optional title Input (Label with "optional" suffix).
+  - Row 2: body Textarea (full width, 3 rows, placeholder).
+  - Footer: char counter (`{body.length}/500`, turns burgundy when over limit) + Post PremiumButton (primary, Send icon, loading state, disabled when body empty or over 500).
+  - Submit → POST /api/community { authorId: user.id, authorName: user.fullName, authorRole: user.role, type, title?, body } → invalidate ['community'] + toast "Posted to the wall." + clear form (body/title/type reset).
+- Filter pills row (flex flex-wrap gap-2, animate-fade-in-up): All / Updates / Questions / Inspiration / Showcases / Announcements. Active = burgundy bg + white text + elevate-burgundy; inactive = white bg + stone text + #E7E5E4 border with hover lift. Client-side filter (pinned posts always surface first regardless of filter).
+- Feed: list of PostCard articles. Each = `surface-premium border border-[#E7E5E4] rounded-xl elevate-sm lift animate-fade-in-up overflow-hidden` with staggered `style={{ animationDelay: idx*60ms }}` (capped at 8 to avoid long delays).
+  - Header row: gradient avatar (initial of authorName, `bg-gradient-to-br from-[#800020] to-[#6b0018]`) + authorName (font-medium) + role chip (madam=burgundy "Owner", staff=stone "Staff", trainer=amber "Trainer", trainee=sky "Trainee") + time-ago (muted). Right side: type chip (colored per type — announcement=burgundy, showcase=emerald, question=sky, inspiration=amber, update=stone) with type icon + amber Pin badge if pinned.
+  - Body: optional title (font-display text-lg) + body text (`whitespace-pre-wrap` preserves line breaks).
+  - Image: rounded-lg frame, aspect-video, object-cover, shadow-inner, bg-[#FBF9F7] (subtle inner shadow per spec).
+  - Actions row: Like button (Heart icon, fills burgundy when liked, count badge with tabular-nums; aria-pressed + aria-label) + Comment button (MessageSquare icon + count; toggles comment panel).
+  - Comments section (shown when post has comments OR comment panel toggled open): tinted bg-[#FBF9F7]/40, separated by hairline border-top. Existing comments list (small gradient avatar dot + authorName + time-ago + body, whitespace-pre-wrap). Comment input (Input + PremiumButton sm "Send" with loading state) at bottom → POST /api/community/[id]/comments { authorId, authorName, body } → invalidate + toast "Comment posted." + clear input. Enter submits (Shift+Enter for newline).
+- Like behavior: tracked in local Set<string> of liked postIds persisted per-user in localStorage (`ms_community_liked_{userId}`) so the heart stays filled across sessions even though the API doesn't expose `likedByMe`. On click → POST /api/community/[id]/like { authorId } with optimistic cache mutation (onMutate cancels in-flight queries, snapshots prev, updates _count.likes ±1, toggles local set; onError rolls back + toast; onSuccess syncs local set with response.liked; onSettled invalidates ['community']). Toast "Liked." on like. While pending, button shows opacity-60 + cursor-wait.
+- Loading: 4 SkeletonCards in a grid. Error: SectionCard + EmptyState (MessageSquare icon) + Retry PremiumButton outline that invalidates the query. Empty: SectionCard + EmptyState "No posts yet" with description "Start the conversation — share an update, question, or showcase."
+- Time-ago helper defined inline exactly per spec (just now / Xm ago / Xh ago / Xd ago / fallback to locale date "12 Mar").
+- Quality bar: SectionCard + PremiumButton everywhere; elevate-sm + lift on feed cards; gradient burgundy avatars; burgundy Heart fill on liked; animate-fade-in-up on PageHeader (built-in) + composer + filter row + staggered feed cards; sonner toasts for all mutations (post / like / comment / errors); SkeletonCard loaders; EmptyState for empties + errors; responsive (composer grid collapses to single column on mobile, filter pills wrap, feed cards full-width); burgundy #800020 primary throughout, no blue/indigo as primary; tabular-nums on all counts.
+- Accessibility: aria-pressed on toggle buttons (like, comment, filter pills), aria-labels on icon-only actions, semantic <article> + <ul>/<li> for comments, hidden decorative avatars (aria-hidden).
+- Verified: `bun run lint` → 0 errors, 0 warnings project-wide. `bunx tsc --noEmit --skipLibCheck` → 0 errors in src/views/Community.tsx (remaining TS errors are in prisma/seed.ts + examples/websocket/* + upload/extracted/* legacy files, not mine). Dev server compiled successfully after save (✓ Compiled in 9.9s, GET / 200).
+
+Stage Summary:
+- File created: src/views/Community.tsx (~580 lines, single "use client" default export `Community` + inline `PostCard` sub-component).
+- Features delivered: premium composer (sticky on desktop, type+title+body, char counter, Post PremiumButton with loading), 6 filter pills (All/Updates/Questions/Inspiration/Showcases/Announcements) with burgundy active state, staggered feed cards with gradient avatars + role chips + type chips + Pin indicator, body with whitespace-pre-wrap, image frame with shadow-inner, like button with optimistic count + persisted local liked-set + burgundy Heart fill, comment panel toggle with comment list + Input+Send PremiumButton, skeleton loaders, EmptyState for empty + error, sonner toasts for all mutations.
+- Consumes: @/components/atelier/{PageHeader, SectionCard, PremiumButton, EmptyState, SkeletonCard}, @/components/ui/{Input, Label, Textarea, Select+parts}, @/lib/api (apiGet, apiPost), @/lib/utils (cn), @/lib/types (CommunityPost, CommunityComment, CommunityPostType), @/stores/auth (useAuth), @tanstack/react-query (useQuery, useMutation, useQueryClient), sonner (toast), lucide-react (MessageSquare, Send, Heart, Pin, Sparkles, HelpCircle, Lightbulb, Image as ImageIcon, Megaphone).
+- Backend dependency (already implemented by Task 19): GET /api/community returns CommunityPost[] with comments[] + _count.likes ordered pinned-then-recent; POST /api/community creates a post; POST /api/community/[id]/like { authorId } toggles + returns { liked }; POST /api/community/[id]/comments { authorId, authorName, body } adds a comment.
+
+---
+Task ID: 22 (team + community verification)
+Agent: main
+Task: Verify Team + Community views + all new functions end-to-end with browser.
+
+Work Log:
+- Lint: `bun run lint` → 0 errors, 0 warnings.
+- Browser verification (owner: madam@studio.com):
+  1. Team view renders with stat strip (Staff/Trainers/Freelancers/Available), Staff & Trainers + Freelancers tabs.
+  2. Add Member (REAL FUNCTION) — filled name "Kwabena Owusu" + email "kwabena@studio.com" + role Staff → roster went 4→5 + "added to the atelier" toast. Verified persisted to DB (role: staff).
+  3. Freelancers tab shows 5 seeded freelancers with specialty icons, status badges, status-change selects, remove buttons.
+  4. Add Freelancer (REAL FUNCTION) — filled name "Selina Beads" + skills + phone + rate 450 + specialty Beader → persisted to DB (specialty: Beader, rate: 450).
+  5. Community view renders with premium composer (type select, title, message, char counter), filter pills, feed of posts with avatars + type chips + like/comment actions.
+  6. Post to wall (REAL FUNCTION) — typed title "Testing the new community wall" + body → appeared at top of feed + "Posted to the wall." toast. Verified in DB.
+  7. Like (REAL FUNCTION) — clicked heart on the new post → "Liked." toast + heart filled burgundy. Optimistic count updated.
+  8. Comment (REAL FUNCTION) — toggled comment panel, typed "Looks great — this will be so useful for the team!" → comment appeared inline + persisted to DB (verified: 1 comment on the post).
+- Console errors: none. Re-seeded clean demo data after testing.
+
+Stage Summary:
+- Owner can now add staff, trainers (via Team → Add Member) and freelancers (via Team → Freelancers → Add Freelancer). All persist to DB.
+- Community feed fully functional: post (with type + optional title + body), like (toggle), comment, filter by type. All persist.
+- Two new nav items: Team (owner-only) + Community (everyone). Both follow the premium design system.
+- Lint clean, no runtime errors. App is production-ready with the new people + community features.
+
+---
+Task ID: 23 (trainees foundation)
+Agent: main
+Task: Make trainees a first-class part of the atelier — schema, API, nav scoping, plus a Trainees tab in Team and a Progress view.
+
+Work Log:
+- Prisma schema: added TrainingLog model (traineeId, mentorId, skill, title, note, status [Learning|Practicing|Proficient], date). Added trainingAsTrainee + trainingAsMentor relations on User. db:push'd.
+- Re-seeded: added 1 trainer (Coach Afia, trainer@studio.com) + 2 trainees (Ama Trainee ama@studio.com, Kojo Trainee kojo@studio.com). Added 5 training log entries (pattern drafting, flat-felled seams, bodice boning, measurements, kente cutting) with mentor = trainer/madam. All passwords "atelier2025".
+- API routes:
+  - GET /api/training-logs?traineeId=ID (include trainee + mentor) / POST (create)
+  - PATCH/DELETE /api/training-logs/[id]
+- Types: added TrainingLog + TrainingStatus to src/lib/types.ts.
+- Nav: added "progress" ViewKey. AppShell now scopes by role: owners see all 11 items; staff see their workbench subset; TRAINERS see the full app (fall through); TRAINEES see a focused subset — Dashboard, Orders, Board, Tasks, Progress (GraduationCap icon), Community. Added GraduationCap icon + Progress nav item (trainee:true).
+- Wired Progress into page.tsx dynamic import + CurrentView switch.
+- Restarted dev server to load new Prisma client. Verified /api/training-logs returns seeded data.
+
+Stage Summary — FOUNDATION READY. Two view tasks now needed (dispatched in parallel):
+- UPDATE src/views/Team.tsx: add a third "Trainees" tab (owner adds/manages trainees, sees mentor + a link to their progress).
+- BUILD src/views/Progress.tsx: trainee = "My Progress" (their training logs + assigned tasks + orders contributed + add log); owner/trainer = "Trainee Progress" (all trainees with their logs + stats).
+
+═══════════════════════════════════════════════════════════════════
+## CONTRACT FOR TEAM UPDATE + PROGRESS VIEW
+═══════════════════════════════════════════════════════════════════
+
+### Premium primitives (use these — see PREMIUM REDESIGN CONTRACT earlier in worklog)
+- `PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState, SkeletonCard, SkeletonList, PremiumButton, StatusBadge` from `@/components/atelier/*`
+- shadcn: Dialog, Input, Label, Textarea, Select(+parts), Tabs(+parts), Separator
+- `toast` from sonner, `apiGet, apiPost, apiPatch, apiDelete` from `@/lib/api`
+- `useQuery`/`useMutation` from `@tanstack/react-query`, `useNav` from `@/stores/nav`, `useAuth` from `@/stores/auth`, `useRole` from `@/stores/role`
+- icons from lucide-react
+
+### Auth/role context
+- `const { user } = useAuth()` — logged-in user { id, email, fullName, role, gender }
+- `const { isTrainee, isStaff } = useRole()` — isTrainee() true for role=trainee; isStaff() true for staff OR trainee
+- Trainee demo logins: ama@studio.com, kojo@studio.com (password atelier2025)
+- Trainer demo login: trainer@studio.com
+
+### Team view UPDATE (src/views/Team.tsx)
+Currently has 2 tabs: "Staff & Trainers" | "Freelancers". ADD a third tab "Trainees" between them.
+- Order: "Staff & Trainers" | "Trainees" | "Freelancers"
+- Trainees tab: SectionCard (bodyClassName p-0). Header action: PremiumButton "Add Trainee" (primary, GraduationCap icon) → opens AddTraineeDialog (same fields as Add Member but role fixed to "trainee", plus an optional Mentor Select populated from users with role trainer or madam). POST /api/users { fullName, email, role: 'trainee', gender, phone, password } → invalidate ['users'] + toast.
+- Trainees list: each row shows gradient avatar, fullName, "Trainee" StatusBadge, email/phone, mentor name (if assigned — but mentor isn't a user field; mentor is per-training-log, so just show "Mentor: {trainer.fullName}" if you can derive it, or skip). Show a small stat: count of training logs + proficiency breakdown (e.g. "2 Proficient · 1 Practicing · 1 Learning"). Compute by fetching /api/training-logs and grouping by traineeId. A "View progress" ghost button → `go('progress', { id: trainee.id })` (the Progress view reads selectedId).
+- Keep the existing Staff & Trainers + Freelancers tabs as-is (just move them).
+- Stat strip update: change the 4 metrics to Staff / Trainers / Trainees / Freelancers (replace Available freelancers with Trainees, or make it 5 metrics). Use AnimatedNumber.
+- Add the StatusBadge statuses: "Learning" (amber), "Practicing" (sky), "Proficient" (emerald) — extend StatusBadge if not present.
+
+### Progress view BUILD (src/views/Progress.tsx, default export Progress, "use client")
+Two modes based on the logged-in user's role:
+
+**Trainee mode** (user.role === 'trainee') — "My Progress":
+- Reads `const { selectedId, go } = useNav()` — but for a trainee, always use their own user.id (ignore selectedId, OR if selectedId is set and user is trainee, only show own if selectedId === user.id else redirect to own). Simplest: trainee always sees their own progress.
+- PageHeader: eyebrow "My apprenticeship", title "My Progress", subtitle "Your skill journey at the atelier."
+- Premium stat strip (4): Total logs, Proficient skills, Practicing, Learning. AnimatedNumber.
+- A "Skills" SectionCard: group logs by skill, show each skill with its latest status badge + count of entries. Like a skill mastery overview.
+- A "Training Log" SectionCard (the timeline): list of the trainee's TrainingLog entries (date, skill chip, title, note, status StatusBadge, mentor name). Newest first. An "Log new learning" PremiumButton → Dialog (skill Input or Select of common skills, title, note Textarea, status Select Learning/Practicing/Proficient, date default today) → POST /api/training-logs { traineeId: user.id, mentorId: optional, skill, title, note, status, date } → invalidate + toast.
+- A "My Tasks" SectionCard: fetch /api/tasks, filter staffId === user.id, show tasks (title, status, priority, dueDate). 
+- A "Orders I've worked on" SectionCard: fetch /api/orders, filter assignedStaffId === user.id, show recent orders (garment, status, date). Click → go('order', {id}).
+
+**Owner/Trainer mode** (user.role === 'madam' or 'trainer') — "Trainee Progress":
+- Reads selectedId from useNav to pick a trainee; if none, show a trainee picker (Select of users with role trainee) at top.
+- PageHeader: eyebrow "Apprenticeship", title "Trainee Progress", subtitle "Review your trainees' skill journeys."
+- A trainee selector (Select or a row of trainee chips with avatars).
+- Then show the selected trainee's progress (same as trainee mode but for that trainee): stat strip, skills overview, training log timeline (with ability to ADD a log as mentor — mentorId = user.id), tasks, orders. Owner/trainer can also PATCH a log's status (e.g. mark Practicing → Proficient) via a Select on each log row, and DELETE.
+- A mentor "Log for trainee" PremiumButton → Dialog with trainee fixed (the selected trainee), mentor = current user.
+
+### API shapes
+- GET /api/training-logs?traineeId=ID → TrainingLog[] (with trainee + mentor)
+- POST /api/training-logs { traineeId, mentorId?, skill?, title, note?, status?, date? } → TrainingLog
+- PATCH /api/training-logs/[id] { skill?, title?, note?, status?, mentorId? } → TrainingLog
+- DELETE /api/training-logs/[id] → { ok: true }
+- GET /api/users → User[] (filter role==='trainee' client-side for the picker)
+- GET /api/tasks → Task[] (filter by staffId)
+- GET /api/orders → Order[] (filter by assignedStaffId)
+
+### Quality bar (PREMIUM — match the rest of the app)
+- SectionCard everywhere, elevate-sm + lift
+- Gradient avatars, tabular-nums on counts
+- PremiumButton for all CTAs with loading states
+- `animate-fade-in-up` on PageHeader + staggered on log timeline
+- Toasts for all mutations
+- Skeleton loaders, EmptyState for empties
+- Responsive: tabs scroll on mobile, lists full-width
+- Burgundy #800020 primary
+- StatusBadge needs Learning/Practicing/Proficient styles (extend if missing)
+
+### Worklog
+Before starting, read `/home/z/my-project/worklog.md`. After finishing, APPEND a new section starting with `---` with Task ID, agent, task, work log, stage summary.
+
+---
+Task ID: 25
+Agent: full-stack-developer (progress view)
+Task: Build Progress view (trainee + owner/trainer modes).
+
+Work Log:
+- Read /home/z/my-project/worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-sm + lift + animate-fade-in-up) and the CONTRACT FOR TEAM UPDATE + PROGRESS VIEW (exact API shapes, trainee vs owner/trainer modes, premium primitives, quality bar).
+- Inspected premium primitives (PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState/SkeletonList, PremiumButton, StatusBadge) and existing views (Team.tsx, Tasks.tsx, Orders.tsx) for gradient-avatar + premium-tabs + row patterns.
+- Verified backend already exists (Task 23): GET /api/training-logs?traineeId=ID (with trainee + mentor), POST /api/training-logs, PATCH/DELETE /api/training-logs/[id], GET /api/users, GET /api/tasks, GET /api/orders.
+- Extended StatusBadge.tsx additively (non-breaking): added Learning=amber, Practicing=sky, Proficient=emerald entries to both STATUS_STYLES + DOT_COLOR maps so the training pills match the contract colours.
+- Wrote src/views/Progress.tsx (~1170 lines, single "use client" default export `Progress` with inline sub-components):
+  - Top-level `Progress` switches on role: trainees render `<TraineeProgress traineeId={user.id}>` (always their own logs); owners/trainers render `<OwnerProgress>` which uses `useNav().selectedId` to pick a trainee.
+  - TraineeProgress wrapper (max-w-[1100px], p-5 md:p-8): PageHeader eyebrow "My apprenticeship" + GraduationCap icon, title "My Progress", subtitle "Your skill journey at the atelier." → renders shared ProgressBody with viewerRole="trainee".
+  - OwnerProgress wrapper: PageHeader eyebrow "Apprenticeship" + GraduationCap, title "Trainee Progress", subtitle, actions slot = compact owner/trainer chip (gradient avatar + label + signed-in name). Trainee picker SectionCard: desktop = horizontal scrollable chip row (gradient avatar + name + "Trainee" label, active chip = burgundy gradient + elevate-burgundy + white text, inactive = white surface + #E7E5E4 border + lift hover); mobile = Premium Select dropdown. On pick → `go('progress', { id: trainee.id })`. Empty state with "Go to Team" outline button when no trainees.
+  - SelectedTraineeHeader: premium surface-premium card with large burgundy gradient avatar, trainee name + "Trainee" StatusBadge, email (Mail) + phone (Phone), "Change trainee" ghost button. animate-fade-in-up on appear.
+  - Shared ProgressBody (used by both modes, parameterised by traineeId + viewerRole + mentorId):
+    - TanStack useQuery on GET /api/training-logs?traineeId={id} (key ['training-logs', traineeId]); useQuery on GET /api/tasks + GET /api/orders for the assigned-staff filter sections.
+    - Premium stat strip (grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6): 4 PremiumMetric cards — Total Logs (accent, GraduationCap), Proficient (Sparkles), Practicing (Scissors), Learning (GraduationCap). AnimatedNumber on each value, tabular-nums.
+    - SkillMasteryCard (SectionCard "Skill mastery" bodyClassName=p-0): groups logs by skill (deterministic), each row shows skill name (font-medium) + latest status StatusBadge + entry count ("N entries") tabular-nums + STATUS_HINT micro-copy + a slim burgundy progress bar showing % Proficient. Sorted by latest entry date desc. Empty: EmptyState with GraduationCap "No skills logged yet".
+    - TrainingLog timeline (SectionCard "Training log" bodyClassName=p-0, header action = PremiumButton "Log new learning" (trainee) / "Log for trainee" (owner) primary sm + Plus icon → LogDialog):
+      - Each row (animate-fade-in-up, staggered 60ms): date column (month abbreviation + day + year, font-display), vertical Separator, content column (skill chip if present — burgundy-tinted with Scissors icon, title font-medium, note with whitespace-pre-wrap, mentor line "with {mentor.fullName}" with GraduationCap icon), actions column (inline Select for status PATCH + ghost Trash2 button revealed on hover → AlertDialog confirm → DELETE). Loading: SkeletonList 4 rows. Empty: EmptyState "No log entries yet — log your first learning."
+      - Inline status Select fires PATCH /api/training-logs/[id] { status } → invalidate + toast "Training log updated." Delete uses AlertDialog with "Delete entry" action and toast "Training log deleted." on success.
+    - MyTasksCard (SectionCard "My tasks" bodyClassName=p-0): lists tasks filtered by staffId === traineeId, sorted (pending first then due date asc). Each row: title + priority StatusBadge, customer/garment subtext, dueDate (CalendarDays, amber + bold if overdue & not Done), StatusBadge. Empty: EmptyState with CheckSquare "No tasks assigned to you."
+    - OrdersContributedCard (SectionCard "Orders I've contributed to" bodyClassName=p-0): lists orders filtered by assignedStaffId === traineeId, newest first, capped at 8. Each row is a button → go('order', { id }): garment + customer, shortDate tabular-nums, formatCurrency tabular-nums, StatusBadge, ArrowRight that turns burgundy on hover. Empty: EmptyState with ShoppingBag.
+    - LogDialog (split into LogDialog wrapper + LogForm child so the form remounts fresh on each open without an effect — avoids the react-hooks/set-state-in-effect lint rule): fields = Skill Select (9 COMMON_SKILLS including Other), Status Select (Learning/Practicing/Proficient), conditional "Skill name" Input when Other is chosen, required Title Input, Note Textarea (3 rows, resize-none), Date input defaulting to todayISO. PremiumButton "Add entry" (loading state) submits POST /api/training-logs { traineeId, mentorId (owner mode only — null in trainee mode), skill, title, note, status, date } → invalidate ['training-logs', traineeId] + ['training-logs'] + toast "Training log added." + close.
+  - Helper utilities: initialOf(name), gradientFor(name) — deterministic burgundy-leaning gradient palettes for avatars.
+- Accessibility: aria-pressed on trainee chips, aria-label on icon-only delete button, sr-only close in AlertDialog, semantic <ul>/<li> for skill + task + order lists, decorative avatars aria-hidden.
+- Verified: `bunx eslint src/views/Progress.tsx src/components/atelier/StatusBadge.tsx` → 0 errors, 0 warnings. `bunx tsc --noEmit --skipLibCheck` → 0 errors in my files. (Remaining `bun run lint` errors are in src/views/Team.tsx — TraineesCard + AddTraineeDialog not yet defined — which is Task 24's scope, not mine.) Dev server log: GET /api/training-logs 200 in 736ms after first compile.
+
+Stage Summary:
+- Files created/modified:
+  - src/views/Progress.tsx — premium trainee skill-journey + mentor oversight view (default export Progress, "use client", ~1170 lines, inline sub-components TraineeProgress / OwnerProgress / SelectedTraineeHeader / ProgressBody / SkillMasteryCard / TrainingLogRow / MyTasksCard / OrdersContributedCard / LogDialog / LogForm).
+  - src/components/atelier/StatusBadge.tsx — additive extension with Learning/Practicing/Proficient statuses (amber/sky/emerald) so training pills match the contract.
+- Features delivered: role-based two-mode view (trainee sees own journey, owner/trainer picks a trainee via chip row or mobile Select); premium stat strip (4 AnimatedNumber metrics); skill mastery overview grouping logs by skill with progress bars + status hints; staggered training-log timeline with inline status PATCH Select + AlertDialog-confirmed DELETE; "My tasks" section filtered by staffId with overdue highlighting; "Orders I've contributed to" section filtered by assignedStaffId with navigation to order detail; premium Log dialog (Skill/Status/Title/Note/Date, conditional custom-skill input, loading state) supporting both trainee self-log and mentor "Log for trainee" mode; SkeletonList loaders; EmptyState for every empty; sonner toasts on every mutation (added / updated / deleted); animate-fade-in-up on PageHeader + SelectedTraineeHeader + staggered on skill rows + log rows; fully responsive (grids collapse 2→4 cols on stat strip, trainee chips scroll horizontally on desktop + Select on mobile, dialog max-w-lg).
+- Consumes: @/components/atelier/{PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState, SkeletonList, PremiumButton, StatusBadge}, @/components/ui/{Dialog+parts, AlertDialog+parts, Input, Label, Textarea, Separator, Select+parts}, @/lib/api (apiGet, apiPost, apiPatch, apiDelete), @/lib/format (formatCurrency, formatDate, shortDate, todayISO, isOverdue), @/lib/types (Order, Task, TrainingLog, TrainingStatus, User), @/stores/auth (useAuth), @/stores/nav (useNav), @/stores/role (useRole), @tanstack/react-query (useQuery, useMutation), sonner (toast), lucide-react, @/lib/utils (cn).
+- Backend dependency (already implemented by Task 23): GET /api/training-logs?traineeId=ID returns TrainingLog[] with trainee + mentor (ordered date desc); POST /api/training-logs creates a log; PATCH /api/training-logs/[id] updates fields; DELETE /api/training-logs/[id] removes a log.
+
+---
+Task ID: 24
+Agent: full-stack-developer (team trainees tab)
+Task: Add Trainees tab to Team view.
+
+Work Log:
+- Read /home/z/my-project/worklog.md completely — bound to the PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-sm + lift + animate-fade-in-up + tabular-nums) and the CONTRACT FOR TEAM UPDATE + PROGRESS VIEW (exact API shapes, layout, quality bar). Re-read existing src/views/Team.tsx (~970 lines, 2 tabs) + StatusBadge + PremiumButton + PremiumMetric + EmptyState + SectionCard + nav store + auth store + types (TrainingLog, User).
+- Confirmed the Learning/Practicing/Proficient StatusBadge entries already exist (added by Task 23). Additively extended src/components/atelier/StatusBadge.tsx with a new "Trainee" role chip (bg-[#800020]/8 text-[#800020] border-[#800020]/15, dot bg-[#800020]) so the new Trainees tab can render a burgundy-tinted role pill. Existing statuses untouched.
+- Edited src/views/Team.tsx:
+  - Imports: added ArrowRight (lucide), useNav (stores/nav), and TrainingLog to the type import.
+  - Team(): added `const { go } = useNav();`, `addTraineeOpen` state, a new `trainingLogsQ` useQuery against GET /api/training-logs (key ["training-logs"]) feeding the per-trainee stats, and a `mentors` useMemo (users with role trainer or madam, sorted) for the AddTraineeDialog.
+  - Stat strip: replaced the "Available freelancers" metric with "Trainees" → 4 metrics: Staff (accent, UsersRound), Trainers (GraduationCap), Trainees (GraduationCap), Freelancers (Briefcase). All AnimatedNumber.
+  - Tabs: inserted a "Trainees" tab between Staff & Trainers and Freelancers (value="trainees"). TabsList already scrolls on mobile (overflow-x-auto + whitespace-nowrap).
+  - Rendered <TraineesCard> for the new tab passing users + trainingLogs + handlers, and wired <AddTraineeDialog> (mentors list) with onDone invalidating both ["users"] and ["training-logs"].
+- TraineesCard component (new): SectionCard titled "Apprentices · N" (bodyClassName p-0) with an "Add Trainee" PremiumButton (primary sm, GraduationCap) header action. Computes per-trainee stats via useMemo grouping the training logs by traineeId → {total, proficient, practicing, learning, mentor}. Loading → SkeletonList(3). Empty → EmptyState (GraduationCap, "No trainees yet", Add Trainee CTA). Each row: gradient burgundy avatar (initial), fullName (font-medium) + Trainee StatusBadge, email/phone subtext (Mail/Phone), a mini-summary line with color-coded tabular-nums counts ("N logs · {emerald Proficient} · {sky Practicing} · {amber Learning}") or "No logs yet", optional Mentor label (derived from latest log's mentor.fullName, hidden on mobile), and an outline-sm PremiumButton "View progress" (GraduationCap + ArrowRight with group-hover translate) → onView(trainee.id). Responsive: stacks vertically on mobile (flex-col → sm:flex-row), pl-14 alignment for the action row on mobile.
+- AddTraineeDialog component (new): fields — Full Name (required, autoFocus), Email (required), Mentor (optional Select of trainers+madam, informational only — caption clarifies it's not persisted and logs are mentor-assigned from the Progress view), Gender (Select), Phone, Password (default "atelier2025"). On submit POSTs /api/users { fullName, email, role: 'trainee', gender, phone, password } (mentorId intentionally omitted from the payload per the task's "simplest" guidance). onSuccess → toast + invalidate + reset + close. onError: 409 (email exists) → friendly error toast with description; other errors → generic error toast with the message. Cancel + Add trainee PremiumButtons (outline / primary-md with loading state). Form resets on close when not pending. Reuses the shared Field helper.
+- Existing Staff & Trainers + Freelancers tabs untouched — only inserted the new tab between them and added the dialog instance.
+- Replaced 6 literal `\u00b7` / `\u2014` escape sequences (an artifact of the edit) with the actual middle-dot and em-dash characters via sed so the UI renders punctuation correctly.
+- Ran `bun run lint 2>&1 | tail -5` → clean (only `$ eslint .`, no errors/warnings). Dev log shows GET /api/training-logs 200 (Team view compiled and fetched its new query successfully).
+
+Stage Summary:
+- src/components/atelier/StatusBadge.tsx — additive "Trainee" role chip added (Learning/Practicing/Proficient were already present from Task 23).
+- src/views/Team.tsx (~1406 lines) updated: stat strip now 4 metrics (Staff / Trainers / Trainees / Freelancers with AnimatedNumber), new middle "Trainees" tab with a TraineesCard (gradient avatars, Trainee StatusBadge, color-coded proficiency mini-summary from /api/training-logs, mentor hint, View-progress PremiumButton → go('progress', { id })), and an AddTraineeDialog (POST /api/users with role='trainee', 409 handling, mentor as informational-only field). Staff & Trainers + Freelancers tabs preserved verbatim.
+- Lint clean. Premium design bar met (SectionCard + elevate-sm + lift, gradient avatars, tabular-nums, PremiumButton CTAs with loading, SkeletonList + EmptyState, burgundy #800020 primary, responsive tabs/rows).
+
+---
+Task ID: 26 (trainees verification)
+Agent: main
+Task: Verify trainees are a first-class part of the app — end-to-end browser test.
+
+Work Log:
+- Lint: `bun run lint` → 0 errors, 0 warnings.
+- Browser verification:
+  1. Trainee login (ama@studio.com): scoped nav = Dashboard, Orders, Board, Tasks, Progress, Community (no owner-only items). ✅
+  2. Trainee "My Progress" view: rendered stat strip (Total Logs, Proficient, Practicing, Learning), Skill Mastery card, Training Log timeline with 3 seeded entries (Learning/Proficient/Practicing), inline status-edit Selects, delete buttons. ✅
+  3. Log new learning (REAL FUNCTION): opened dialog, selected skill "Pattern drafting", status Learning, typed title + note, submitted → "Training log added." toast, 4 entries now. Verified persisted to DB (Ama: 4 logs, latest "Practised princess seam bodice"). ✅
+  4. Owner login (madam@studio.com): sees full nav incl. Team + Progress.
+  5. Team view: 3 tabs (Staff & Trainers | Trainees | Freelancers). Trainees tab shows Ama + Kojo with per-trainee stats + "View progress" buttons. ✅
+  6. Owner Trainee Progress: clicked "View progress for Ama Trainee" → navigated to Progress view in owner mode, showing trainee picker (Ama + Kojo chips), Ama's header, her skill mastery + training log, "Log for trainee" button (mentor = owner). ✅
+- Console errors: none. Re-seeded clean demo data.
+
+Stage Summary:
+- Trainees are now a first-class part of the atelier:
+  - Owner adds/manages trainees in Team → Trainees tab (with mentor + progress link).
+  - Trainees log in to a scoped app (Dashboard, Orders, Board, Tasks, Progress, Community).
+  - Trainee "My Progress" view: skill mastery, training log timeline (add/edit/delete entries), assigned tasks, orders contributed.
+  - Owner/Trainer "Trainee Progress" view: pick any trainee, review their journey, log entries as mentor, edit/delete logs.
+- New schema: TrainingLog model. New API: /api/training-logs (GET/POST/PATCH/DELETE). New view: Progress. Updated: Team (Trainees tab), AppShell (role-scoped nav + Progress item).
+- Demo logins: madam@studio.com (owner), trainer@studio.com (trainer), ama@studio.com + kojo@studio.com (trainees) — all password atelier2025.
+- Lint clean, no runtime errors.
+
+---
+Task ID: 27 (role-scoping + portfolio/certificate foundation)
+Agent: main
+Task: Each user gets their own view/dashboard; trainees restricted; style photos on orders; portfolio + certificate features.
+
+Work Log:
+- Prisma schema: added Certificate model (traineeId, issuedById, programName, durationWeeks, skillsAchieved, honors, certificateNo unique, issuedAt). Added relations on User (certificatesAsTrainee + certificatesAsIssuer). db:push'd.
+- Re-seeded: design images (Unsplash fashion photos) attached to completed/collected orders. Seeded 1 certificate for Kojo Trainee (issued by Coach Afia, Distinction, 12 weeks, 4 skills).
+- API routes:
+  - GET /api/certificates?traineeId=ID / POST (issue — prevents duplicates, auto-generates certNo) / DELETE /api/certificates/[id]
+  - GET /api/portfolio?staffId=ID — completed/collected orders with customer + assignedStaff (studio-wide or per-person)
+- Types: added Certificate to src/lib/types.ts.
+- Role store: added isOwner(), canSeeBusiness() (madam+trainer), canCreateOrders() (madam only), canSeeAllCustomers() (madam+trainer). isStaff already = staff+trainee.
+- Nav: added "portfolio" + "certificate" ViewKeys. AppShell NAV: Portfolio (staff:true, trainee:true — everyone), Certificate (staff:false, trainee:true — trainees + owner). Icons: Image (Portfolio), Award (Certificate).
+- Wired Portfolio + Certificate into page.tsx dynamic imports + CurrentView switch.
+- Restarted dev server. Verified /api/certificates + /api/portfolio return seeded data.
+
+Stage Summary — FOUNDATION READY. Three parallel view tasks now dispatched:
+- ROLE-SCOPING existing views (Dashboard, Orders, Customers, OrderDetail, NewOrder) for trainees + style image support.
+- BUILD src/views/Portfolio.tsx (studio + trainee portfolio of completed work with images).
+- BUILD src/views/Certificate.tsx (printable certificate — trainee views their own; owner/trainer issues + views any).
+
+═══════════════════════════════════════════════════════════════════
+## CONTRACT FOR ROLE-SCOPING + PORTFOLIO + CERTIFICATE
+═══════════════════════════════════════════════════════════════════
+
+### Premium primitives (use these — see PREMIUM REDESIGN CONTRACT earlier in worklog)
+- `PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState, SkeletonCard, SkeletonList, PremiumButton, StatusBadge` from `@/components/atelier/*`
+- shadcn: Dialog, Input, Label, Textarea, Select(+parts), Tabs(+parts), Separator
+- `toast` from sonner, `apiGet, apiPost, apiPatch, apiDelete` from `@/lib/api`
+- `useQuery`/`useMutation` from `@tanstack/react-query`, `useNav` from `@/stores/nav`, `useAuth` from `@/stores/auth`, `useRole` from `@/stores/role`
+- icons from lucide-react
+
+### Role helpers (from @/stores/role — use these for all scoping decisions)
+- `isOwner()` — true for role madam. Sees everything, can create orders, can issue certificates.
+- `isStaff()` — true for staff OR trainee.
+- `isTrainer()` — true for trainer. Sees business info, can see all customers, can issue certificates.
+- `isTrainee()` — true for trainee. RESTRICTED.
+- `canSeeBusiness()` — madam OR trainer. Gate financial metrics/sections.
+- `canCreateOrders()` — madam only. Hide "New Order" buttons for everyone else.
+- `canSeeAllCustomers()` — madam OR trainer. Staff/trainees see only customers of orders assigned to them.
+
+### Auth context
+- `const { user } = useAuth()` — { id, email, fullName, role, gender }
+- Demo logins (password atelier2025): madam@studio.com (owner), trainer@studio.com (trainer), akos@studio.com (staff), ama@studio.com + kojo@studio.com (trainees).
+
+### ROLE-SCOPING TASK (edit existing views)
+Edit these files to enforce role-based access:
+
+1. **src/views/Dashboard.tsx** — currently has a staff variant via isStaff(). Add a proper TRAINEE dashboard:
+   - When `isTrainee()`: show a focused "My Apprenticeship" dashboard — no money metrics, no business health, no AI insights. Instead: My Open Tasks (count + link), My Training Progress (skill mastery mini-summary + link to Progress), My Assigned Orders (recent few), Recent Community posts teaser. Use useAuth().user.id to filter.
+   - When staff (not trainee): keep the existing "Your Workbench" view.
+   - When owner: keep the full Madam dashboard. (Trainer: show a variant — their trainees' progress summary + community, no money. Use canSeeBusiness() to gate money sections, so trainer sees no money but sees trainees.)
+   - Hide the "New Custom Order" button unless canCreateOrders().
+
+2. **src/views/Orders.tsx** — scope the list:
+   - If `isTrainee()` or (isStaff() and !canSeeAllCustomers()): filter orders to those where assignedStaffId === user.id. Trainees only see orders assigned to them.
+   - Hide the "New Order" button unless canCreateOrders().
+   - Hide the selling price / paid columns for trainees (use canSeeBusiness()).
+   - Show the design image thumbnail on each order row if present (small `w-12 h-12 rounded` image).
+
+3. **src/views/Customers.tsx** — scope the list:
+   - If !canSeeAllCustomers(): derive the visible customers from orders assigned to the current user (fetch /api/orders, filter assignedStaffId === user.id, collect customerIds, then filter customers). Trainees/staff see only their assigned customers.
+   - Hide the "Add Customer" button unless canCreateOrders() (or isOwner).
+
+4. **src/views/OrderDetail.tsx** — hide sensitive info for trainees:
+   - If !canSeeBusiness(): HIDE the entire Financials SectionCard (selling price, payments, costs, margin). Replace with a simple "Production" card showing status + fittings + tasks.
+   - Hide the "Record Payment" button (payments are owner-only).
+   - Show the design image prominently at the top of the detail if present (a hero `aspect-video rounded-xl` image).
+   - Allow editing status via the Select only if canSeeBusiness() (trainees shouldn't change order status).
+
+5. **src/views/NewOrder.tsx** — add a design image URL field (optional Input with preview). The Order model already has designImage. Add it to the POST payload. Keep the form owner-only (the nav already hides it from trainees, but add a guard: if !canCreateOrders(), show an EmptyState "You don't have permission to create orders").
+
+6. **Style photos on orders**: the Order.designImage field exists. In Orders list + OrderDetail, show the image when present. In NewOrder, add an optional "Design image URL" field with a live preview. In OrderDetail, allow PATCHing the designImage (an edit affordance).
+
+### PORTFOLIO VIEW (build src/views/Portfolio.tsx, default export Portfolio, "use client")
+A gallery of the studio's completed work + a trainee's own portfolio.
+
+Data: `GET /api/portfolio` (studio-wide) or `GET /api/portfolio?staffId=ID` (per-person).
+
+Layout:
+- PageHeader: eyebrow "Our work", title "Portfolio", subtitle "A showcase of finished pieces from the atelier."
+- If owner/trainer: a staff filter Select (All + each staff member) to view a person's portfolio.
+- If trainee/staff: show ONLY their own portfolio (filter staffId = user.id). No filter select.
+- A masonry/grid gallery of completed orders: `grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4`. Each item: a card with the design image (aspect-[3/4] rounded-lg object-cover, elevate-sm lift), garment name overlay or below, customer name, date, StatusBadge. If no image, a tasteful placeholder with a Scissors icon + garment name. Click → go('order', {id}).
+- Empty state: EmptyState with ImageIcon "No completed work yet."
+- Loading: grid of SkeletonCards.
+
+### CERTIFICATE VIEW (build src/views/Certificate.tsx, default export Certificate, "use client")
+A printable certificate of apprenticeship completion.
+
+Two modes:
+- **Trainee mode** (isTrainee()): show THEIR certificate (GET /api/certificates?traineeId=user.id). If they have one, render a beautiful printable certificate (see below). If not, show an EmptyState "Your certificate will appear here once your training is complete and your mentor issues it."
+- **Owner/Trainer mode** (isOwner() or isTrainer()): 
+  - A trainee picker (Select or chips of users with role trainee).
+  - For the selected trainee: if they have a certificate, show it. If not, show an "Issue certificate" PremiumButton → Dialog (programName default "Atelier Apprenticeship Programme", durationWeeks default 12, skillsAchieved comma text — prefilled from the trainee's Proficient skills, honors Select Distinction/Merit/Pass, issuedById = user.id) → POST /api/certificates → invalidate + toast. Also show a "Revoke" (delete) option.
+
+Certificate design (the printable render) — make it genuinely beautiful and official-looking:
+- A landscape `max-w-[900px]` card, cream/burgundy palette, ornate border (`border-4 border-[#800020]` with an inner `border border-[#800020]/30`), rounded-lg, elevate-lg, `aspect-[1.4/1]` or min-h.
+- Top: studio name "Madam Studio" in font-display + a small scissors mark + "Bespoke Atelier · Accra".
+- Center: "Certificate of Apprenticeship" in large font-display, "This is to certify that" (small), trainee full name (large font-display burgundy), "has successfully completed the" programName, "a {durationWeeks}-week apprenticeship programme" , "with distinction in" / "with honors: {honors}".
+- Skills: "Mastered skills: {skillsAchieved}" as a row of chips.
+- Bottom: signature line (issuedBy.fullName) + issuedAt date + certificateNo + a faux seal (a circular burgundy badge with "MS" + the year).
+- A "Print certificate" PremiumButton (outline, Printer icon) that calls window.print() — add a print stylesheet so only the certificate prints (use a `.print-area` class + @media print to hide everything else). 
+
+### Quality bar (PREMIUM — match the rest of the app)
+- SectionCard everywhere, elevate-sm + lift
+- Gradient avatars, tabular-nums on numbers
+- PremiumButton for all CTAs with loading states
+- `animate-fade-in-up` on PageHeader + staggered on galleries
+- Toasts for all mutations
+- Skeleton loaders, EmptyState for empties
+- Responsive: grids collapse, certificate scales
+- Burgundy #800020 primary, no blue/indigo as primary
+- Print stylesheet for the certificate (@media print)
+
+### Worklog
+Before starting, read `/home/z/my-project/worklog.md`. After finishing, APPEND a new section starting with `---` with Task ID, agent, task, work log, stage summary.

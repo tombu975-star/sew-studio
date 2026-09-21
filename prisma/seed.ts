@@ -47,6 +47,7 @@ async function main() {
   console.log("Seeding Madam Studio...");
 
   // Wipe
+  await db.certificate.deleteMany();
   await db.trainingLog.deleteMany();
   await db.communityLike.deleteMany();
   await db.communityComment.deleteMany();
@@ -103,6 +104,9 @@ async function main() {
       data: {
         customerId: cust.id,
         garmentDesign: garment,
+        designImage: (status === "Completed" || status === "Collected/Delivered") && i < 10
+          ? `https://images.unsplash.com/photo-${["1544510106-51d0ee2e1b32","1490481651871-ab68de25d43d","1469334021218-9f8b415a7c95","1551232864-3f0890e580d9","1595777216528-07169e1c14bc"][i % 5]}?w=800&q=80`
+          : null,
         orderDate,
         deliveryDate,
         status,
@@ -290,6 +294,22 @@ async function main() {
     for (const l of LOGS) {
       await db.trainingLog.create({ data: l });
     }
+  }
+
+  // Certificate — Kojo completed his apprenticeship (issued by the trainer)
+  if (trainer && trainees.length > 1) {
+    await db.certificate.create({
+      data: {
+        traineeId: trainees[1].id,
+        issuedById: trainer.id,
+        programName: "Atelier Apprenticeship Programme",
+        durationWeeks: 12,
+        skillsAchieved: "Measurements, Kente cutting, Flat-felled seams, Pattern drafting",
+        honors: "Distinction",
+        certificateNo: `MS-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`,
+        issuedAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2),
+      },
+    });
   }
 
   console.log(`Seeded ${users.length} people (${staff.length} staff, ${trainees.length} trainees), ${customers.length} customers, ${orders.length} orders, ${FREELANCERS.length} freelancers, ${COMMUNITY.length} community posts.`);

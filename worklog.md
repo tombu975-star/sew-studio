@@ -942,3 +942,247 @@ Stage Summary:
 - New schema: TrainingLog model. New API: /api/training-logs (GET/POST/PATCH/DELETE). New view: Progress. Updated: Team (Trainees tab), AppShell (role-scoped nav + Progress item).
 - Demo logins: madam@studio.com (owner), trainer@studio.com (trainer), ama@studio.com + kojo@studio.com (trainees) — all password atelier2025.
 - Lint clean, no runtime errors.
+
+---
+Task ID: 27 (role-scoping + portfolio/certificate foundation)
+Agent: main
+Task: Each user gets their own view/dashboard; trainees restricted; style photos on orders; portfolio + certificate features.
+
+Work Log:
+- Prisma schema: added Certificate model (traineeId, issuedById, programName, durationWeeks, skillsAchieved, honors, certificateNo unique, issuedAt). Added relations on User (certificatesAsTrainee + certificatesAsIssuer). db:push'd.
+- Re-seeded: design images (Unsplash fashion photos) attached to completed/collected orders. Seeded 1 certificate for Kojo Trainee (issued by Coach Afia, Distinction, 12 weeks, 4 skills).
+- API routes:
+  - GET /api/certificates?traineeId=ID / POST (issue — prevents duplicates, auto-generates certNo) / DELETE /api/certificates/[id]
+  - GET /api/portfolio?staffId=ID — completed/collected orders with customer + assignedStaff (studio-wide or per-person)
+- Types: added Certificate to src/lib/types.ts.
+- Role store: added isOwner(), canSeeBusiness() (madam+trainer), canCreateOrders() (madam only), canSeeAllCustomers() (madam+trainer). isStaff already = staff+trainee.
+- Nav: added "portfolio" + "certificate" ViewKeys. AppShell NAV: Portfolio (staff:true, trainee:true — everyone), Certificate (staff:false, trainee:true — trainees + owner). Icons: Image (Portfolio), Award (Certificate).
+- Wired Portfolio + Certificate into page.tsx dynamic imports + CurrentView switch.
+- Restarted dev server. Verified /api/certificates + /api/portfolio return seeded data.
+
+Stage Summary — FOUNDATION READY. Three parallel view tasks now dispatched:
+- ROLE-SCOPING existing views (Dashboard, Orders, Customers, OrderDetail, NewOrder) for trainees + style image support.
+- BUILD src/views/Portfolio.tsx (studio + trainee portfolio of completed work with images).
+- BUILD src/views/Certificate.tsx (printable certificate — trainee views their own; owner/trainer issues + views any).
+
+═══════════════════════════════════════════════════════════════════
+## CONTRACT FOR ROLE-SCOPING + PORTFOLIO + CERTIFICATE
+═══════════════════════════════════════════════════════════════════
+
+### Premium primitives (use these — see PREMIUM REDESIGN CONTRACT earlier in worklog)
+- `PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState, SkeletonCard, SkeletonList, PremiumButton, StatusBadge` from `@/components/atelier/*`
+- shadcn: Dialog, Input, Label, Textarea, Select(+parts), Tabs(+parts), Separator
+- `toast` from sonner, `apiGet, apiPost, apiPatch, apiDelete` from `@/lib/api`
+- `useQuery`/`useMutation` from `@tanstack/react-query`, `useNav` from `@/stores/nav`, `useAuth` from `@/stores/auth`, `useRole` from `@/stores/role`
+- icons from lucide-react
+
+### Role helpers (from @/stores/role — use these for all scoping decisions)
+- `isOwner()` — true for role madam. Sees everything, can create orders, can issue certificates.
+- `isStaff()` — true for staff OR trainee.
+- `isTrainer()` — true for trainer. Sees business info, can see all customers, can issue certificates.
+- `isTrainee()` — true for trainee. RESTRICTED.
+- `canSeeBusiness()` — madam OR trainer. Gate financial metrics/sections.
+- `canCreateOrders()` — madam only. Hide "New Order" buttons for everyone else.
+- `canSeeAllCustomers()` — madam OR trainer. Staff/trainees see only customers of orders assigned to them.
+
+### Auth context
+- `const { user } = useAuth()` — { id, email, fullName, role, gender }
+- Demo logins (password atelier2025): madam@studio.com (owner), trainer@studio.com (trainer), akos@studio.com (staff), ama@studio.com + kojo@studio.com (trainees).
+
+### ROLE-SCOPING TASK (edit existing views)
+Edit these files to enforce role-based access:
+
+1. **src/views/Dashboard.tsx** — currently has a staff variant via isStaff(). Add a proper TRAINEE dashboard:
+   - When `isTrainee()`: show a focused "My Apprenticeship" dashboard — no money metrics, no business health, no AI insights. Instead: My Open Tasks (count + link), My Training Progress (skill mastery mini-summary + link to Progress), My Assigned Orders (recent few), Recent Community posts teaser. Use useAuth().user.id to filter.
+   - When staff (not trainee): keep the existing "Your Workbench" view.
+   - When owner: keep the full Madam dashboard. (Trainer: show a variant — their trainees' progress summary + community, no money. Use canSeeBusiness() to gate money sections, so trainer sees no money but sees trainees.)
+   - Hide the "New Custom Order" button unless canCreateOrders().
+
+2. **src/views/Orders.tsx** — scope the list:
+   - If `isTrainee()` or (isStaff() and !canSeeAllCustomers()): filter orders to those where assignedStaffId === user.id. Trainees only see orders assigned to them.
+   - Hide the "New Order" button unless canCreateOrders().
+   - Hide the selling price / paid columns for trainees (use canSeeBusiness()).
+   - Show the design image thumbnail on each order row if present (small `w-12 h-12 rounded` image).
+
+3. **src/views/Customers.tsx** — scope the list:
+   - If !canSeeAllCustomers(): derive the visible customers from orders assigned to the current user (fetch /api/orders, filter assignedStaffId === user.id, collect customerIds, then filter customers). Trainees/staff see only their assigned customers.
+   - Hide the "Add Customer" button unless canCreateOrders() (or isOwner).
+
+4. **src/views/OrderDetail.tsx** — hide sensitive info for trainees:
+   - If !canSeeBusiness(): HIDE the entire Financials SectionCard (selling price, payments, costs, margin). Replace with a simple "Production" card showing status + fittings + tasks.
+   - Hide the "Record Payment" button (payments are owner-only).
+   - Show the design image prominently at the top of the detail if present (a hero `aspect-video rounded-xl` image).
+   - Allow editing status via the Select only if canSeeBusiness() (trainees shouldn't change order status).
+
+5. **src/views/NewOrder.tsx** — add a design image URL field (optional Input with preview). The Order model already has designImage. Add it to the POST payload. Keep the form owner-only (the nav already hides it from trainees, but add a guard: if !canCreateOrders(), show an EmptyState "You don't have permission to create orders").
+
+6. **Style photos on orders**: the Order.designImage field exists. In Orders list + OrderDetail, show the image when present. In NewOrder, add an optional "Design image URL" field with a live preview. In OrderDetail, allow PATCHing the designImage (an edit affordance).
+
+### PORTFOLIO VIEW (build src/views/Portfolio.tsx, default export Portfolio, "use client")
+A gallery of the studio's completed work + a trainee's own portfolio.
+
+Data: `GET /api/portfolio` (studio-wide) or `GET /api/portfolio?staffId=ID` (per-person).
+
+Layout:
+- PageHeader: eyebrow "Our work", title "Portfolio", subtitle "A showcase of finished pieces from the atelier."
+- If owner/trainer: a staff filter Select (All + each staff member) to view a person's portfolio.
+- If trainee/staff: show ONLY their own portfolio (filter staffId = user.id). No filter select.
+- A masonry/grid gallery of completed orders: `grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4`. Each item: a card with the design image (aspect-[3/4] rounded-lg object-cover, elevate-sm lift), garment name overlay or below, customer name, date, StatusBadge. If no image, a tasteful placeholder with a Scissors icon + garment name. Click → go('order', {id}).
+- Empty state: EmptyState with ImageIcon "No completed work yet."
+- Loading: grid of SkeletonCards.
+
+### CERTIFICATE VIEW (build src/views/Certificate.tsx, default export Certificate, "use client")
+A printable certificate of apprenticeship completion.
+
+Two modes:
+- **Trainee mode** (isTrainee()): show THEIR certificate (GET /api/certificates?traineeId=user.id). If they have one, render a beautiful printable certificate (see below). If not, show an EmptyState "Your certificate will appear here once your training is complete and your mentor issues it."
+- **Owner/Trainer mode** (isOwner() or isTrainer()): 
+  - A trainee picker (Select or chips of users with role trainee).
+  - For the selected trainee: if they have a certificate, show it. If not, show an "Issue certificate" PremiumButton → Dialog (programName default "Atelier Apprenticeship Programme", durationWeeks default 12, skillsAchieved comma text — prefilled from the trainee's Proficient skills, honors Select Distinction/Merit/Pass, issuedById = user.id) → POST /api/certificates → invalidate + toast. Also show a "Revoke" (delete) option.
+
+Certificate design (the printable render) — make it genuinely beautiful and official-looking:
+- A landscape `max-w-[900px]` card, cream/burgundy palette, ornate border (`border-4 border-[#800020]` with an inner `border border-[#800020]/30`), rounded-lg, elevate-lg, `aspect-[1.4/1]` or min-h.
+- Top: studio name "Madam Studio" in font-display + a small scissors mark + "Bespoke Atelier · Accra".
+- Center: "Certificate of Apprenticeship" in large font-display, "This is to certify that" (small), trainee full name (large font-display burgundy), "has successfully completed the" programName, "a {durationWeeks}-week apprenticeship programme" , "with distinction in" / "with honors: {honors}".
+- Skills: "Mastered skills: {skillsAchieved}" as a row of chips.
+- Bottom: signature line (issuedBy.fullName) + issuedAt date + certificateNo + a faux seal (a circular burgundy badge with "MS" + the year).
+- A "Print certificate" PremiumButton (outline, Printer icon) that calls window.print() — add a print stylesheet so only the certificate prints (use a `.print-area` class + @media print to hide everything else). 
+
+### Quality bar (PREMIUM — match the rest of the app)
+- SectionCard everywhere, elevate-sm + lift
+- Gradient avatars, tabular-nums on numbers
+- PremiumButton for all CTAs with loading states
+- `animate-fade-in-up` on PageHeader + staggered on galleries
+- Toasts for all mutations
+- Skeleton loaders, EmptyState for empties
+- Responsive: grids collapse, certificate scales
+- Burgundy #800020 primary, no blue/indigo as primary
+- Print stylesheet for the certificate (@media print)
+
+### Worklog
+Before starting, read `/home/z/my-project/worklog.md`. After finishing, APPEND a new section starting with `---` with Task ID, agent, task, work log, stage summary.
+
+---
+Task ID: 29
+Agent: full-stack-developer (portfolio view)
+Task: Build Portfolio view (studio + personal gallery of completed work).
+
+Work Log:
+- Read /home/z/my-project/worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-sm + lift + animate-fade-in-up + shimmer + tabular-nums) and the CONTRACT FOR ROLE-SCOPING + PORTFOLIO + CERTIFICATE (exact API shapes, role helpers, layout, quality bar).
+- Inspected premium primitives (PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState/SkeletonCard, StatusBadge) and verified role helpers in @/stores/role (canSeeAllCustomers, isTrainee), useAuth().user.id for self-scoping, useNav().go for routing.
+- Verified API endpoints: GET /api/portfolio (studio-wide Order[] with customer + assignedStaff, status in [Completed, Collected/Delivered]), GET /api/portfolio?staffId=ID (per-person), GET /api/users (User[] for the staff filter).
+- Created src/views/Portfolio.tsx — single "use client" default export Portfolio (~240 lines) with inline GalleryCard sub-component.
+- Layout: wrapper p-5 md:p-8 max-w-[1300px] mx-auto w-full. PageHeader with eyebrow "Our work" + ImageIcon, title "Portfolio", subtitle that switches by mode ("A showcase of finished pieces from the atelier." for owner/trainer; "Your completed pieces from the atelier." for staff/trainee). Actions slot = staff filter Select shown only when canSeeAllCustomers() (All staff + each user from /api/users); self-scoped users get no Select.
+- Stat strip: 3 PremiumMetrics with animate-fade-in-up — Total Pieces (accent, ImageIcon, AnimatedNumber), With Photos (count designImage != null, ImageIcon), This Year (count orders where orderDate year == current year, CalendarDays). All values via AnimatedNumber (tabular-nums auto-applied).
+- Gallery: grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4. Each item is a <button> → go('order', { id }) with classes rounded-lg overflow-hidden border border-[#E7E5E4] surface-premium elevate-sm lift group hover:border-[#800020]/30 transition-colors focus-visible:ring-2 focus-visible:ring-[#800020]/30 animate-fade-in-up, staggered via style animationDelay = idx * 50ms.
+- Card image area: aspect-[3/4] bg-[#faf8f5] relative overflow-hidden. If designImage: <img> object-cover absolute inset-0 with group-hover:scale-105 transition-transform duration-500 + a bg-gradient-to-t from-black/45 overlay that fades in on hover. If no image: centered circle with Scissors icon + garment name line-clamp-2. Floating StatusBadge absolute top-2 right-2 with bg-white/95 backdrop-blur-sm shadow-sm (keeps Completed/Collected legible against any image).
+- Card info area (p-3 space-y-1): garment name (font-medium text-sm truncate, tints burgundy on hover), customer name row (text-xs stone-500 with User icon), date row (text-xs stone-400 tabular-nums with CalendarDays icon, shortDate(orderDate)).
+- Loading: grid of 8 SkeletonCard items in the same gallery grid (className aspect-[3/4] flex flex-col justify-end p-4 — twMerge dedupes the default p-5). Empty: EmptyState with ImageIcon — "No completed work yet." for owner/trainer, "You haven't completed any pieces yet." for staff/trainee; description differentiates self vs studio scope; wrapped in SectionCard. Error: SectionCard + EmptyState with ImageIcon "Couldn't load the gallery" + retry hint.
+- Data flow: useQuery<Order[]>(["portfolio", effectiveStaffId || "all"]) fetches /api/portfolio (studio) or /api/portfolio?staffId=ID (scoped), enabled: !selfScoped || !!user (waits for auth hydrate before self-scoping). useQuery<UserType[]>(["users"]) only enabled for owner/trainer (drives the staff filter options). effectiveStaffId: self-scoped → user.id; owner/trainer → empty when "all", else selected id. stats memoized (total / withPhotos / thisYear). No mutations — pure read view; clicks route via go('order', { id }).
+- Lint: bunx eslint src/views/Portfolio.tsx → clean (no errors, no warnings). bun run lint shows 2 pre-existing errors in src/views/Dashboard.tsx (TraineeDashboard / TrainerTraineesCard not defined — another task's territory, NOT this file). Dev log: previously showed "Module not found: Can't resolve '@/views/Portfolio'" because src/app/page.tsx was already importing it dynamically; after creating the file → "✓ Compiled in 9.2s" + "GET / 200". Resolved.
+
+Stage Summary:
+- File created: src/views/Portfolio.tsx (~240 lines, single self-contained "use client" default export Portfolio with inline GalleryCard sub-component).
+- Premium features delivered: PageHeader with role-aware subtitle + staff filter Select (owner/trainer only); 3-up PremiumMetric stat strip with AnimatedNumber + tabular-nums + accent; lookbook gallery grid (2/3/4 cols responsive) with 3/4 portrait image frames, group-hover:scale-105 image zoom, subtle from-black/45 gradient overlay on hover, hover burgundy border tint, floating backdrop-blur StatusBadge chip, garment + customer + date info area with User + CalendarDays icons; staggered animate-fade-in-up on every card (50ms steps); SkeletonCard grid for loading; EmptyState (role-aware copy) for empty + error states.
+- Role scoping: owner/trainer (canSeeAllCustomers) → studio-wide portfolio with staff filter; staff/trainee → auto-scoped to user.id, no filter; trainee gets trainee-specific empty copy.
+- Consumes: @/components/atelier/{PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState+SkeletonCard, StatusBadge}, @/components/ui/{Select+parts}, @/lib/api (apiGet), @/lib/format (shortDate), @/lib/types (Order, User), @/stores/{auth, nav, role}, @tanstack/react-query (useQuery), lucide-react (Image as ImageIcon, Scissors, CalendarDays, User).
+
+---
+Task ID: 30
+Agent: full-stack-developer (certificate view)
+Task: Build Certificate view (printable apprenticeship certificate).
+
+Work Log:
+- Read worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-* + lift + animate-fade-in-up + tabular-nums + shimmer) and the CONTRACT FOR ROLE-SCOPING + PORTFOLIO + CERTIFICATE (two modes, exact API shapes, certificate design spec, print stylesheet requirement, premium primitives list).
+- Inspected premium primitives (PageHeader, SectionCard, EmptyState + SkeletonCard, PremiumButton, StatusBadge) for exact prop shapes; inspected existing Progress.tsx + Team.tsx for the trainee-picker pattern (gradient avatar chips on desktop + Select dropdown on mobile, useNav `selectedId` + `go('view', { id })`).
+- Verified backend already exists: GET /api/certificates?traineeId=ID (returns Certificate[] with trainee + issuedBy), POST /api/certificates (auto-generates certNo, prevents duplicates with 409), DELETE /api/certificates/[id], GET /api/users (returns User[]), GET /api/training-logs?traineeId=ID (returns TrainingLog[] with status Learning/Practicing/Proficient). Confirmed seeded data: Kojo Trainee has a certificate issued by Coach Afia with Distinction honors + 4 skills.
+- Wrote src/views/Certificate.tsx (~1135 lines, single "use client" default export `Certificate` with inline sub-components):
+  - Top-level role switch: trainees → <TraineeCertificate traineeId={user.id}>; owners/trainers → <OwnerCertificate>; fallback EmptyState for staff (not authorized).
+  - **TraineeCertificate**: useQuery GET /api/certificates?traineeId=${user.id} → cert[0]. Loading → SkeletonCard (h-640). Cert → CertificateStage (card + Print button). Empty → EmptyState with Award icon "Your certificate will appear here" + description.
+  - **OwnerCertificate**: PageHeader (eyebrow "Apprenticeship" + Award, title "Certificates", actions slot = owner/trainer chip with gradient avatar). Trainee picker SectionCard (no-print): desktop = horizontal scrollable chip row (gradient avatar + name + "Trainee" label, active chip = burgundy gradient + elevate-burgundy + white text, inactive = white surface + lift hover); mobile = Select dropdown with avatar-initials items. On pick → go('certificate', { id: trainee.id }). Empty state with "Go to Team" outline button. SelectedTraineeHeader (premium surface-premium card with large gradient avatar + Trainee StatusBadge + email/phone rows + "Change trainee" ghost button). CertificateForTrainee is keyed by trainee.id so the subtree remounts fresh when switching trainees (clean way to reset the IssueDialog form state without useEffect).
+  - **CertificateForTrainee**: useQuery on certificates + training-logs for the selected trainee. If cert → CertificateStage (with Revoke button). If not → IssuePanel + IssueDialog. Computes training stats (total logs, proficient count) + derives prefilled skills from Proficient log entries (group by skill, take latest status per skill, keep only Proficient, sort alphabetically, join with commas).
+  - **CertificateStage**: wrapper that wraps the certificate in <div className="print-area"> + renders the action bar below (Print button + optional Revoke). Action bar has `no-print` class so it's hidden when printing.
+  - **CertificateCard** (the printable render — genuinely beautiful and official): outer div bg-white border-4 border-[#800020] rounded-lg elevate-lg relative overflow-hidden, max-w-[920px] mx-auto, min-height 640px, padding via clamp(28px, 4vw, 56px). Inner border ornament (absolute inset-3 border border-[#800020]/25 rounded-md). Subtle burgundy radial background flourish at 4% opacity. Four corner Scissors icons (w-4 h-4 text-[#800020]/30). Top: scissors-in-circle (w-12 h-12 rounded-full border-2 border-[#800020] + Scissors icon) + "Madam Studio" (font-display clamp 20-26px) + "Bespoke Atelier · Accra" (text-[10px] uppercase tracking-[0.24em] text-stone-500). Title block (mt-8/10): "Certificate of Apprenticeship" in font-display clamp 30-48px font-semibold text-[#800020]. "This is to certify that" (text-[11px]/xs uppercase tracking-[0.22em] text-stone-500 mt-3). Trainee name (font-display clamp 24-38px font-semibold text-[#1C1917] mt-5/6) with thin burgundy underline (w-48 h-px bg-[#800020]/40 mx-auto mt-2). Body paragraph (mt-6, max-w-640, clamp 13-15px, leading-7): "has successfully completed the" + italic burgundy programName + ", a {durationWeeks}-week apprenticeship programme in bespoke tailoring and design." + honors block (if honors and not "None": "Awarded with {honors}." in font-medium burgundy). Skills section (mt-6/7, max-w-640): "Mastered skills" label (text-[10px] uppercase tracking-[0.22em]) + flex-wrap row of chips (each rounded-md border border-[#800020]/20 bg-[#800020]/5 text-[#800020] px-2.5 py-1 text-xs with Check icon at opacity-70). Bottom row (mt-auto pt-10/12): 3-col grid — Left "Issued by" (label + line + issuedBy.fullName font-display + "Mentor" subtext), Center faux seal (w-20 h-20 rounded-full border-2 border-[#800020] rotate(-6deg) with inner inset border + "MS" font-display clamp 16-20px + year text-[8px] uppercase tracking-[0.16em]), Right "Certificate No." (label + line + certificateNo font-mono tabular-nums break-all + issuedAt formatDate + "Date issued" subtext).
+  - **IssuePanel** (when no cert): SectionCard accent with "Issue certificate" PremiumButton (primary, Award icon) in the action slot. Body: trainee identity row (gradient avatar + name + "No certificate issued" micro-label) + 3 SummaryStats (Training logs total, Proficient skills count accent, Ready to issue Yes/Soon). Separator. Tinted burgundy callout box (GraduationCap in burgundy circle + ready-to-issue copy + "Issue certificate" PremiumButton). Embeds IssueDialog.
+  - **IssueDialog**: Dialog (max-w-lg, no-print). Fields: Programme name Input (default "Atelier Apprenticeship Programme"), Duration (weeks) number Input (default 12, tabular-nums), Honors Select (Distinction / Merit / Pass / None), Mastered skills Textarea (prefilled from Proficient log entries, with "Reset to proficient skills" link). Footer: Cancel outline + Issue certificate primary (loading state shows "Issuing…"). onSubmit → POST /api/certificates with { traineeId, issuedById, programName, durationWeeks, skillsAchieved, honors: honors === "None" ? "" : honors } → invalidate ['certificates'] + toast.success + close. Error toast on failure (e.g. 409 duplicate).
+  - **Revoke flow**: AlertDialog (max-w-md) with confirm copy mentioning trainee name + cert number, danger action button. Confirm → DELETE /api/certificates/[id] → invalidate + toast.success + close.
+  - **Print stylesheet**: injected via <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }}> at the top-level Certificate component (rendered once). @media print: body * visibility hidden, .print-area + descendants visible, .print-area positioned absolute at top-left with full width, .no-print display none, .cert-card border reduced to 3px + box-shadow none, @page size landscape margin 12mm. All chrome elements (PageHeader, trainee picker, SelectedTraineeHeader, action bar, dialogs) marked `no-print`.
+  - Responsive: certificate card uses clamp() for padding + all font sizes so it scales down on mobile. Bottom row uses 3-col grid that compresses on small screens (gap-4 sm:gap-6). Skills chips flex-wrap. Trainee picker uses Select on mobile + horizontal-scroll chips on desktop.
+  - Helpers: initialOf(name), gradientFor(name) — deterministic burgundy-leaning gradient palettes matching Progress.tsx. deriveProficientSkills(logs) — groups logs by skill, keeps only skills whose LATEST entry is Proficient, sorts alphabetically, joins with commas.
+  - Lint: `bunx eslint src/views/Certificate.tsx` → 0 errors, 0 warnings. `bunx tsc --noEmit --skipLibCheck` → 0 errors against my file (remaining tsc errors are all in the legacy upload/extracted/ folder). `bun run lint` shows only 2 pre-existing errors in Dashboard.tsx (another agent's role-scoping task) — not from my file.
+  - Verified API: GET /api/certificates?traineeId={kojo's id} returns Kojo's seeded certificate (issuedBy Coach Afia, Distinction honors, 4 skills, certNo MS-2026-9066) → CertificateCard will render correctly. GET /api/users returns 5 users including 2 trainees → picker will work. Dev log shows "✓ Compiled in 8.4s" after file creation — no compile errors.
+
+Stage Summary:
+- File created: src/views/Certificate.tsx (~1135 lines, single self-contained "use client" default export with inline sub-components: Certificate, TraineeCertificate, OwnerCertificate, SelectedTraineeHeader, CertificateForTrainee, IssuePanel, SummaryStat, IssueDialog, CertificateStage, CertificateCard).
+- Features delivered: role-based two-mode view (trainee sees their own certificate + Print; owner/trainer picks a trainee via desktop chips or mobile Select, then views/prints/revokes the cert or issues a new one); printable certificate card with ornate burgundy border (border-4 + inner border ornament), corner Scissors ornaments, faux MS seal with year, studio mark with scissors-in-circle, large font-display title, trainee name with burgundy underline, body paragraph with italic burgundy program name + duration + honors, mastered-skills chips with Check icons, 3-col bottom row (Issued by / Seal / Certificate No.); print stylesheet that hides everything except .print-area; Issue dialog with Programme / Duration / Honors Select (Distinction/Merit/Pass/None) / Mastered skills Textarea prefilled from Proficient log entries + reset link; Revoke via AlertDialog confirm + DELETE; toast notifications on every mutation; SkeletonCard loaders; EmptyState for no-certificate + no-trainees + no-selection + not-authorized; animate-fade-in-up on PageHeader + SelectedTraineeHeader + IssuePanel + CertificateStage; fully responsive (clamp() padding/fonts, trainee chips scroll on desktop + Select on mobile, certificate scales down on mobile); burgundy #800020 primary throughout, no blue/indigo as primary.
+- Consumes: @/components/atelier/{PageHeader, SectionCard, EmptyState + SkeletonCard, PremiumButton, StatusBadge}, @/components/ui/{Dialog + parts, AlertDialog + parts, Input, Label, Textarea, Separator, Select + parts}, @/lib/api (apiGet, apiPost, apiDelete), @/lib/format (formatDate), @/lib/types (Certificate, TrainingLog, User), @/lib/utils (cn), @/stores/{auth, nav, role}, @tanstack/react-query (useQuery + useMutation + invalidate), sonner (toast), lucide-react (Award, Printer, Scissors, GraduationCap, Check, Trash2, Mail, Phone, ArrowRight, ShieldCheck).
+- Backend dependency (already implemented by Task 19/23): GET /api/certificates?traineeId=ID, POST /api/certificates (auto certNo + duplicate prevention), DELETE /api/certificates/[id], GET /api/users, GET /api/training-logs?traineeId=ID — all live and returning the expected shapes.
+- Verification: bunx eslint src/views/Certificate.tsx → clean. bunx tsc --noEmit --skipLibCheck → no errors in my file. Dev log: "✓ Compiled in 8.4s" after file creation. GET /api/certificates?traineeId={kojo's id} returns the seeded certificate with all fields the CertificateCard reads.
+
+Deliverable:
+- src/views/Certificate.tsx — created. Default export `Certificate`. "use client". Lint clean. TypeScript clean.
+- Kojo Trainee (kojo@studio.com / atelier2025) has a seeded certificate (Distinction, 4 skills, issued by Coach Afia) → log in as Kojo to see the printable certificate render immediately. Log in as Madam (madam@studio.com) or Trainer (trainer@studio.com) to access the trainee picker + issue/revoke flows.
+
+---
+Task ID: 28
+Agent: full-stack-developer (role-scoping)
+Task: Role-scope Dashboard, Orders, Customers, OrderDetail, NewOrder for trainees; add style image support.
+
+Work Log:
+- Read /home/z/my-project/worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-sm + lift + animate-fade-in-up + tabular-nums) and the CONTRACT FOR ROLE-SCOPING + PORTFOLIO + CERTIFICATE (exact role-helper semantics, per-file scoping rules, style photo cross-cutting support, premium primitives, quality bar).
+- Inspected the 5 existing views + useAuth + useRole + useNav + premium primitives + lib/types.ts (confirmed Order.designImage field exists) + lib/format.ts + lib/api.ts.
+- Dashboard.tsx: refactored the default export into a tiny role-switching wrapper (`if (user && isTrainee()) return <TraineeDashboard userId={user.id} />; return <MainDashboard />`). MainDashboard redefines `staff = isStaff() || isTrainer()` (trainer falls into workbench view), adds `owner = isOwner()` + `trainer = isTrainer()`. Money row + Madam-only premium sections gated by `!staff` (owner-only). "New Custom Order" button (desktop header + mobile FAB) gated by `canCreateOrders()`. PageHeader title switches: owner → "{ownerLabel}'s Atelier", trainer → "Mentor's Workbench", staff → "Your Workbench". Added `TrainerTraineesCard` (right column when trainer — lists trainees + per-trainee proficiency breakdown from /api/training-logs + "View progress" → go('progress', {id})). Added `TraineeDashboard` (PageHeader eyebrow "My apprenticeship" / title "My Workbench"; hero PremiumMetric "My Open Tasks" AnimatedNumber + "Go to Tasks" PremiumButton; "My Training Progress" SectionCard grouping /api/training-logs?traineeId=me by skill with count + proficient count + latest status StatusBadge + link to progress; "My Assigned Orders" SectionCard filtering /api/orders by assignedStaffId === user.id, newest first, capped 5, NO prices, with design image thumbnail or Scissors placeholder; "Recent Community" SectionCard with latest 2 posts from /api/community + link). NO "New Custom Order" button on the trainee dashboard.
+- Orders.tsx: added useAuth + useRole imports; computed scopeToMine (trainee OR staff-without-all-customers), canSeeMoney = canSeeBusiness(), canCreate = canCreateOrders(). The enriched memo filters by assignedStaffId === user.id when scopeToMine. Staff filter Select hidden when scoped. PageHeader actions only render "New Order" when canCreate. Table header grid + each row grid template switches between 8-col (Image, Customer, Garment, Ordered, Delivery, Status, Amount, Paid) when canSeeMoney and 6-col (Image, Customer, Garment, Ordered, Delivery, Status) when not. Added a design-image thumbnail cell (w-12 h-12 rounded-md) at the start of each row that renders the img when o.designImage is present, else a Scissors placeholder (desktop-only). Amount + Paid cells wrapped in {canSeeMoney && (...)}. Empty state copy adapts to scoped vs unscoped.
+- Customers.tsx: added useAuth + useRole imports; computed scopeToMine = !canSeeAllCustomers(), canCreate = canCreateOrders(). Derived myCustomerIds set from /api/orders filtered by assignedStaffId === user.id (null when not scoped). orderCounts only counts visible orders. enriched filters customers to those in myCustomerIds when scoped. PageHeader eyebrow switches: scoped → "My clients", non-scoped → "Client roster". "Add Customer" PremiumButton only rendered when canCreate. Empty-state action tree adapts: scoped → description only; non-scoped + filters → "Clear filters"; non-scoped + no filters + canCreate → "Add Customer".
+- OrderDetail.tsx: added useRole + ImageIcon imports; canSeeMoney = canSeeBusiness(); imageDialogOpen state + imageMut PATCH /api/orders/[id] { designImage } (toast + cache update + dialog close). Added hero design image above the header band: when order.designImage is present, a w-full aspect-video rounded-xl object-cover elevate-md image with an "Edit image" overlay button (top-right, only when canSeeMoney) that opens EditImageDialog; when no image + canSeeMoney, a dashed-border "Add a design image" placeholder button; when no image + !canSeeMoney, no hero. Status change control now `canSeeMoney ? <Select>…</Select> : <StatusBadge status={order.status} />` (trainees see read-only badge). Financials SectionCard wrapped in `canSeeMoney ? (Financials) : (Production card)` — Production card shows 6-stat grid (Current Status as StatusBadge via new Stat `valueNode` prop, Days in Production, Fittings count, Open Tasks, Priority badge, Assigned To) + tinted note. Removed no-op "Edit" PremiumButton. Added EditImageDialog sub-component (URL Input + live aspect-video rounded-md preview + "Save image" PremiumButton; input reset to current initial on open).
+- NewOrder.tsx: added useRole + ImageIcon + Lock + EmptyState imports; canCreate = canCreateOrders(). Added designImage state. Added safety-net guard at top: if !canCreate, render EmptyState ("You don't have permission to create orders" with Lock icon) inside SectionCard + "Back to dashboard" PremiumButton — form not rendered. createMut body includes designImage: designImage.trim() only when non-empty. Added "Design Image URL" field after Garment Textarea: optional Input with live aspect-video rounded-lg object-cover preview when URL non-empty, or dashed "Live preview will appear here" placeholder with ImageIcon when empty.
+- Verified: `bun run lint` → 0 errors, 0 warnings project-wide. `bunx tsc --noEmit --skipLibCheck` → 0 errors in my 5 files (remaining TS errors are in upload/extracted/*, examples/*, skills/*, prisma/seed.ts — outside my scope). Dev server compiles successfully after each save (only module-not-found in dev.log is for @/views/Portfolio, another agent's task).
+
+Stage Summary:
+- Files edited (all 5):
+  - src/views/Dashboard.tsx — trainee apprenticeship dashboard added (TraineeDashboard sub-component: My Open Tasks hero + My Training Progress skill mastery + My Assigned Orders + Recent Community teaser; NO money, NO business health, NO AI insights, NO New Order button); MainDashboard reorganised so money sections are owner-only (staff = isStaff() || isTrainer()), trainer sees a "My Trainees" right-column card; "New Custom Order" button gated by canCreateOrders().
+  - src/views/Orders.tsx — orders scoped to assignedStaffId === user.id for trainees + staff-without-all-customers; "New Order" button gated by canCreateOrders(); Amount + Paid columns hidden when !canSeeBusiness() (table grid switches 8-col ↔ 6-col); design image thumbnail cell at the start of each row (w-12 h-12 rounded-md img or Scissors placeholder); staff filter hidden when scoped.
+  - src/views/Customers.tsx — customers scoped to those with orders assigned to the current user when !canSeeAllCustomers() (derives myCustomerIds from /api/orders filtered by assignedStaffId === user.id); "Add Customer" button hidden unless canCreateOrders() (header + empty state); scoped empty state copy adapted.
+  - src/views/OrderDetail.tsx — hero design image added above the header band (aspect-video rounded-xl object-cover elevate-md) with "Edit image" overlay for money viewers; EditImageDialog sub-component (URL input + live preview + PATCH); Financials SectionCard hidden when !canSeeBusiness(), replaced by a "Production" SectionCard (Current Status as StatusBadge, Days in Production, Fittings, Open Tasks, Priority, Assigned To + tinted note); status-change Select replaced by a read-only StatusBadge when !canSeeBusiness(); Stat helper extended with optional valueNode prop; removed no-op "Edit" button.
+  - src/views/NewOrder.tsx — safety-net canCreateOrders() guard rendering an EmptyState ("You don't have permission to create orders") instead of the form; "Design Image URL" field with live aspect-video rounded-lg object-cover preview + dashed placeholder when empty; designImage included in the POST payload when non-empty.
+- Scoping rules applied (per role):
+  - Owner (madam): sees everything; can create orders; sees money metrics, financial sections, AI insights, all customers; can change order status; can edit design image.
+  - Trainer: workbench dashboard with "My Trainees" summary card (no money row, no income trend, no business health, no AI insights); sees all customers; sees Financials on order detail; can change order status; can edit design image; cannot create orders.
+  - Staff (non-trainee, non-trainer): workbench dashboard; only orders assigned to them; only customers whose orders are assigned to them; no money (no money row on dashboard, no Amount/Paid columns, Production card on OrderDetail); read-only status; cannot create orders; no "Add Customer" button.
+  - Trainee: dedicated TraineeDashboard (My Open Tasks + My Training Progress + My Assigned Orders + Recent Community; NO money, NO business health, NO AI insights, NO New Order button); scoped Orders list; scoped Customers list; Production card on OrderDetail; read-only status; NewOrder shows EmptyState guard.
+- Style photo support cross-cutting: Order.designImage shown in Orders list (thumbnail), OrderDetail (hero + editable), NewOrder (URL input + live preview), OrderDetail (EditImageDialog → PATCH /api/orders/[id] { designImage }).
+- Quality bar: SectionCard everywhere with elevate-sm + lift; tabular-nums on money (only shown to canSeeBusiness); PremiumButton for all CTAs with loading states; animate-fade-in-up on PageHeader + key cards; sonner toasts for all mutations; SkeletonCard/SkeletonList loaders; EmptyState for every empty (scoped + unscoped variants); responsive (grids collapse, mobile FAB only for owners); burgundy #800020 primary throughout.
+- Lint clean. TypeScript clean for my 5 files.
+
+---
+Task ID: 31 (role-scoping + portfolio + certificate verification)
+Agent: main
+Task: Verify each user has their own view/dashboard, trainees restricted, style photos, portfolio + certificate — end-to-end.
+
+Work Log:
+- Lint: `bun run lint` → 0 errors, 0 warnings.
+- Browser verification:
+  1. Trainee (Ama) login: scoped nav = Dashboard, Orders, Board, Tasks, Progress, Portfolio, Certificate, Community (no Customers/Fittings/Quotes/Style/Team). ✅
+  2. Trainee dashboard = "My Workbench" with My Training Progress + My Assigned Orders + Recent Community. NO money metrics, NO "New Custom Order" button. ✅
+  3. Trainee Orders: scoped to assigned only, NO "New Order" button, NO price columns. ✅
+  4. Trainee Portfolio: "Your completed pieces from the atelier" with stat strip + empty state (Ama has no completed orders). ✅
+  5. Trainee Certificate (Ama, no cert): "Your certificate will appear here once your training is complete and your mentor issues it." ✅
+  6. Trainee (Kojo, HAS cert) login: Certificate view renders a beautiful printable certificate — "Certificate of Apprenticeship", Kojo Trainee, Atelier Apprenticeship Programme, "Awarded with Distinction", Mastered Skills chips, Issued By (Coach Afia), Certificate No., Print button. VLM rated 8/10 "highly polished, official, frame-worthy". ✅
+  7. Owner (Madam) login: full dashboard with Sales/Money Received/Outstanding/Profit + "New Custom Order" button. ✅
+  8. Owner Portfolio: studio-wide gallery with completed pieces (some with images, some placeholders), customer names, click → order detail. ✅
+  9. Owner Certificate: trainee picker (Ama + Kojo chips). Selected Ama (no cert) → "Issue certificate" button → dialog prefilled (programme, 12 weeks, Distinction, skills prefilled from Proficient logs) → issued → certificate rendered + toast "Certificate issued. Ama Trainee's certificate is ready to print." Verified persisted to DB (2 certs total). ✅
+  10. Order detail: shows "Add a design image" placeholder for orders without image; completed orders with image show the hero + "Edit image" button. ✅
+- Console errors: none. Re-seeded clean demo data.
+
+Stage Summary:
+- EACH USER NOW HAS THEIR OWN VIEW + DASHBOARD:
+  - Owner (Madam): full business dashboard (money, health, AI insights) + all features.
+  - Trainer: workbench view (no money) + trainees summary + can issue certificates.
+  - Staff: workbench view (assigned orders/tasks).
+  - Trainee: "My Workbench" (apprenticeship) — NO money, NO creating orders, NO all-customers; only assigned orders/tasks + their progress + portfolio + certificate.
+- TRAINees CAN'T: add orders (button hidden + NewOrder guard), see sensitive business/financial info (financials card replaced with Production card), see all customers (only their assigned), change order status (read-only badge).
+- STYLE PHOTOS: Order.designImage shown as thumbnail in Orders list + hero in OrderDetail; settable in NewOrder (URL + preview) + editable in OrderDetail (for owners).
+- PORTFOLIO: gallery of completed work — studio-wide for owner/trainer (with staff filter), personal for staff/trainees.
+- CERTIFICATE: printable apprenticeship certificate — trainee views their own, owner/trainer issues + revokes. Print stylesheet produces a clean certificate-only page.
+- New schema: Certificate model. New APIs: /api/certificates (GET/POST/DELETE), /api/portfolio. New views: Portfolio, Certificate. Updated: Dashboard/Orders/Customers/OrderDetail/NewOrder (role-scoped + style images). Role store: isOwner/canSeeBusiness/canCreateOrders/canSeeAllCustomers helpers.
+- Lint clean, no runtime errors.
