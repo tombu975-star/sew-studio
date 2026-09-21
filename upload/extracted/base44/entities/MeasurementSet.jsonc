@@ -1,0 +1,649 @@
+{
+  "name": "MeasurementSet",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "type": "string",
+      "title": "Customer",
+      "ref": "Customer"
+    },
+    "set_name": {
+      "type": "string",
+      "title": "Measurement Set Name"
+    },
+    "date_taken": {
+      "type": "string",
+      "format": "date",
+      "title": "Date Taken"
+    },
+    "taken_by": {
+      "type": "string",
+      "title": "Taken By",
+      "ref": "User"
+    },
+    "unit": {
+      "type": "string",
+      "title": "Unit",
+      "enum": [
+        "Inches",
+        "Centimetres"
+      ],
+      "default": "Inches"
+    },
+    "garment_type": {
+      "type": "string",
+      "title": "Garment Type",
+      "enum": [
+        "General",
+        "Dress",
+        "Top",
+        "Skirt",
+        "Trousers",
+        "Bridal"
+      ],
+      "default": "General"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Draft",
+        "Confirmed"
+      ],
+      "default": "Draft"
+    },
+    "customer_approval": {
+      "type": "string",
+      "title": "Customer Approval",
+      "enum": [
+        "Pending",
+        "Approved"
+      ],
+      "default": "Pending"
+    },
+    "general_notes": {
+      "type": "string",
+      "title": "General Notes",
+      "format": "textarea"
+    },
+    "measurement_photos": {
+      "type": "array",
+      "title": "Measurement Photos",
+      "items": {
+        "type": "string",
+        "format": "url"
+      }
+    },
+    "height": {
+      "type": "number",
+      "title": "Full Height"
+    },
+    "height_notes": {
+      "type": "string",
+      "title": "Height Notes",
+      "format": "textarea"
+    },
+    "neck_circumference": {
+      "type": "number",
+      "title": "Neck Circumference"
+    },
+    "front_neck_depth": {
+      "type": "number",
+      "title": "Front Neck Depth"
+    },
+    "back_neck_depth": {
+      "type": "number",
+      "title": "Back Neck Depth"
+    },
+    "neck_notes": {
+      "type": "string",
+      "title": "Neck Notes",
+      "format": "textarea"
+    },
+    "shoulder_width": {
+      "type": "number",
+      "title": "Shoulder Width"
+    },
+    "left_shoulder_length": {
+      "type": "number",
+      "title": "Left Shoulder Length"
+    },
+    "right_shoulder_length": {
+      "type": "number",
+      "title": "Right Shoulder Length"
+    },
+    "left_shoulder_height": {
+      "type": "number",
+      "title": "Left Shoulder Height"
+    },
+    "right_shoulder_height": {
+      "type": "number",
+      "title": "Right Shoulder Height"
+    },
+    "shoulder_slope": {
+      "type": "string",
+      "title": "Shoulder Slope",
+      "enum": [
+        "Square",
+        "Normal",
+        "Sloping",
+        "Uneven",
+        "Custom"
+      ]
+    },
+    "across_shoulder": {
+      "type": "number",
+      "title": "Across Shoulder"
+    },
+    "across_back": {
+      "type": "number",
+      "title": "Across Back"
+    },
+    "across_chest": {
+      "type": "number",
+      "title": "Across Chest"
+    },
+    "shoulder_notes": {
+      "type": "string",
+      "title": "Shoulder Notes",
+      "format": "textarea"
+    },
+    "full_bust": {
+      "type": "number",
+      "title": "Full Bust"
+    },
+    "high_bust": {
+      "type": "number",
+      "title": "High Bust"
+    },
+    "upper_bust": {
+      "type": "number",
+      "title": "Upper Bust"
+    },
+    "underbust": {
+      "type": "number",
+      "title": "Underbust"
+    },
+    "bust_point_to_bust_point": {
+      "type": "number",
+      "title": "Bust Point to Bust Point"
+    },
+    "shoulder_to_bust_point": {
+      "type": "number",
+      "title": "Shoulder to Bust Point"
+    },
+    "bust_point_to_waist": {
+      "type": "number",
+      "title": "Bust Point to Waist"
+    },
+    "bust_point_height": {
+      "type": "number",
+      "title": "Bust Point Height"
+    },
+    "left_bust": {
+      "type": "number",
+      "title": "Left Bust"
+    },
+    "right_bust": {
+      "type": "number",
+      "title": "Right Bust"
+    },
+    "bust_shape": {
+      "type": "string",
+      "title": "Bust Shape",
+      "enum": [
+        "Balanced",
+        "Fuller Bust",
+        "Smaller Bust",
+        "Asymmetrical",
+        "Other"
+      ]
+    },
+    "bust_notes": {
+      "type": "string",
+      "title": "Bust Notes",
+      "format": "textarea"
+    },
+    "natural_waist": {
+      "type": "number",
+      "title": "Natural Waist"
+    },
+    "high_waist": {
+      "type": "number",
+      "title": "High Waist"
+    },
+    "lower_waist": {
+      "type": "number",
+      "title": "Lower Waist"
+    },
+    "front_waist_length": {
+      "type": "number",
+      "title": "Front Waist Length"
+    },
+    "back_waist_length": {
+      "type": "number",
+      "title": "Back Waist Length"
+    },
+    "shoulder_to_waist": {
+      "type": "number",
+      "title": "Shoulder to Waist"
+    },
+    "shoulder_to_natural_waist": {
+      "type": "number",
+      "title": "Shoulder to Natural Waist"
+    },
+    "underbust_to_waist": {
+      "type": "number",
+      "title": "Underbust to Waist"
+    },
+    "bust_to_waist": {
+      "type": "number",
+      "title": "Bust to Waist"
+    },
+    "waist_to_hip": {
+      "type": "number",
+      "title": "Waist to Hip"
+    },
+    "waist_to_high_hip": {
+      "type": "number",
+      "title": "Waist to High Hip"
+    },
+    "waist_to_knee": {
+      "type": "number",
+      "title": "Waist to Knee"
+    },
+    "waist_to_floor": {
+      "type": "number",
+      "title": "Waist to Floor"
+    },
+    "waist_to_desired_hem": {
+      "type": "number",
+      "title": "Waist to Desired Hem"
+    },
+    "waist_notes": {
+      "type": "string",
+      "title": "Waist Notes",
+      "format": "textarea"
+    },
+    "high_hip": {
+      "type": "number",
+      "title": "High Hip"
+    },
+    "full_hip": {
+      "type": "number",
+      "title": "Full Hip"
+    },
+    "hip_depth": {
+      "type": "number",
+      "title": "Hip Depth"
+    },
+    "waist_to_full_hip": {
+      "type": "number",
+      "title": "Waist to Full Hip"
+    },
+    "hip_to_knee": {
+      "type": "number",
+      "title": "Hip to Knee"
+    },
+    "hip_to_floor": {
+      "type": "number",
+      "title": "Hip to Floor"
+    },
+    "crotch_depth": {
+      "type": "number",
+      "title": "Crotch Depth"
+    },
+    "crotch_length": {
+      "type": "number",
+      "title": "Crotch Length"
+    },
+    "front_rise": {
+      "type": "number",
+      "title": "Front Rise"
+    },
+    "back_rise": {
+      "type": "number",
+      "title": "Back Rise"
+    },
+    "left_thigh": {
+      "type": "number",
+      "title": "Left Thigh"
+    },
+    "right_thigh": {
+      "type": "number",
+      "title": "Right Thigh"
+    },
+    "left_knee": {
+      "type": "number",
+      "title": "Left Knee"
+    },
+    "right_knee": {
+      "type": "number",
+      "title": "Right Knee"
+    },
+    "left_calf": {
+      "type": "number",
+      "title": "Left Calf"
+    },
+    "right_calf": {
+      "type": "number",
+      "title": "Right Calf"
+    },
+    "left_ankle": {
+      "type": "number",
+      "title": "Left Ankle"
+    },
+    "right_ankle": {
+      "type": "number",
+      "title": "Right Ankle"
+    },
+    "hip_shape": {
+      "type": "string",
+      "title": "Hip Shape",
+      "enum": [
+        "Straight",
+        "Curved",
+        "Full Hip",
+        "High Hip",
+        "Low Hip",
+        "Asymmetrical",
+        "Custom"
+      ]
+    },
+    "hip_notes": {
+      "type": "string",
+      "title": "Hip Notes",
+      "format": "textarea"
+    },
+    "armhole": {
+      "type": "number",
+      "title": "Armhole"
+    },
+    "left_upper_arm": {
+      "type": "number",
+      "title": "Left Upper Arm / Bicep"
+    },
+    "right_upper_arm": {
+      "type": "number",
+      "title": "Right Upper Arm / Bicep"
+    },
+    "left_elbow": {
+      "type": "number",
+      "title": "Left Elbow"
+    },
+    "right_elbow": {
+      "type": "number",
+      "title": "Right Elbow"
+    },
+    "forearm": {
+      "type": "number",
+      "title": "Forearm"
+    },
+    "left_wrist": {
+      "type": "number",
+      "title": "Left Wrist"
+    },
+    "right_wrist": {
+      "type": "number",
+      "title": "Right Wrist"
+    },
+    "shoulder_to_elbow": {
+      "type": "number",
+      "title": "Shoulder to Elbow"
+    },
+    "shoulder_to_wrist": {
+      "type": "number",
+      "title": "Shoulder to Wrist"
+    },
+    "sleeve_length": {
+      "type": "number",
+      "title": "Sleeve Length"
+    },
+    "short_sleeve_length": {
+      "type": "number",
+      "title": "Short Sleeve Length"
+    },
+    "three_quarter_sleeve_length": {
+      "type": "number",
+      "title": "3/4 Sleeve Length"
+    },
+    "long_sleeve_length": {
+      "type": "number",
+      "title": "Long Sleeve Length"
+    },
+    "arm_proportion": {
+      "type": "string",
+      "title": "Arm Proportion",
+      "enum": [
+        "Short",
+        "Balanced",
+        "Long"
+      ]
+    },
+    "fit_considerations": {
+      "type": "array",
+      "title": "Arm Fit Considerations",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Fuller Upper Arm",
+          "Narrow Wrist",
+          "High Armhole Preference",
+          "Extra Sleeve Ease",
+          "Other"
+        ]
+      }
+    },
+    "arm_notes": {
+      "type": "string",
+      "title": "Arm Notes",
+      "format": "textarea"
+    },
+    "leg_waist_to_floor": {
+      "type": "number",
+      "title": "Waist to Floor (Leg)"
+    },
+    "leg_waist_to_knee": {
+      "type": "number",
+      "title": "Waist to Knee (Leg)"
+    },
+    "leg_hip_to_knee": {
+      "type": "number",
+      "title": "Hip to Knee (Leg)"
+    },
+    "inseam": {
+      "type": "number",
+      "title": "Inseam"
+    },
+    "outseam": {
+      "type": "number",
+      "title": "Outseam"
+    },
+    "leg_thigh": {
+      "type": "number",
+      "title": "Thigh (Leg)"
+    },
+    "leg_knee": {
+      "type": "number",
+      "title": "Knee (Leg)"
+    },
+    "leg_calf": {
+      "type": "number",
+      "title": "Calf (Leg)"
+    },
+    "leg_ankle": {
+      "type": "number",
+      "title": "Ankle (Leg)"
+    },
+    "leg_front_rise": {
+      "type": "number",
+      "title": "Front Rise (Leg)"
+    },
+    "leg_back_rise": {
+      "type": "number",
+      "title": "Back Rise (Leg)"
+    },
+    "leg_proportion": {
+      "type": "string",
+      "title": "Leg Proportion",
+      "enum": [
+        "Short Legs",
+        "Balanced",
+        "Long Legs"
+      ]
+    },
+    "leg_notes": {
+      "type": "string",
+      "title": "Leg Notes",
+      "format": "textarea"
+    },
+    "shoulder_to_floor": {
+      "type": "number",
+      "title": "Shoulder to Floor"
+    },
+    "shoulder_to_knee": {
+      "type": "number",
+      "title": "Shoulder to Knee"
+    },
+    "shoulder_to_ankle": {
+      "type": "number",
+      "title": "Shoulder to Ankle"
+    },
+    "shoulder_to_desired_hem": {
+      "type": "number",
+      "title": "Shoulder to Desired Hem"
+    },
+    "bust_to_floor": {
+      "type": "number",
+      "title": "Bust to Floor"
+    },
+    "underbust_to_floor": {
+      "type": "number",
+      "title": "Underbust to Floor"
+    },
+    "dress_length": {
+      "type": "number",
+      "title": "Dress Length"
+    },
+    "skirt_length": {
+      "type": "number",
+      "title": "Skirt Length"
+    },
+    "top_length": {
+      "type": "number",
+      "title": "Top Length"
+    },
+    "trouser_length": {
+      "type": "number",
+      "title": "Trouser Length"
+    },
+    "fulllength_notes": {
+      "type": "string",
+      "title": "Full-Length Notes",
+      "format": "textarea"
+    },
+    "posture": {
+      "type": "string",
+      "title": "Posture",
+      "enum": [
+        "Upright",
+        "Neutral",
+        "Rounded Shoulders",
+        "Forward Shoulders",
+        "Swayback",
+        "Prominent Upper Back",
+        "Other"
+      ]
+    },
+    "body_alignment": {
+      "type": "string",
+      "title": "Body Alignment",
+      "enum": [
+        "Balanced",
+        "Left/Right Asymmetry",
+        "Shoulder Imbalance",
+        "Hip Imbalance",
+        "Other"
+      ]
+    },
+    "alignment_notes": {
+      "type": "string",
+      "title": "Posture & Alignment Notes",
+      "format": "textarea"
+    },
+    "torso_proportion": {
+      "type": "string",
+      "title": "Torso Proportion",
+      "enum": [
+        "Short Torso",
+        "Balanced Torso",
+        "Long Torso"
+      ]
+    },
+    "leg_proportion_overall": {
+      "type": "string",
+      "title": "Overall Leg Proportion",
+      "enum": [
+        "Short Legs",
+        "Balanced Legs",
+        "Long Legs"
+      ]
+    },
+    "overall_proportion": {
+      "type": "string",
+      "title": "Overall Proportion",
+      "enum": [
+        "Balanced",
+        "Long-leg / Shorter Torso",
+        "Short-leg / Longer Torso",
+        "Long Torso",
+        "Short Torso",
+        "Custom"
+      ]
+    },
+    "proportion_notes": {
+      "type": "string",
+      "title": "Proportion Notes",
+      "format": "textarea"
+    },
+    "bust_ease": {
+      "type": "number",
+      "title": "Bust Ease"
+    },
+    "waist_ease": {
+      "type": "number",
+      "title": "Waist Ease"
+    },
+    "hip_ease": {
+      "type": "number",
+      "title": "Hip Ease"
+    },
+    "sleeve_ease": {
+      "type": "number",
+      "title": "Sleeve Ease"
+    },
+    "armhole_ease": {
+      "type": "number",
+      "title": "Armhole Ease"
+    },
+    "other_ease": {
+      "type": "number",
+      "title": "Other Ease"
+    },
+    "preferred_fit_override": {
+      "type": "string",
+      "title": "Preferred Fit (for this set)"
+    },
+    "custom_measurements": {
+      "type": "string",
+      "title": "Custom Measurements",
+      "format": "textarea",
+      "description": "Any additional measurements not covered above"
+    }
+  },
+  "required": [
+    "customer_id",
+    "set_name",
+    "date_taken"
+  ]
+}

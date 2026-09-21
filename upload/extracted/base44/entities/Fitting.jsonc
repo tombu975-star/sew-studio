@@ -1,0 +1,36 @@
+{
+  "name": "Fitting",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "title": "Order",
+      "ref": "Order"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "outcome_notes": {
+      "type": "string",
+      "title": "Outcome Notes",
+      "format": "textarea"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Scheduled",
+        "Completed",
+        "Alterations Needed"
+      ],
+      "default": "Scheduled"
+    }
+  },
+  "required": [
+    "order_id",
+    "date",
+    "status"
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "name": "Asset",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "Machine",
+        "Mannequin",
+        "Iron",
+        "Table",
+        "Chair",
+        "Other"
+      ],
+      "default": "Machine"
+    },
+    "purchase_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Purchase Date"
+    },
+    "purchase_cost": {
+      "type": "number",
+      "title": "Purchase Cost"
+    },
+    "condition": {
+      "type": "string",
+      "title": "Condition",
+      "enum": [
+        "New",
+        "Good",
+        "Fair",
+        "Needs Repair",
+        "Out of Service"
+      ],
+      "default": "Good"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "In Use",
+        "In Storage",
+        "Under Repair",
+        "Retired"
+      ],
+      "default": "In Use"
+    },
+    "location": {
+      "type": "string",
+      "title": "Location / Station"
+    },
+    "assigned_staff_id": {
+      "type": "string",
+      "title": "Assigned Staff",
+      "ref": "User"
+    },
+    "last_service_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Last Serviced"
+    },
+    "next_service_due": {
+      "type": "string",
+      "format": "date",
+      "title": "Next Checkup Due"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

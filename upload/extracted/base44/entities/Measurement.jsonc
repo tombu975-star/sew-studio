@@ -1,0 +1,67 @@
+{
+  "name": "Measurement",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "type": "string",
+      "title": "Customer",
+      "ref": "Customer"
+    },
+    "date_taken": {
+      "type": "string",
+      "format": "date",
+      "title": "Date Taken"
+    },
+    "bust": {
+      "type": "number",
+      "title": "Bust"
+    },
+    "waist": {
+      "type": "number",
+      "title": "Waist"
+    },
+    "hips": {
+      "type": "number",
+      "title": "Hips"
+    },
+    "shoulder": {
+      "type": "number",
+      "title": "Shoulder"
+    },
+    "sleeve_length": {
+      "type": "number",
+      "title": "Sleeve Length"
+    },
+    "body_shape": {
+      "type": "string",
+      "title": "Body Shape",
+      "enum": [
+        "Hourglass",
+        "Pear",
+        "Rectangle",
+        "Apple",
+        "Inverted Triangle",
+        "Other"
+      ]
+    },
+    "proportion_notes": {
+      "type": "string",
+      "title": "Proportion Notes",
+      "format": "textarea"
+    },
+    "recurring_fit_adjustments": {
+      "type": "string",
+      "title": "Recurring Fit Adjustments",
+      "format": "textarea"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "customer_id",
+    "date_taken"
+  ]
+}

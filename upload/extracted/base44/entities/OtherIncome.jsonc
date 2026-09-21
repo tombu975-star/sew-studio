@@ -1,0 +1,55 @@
+{
+  "name": "OtherIncome",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "title": "Stream",
+      "enum": [
+        "Ready-to-Wear",
+        "Alterations",
+        "Training"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "entry_log": {
+      "type": "string",
+      "title": "Entry Source",
+      "description": "How this record got into the app",
+      "enum": [
+        "Self-Entered",
+        "Apprentice-Logged",
+        "Assisted Call",
+        "Assisted WhatsApp"
+      ],
+      "default": "Self-Entered"
+    },
+    "logged_by": {
+      "type": "string",
+      "title": "Logged By",
+      "description": "Who entered this record (staff name or 'Sewsiness Assisted')"
+    },
+    "assisted_call_id": {
+      "type": "string",
+      "title": "Assisted Call",
+      "ref": "AssistedCallLog"
+    }
+  },
+  "required": [
+    "type",
+    "amount",
+    "date"
+  ]
+}

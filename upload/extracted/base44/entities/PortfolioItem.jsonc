@@ -1,0 +1,71 @@
+{
+  "name": "PortfolioItem",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "Bridal",
+        "Evening Wear",
+        "Traditional",
+        "Ready-to-Wear",
+        "Accessories"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "title": "Description",
+      "format": "textarea"
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image",
+      "format": "url"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Completed Date"
+    },
+    "trainee_id": {
+      "type": "string",
+      "title": "Trainee",
+      "ref": "Trainee",
+      "description": "Set when this piece belongs to a trainee's own portfolio"
+    },
+    "added_by_trainee": {
+      "type": "boolean",
+      "title": "Added By Trainee",
+      "description": "True when the trainee added this piece themselves, versus Madam or a Trainer adding it from a completed order",
+      "default": false
+    },
+    "trainer_feedback": {
+      "type": "string",
+      "title": "Trainer Feedback",
+      "format": "textarea",
+      "description": "Feedback from the trainer who reviewed this submission"
+    },
+    "trainer_score": {
+      "type": "number",
+      "title": "Trainer Score (1-5)"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "title": "Reviewed By",
+      "ref": "User"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Reviewed Date"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "ClosedYear",
+  "type": "object",
+  "properties": {
+    "year": {
+      "type": "number",
+      "title": "Year"
+    },
+    "revenue": {
+      "type": "number",
+      "title": "Total Revenue"
+    },
+    "true_cost": {
+      "type": "number",
+      "title": "Total True Cost"
+    },
+    "margin": {
+      "type": "number",
+      "title": "Total Margin"
+    },
+    "owner_pay": {
+      "type": "number",
+      "title": "Owner Pay Drawn"
+    },
+    "custom_orders": {
+      "type": "number",
+      "title": "Custom Orders Revenue"
+    },
+    "rtw": {
+      "type": "number",
+      "title": "Ready-to-Wear Revenue"
+    },
+    "alterations": {
+      "type": "number",
+      "title": "Alterations Revenue"
+    },
+    "training": {
+      "type": "number",
+      "title": "Training Revenue"
+    },
+    "closed_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Closed On"
+    }
+  },
+  "required": [
+    "year"
+  ]
+}

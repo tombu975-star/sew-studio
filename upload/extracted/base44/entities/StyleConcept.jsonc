@@ -1,0 +1,162 @@
+{
+  "name": "StyleConcept",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "type": "string",
+      "title": "Customer",
+      "ref": "Customer"
+    },
+    "order_id": {
+      "type": "string",
+      "title": "Converted Order",
+      "ref": "Order"
+    },
+    "garment_type": {
+      "type": "string",
+      "title": "Garment Type"
+    },
+    "occasion": {
+      "type": "string",
+      "title": "Occasion"
+    },
+    "desired_look": {
+      "type": "string",
+      "title": "Desired Look"
+    },
+    "season": {
+      "type": "string",
+      "title": "Season"
+    },
+    "budget": {
+      "type": "number",
+      "title": "Target Budget"
+    },
+    "fabric_available": {
+      "type": "string",
+      "title": "Available Fabric"
+    },
+    "colour_preference": {
+      "type": "string",
+      "title": "Colour Preference"
+    },
+    "designer_direction": {
+      "type": "string",
+      "title": "Designer's Direction",
+      "format": "textarea"
+    },
+    "concept_name": {
+      "type": "string",
+      "title": "Style Concept Name"
+    },
+    "silhouette": {
+      "type": "string",
+      "title": "Silhouette"
+    },
+    "neckline": {
+      "type": "string",
+      "title": "Neckline"
+    },
+    "sleeve_style": {
+      "type": "string",
+      "title": "Sleeve Style"
+    },
+    "length": {
+      "type": "string",
+      "title": "Length"
+    },
+    "waist_fit": {
+      "type": "string",
+      "title": "Waist / Fit"
+    },
+    "fabric": {
+      "type": "string",
+      "title": "Fabric"
+    },
+    "colour": {
+      "type": "string",
+      "title": "Colour"
+    },
+    "detailing": {
+      "type": "string",
+      "title": "Detailing",
+      "format": "textarea"
+    },
+    "embellishment": {
+      "type": "string",
+      "title": "Embellishment"
+    },
+    "print_pattern": {
+      "type": "string",
+      "title": "Print / Pattern"
+    },
+    "design_direction": {
+      "type": "string",
+      "title": "Design Direction",
+      "format": "textarea"
+    },
+    "fit_considerations": {
+      "type": "string",
+      "title": "Fit Considerations",
+      "format": "textarea"
+    },
+    "why_this_may_work": {
+      "type": "string",
+      "title": "Why This May Work",
+      "format": "textarea"
+    },
+    "potential_alterations": {
+      "type": "string",
+      "title": "Potential Alterations",
+      "format": "textarea"
+    },
+    "designer_notes": {
+      "type": "string",
+      "title": "Designer Notes",
+      "format": "textarea"
+    },
+    "match_percent": {
+      "type": "number",
+      "title": "Style Match %"
+    },
+    "match_breakdown": {
+      "type": "string",
+      "title": "Match Breakdown",
+      "format": "textarea"
+    },
+    "data_confidence": {
+      "type": "string",
+      "title": "Data Confidence",
+      "enum": [
+        "Limited",
+        "Good",
+        "Complete"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Suggested",
+        "Approved",
+        "Rejected",
+        "Converted"
+      ],
+      "default": "Suggested"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "title": "Rejection Reason"
+    },
+    "fitting_feedback": {
+      "type": "string",
+      "title": "Fitting Feedback",
+      "format": "textarea",
+      "description": "What worked, what didn't, recorded after fitting"
+    }
+  },
+  "required": [
+    "customer_id",
+    "concept_name"
+  ]
+}

@@ -1,0 +1,196 @@
+// Madam Studio — Atelier management schema
+// Custom tailoring studio: customers, orders, fittings, payments, tasks, measurements, style concepts, staff.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  fullName  String
+  role      String   @default("staff") // madam | staff | trainer | trainee
+  gender    String?  // Male | Female | Other (drives Madam/Master label)
+  phone     String?
+  password  String?  // demo-only plaintext; real apps must hash
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ordersAssigned Order[]   @relation("OrderStaff")
+  tasks          Task[]
+  measurements   MeasurementSet[]
+}
+
+model Customer {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String?
+  email         String?
+  whatsapp      String?
+  gender        String?
+  occupation    String?
+  city          String?
+  country       String?
+  entrySource   String?  // Instagram, Referral, Walk-in...
+  referredBy    String?
+  customerType  String?  // VIP, Bridal, Regular Wear...
+  preferredStyles String? // comma-separated: Classic,Elegant...
+  favouriteColours String?
+  coloursToAvoid String?
+  favouriteFabrics String?
+  preferredFit  String?
+  designPreferences String?
+  styleNotes    String?
+  skinTone      String?
+  height        Float?
+  weight        Float?
+  loyaltyPoints Int      @default(0)
+  notes         String?
+  status        String   @default("Active") // Active | Inactive
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orders         Order[]
+  measurements   MeasurementSet[]
+  styleConcepts  StyleConcept[]
+  feedback       CustomerFeedback[]
+}
+
+model Order {
+  id             String   @id @default(cuid())
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+  garmentDesign  String
+  designImage    String?
+  orderDate      DateTime
+  deliveryDate   DateTime?
+  status         String   @default("Enquiry")
+  // Enquiry | Quoted | Consultation | Confirmed | Deposit Paid | In Production |
+  // Fitting | Alterations | Ready | Collected/Delivered | Completed
+  assignedStaffId String?
+  assignedStaff   User?   @relation("OrderStaff", fields: [assignedStaffId], references: [id])
+  sellingPrice    Float   @default(0)
+  fabricCost      Float   @default(0)
+  labourCost      Float   @default(0)
+  notes           String?
+  priority        String  @default("Medium") // Low | Medium | High
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payments   Payment[]
+  fittings   Fitting[]
+  tasks      Task[]
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amount    Float
+  method    String?  // Cash | Transfer | Card
+  date      DateTime @default(now())
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model Fitting {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    String   @default("Scheduled") // Scheduled | Completed | Alterations Needed
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  staffId   String?
+  staff     User?    @relation(fields: [staffId], references: [id])
+  status    String   @default("To Do") // To Do | In Progress | Done
+  priority  String   @default("Medium")
+  dueDate   DateTime?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MeasurementSet {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  staffId    String?
+  staff      User?    @relation(fields: [staffId], references: [id])
+  unit       String   @default("cm")
+  dateTaken  DateTime @default(now())
+  bust       Float?
+  waist      Float?
+  hip        Float?
+  shoulder   Float?
+  length     Float?
+  sleeve     Float?
+  inseam     Float?
+  neck       Float?
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+model StyleConcept {
+  id            String   @id @default(cuid())
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  garmentType   String
+  occasion      String?
+  desiredLook   String?
+  season        String?
+  budget        Float?
+  colourPreference String?
+  conceptName   String
+  silhouette    String?
+  neckline      String?
+  sleeveStyle   String?
+  length        String?
+  fabric        String?
+  colour        String?
+  detailing     String?
+  embellishment String?
+  whyThisMayWork String?
+  fitConsiderations String?
+  matchPercent  Int?
+  designDirection String?
+  imageUrl      String?
+  status        String   @default("Suggested") // Suggested | Approved | Rejected | Converted
+  rejectionReason String?
+  dataConfidence String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CustomerFeedback {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  rating     Int      @default(5) // 1-5
+  type       String   @default("General") // General | Fitting | Delivery
+  feedback   String?
+  date       DateTime @default(now())
+}
+
+model Settings {
+  id            String   @id @default(cuid())
+  ownerGender   String   @default("Madam") // Madam | Master
+  studioName    String   @default("Madam Studio")
+  overheadAmount Float   @default(0)
+  selfPayout    Float    @default(0)
+  currency      String   @default("GHS")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

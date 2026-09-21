@@ -1,0 +1,7 @@
+{
+  "type": "scheduled",
+  "name": "dailySchedule",
+  "schedule_mode": "recurring",
+  "schedule_type": "cron",
+  "cron_expression": "0 15 * * ?"
+}

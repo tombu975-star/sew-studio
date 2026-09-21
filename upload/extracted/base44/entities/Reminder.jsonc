@@ -1,0 +1,25 @@
+{
+  "name": "Reminder",
+  "type": "object",
+  "properties": {
+    "note": {
+      "type": "string",
+      "title": "Reminder",
+      "format": "textarea"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "done": {
+      "type": "boolean",
+      "title": "Done",
+      "default": false
+    }
+  },
+  "required": [
+    "note",
+    "date"
+  ]
+}

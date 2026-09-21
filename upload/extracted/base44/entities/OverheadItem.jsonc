@@ -1,0 +1,19 @@
+{
+  "name": "OverheadItem",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Item",
+      "description": "e.g. Rent, Electricity, Data, Transport, Machine maintenance"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Monthly Amount"
+    }
+  },
+  "required": [
+    "name",
+    "amount"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "name": "CourseProgress",
+  "type": "object",
+  "properties": {
+    "trainee_id": {
+      "type": "string",
+      "title": "Trainee",
+      "ref": "Trainee"
+    },
+    "course_id": {
+      "type": "string",
+      "title": "Course",
+      "ref": "Course"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Completed"
+      ],
+      "default": "Not Started"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Completed Date"
+    },
+    "quiz_results": {
+      "type": "array",
+      "title": "Quiz Results",
+      "description": "Video quiz attempts recorded for this module",
+      "items": {
+        "type": "object",
+        "properties": {
+          "video_title": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "date": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "trainee_id",
+    "course_id"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "OrderAdditionalCost",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "title": "Order",
+      "ref": "Order"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount"
+    }
+  },
+  "required": [
+    "order_id",
+    "description"
+  ]
+}
