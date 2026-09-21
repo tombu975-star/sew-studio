@@ -1849,3 +1849,19 @@ Stage Summary:
 - NAV REDESIGNED: premium w-60 sectioned sidebar (desktop) replacing the cramped icon rail. Each role sees a curated, privilege-based set of items organized into logical sections (Overview / Studio / Clients / People / Work / Learning). Role label shown in the header ("OWNER PORTAL", "STAFF PORTAL", etc.).
 - MOBILE: smart bottom nav — top 5 priority items per role + a "More" bottom sheet with the rest grouped by section.
 - PRIVILEGE SCOPING: owner=full, trainer=production+trainees, staff=assigned work, trainee=learning journey, freelancer=their jobs. Each role sees exactly what they need, nothing they shouldn't.
+
+---
+Task ID: 48 (fix topbar showing by the side on mobile)
+Agent: main
+Task: Fix the mobile top bar that was showing squished to the side instead of full-width at the top.
+
+Work Log:
+- Root cause: the AppShell's outer container was `min-h-screen flex` (flex-row by default). On mobile, the desktop sidebar is `hidden md:flex` (gone), but the mobile header (`md:hidden`) and `<main>` were both flex children in a ROW — so the header got squished into a column next to the main content instead of spanning full-width on top.
+- Fix: changed the outer container to `min-h-screen flex flex-col md:flex-row`. On mobile it's now flex-col (header on top, main below — both full-width). On desktop it's flex-row (sidebar + main side-by-side; the header is md:hidden so it's gone).
+- Verified via VLM:
+  - Mobile (500px): header now spans full width at the top with shop name + role badge + avatar; main content fills the entire width below (no empty left space). ✅
+  - Desktop (1280px): sidebar on the left, main content on the right — unchanged. ✅
+- Lint clean.
+
+Stage Summary:
+- One-line fix: `min-h-screen flex` → `min-h-screen flex flex-col md:flex-row`. Mobile top bar now renders full-width at the top; desktop sidebar layout preserved.

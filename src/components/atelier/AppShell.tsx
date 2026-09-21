@@ -224,7 +224,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col md:flex-row">
       {/* ─── Desktop sidebar (w-60, sectioned) ───────────────────── */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col border-r border-[#E7E5E4] bg-white z-30">
         {/* Brand */}
