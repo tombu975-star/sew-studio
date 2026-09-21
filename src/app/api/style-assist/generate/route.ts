@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getTenant } from "@/lib/tenant";
 import ZAI from "z-ai-web-dev-sdk";
 
 export const dynamic = "force-dynamic";
@@ -80,6 +81,12 @@ function buildUserPrompt(profile: unknown, request: DesignRequest): string {
 
 export async function POST(req: Request) {
   try {
+    // Authenticate the caller (tenant guard).
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = (await req.json().catch(() => ({}))) as RequestBody;
 
     const customerId = body.customerId;
@@ -98,8 +105,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const customer = await db.customer.findUnique({
-      where: { id: customerId },
+    // Verify the customer belongs to the tenant before building the profile.
+    const customer = await db.customer.findFirst({
+      where: { id: customerId, shopId: ctx.shopId },
     });
     if (!customer) {
       return NextResponse.json(
@@ -111,24 +119,24 @@ export async function POST(req: Request) {
     const [measurementSets, orders, feedback, styleConcepts] =
       await Promise.all([
         db.measurementSet.findMany({
-          where: { customerId },
+          where: { customerId, shopId: ctx.shopId },
           orderBy: { dateTaken: "desc" },
           take: 1,
         }),
         db.order.findMany({
-          where: { customerId },
+          where: { customerId, shopId: ctx.shopId },
           orderBy: { orderDate: "desc" },
           take: 10,
           select: { garmentDesign: true, status: true },
         }),
         db.customerFeedback.findMany({
-          where: { customerId },
+          where: { customerId, shopId: ctx.shopId },
           orderBy: { date: "desc" },
           take: 10,
           select: { rating: true, feedback: true, type: true },
         }),
         db.styleConcept.findMany({
-          where: { customerId },
+          where: { customerId, shopId: ctx.shopId },
           orderBy: { createdAt: "desc" },
           take: 20,
           select: {

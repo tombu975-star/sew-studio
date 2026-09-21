@@ -53,6 +53,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { view, go } = useNav();
   const { user, logout } = useAuth();
 
+  // Real shop name (multi-tenant) — fall back to role-store studioName while hydrating.
+  const shopDisplayName = user?.shop?.name || studioName;
+
   // Scope: owners see everything; staff see their workbench subset; trainees see a focused learning subset.
   const items = NAV.filter((n) => {
     if (isTrainee()) return n.trainee;
@@ -72,15 +75,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col">
       {/* Desktop rail */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 flex-col items-center border-r border-[#E7E5E4] bg-white z-30">
-        <button
-          onClick={() => go("dashboard")}
-          className="h-20 flex items-center justify-center group"
-          aria-label="Go to dashboard"
-        >
-          <div className="w-10 h-10 rounded-full border border-[#800020] flex items-center justify-center group-hover:bg-[#800020] group-hover:text-white text-[#800020] transition-all duration-300 elevate-sm">
-            <Scissors className="w-4 h-4" />
-          </div>
-        </button>
+        <div className="flex flex-col items-center gap-1 pt-3 pb-2 shrink-0 w-full">
+          <button
+            onClick={() => go("dashboard")}
+            className="group"
+            aria-label="Go to dashboard"
+          >
+            <div className="w-10 h-10 rounded-full border border-[#800020] flex items-center justify-center group-hover:bg-[#800020] group-hover:text-white text-[#800020] transition-all duration-300 elevate-sm">
+              <Scissors className="w-4 h-4" />
+            </div>
+          </button>
+          <span
+            className="text-[8.5px] uppercase tracking-[0.14em] text-stone-400 font-semibold text-center px-1 truncate max-w-[72px]"
+            title={shopDisplayName}
+          >
+            {shopDisplayName.split(" ")[0]}
+          </span>
+        </div>
         <nav className="flex-1 flex flex-col items-center gap-1 pt-2 overflow-y-auto scroll-slim w-full">
           {items.map(({ to, label, icon: Icon }) => {
             const active = isActive(to);
@@ -141,13 +152,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-2.5 border-b border-[#E7E5E4] bg-white/95 backdrop-blur-md">
         <button
           onClick={() => go("dashboard")}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 min-w-0"
         >
-          <div className="w-7 h-7 rounded-full border border-[#800020] flex items-center justify-center">
+          <div className="w-7 h-7 rounded-full border border-[#800020] flex items-center justify-center shrink-0">
             <Scissors className="w-3.5 h-3.5 text-[#800020]" />
           </div>
-          <span className="font-display text-lg font-semibold text-[#1C1917]">
-            {studioName.split(" ")[0]}
+          <span
+            className="font-display text-lg font-semibold text-[#1C1917] truncate max-w-[180px]"
+            title={shopDisplayName}
+          >
+            {shopDisplayName}
           </span>
         </button>
         <div className="flex items-center gap-1.5">

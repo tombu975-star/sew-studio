@@ -3,15 +3,18 @@ import { db } from "@/lib/db";
 
 export async function GET(req: Request) {
   try {
-    const token = req.headers.get("cookie") || "";
-    const match = token.match(/ms_session=([^;]+)/);
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/ms_session=([^;]+)/);
     if (!match) return NextResponse.json({ user: null }, { status: 200 });
 
     const decoded = Buffer.from(match[1], "base64").toString("utf-8");
     const [id] = decoded.split(":");
     if (!id) return NextResponse.json({ user: null }, { status: 200 });
 
-    const user = await db.user.findUnique({ where: { id } });
+    const user = await db.user.findUnique({
+      where: { id },
+      include: { shop: { select: { id: true, name: true, slug: true, currency: true } } },
+    });
     if (!user) return NextResponse.json({ user: null }, { status: 200 });
 
     return NextResponse.json({
@@ -22,6 +25,8 @@ export async function GET(req: Request) {
         role: user.role,
         gender: user.gender,
         phone: user.phone,
+        shopId: user.shopId,
+        shop: user.shop,
       },
     });
   } catch {

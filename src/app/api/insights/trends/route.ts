@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTenant } from "@/lib/tenant";
 import ZAI from "z-ai-web-dev-sdk";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +44,12 @@ function stripJsonFences(text: string): string {
 
 export async function POST(req: Request) {
   try {
+    // Tenant guard — only authenticated users of a shop can call this route.
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = (await req.json().catch(() => ({}))) as SummaryBody;
 
     const userPrompt = buildUserPrompt(body || {});

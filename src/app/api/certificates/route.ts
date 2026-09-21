@@ -1,11 +1,17 @@
 import { db } from "@/lib/db";
+import { getTenant, tenantWhere } from "@/lib/tenant";
 
 // GET /api/certificates?traineeId=ID — certificates for a trainee (or all if no filter)
 export async function GET(req: Request) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const url = new URL(req.url);
     const traineeId = url.searchParams.get("traineeId");
-    const where = traineeId ? { traineeId } : undefined;
+    const where = tenantWhere(ctx.shopId, traineeId ? { traineeId } : {});
     const certs = await db.certificate.findMany({
       where,
       orderBy: { issuedAt: "desc" },
@@ -24,6 +30,11 @@ export async function GET(req: Request) {
 // POST — issue a certificate to a trainee
 export async function POST(req: Request) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const {
       traineeId,
@@ -39,8 +50,27 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    // Prevent duplicate certificates for the same trainee
-    const existing = await db.certificate.findFirst({ where: { traineeId } });
+    // Verify the trainee AND issuer belong to the tenant.
+    const [trainee, issuer] = await Promise.all([
+      db.user.findFirst({
+        where: { id: String(traineeId), shopId: ctx.shopId },
+        select: { id: true },
+      }),
+      db.user.findFirst({
+        where: { id: String(issuedById), shopId: ctx.shopId },
+        select: { id: true },
+      }),
+    ]);
+    if (!trainee || !issuer) {
+      return Response.json(
+        { error: "Trainee or issuer not found in this shop." },
+        { status: 404 }
+      );
+    }
+    // Prevent duplicate certificates for the same trainee in this shop.
+    const existing = await db.certificate.findFirst({
+      where: { traineeId, shopId: ctx.shopId },
+    });
     if (existing) {
       return Response.json(
         { error: "This trainee already has a certificate." },
@@ -50,6 +80,7 @@ export async function POST(req: Request) {
     const certNo = `MS-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
     const cert = await db.certificate.create({
       data: {
+        shopId: ctx.shopId,
         traineeId,
         issuedById,
         programName: programName || "Atelier Apprenticeship Programme",

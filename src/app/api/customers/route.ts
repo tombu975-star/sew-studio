@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { getTenant, tenantWhere } from "@/lib/tenant";
 
 // GET /api/customers → Customer[] (each with computed _orderCount)
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const ctx = await getTenant(req);
+  if (!ctx) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const customers = await db.customer.findMany({
+    where: tenantWhere(ctx.shopId),
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { orders: true } },
@@ -21,6 +28,11 @@ export async function GET() {
 
 // POST /api/customers → Customer
 export async function POST(req: NextRequest) {
+  const ctx = await getTenant(req);
+  if (!ctx) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await req.json().catch(() => ({}));
 
   if (!body?.name || typeof body.name !== "string" || !body.name.trim()) {
@@ -31,6 +43,7 @@ export async function POST(req: NextRequest) {
   }
 
   const data: Prisma.CustomerUncheckedCreateInput = {
+    shopId: ctx.shopId,
     name: String(body.name).trim(),
     phone: body.phone ?? null,
     email: body.email ?? null,

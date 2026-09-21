@@ -1,8 +1,17 @@
 import { db } from "@/lib/db";
+import { getTenant, tenantWhere } from "@/lib/tenant";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const users = await db.user.findMany({ orderBy: { createdAt: "asc" } });
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const users = await db.user.findMany({
+      where: tenantWhere(ctx.shopId),
+      orderBy: { createdAt: "asc" },
+    });
     return Response.json(users);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
@@ -13,6 +22,11 @@ export async function GET() {
 // Create a new studio member (staff / trainer / trainee / madam).
 export async function POST(req: Request) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { fullName, email, role, gender, phone, password } = body || {};
     if (!fullName || !email) {
@@ -36,6 +50,7 @@ export async function POST(req: Request) {
 
     const user = await db.user.create({
       data: {
+        shopId: ctx.shopId,
         fullName: String(fullName).trim(),
         email: String(email).toLowerCase().trim(),
         role: finalRole,

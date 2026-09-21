@@ -1,29 +1,60 @@
-// Madam Studio — Atelier management schema
-// Custom tailoring studio: customers, orders, fittings, payments, tasks, measurements, style concepts, staff.
+// Madam Studio — Multi-tenant atelier management schema
+// Each "shop" is a tenant (an atelier). All data is scoped by shopId.
+// Local dev uses SQLite; for Supabase deployment, change provider to "postgresql"
+// and set DATABASE_URL to your Supabase pooler connection string. See DEPLOYMENT.md.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
+  // LOCAL DEV: "sqlite". SUPABASE DEPLOY: change to "postgresql".
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
+// ─── Tenant ────────────────────────────────────────────────────────
+model Shop {
+  id        String   @id @default(cuid())
+  name      String   // "Madam Studio"
+  slug      String   @unique // URL-friendly identifier, e.g. "madam-studio"
+  plan      String   @default("trial") // trial | pro | enterprise
+  currency  String   @default("GHS")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           User[]
+  customers       Customer[]
+  orders          Order[]
+  tasks           Task[]
+  measurements    MeasurementSet[]
+  styleConcepts   StyleConcept[]
+  feedback        CustomerFeedback[]
+  settings        Settings[]
+  freelancers     Freelancer[]
+  communityPosts  CommunityPost[]
+  trainingLogs    TrainingLog[]
+  certificates    Certificate[]
+}
+
+// ─── People ────────────────────────────────────────────────────────
 model User {
   id        String   @id @default(cuid())
-  email     String   @unique
+  email     String   @unique // globally unique — one account per email
   fullName  String
   role      String   @default("staff") // madam | staff | trainer | trainee
   gender    String?  // Male | Female | Other (drives Madam/Master label)
   phone     String?
   password  String?  // demo-only plaintext; real apps must hash
+  // Tenant
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   // Trainee profile (school-portal style) — set by trainer/owner
-  mentorId           String?  // the trainer assigned to this trainee
+  mentorId           String?
   mentor             User?    @relation("TraineeMentor", fields: [mentorId], references: [id])
   trainees           User[]   @relation("TraineeMentor")
-  trainingDurationWeeks Int?  // programme length set by trainer/owner
-  trainingStartedAt  DateTime? // when the apprenticeship began (to compute progress)
+  trainingDurationWeeks Int?
+  trainingStartedAt  DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -37,8 +68,27 @@ model User {
   gradedTasks   Task[]   @relation("TaskGrader")
 }
 
+model Freelancer {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  name      String
+  specialty String?
+  skills    String?
+  phone     String?
+  email     String?
+  rate      Float?
+  status    String   @default("Available")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Clients ───────────────────────────────────────────────────────
 model Customer {
   id            String   @id @default(cuid())
+  shopId        String
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   name          String
   phone         String?
   email         String?
@@ -47,10 +97,10 @@ model Customer {
   occupation    String?
   city          String?
   country       String?
-  entrySource   String?  // Instagram, Referral, Walk-in...
+  entrySource   String?
   referredBy    String?
-  customerType  String?  // VIP, Bridal, Regular Wear...
-  preferredStyles String? // comma-separated: Classic,Elegant...
+  customerType  String?
+  preferredStyles String?
   favouriteColours String?
   coloursToAvoid String?
   favouriteFabrics String?
@@ -62,7 +112,7 @@ model Customer {
   weight        Float?
   loyaltyPoints Int      @default(0)
   notes         String?
-  status        String   @default("Active") // Active | Inactive
+  status        String   @default("Active")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -72,77 +122,10 @@ model Customer {
   feedback       CustomerFeedback[]
 }
 
-model Order {
-  id             String   @id @default(cuid())
-  customerId     String
-  customer       Customer @relation(fields: [customerId], references: [id])
-  garmentDesign  String
-  designImage    String?
-  orderDate      DateTime
-  deliveryDate   DateTime?
-  status         String   @default("Enquiry")
-  // Enquiry | Quoted | Consultation | Confirmed | Deposit Paid | In Production |
-  // Fitting | Alterations | Ready | Collected/Delivered | Completed
-  assignedStaffId String?
-  assignedStaff   User?   @relation("OrderStaff", fields: [assignedStaffId], references: [id])
-  sellingPrice    Float   @default(0)
-  fabricCost      Float   @default(0)
-  labourCost      Float   @default(0)
-  notes           String?
-  priority        String  @default("Medium") // Low | Medium | High
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  payments   Payment[]
-  fittings   Fitting[]
-  tasks      Task[]
-}
-
-model Payment {
-  id        String   @id @default(cuid())
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  amount    Float
-  method    String?  // Cash | Transfer | Card
-  date      DateTime @default(now())
-  note      String?
-  createdAt DateTime @default(now())
-}
-
-model Fitting {
-  id        String   @id @default(cuid())
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  date      DateTime
-  status    String   @default("Scheduled") // Scheduled | Completed | Alterations Needed
-  notes     String?
-  createdAt DateTime @default(now())
-}
-
-model Task {
-  id        String   @id @default(cuid())
-  title     String
-  orderId   String?
-  order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  staffId   String?
-  staff     User?    @relation(fields: [staffId], references: [id])
-  status    String   @default("To Do") // To Do | In Progress | Done
-  priority  String   @default("Medium")
-  dueDate   DateTime?
-  notes     String?
-  // Grading (school-portal style) — trainer/owner scores completed trainee tasks
-  maxScore  Int?     // e.g. 100
-  score     Int?     // achieved
-  gradedById String?
-  gradedBy  User?    @relation("TaskGrader", fields: [gradedById], references: [id])
-  gradedAt  DateTime?
-  feedback  String?  // grader's comment
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model MeasurementSet {
   id         String   @id @default(cuid())
+  shopId     String
+  shop       Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   staffId    String?
@@ -161,8 +144,94 @@ model MeasurementSet {
   createdAt  DateTime @default(now())
 }
 
+model CustomerFeedback {
+  id         String   @id @default(cuid())
+  shopId     String
+  shop       Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  rating     Int      @default(5)
+  type       String   @default("General")
+  feedback   String?
+  date       DateTime @default(now())
+}
+
+// ─── Orders & production ───────────────────────────────────────────
+model Order {
+  id             String   @id @default(cuid())
+  shopId         String
+  shop           Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+  garmentDesign  String
+  designImage    String?
+  orderDate      DateTime
+  deliveryDate   DateTime?
+  status         String   @default("Enquiry")
+  assignedStaffId String?
+  assignedStaff   User?   @relation("OrderStaff", fields: [assignedStaffId], references: [id])
+  sellingPrice    Float   @default(0)
+  fabricCost      Float   @default(0)
+  labourCost      Float   @default(0)
+  notes           String?
+  priority        String  @default("Medium")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payments   Payment[]
+  fittings   Fitting[]
+  tasks      Task[]
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amount    Float
+  method    String?
+  date      DateTime @default(now())
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model Fitting {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    String   @default("Scheduled")
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  title     String
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  staffId   String?
+  staff     User?    @relation(fields: [staffId], references: [id])
+  status    String   @default("To Do")
+  priority  String   @default("Medium")
+  dueDate   DateTime?
+  notes     String?
+  maxScore  Int?
+  score     Int?
+  gradedById String?
+  gradedBy  User?    @relation("TaskGrader", fields: [gradedById], references: [id])
+  gradedAt  DateTime?
+  feedback  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Style assist ──────────────────────────────────────────────────
 model StyleConcept {
   id            String   @id @default(cuid())
+  shopId        String
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   customerId    String
   customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   garmentType   String
@@ -185,26 +254,19 @@ model StyleConcept {
   matchPercent  Int?
   designDirection String?
   imageUrl      String?
-  status        String   @default("Suggested") // Suggested | Approved | Rejected | Converted
+  status        String   @default("Suggested")
   rejectionReason String?
   dataConfidence String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
 
-model CustomerFeedback {
-  id         String   @id @default(cuid())
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  rating     Int      @default(5) // 1-5
-  type       String   @default("General") // General | Fitting | Delivery
-  feedback   String?
-  date       DateTime @default(now())
-}
-
+// ─── Settings ──────────────────────────────────────────────────────
 model Settings {
   id            String   @id @default(cuid())
-  ownerGender   String   @default("Madam") // Madam | Master
+  shopId        String   @unique
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  ownerGender   String   @default("Madam")
   studioName    String   @default("Madam Studio")
   overheadAmount Float   @default(0)
   selfPayout    Float    @default(0)
@@ -213,26 +275,15 @@ model Settings {
   updatedAt     DateTime @updatedAt
 }
 
-model Freelancer {
-  id        String   @id @default(cuid())
-  name      String
-  specialty String?  // Beader | Embroiderer | Cutter | Tailor | Designer | Photographer...
-  skills    String?  // comma-separated
-  phone     String?
-  email     String?
-  rate      Float?   // typical per-piece or per-day rate (GHS)
-  status    String   @default("Available") // Available | Busy | Unavailable
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
+// ─── Community ─────────────────────────────────────────────────────
 model CommunityPost {
   id        String   @id @default(cuid())
-  authorId  String?  // User id (nullable for system posts)
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  authorId  String?
   authorName String
-  authorRole String? // madam | staff | trainer | trainee
-  type      String   @default("update") // update | question | inspiration | announcement | showcase
+  authorRole String?
+  type      String   @default("update")
   title     String?
   body      String
   imageUrl  String?
@@ -264,16 +315,19 @@ model CommunityLike {
   @@unique([postId, authorId])
 }
 
+// ─── Training & certificates ───────────────────────────────────────
 model TrainingLog {
   id          String   @id @default(cuid())
-  traineeId   String   // User id (role trainee)
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  traineeId   String
   trainee     User     @relation("TraineeLogs", fields: [traineeId], references: [id], onDelete: Cascade)
-  mentorId    String?  // User id (trainer or madam supervising)
+  mentorId    String?
   mentor      User?    @relation("MentorLogs", fields: [mentorId], references: [id])
-  skill       String?  // e.g. "Flat-felled seams", "Bodice boning", "Pattern drafting"
+  skill       String?
   title       String
   note        String?
-  status      String   @default("Learning") // Learning | Practicing | Proficient
+  status      String   @default("Learning")
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -281,17 +335,17 @@ model TrainingLog {
 
 model Certificate {
   id              String   @id @default(cuid())
-  traineeId       String   // User id (role trainee)
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  traineeId       String
   trainee         User     @relation("TraineeCerts", fields: [traineeId], references: [id], onDelete: Cascade)
-  issuedById      String   // User id (trainer or madam issuing)
+  issuedById      String
   issuedBy        User     @relation("IssuerCerts", fields: [issuedById], references: [id])
   programName     String   @default("Atelier Apprenticeship Programme")
   durationWeeks   Int      @default(12)
-  skillsAchieved  String   // comma-separated skills mastered
-  honors          String?  // e.g. "Distinction", "Merit", "Pass"
+  skillsAchieved  String
+  honors          String?
   certificateNo   String   @unique
   issuedAt        DateTime @default(now())
   createdAt       DateTime @default(now())
 }
-
-

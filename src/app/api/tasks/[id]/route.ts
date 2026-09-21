@@ -1,13 +1,23 @@
 import { db } from "@/lib/db";
+import { getTenant } from "@/lib/tenant";
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await req.json();
-    const existing = await db.task.findUnique({ where: { id } });
+    // Verify ownership.
+    const existing = await db.task.findFirst({
+      where: { id, shopId: ctx.shopId },
+      select: { id: true },
+    });
     if (!existing) {
       return Response.json({ error: "Task not found" }, { status: 404 });
     }
@@ -16,8 +26,29 @@ export async function PATCH(
     if ("status" in body && body.status) data.status = String(body.status);
     if ("priority" in body && body.priority) data.priority = String(body.priority);
     if ("notes" in body) data.notes = body.notes ? String(body.notes) : null;
-    if ("orderId" in body) data.orderId = body.orderId ? String(body.orderId) : null;
-    if ("staffId" in body) data.staffId = body.staffId ? String(body.staffId) : null;
+    if ("orderId" in body) {
+      if (body.orderId) {
+        // Verify parent order belongs to tenant.
+        const order = await db.order.findFirst({
+          where: { id: String(body.orderId), shopId: ctx.shopId },
+          select: { id: true },
+        });
+        data.orderId = order ? String(body.orderId) : null;
+      } else {
+        data.orderId = null;
+      }
+    }
+    if ("staffId" in body) {
+      if (body.staffId) {
+        const staff = await db.user.findFirst({
+          where: { id: String(body.staffId), shopId: ctx.shopId },
+          select: { id: true },
+        });
+        data.staffId = staff ? String(body.staffId) : null;
+      } else {
+        data.staffId = null;
+      }
+    }
     if ("dueDate" in body) {
       data.dueDate = body.dueDate ? new Date(body.dueDate) : null;
     }

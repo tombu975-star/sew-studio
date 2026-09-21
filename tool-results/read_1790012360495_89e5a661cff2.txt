@@ -1,0 +1,235 @@
+  1260→- Add an "Edit profile" PremiumButton (outline sm) per trainee → opens EditTraineeDialog: Mentor (Select of users with role trainer or madam), Training duration weeks (number), Training started date (date input). PATCH /api/users/[trainee.id] → invalidate ['users'] + toast.
+  1261→- Keep the existing "View progress" button.
+  1262→
+  1263→### Quality bar (PREMIUM — match the rest of the app)
+  1264→- SectionCard everywhere, elevate-sm + lift
+  1265→- Gradient avatars, tabular-nums on scores/percentages
+  1266→- PremiumButton for all CTAs with loading states
+  1267→- `animate-fade-in-up` on PageHeader + staggered
+  1268→- Toasts for all mutations (graded / updated / profile saved)
+  1269→- Skeleton loaders, EmptyState for empties
+  1270→- Responsive
+  1271→- Burgundy #800020 primary
+  1272→- The grading should feel like a real school portal — scores, feedback, averages, letter grades, progress bars.
+  1273→
+  1274→### Worklog
+  1275→Before starting, read `/home/z/my-project/worklog.md`. After finishing, APPEND a new section starting with `---` with Task ID, agent, task, work log, stage summary.
+  1276→
+  1277→---
+  1278→Task ID: 33
+  1279→Agent: full-stack-developer (tasks grading)
+  1280→Task: Scope Tasks view to assigned + show grades + trainer grades.
+  1281→
+  1282→Work Log:
+  1283→- Read /home/z/my-project/worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-sm + lift + animate-fade-in-up + tabular-nums) and the CONTRACT FOR GRADING + SCHOOL-PORTAL VIEWS (role helpers isTrainee/isStaff/isTrainer/isOwner, Task now includes maxScore/score/gradedById/gradedBy/gradedAt/feedback, PATCH /api/tasks/[id] accepts grading payload with gradedAt auto-set).
+  1284→- Inspected existing src/views/Tasks.tsx (single-page 3-column kanban, no role scoping, no grading UI). Inspected role store (isStaff = staff|trainee, isTrainer, isOwner, isTrainee), auth store (user.id + role), types (Task with grading fields), api helpers (apiGet/apiPatch/apiPost), and the PATCH /api/tasks/[id] route — confirmed grading payload handler.
+  1285→- Rewrote src/views/Tasks.tsx with role-based scoping + grading:
+  1286→  - Role detection: `traineeMode = isTrainee()`, `graderMode = isTrainer() || isOwner()`, `staffMode = isStaff() && !traineeMode`. `canCreate = !traineeMode` (trainees can't assign tasks), `canChangeStatus = !traineeMode` (trainees read-only status per Task 31 contract).
+  1287→  - Scope filter: trainees see only tasks where staffId === user.id; trainer/owner sees all tasks where task.staff?.role === 'trainee'; staff (non-trainee) keeps existing — their own tasks.
+  1288→  - PageHeader: eyebrow + icon switch by role (trainee/grader → "My assignments"/"Trainee assignments" with GraduationCap icon; staff → "Studio workflow" with KanbanSquare). New Task button only shown when canCreate. Subtitle reflects the role context.
+  1289→  - Kept the 3-up PremiumMetric stat strip (To Do / In Progress / Done) with AnimatedNumber + accent on first.
+  1290→  - NEW grade summary SectionCard (visible in trainee + grader modes): shows {trainee ? "Your average" : "Studio average"} as a big AnimatedNumber % colored by percentage tone (emerald/amber/orange), plus (grader mode only) "Graded: X / Y tasks" counter, plus a right-aligned "Graded assignments: X of N" metric. Header action is a LetterGradeBadge (A/B/C/D/F) computed from the avgPct, or "No grades yet" muted pill.
+  1291→  - Filter bar: hidden for trainees (they only see their own — no staff filter needed). For staff/grader, kept the staff + priority Selects with label "Trainee" for grader mode.
+  1292→  - Empty state for the whole board: SectionCard + EmptyState with role-specific copy + (when canCreate) "New Task" PremiumButton.
+  1293→  - TaskCard enhanced with grading area:
+  1294→    - Done + graded → burgundy-tinted box (bg-[#800020]/4 + border-l-2 border-[#800020]/30) showing ScoreBadge + gradedBy.fullName + gradedAt + italic feedback + (grader only) "Re-grade" outline PremiumButton (sm, GraduationCap).
+  1295→    - Done + not graded → "Awaiting grade" row (Clock icon amber) + (grader only) "Grade" outline PremiumButton (sm, GraduationCap).
+  1296→    - Trainees see graded work + "Awaiting grade" without any grading buttons.
+  1297→    - Status row: editable Select for staff/grader; read-only StatusBadge for trainees.
+  1298→    - Staff row uses new `showStaff` prop — trainees see "Your assignment" pill instead of their own name (avoids redundancy), others see the staff avatar + name.
+  1299→  - GradeDialog refactored into outer (controls Dialog open state, passes task down) + inner GradeForm (mounted with `key={task.id}` so useState lazy initializers prefilled from task.maxScore/score/feedback — avoids the set-state-in-effect lint rule). Form fields: Max score (number, default 20), Score (number 0–maxScore), Feedback (Textarea). Live preview row showing % + LetterGradeBadge (color-toned). "Save grade" PremiumButton (loading, disabled when invalid — maxScore ≤ 0 or score out of range). On submit → PATCH /api/tasks/[id] { maxScore, score, feedback, gradedById: user.id } → toast "Grade saved" + invalidate ['tasks'] + close. Validation toasts for maxScore ≤ 0 / out-of-range score.
+  1300→  - Helper functions: scorePercent, letterGrade (A≥90, B≥80, C≥70, D≥60, F<60), pctTone (emerald ≥80, amber 60–79, orange <60), ScoreBadge (small pill "18/20" with Star icon, tabular-nums, tone-colored), LetterGradeBadge (dot + letter, tone-colored).
+  1301→  - Kept the NewTaskDialog component unchanged (still wired for staff/grader).
+  1302→  - Quality bar: SectionCard everywhere with elevate-sm + lift; tabular-nums on all scores/percentages/counts; PremiumButton for all CTAs (Grade, Re-grade, New Task, Save grade, Cancel) with loading states; animate-fade-in-up on PageHeader (built-in); SkeletonCard during loading; EmptyState for empties (column-level + whole-board); responsive (grids collapse to 1-col on mobile); burgundy #800020 throughout (icons, tints, badges, buttons); sonner toasts for status change + create + grade mutations.
+  1303→- Lint: `bun run lint 2>&1 | tail -5` → `$ eslint .` (no errors, no warnings). TypeScript: `bunx tsc --noEmit` shows zero errors in src/views/Tasks.tsx (remaining TS errors are in upload/extracted/base44/* legacy source — not mine).
+  1304→- Dev log: clean compile in 9.4s, GET /api/tasks 200, no runtime errors.
+  1305→
+  1306→Stage Summary:
+  1307→- File edited: src/views/Tasks.tsx (~1140 lines, single self-contained "use client" default export with inline sub-components: Tasks, TaskCard, NewTaskDialog, GradeDialog, GradeForm, plus ScoreBadge/LetterGradeBadge helpers).
+  1308→- Features delivered:
+  1309→  - Trainee mode: scoped to own assignments (staffId === user.id), NO New Task button, NO status change (read-only StatusBadge), grade summary "Your average: X%" as AnimatedNumber with letter grade pill, each graded Done task shows ScoreBadge + gradedBy + gradedAt + italic feedback in burgundy-tinted box, ungraded Done tasks show "Awaiting grade".
+  1310→  - Staff mode (non-trainee): unchanged behavior — own tasks, can change status, no grading UI, no grade summary card.
+  1311→  - Trainer/Owner mode: sees ALL tasks where staff is a trainee, grade summary showing "Graded: X / Y tasks" + "Studio average: X%" + studio letter grade, can GRADE any Done task via GradeDialog ("Grade" button when ungraded, "Re-grade" when graded), grade mutations trigger PATCH /api/tasks/[id] with gradedById + toast + invalidate.
+  1312→  - ScoreBadge: small pill "18/20" colored by percentage (emerald ≥80%, amber 60–79%, orange <60%), tabular-nums, Star icon.
+  1313→  - GradeDialog: maxScore (default 20), score (0–maxScore), feedback Textarea, live % + letter grade preview, prefill from existing grade via key-remount, validation toasts, PremiumButton "Save grade" with loading.
+  1314→  - Kept 3-column kanban (To Do / In Progress / Done) with SectionCard columns, status-coloured icons, count pills.
+  1315→- Consumes: @/components/atelier/{PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState+SkeletonCard, PremiumButton, StatusBadge}, @/components/ui/{Dialog+parts, Input, Label, Textarea, Select+parts}, @/lib/api (apiGet, apiPatch, apiPost), @/lib/format (isOverdue, PRIORITY_LEVELS, shortDate, todayISO), @/lib/types (Order, Task, User), @/lib/utils (cn), @/stores/nav (useNav), @/stores/auth (useAuth → user), @/stores/role (useRole → isTrainee/isStaff/isTrainer/isOwner), @tanstack/react-query (useQuery, useMutation, useQueryClient), sonner (toast), lucide-react (Plus, AlertCircle, CalendarDays, Link2, ListTodo, Loader2, CheckCheck, KanbanSquare, GraduationCap, Star, CheckSquare, Clock).
+  1316→- Lint clean, TypeScript clean for this file.
+  1317→
+  1318→---
+  1319→Task ID: 35
+  1320→Agent: full-stack-developer (team trainee profiles)
+  1321→Task: Enhance Team Trainees tab with mentor + training duration editing.
+  1322→
+  1323→Work Log:
+  1324→- Read /home/z/my-project/worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-sm + lift + animate-fade-in-up + tabular-nums) and the CONTRACT FOR GRADING + SCHOOL-PORTAL VIEWS at the bottom (exact User data shape with mentorId/mentor/trainingDurationWeeks/trainingStartedAt, role helpers isOwner/isTrainer, premium primitives list, PATCH /api/users/[id] contract, quality bar).
+  1325→- Inspected existing src/views/Team.tsx (1405 lines, 3 tabs) and confirmed the Trainees card already uses SectionCard + SkeletonList + EmptyState + PremiumButton + StatusBadge + gradient avatars. Verified GET /api/users returns a flat User[] (no mentor include) and PATCH /api/users/[id] already accepts { mentorId, trainingDurationWeeks, trainingStartedAt }.
+  1326→- Added imports: useEffect was unnecessary (used a key-remount pattern instead); added Pencil, CalendarDays, Clock to lucide-react; added formatDate to @/lib/format; added useRole to @/stores/role.
+  1327→- Added module-level helpers next to initialOf: weeksElapsedFromStart(startedAt) = floor((now - startedAt)/7d) (0 if missing/invalid/future); toDateInput(iso) = YYYY-MM-DD for <input type="date"> using local date components to avoid TZ drift; UNASSIGNED_MENTOR = "__none" sentinel for the mentor Select.
+  1328→- Updated parent Team() to pull useRole() and compute canEditTrainees = isOwner() || isTrainer(); passed mentors + canEdit to TraineesCard.
+  1329→- Rewrote TraineesCard:
+  1330→  - New props: mentors: User[], canEdit: boolean; new state editTrainee: User | null.
+  1331→  - Built userById map to match trainee.mentorId → mentor user client-side (GET /api/users doesn't include the mentor relation); falls back to t.mentor?.fullName or log.mentor.
+  1332→  - Each trainee row now shows a school-portal info row (between contact line and existing training-log stats): Mentor (UsersRound icon + micro-label, fullName or amber italic "Unassigned"), Duration (Clock icon, "{n} weeks" or amber "Not set"), Started (CalendarDays icon, formatDate + "· Week {X} of {Y}" in burgundy where X = weeksElapsedFromStart, Y = trainingDurationWeeks; or amber "Not started").
+  1333→  - Added a burgundy gradient progress bar (h-1.5 rounded-full, bg-gradient-to-r from-[#800020] to-[#a83349], role="progressbar" + aria-valuenow/min/max) showing weeksElapsed / trainingDurationWeeks * 100% (clamped 0-100, min 1% so a just-started trainee has a visible sliver) + "{pct}% complete" tabular-nums caption. Only shown when both trainingStartedAt and trainingDurationWeeks are set.
+  1334→  - Kept existing per-trainee training-log stats (total logs, proficient/practicing/learning) intact below the new info.
+  1335→  - Added an "Edit profile" PremiumButton (variant="outline" size="sm", Pencil icon, aria-label) next to the existing "View progress" button — only rendered when canEdit is true (the trainer/owner guard). Both buttons collapse to icon-only on mobile (labels hidden sm:inline).
+  1336→  - Removed the now-redundant "Mentor · {name}" hidden-md label.
+  1337→- Added new EditTraineeDialog component (placed above the existing Field helper):
+  1338→  - Props: open, onOpenChange, trainee: User | null, mentors: User[].
+  1339→  - Parent passes key={editTrainee?.id ?? "closed"} so the dialog remounts per trainee — avoids setState-in-useEffect lint error.
+  1340→  - Lazy useState initializer seeds form from the trainee on mount: mentorId (or sentinel), trainingDurationWeeks (default "12" if unset), trainingStartedAt (via toDateInput).
+  1341→  - Fields: Mentor Select (trainers + madam, explicit "Unassigned" SelectItem with sentinel value, disabled "No trainers or madam available" placeholder when list empty, helper text "Mentors must be a trainer or the Madam."); Training duration (weeks) numeric Input (min=1 step=1 tabular-nums placeholder="12"); Training started date <Input type="date"> (tabular-nums). Information callout (CalendarDays icon, tinted bg-[#FBF9F7]) explains duration + start date drive the progress bar + Week-X-of-Y schedule.
+  1342→  - Save profile PremiumButton (primary, Pencil, loading) → apiPatch<User>(`/api/users/${trainee.id}`, { mentorId, trainingDurationWeeks, trainingStartedAt }) → invalidate ['users'] + sonner toast "{name}'s profile updated." + auto-close. Cancel outline button + error toast on failure.
+  1343→  - Submit coerces: mentorId "__none" → null, duration NaN/≤0 → null, empty date → null (matches PATCH route's null-handling).
+  1344→- Verification: `bunx eslint src/views/Team.tsx` → clean (zero errors/warnings). `bunx tsc --noEmit --skipLibCheck | grep Team.tsx` → no Team.tsx-specific TypeScript errors. dev.log shows clean recompiles after edits. The 3 lint errors visible in `bun run lint` are in src/views/Progress.tsx (MentorTrainingCard/OverallAverageCard/AssignmentsGradesCard not defined) — Task 32's Progress view scope, not this task.
+  1345→
+  1346→Stage Summary:
+  1347→- File edited: src/views/Team.tsx (~1745 lines, single default export `Team`, "use client").
+  1348→- Features delivered: each trainee row now shows school-portal info (mentor, duration, started date, Week X of Y) + a burgundy progress bar; an "Edit profile" PremiumButton (guarded by isTrainer() || isOwner()) opens EditTraineeDialog with Mentor Select (trainers + madam + Unassigned), Training duration number input (default 12), Training started date input → PATCH /api/users/[id] → invalidate ['users'] + toast + close. Existing "View progress" button and per-trainee training-log stats kept intact. Responsive, premium (SectionCard + elevate-sm + lift, gradient avatars, tabular-nums, PremiumButton loading states, sonner toasts, burgundy #800020 primary).
+  1349→- Consumes: @/components/atelier/{PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState, SkeletonList, PremiumButton, StatusBadge}, @/components/ui/{Tabs, Dialog, AlertDialog, Input, Label, Textarea, Select}, @/lib/api (apiGet/apiPost/apiPatch/apiDelete), @/lib/format (formatCurrency, formatDate), @/lib/types (User, Freelancer, TrainingLog), @/stores/auth (useAuth), @/stores/nav (useNav), @/stores/role (useRole — isOwner/isTrainer), @tanstack/react-query (useQuery/useMutation/invalidate), sonner (toast), lucide-react.
+  1350→
+  1351→---
+  1352→Task ID: 34
+  1353→Agent: full-stack-developer (progress school-portal)
+  1354→Task: Enhance Progress view with mentor, training duration, grades table, average.
+  1355→
+  1356→Work Log:
+  1357→- Read /home/z/my-project/worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-sm + lift + animate-fade-in-up + tabular-nums) + CONTRACT FOR GRADING + SCHOOL-PORTAL VIEWS (exact new data shapes, role helpers, premium primitives list, quality bar). Re-read existing src/views/Progress.tsx (~1164 lines, single "use client" default export with inline sub-components) to map exactly where to additively insert the new school-portal sections without removing existing functionality.
+  1358→- Confirmed API surface: GET /api/tasks (with gradedBy { id, fullName }), GET /api/users (returns raw user rows including mentorId/trainingDurationWeeks/trainingStartedAt but NOT the mentor relation — resolved mentor client-side by matching mentorId → user.fullName), PATCH /api/tasks/[id] accepts { maxScore, score, feedback, gradedById } (sets gradedAt auto). useAuth().user is the limited { id, email, fullName, role, gender, phone } shape — does NOT carry mentor/training fields, so ProgressBody always fetches /api/users and finds the trainee by traineeId to read the school-portal profile.
+  1359→- Inspected premium primitives (PageHeader, SectionCard with accent + bodyClassName, PremiumMetric, AnimatedNumber, EmptyState + SkeletonList, PremiumButton, StatusBadge) + shadcn Progress component (radix ProgressPrimitive with data-slot=progress-indicator — applied a [&>[data-slot=progress-indicator]]:bg-gradient-to-r override to colour the bar burgundy) + lib/format (formatDate, shortDate) + lib/types (User with mentor/trainingDurationWeeks/trainingStartedAt + mentor?; Task with maxScore/score/gradedBy/gradedAt/feedback).
+  1360→- Additively extended src/views/Progress.tsx (NOT a rewrite — kept all existing sections: stat strip, skill mastery, training log timeline, my tasks, orders contributed + LogDialog/LogForm):
+  1361→  1. Imports: added Star, Award, Clock, User (aliased as UserIcon to avoid clashing with the User type from @/lib/types), TrendingUp from lucide-react; added `import { Progress as ProgressBar } from "@/components/ui/progress"` (aliased to ProgressBar because the file already exports a default `Progress` function — the un-aliased import would have been shadowed and produced TS2440).
+  1362→  2. Helper functions (before `export default function Progress`):
+  1363→     - `letterGrade(pct)` → A (>=90) / B (>=80) / C (>=70) / D (>=60) / F (<60).
+  1364→     - `gradeColor(pct)` → emerald (>=80) / amber (60-79) / orange (<60) for score badges.
+  1365→     - `GRADE_TONES`, `LETTER_TONES`, `LETTER_HINT` records for tinted pill styling + hint copy.
+  1366→     - `avgPct(tasks)` → mean of (score/maxScore*100) over graded tasks, null if none.
+  1367→     - `weeksElapsedOf(startedAt)` → floor((Date.now() - startedAt) / 7d ms), clamped to >=0.
+  1368→  3. ProgressBody (shared by both trainee + owner/trainer modes):
+  1369→     - Added usersQ (GET /api/users, queryKey ["users"]) to fetch the trainee profile + mentor lookup.
+  1370→     - Derived `traineeUser` (find by traineeId), `mentorName` (prefers traineeUser.mentor?.fullName, falls back to looking up the user with id === mentorId in the users list, null if neither), `durationWeeks`, `startedAt`, `weeksElapsed`, `trainingPercent` (min(100, weeks/duration*100)).
+  1371→     - Derived `avgPctValue` (avgPct of myTasks) + `gradedCount` (count of tasks with score+maxScore).
+  1372→     - Extended `invalidateAll` to also invalidate ["tasks"] (so grades refresh immediately).
+  1373→     - Inserted two new sections at the top of the JSX return (before the existing stat strip):
+  1374→       (a) `grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 animate-fade-in-up` wrapping MentorTrainingCard (left) + OverallAverageCard (right).
+  1375→       (b) AssignmentsGradesCard (full-width SectionCard, prominent).
+  1376→  4. New sub-components (appended at the end of the file, after LogForm):
+  1377→     - **MentorTrainingCard**: SectionCard titled "My apprenticeship" (trainee mode) / "{traineeName}'s apprenticeship" (owner/trainer mode). 2-col grid (sm:grid-cols-2): Mentor (UserIcon in burgundy-tinted circle + "Mentor" micro-label + name or "Not assigned") + Programme length (Clock icon + "{durationWeeks} weeks" or "—"). When durationWeeks is set: a burgundy-tinted Progress bar (h-2, gradient from-[#800020] to-[#6b0018] via [&>[data-slot=progress-indicator]] override) with "Week {weeksElapsed} of {durationWeeks}" label + "Started {formatDate(startedAt)}" + "{trainingPercent}%" footer. When not set: a muted stone-tinted box with italic "Training duration not set — ask your mentor to configure it." (trainee mode) / "configure it from the Team view." (owner mode).
+  1378→     - **OverallAverageCard**: SectionCard with `accent` (burgundy left border). When avgPctValue is null: large "—" placeholder + "No grades yet" + helper copy. When graded: large burgundy AnimatedNumber (clamp 30-44px font-display) + "%" + LetterPill next to it + "Across {gradedCount} graded assignment(s)" label + "Letter grade {letter} — {hint}." line with TrendingUp icon.
+  1379→     - **AssignmentsGradesCard**: SectionCard "Assignments & grades" (bodyClassName p-0). Loading → SkeletonList 4 rows. Empty → EmptyState with Star icon. Otherwise sorts tasks (graded first by gradedAt desc, then ungraded Done, then To Do/In Progress by dueDate asc) and renders an AssignmentRow per task. Manages a `gradeTask` state for the GradeDialog.
+  1380→     - **AssignmentRow**: list row with staggered animate-fade-in-up (50ms * min(idx, 8)). Header row (flex-wrap, justify-between): left = title + priority StatusBadge + customer/garment subtext; right = due date (CalendarDays + shortDate, red+bold if overdue & not Done) + StatusBadge + (graded: ScoreBadge + "{pct}%" + LetterPill / awaiting-grade: italic "Awaiting grade" / null). Below: if graded + feedback → tinted box (bg-[#800020]/[0.04] border-l-2 border-[#800020]/30) with "Mentor feedback" label (Sparkles icon) + feedback text + grader byline (— {gradedBy.fullName} · {gradedAt}). If canGrade + awaiting → "Grade" outline PremiumButton (sm, Star icon) opens the GradeDialog.
+  1381→     - **GradeDialog**: Dialog wrapper (sm:max-w-lg) that mounts GradeForm (keyed by task id) only when open && task.
+  1382→     - **GradeForm**: Patch-based grade form. Fields: task summary card (title + customer/garment) + 2-col grid (Max score number Input default "20" + Score number Input required) + live preview row when valid (TrendingUp icon + "{livePct}%" + LetterPill + hint) + Feedback Textarea. PremiumButton "Cancel" (outline) + "Submit grade" (primary, Star icon, loading state). useMutation PATCH /api/tasks/[id] { maxScore, score, feedback: trim||null, gradedById: graderId } → toast.success "Grade submitted." + invalidate ["tasks"] + close. Validation: max > 0, score numeric in [0, max].
+  1383→     - **ScoreBadge**: small pill "{score}/{maxScore}" tabular-nums, colour by GRADE_TONES[gradeColor(pct)] (emerald/amber/orange).
+  1384→     - **LetterPill**: small pill "{letter}" with Award icon, colour by LETTER_TONES[letter] (A=emerald, B=emerald-100, C=amber, D=orange, F=burgundy-red).
+  1385→- Resolved naming conflicts: aliased lucide-react `User` → `UserIcon` (clashed with the User type from @/lib/types used throughout) and shadcn `Progress` → `ProgressBar` (clashed with the file's own default-exported `Progress` function — without the alias, TS2440 fired and `<ProgressBar>` inside MentorTrainingCard was being resolved to the local function with no props).
+  1386→- Verified: `bun run lint` → 0 errors, 0 warnings. `bunx tsc --noEmit --skipLibCheck` → 0 errors against src/views/Progress.tsx (remaining TS errors are all in upload/extracted/* legacy source). Dev log: `✓ Compiled in 8.4s` after the final save — no runtime/compile errors.
+  1387→
+  1388→Stage Summary:
+  1389→- File edited: src/views/Progress.tsx (~1824 lines, single self-contained "use client" default export `Progress` with inline sub-components). Additive extension only — all pre-existing sections (stat strip with 4 PremiumMetrics, SkillMasteryCard, Training log timeline with inline status PATCH + AlertDialog delete, MyTasksCard, OrdersContributedCard, LogDialog + LogForm) preserved untouched.
+  1390→- Features delivered (school-portal style, layered on top of the existing apprenticeship journey):
+  1391→  - **Mentor + Training card** at the top: mentor name (UserIcon) + programme length (Clock icon) + burgundy-tinted Progress bar showing "Week {elapsed} of {duration}" + "{percent}%" + "Started {date}". Muted fallback note when trainingDurationWeeks is unset. Title adapts: "My apprenticeship" (trainee) / "{Name}'s apprenticeship" (owner/trainer).
+  1392→  - **Overall average hero metric**: large burgundy AnimatedNumber "%" + LetterPill + "Across {n} graded assignment(s)" + TrendingUp hint line. Burgundy `accent` border-l on the SectionCard. Graceful empty state ("—") when no grades yet.
+  1393→  - **Assignments & Grades table** (prominent SectionCard "Assignments & grades", full-width below the hero row): per-task row with title + priority + customer/garment + due date (overdue-aware) + StatusBadge + ScoreBadge ("18/20" emerald/amber/orange by %) + "{pct}%" + LetterPill (A/B/C/D/F) + tinted mentor-feedback box (with grader byline + graded date). Ungraded Done tasks show "Awaiting grade" italic. In owner/trainer mode (canGrade), Done-but-ungraded rows get a "Grade" outline PremiumButton → GradeDialog (Max score default 20, Score required, live % preview, Feedback Textarea) → PATCH /api/tasks/[id] { maxScore, score, feedback, gradedById: user.id } → invalidate ["tasks"] + toast "Grade submitted."
+  1394→  - Layout order (preserved existing): PageHeader → (owner mode) SelectedTraineeHeader → NEW Apprenticeship card + Overall Average (2-col grid) → NEW Assignments & Grades table → existing 4-up stat strip (Total Logs/Proficient/Practicing/Learning) → Skill mastery → Training log timeline → My tasks → Orders contributed → Log dialog.
+  1395→  - Grade computation: avgPct = round(mean of (score/maxScore*100) over graded tasks). Letter thresholds: A>=90, B>=80, C>=70, D>=60, F<60. Colour thresholds for ScoreBadge: emerald>=80, amber 60-79, orange<60.
+  1396→  - Mentor resolution: traineeUser.mentor?.fullName preferred (in case the API starts returning the relation); falls back to looking up the user with id === traineeUser.mentorId in the /api/users array (current backend doesn't include the mentor relation in the response).
+  1397→- Quality bar (PREMIUM): SectionCard everywhere with elevate-sm + lift; burgundy `accent` border-l on Overall Average + Apprenticeship; tabular-nums on all scores/percentages/dates; burgundy gradient Progress bar via [&>[data-slot=progress-indicator]] override; PremiumButton for all CTAs (Grade + Submit grade + Cancel) with loading states; animate-fade-in-up on the hero grid + staggered 50ms on each assignment row; sonner toasts on grade submit (success + error); SkeletonList loaders for the assignments table; EmptyState with Star icon when no assignments; fully responsive (2-col → 1-col on mobile, assignment rows flex-wrap, dialog max-w-lg); burgundy #800020 primary throughout, no blue/indigo as primary.
+  1398→- Consumes: @/components/atelier/{PageHeader, SectionCard, PremiumMetric, AnimatedNumber, EmptyState + SkeletonList, PremiumButton, StatusBadge}, @/components/ui/{Dialog + parts, AlertDialog + parts, Input, Label, Textarea, Separator, Progress (aliased ProgressBar), Select + parts}, @/lib/api (apiGet/apiPost/apiPatch/apiDelete), @/lib/format (formatCurrency, formatDate, shortDate, todayISO, isOverdue), @/lib/types (Order, Task, TrainingLog, TrainingStatus, User), @/lib/utils (cn), @/stores/{auth, nav, role}, @tanstack/react-query (useQuery/useMutation/invalidate), sonner (toast), lucide-react (GraduationCap, Plus, Mail, Phone, Trash2, CheckSquare, ShoppingBag, ArrowRight, Sparkles, Scissors, CalendarDays, Star, Award, Clock, User as UserIcon, TrendingUp).
+  1399→- Lint clean. TypeScript clean for src/views/Progress.tsx.
+  1400→
+  1401→Deliverable:
+  1402→- src/views/Progress.tsx — edited. Default export `Progress`. "use client". Lint clean. TypeScript clean.
+  1403→- Log in as a trainee (ama@studio.com / kojo@studio.com, password atelier2025) to see "My apprenticeship" card + Overall Average hero + Assignments & Grades table with your scores/letter pills/feedback. Log in as Madam (madam@studio.com) or Trainer (trainer@studio.com) → pick a trainee → see the same view + a "Grade" button on each Done-but-ungraded assignment → GradeDialog → PATCH → toast + refresh.
+  1404→
+  1405→---
+  1406→Task ID: 36 (grading + school-portal verification)
+  1407→Agent: main
+  1408→Task: Verify task scoring/grading, trainer-set training duration, mentor assignment, school-portal relationship — end-to-end.
+  1409→
+  1410→Work Log:
+  1411→- Lint: `bun run lint` → 0 errors, 0 warnings.
+  1412→- Browser verification:
+  1413→  1. Trainee (Ama) Tasks: scoped to her 4 assignments only. "YOUR AVERAGE 83%" + "GRADED ASSIGNMENTS 2 of 4". Done column shows graded tasks with score badges + mentor feedback ("Clean finish. Keep the seam allowance even.", "Good grasp. Two darts slightly off-centre."). Ungraded Done tasks show "Awaiting grade". NO "New Task" button. ✅
+  1414→  2. Trainee Progress: school-portal layout — "MY APPRENTICESHIP" card with Mentor (Coach Afia), 12 weeks, training progress bar "Week 8 of 12" (67%). "OVERALL AVERAGE" metric. "ASSIGNMENTS & GRADES" table with graded assignments + mentor feedback. ✅
+  1415→  3. Trainer (Coach Afia) Tasks: "TRAINEE GRADING" header + staff filter (All Trainees). All trainee tasks visible. Done tasks have "Re-grade" buttons. Opened grade dialog (prefilled max 20, score 19, feedback) → changed score to 20 → saved → toast "Grade saved. Practice: kente pattern matching — 20/20". Verified persisted to DB (20/20, gradedBy Coach Afia). ✅
+  1416→  4. Owner (Madam) Team → Trainees tab: each trainee shows Mentor (Coach Afia), Duration (12 weeks), training progress bar (67% for Ama), "Edit profile" + "View progress" buttons. Opened Edit Trainee Profile dialog (Mentor select, duration input, started date) → changed duration to 16 weeks → saved → toast "Ama Trainee's profile updated. Mentor + training schedule saved." Verified persisted to DB (16 weeks). ✅
+  1417→- Console errors: none. Re-seeded clean demo data.
+  1418→
+  1419→Stage Summary:
+  1420→- ALL TASKS ASSIGNED TO TRAINEES ARE SCORED AND GRADED:
+  1421→  - Tasks have maxScore, score, gradedBy, gradedAt, feedback.
+  1422→  - Trainer/owner grades Done tasks via a Grade dialog (max score, score, feedback).
+  1423→  - Trainees see their scores + letter grades + mentor feedback on their assignments.
+  1424→  - Overall average % computed + displayed (with letter grade A/B/C/D/F).
+  1425→- TRAINEES ONLY SEE WHAT WAS ASSIGNED TO THEM: Tasks view scoped to staffId === user.id (no New Task button, no other trainees' tasks). Already-scoped: Orders, Customers, Dashboard.
+  1426→- TRAINING DURATION SET BY TRAINER/OWNER: User.trainingDurationWeeks + trainingStartedAt, editable via Team → Trainees → Edit profile. Drives a "Week X of Y" progress bar.
+  1427→- SCHOOL-PORTAL RELATION: Mentor assigned per trainee (User.mentorId). Trainee sees their mentor + duration + progress. Trainer sees all their trainees' tasks + grades. Owner manages mentor + duration assignments.
+  1428→- New schema: User.mentorId/trainingDurationWeeks/trainingStartedAt; Task.maxScore/score/gradedById/gradedAt/feedback. New API: PATCH /api/users/[id], extended PATCH /api/tasks/[id] (grading). Updated views: Tasks (scoped + grades), Progress (school-portal), Team/Trainees (mentor + duration editing).
+  1429→- Lint clean, no runtime errors.
+  1430→
+  1431→---
+  1432→Task ID: 37 (multi-tenant foundation)
+  1433→Agent: main
+  1434→Task: Multi-tenant architecture — Shop model, shopId on all data, tenant-scoped auth, registration, Vercel+Supabase packaging.
+  1435→
+  1436→Work Log:
+  1437→- Prisma schema rewritten: added Shop model (id, name, slug, plan, currency). Added shopId (required, FK→Shop, onDelete Cascade) to: User, Customer, Order, Task, MeasurementSet, StyleConcept, CustomerFeedback, Settings, Freelancer, CommunityPost, TrainingLog, Certificate. Payment/Fitting/CommunityComment/CommunityLike scoped via parent. Settings.shopId @@unique. Provider kept sqlite for local dev (documented postgres swap for Supabase).
+  1438→- db:push --force-reset + re-seeded: created Shop "Madam Studio" (slug madam-studio). All records carry shopId. Verified isolation.
+  1439→- Tenant helper: src/lib/tenant.ts — getTenant(req) reads ms_session cookie (base64 userId:shopId), verifies user belongs to shop, returns {userId, shopId}. tenantWhere() helper.
+  1440→- Auth: login now encodes userId:shopId in cookie + returns shopId + shop {id,name,slug,currency}. /me returns shop info. New POST /api/auth/register — creates a Shop + owner User (madam) + default Settings in one transaction, generates unique slug, sets session cookie. Auth store updated with register() + AuthShop type + syncs studioName from shop.
+  1441→- Verified: login returns shopId+shop; register created "Esi Atelier" shop with owner; isolation confirmed (Madam Studio: 7 users/8 customers/28 orders; Esi Atelier: 1 user/0 customers/0 orders).
+  1442→
+  1443→Stage Summary — FOUNDATION READY. Three parallel tasks now dispatched:
+  1444→- SCOPE all API routes by shopId via getTenant(req).
+  1445→- BUILD registration UI (new shop signup page) + show shop name in AppShell.
+  1446→- DEPLOYMENT package (vercel.json, .env.example, DEPLOYMENT.md, supabase notes).
+  1447→
+  1448→═══════════════════════════════════════════════════════════════════
+  1449→## CONTRACT FOR TENANT SCOPING + REGISTRATION UI + DEPLOYMENT
+  1450→═══════════════════════════════════════════════════════════════════
+  1451→
+  1452→### Tenant helper (use in EVERY API route)
+  1453→`import { getTenant, tenantWhere } from "@/lib/tenant"`
+  1454→- `const ctx = await getTenant(req)` → { userId, shopId } | null. If null → return 401.
+  1455→- All list queries: `db.X.findMany({ where: tenantWhere(shopId, { ...extra }) })`
+  1456→- All single-fetch: fetch by id AND shopId (verify ownership).
+  1457→- All creates: include `shopId: ctx.shopId` in data.
+  1458→- Child resources (Payment, Fitting via order; CommunityComment/Like via post): verify the parent (order/post) belongs to the tenant before operating.
+  1459→
+  1460→### API routes to scope (ALL of them)
+  1461→- /api/dashboard — fetch all data filtered by shopId.
+  1462→- /api/customers (GET list, POST) + [id] (GET, PATCH) — shopId scope.
+  1463→- /api/orders (GET, POST) + [id] (GET, PATCH, DELETE) — shopId scope.
+  1464→- /api/orders/[id]/payments (POST) — verify order.shopId === ctx.shopId.
+  1465→- /api/orders/[id]/fittings (POST) — verify order.shopId.
+  1466→- /api/fittings/[id] (PATCH) — verify via order.shopId.
+  1467→- /api/tasks (GET, POST) + [id] (PATCH) — shopId scope.
+  1468→- /api/users (GET, POST) — shopId scope (only list/create users in THIS shop). POST should set shopId: ctx.shopId.
+  1469→- /api/users/[id] (PATCH) — verify user.shopId === ctx.shopId.
+  1470→- /api/settings (GET, PATCH) — filter by shopId (singleton per shop).
+  1471→- /api/customers/[id]/measurements (GET) — verify customer.shopId.
+  1472→- /api/measurements (POST) — verify customer.shopId, set shopId.
+  1473→- /api/style-concepts (GET, POST) + [id] (PATCH) — shopId scope.
+  1474→- /api/freelancers (GET, POST) + [id] (PATCH, DELETE) — shopId scope.
+  1475→- /api/community (GET, POST) + [id]/like + [id]/comments — shopId scope.
+  1476→- /api/training-logs (GET, POST) + [id] (PATCH, DELETE) — shopId scope.
+  1477→- /api/certificates (GET, POST) + [id] (DELETE) — shopId scope.
+  1478→- /api/portfolio (GET) — shopId scope (filter orders by shopId).
+  1479→- AI routes /api/style-assist/generate + /visualize + /api/insights/trends — verify customer/order ownership before generating; no shopId on the AI call itself but verify the customerId belongs to the tenant.
+  1480→
+  1481→### Registration UI
+  1482→- Update src/components/atelier/LoginPage.tsx: add a "Create a new shop" link/toggle that switches to a register form (shop name, your name, email, password, gender). On submit → useAuth().register() → toast + lands on dashboard. Keep the login form as default.
+  1483→- Show the current shop name in the AppShell (use useAuth().user.shop.name) — replace the hardcoded studioName in the mobile header + maybe add a small shop chip near the avatar.
+  1484→
+  1485→### Deployment package
+  1486→- vercel.json: Next.js build settings, no special config needed (Next.js auto-detects). Optionally set build command.
+  1487→- .env.example: DATABASE_URL, plus notes on Supabase connection string format.
+  1488→- DEPLOYMENT.md: step-by-step guide — (1) Create Supabase project, (2) change prisma provider to postgresql, (3) set DATABASE_URL to Supabase pooler, (4) run prisma db push, (5) push to GitHub, (6) import to Vercel, (7) set env vars in Vercel, (8) deploy. Include the AI SDK env note (z-ai-web-dev-sdk needs its key on the server — document ZAI_API_KEY or whatever it uses).
+  1489→- supabase/README.md or notes in DEPLOYMENT.md.
+  1490→- Ensure .gitignore excludes .env, dev.log, node_modules, .next, db/*.db.
+  1491→
+  1492→### Worklog
+  1493→Before starting, read `/home/z/my-project/worklog.md`. After finishing, APPEND a new section starting with `---` with Task ID, agent, task, work log, stage summary.
+  1494→

@@ -1,11 +1,19 @@
 import { db } from "@/lib/db";
+import { getTenant } from "@/lib/tenant";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    let settings = await db.settings.findFirst();
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    let settings = await db.settings.findUnique({
+      where: { shopId: ctx.shopId },
+    });
     if (!settings) {
       settings = await db.settings.create({
-        data: { ownerGender: "Madam", studioName: "Madam Studio" },
+        data: { shopId: ctx.shopId, ownerGender: "Madam", studioName: "Madam Studio" },
       });
     }
     return Response.json(settings);
@@ -17,11 +25,18 @@ export async function GET() {
 
 export async function PATCH(req: Request) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
-    let settings = await db.settings.findFirst();
+    let settings = await db.settings.findUnique({
+      where: { shopId: ctx.shopId },
+    });
     if (!settings) {
       settings = await db.settings.create({
-        data: { ownerGender: "Madam", studioName: "Madam Studio" },
+        data: { shopId: ctx.shopId, ownerGender: "Madam", studioName: "Madam Studio" },
       });
     }
     const data: Record<string, unknown> = {};

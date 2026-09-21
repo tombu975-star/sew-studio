@@ -1,10 +1,16 @@
 import { db } from "@/lib/db";
+import { getTenant, tenantWhere } from "@/lib/tenant";
 
 export async function GET(req: Request) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const url = new URL(req.url);
     const customerId = url.searchParams.get("customerId");
-    const where = customerId ? { customerId } : {};
+    const where = tenantWhere(ctx.shopId, customerId ? { customerId } : {});
     const concepts = await db.styleConcept.findMany({
       where,
       include: { customer: true },
@@ -19,8 +25,26 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
+    // Verify the parent customer belongs to the tenant.
+    const customer = await db.customer.findFirst({
+      where: { id: String(body.customerId), shopId: ctx.shopId },
+      select: { id: true },
+    });
+    if (!customer) {
+      return Response.json(
+        { error: "Customer not found in this shop" },
+        { status: 404 }
+      );
+    }
+
     const data: Record<string, unknown> = {
+      shopId: ctx.shopId,
       customerId: String(body.customerId),
       garmentType: String(body.garmentDesign ?? body.garmentType ?? "").trim(),
       conceptName: String(body.conceptName ?? "").trim(),

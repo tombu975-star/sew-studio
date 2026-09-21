@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getTenant } from "@/lib/tenant";
 
 // GET /api/orders/[id] — single order with full relations
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const ctx = await getTenant(req);
+  if (!ctx) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await params;
-  const order = await db.order.findUnique({
-    where: { id },
+  const order = await db.order.findFirst({
+    where: { id, shopId: ctx.shopId },
     include: {
       customer: true,
       assignedStaff: true,
@@ -31,7 +37,22 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const ctx = await getTenant(req);
+  if (!ctx) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await params;
+
+  // Verify ownership.
+  const existing = await db.order.findFirst({
+    where: { id, shopId: ctx.shopId },
+    select: { id: true },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
   const body = await req.json();
 
   const data: any = {};
@@ -50,10 +71,26 @@ export async function PATCH(
   if (body.notes !== undefined) data.notes = body.notes;
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.assignedStaffId !== undefined) {
-    data.assignedStaffId = body.assignedStaffId || null;
+    if (body.assignedStaffId) {
+      // Verify staff belongs to tenant.
+      const staff = await db.user.findFirst({
+        where: { id: body.assignedStaffId, shopId: ctx.shopId },
+        select: { id: true },
+      });
+      data.assignedStaffId = staff ? body.assignedStaffId : null;
+    } else {
+      data.assignedStaffId = null;
+    }
   }
   if (body.customerId !== undefined) {
-    data.customer = { connect: { id: body.customerId } };
+    // Verify customer belongs to tenant.
+    const customer = await db.customer.findFirst({
+      where: { id: body.customerId, shopId: ctx.shopId },
+      select: { id: true },
+    });
+    if (customer) {
+      data.customer = { connect: { id: body.customerId } };
+    }
   }
 
   const updated = await db.order.update({

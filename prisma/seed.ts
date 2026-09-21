@@ -63,11 +63,18 @@ async function main() {
   await db.customer.deleteMany();
   await db.user.deleteMany();
   await db.settings.deleteMany();
+  await db.shop.deleteMany();
 
-  // Staff
+  // Tenant — the atelier shop
+  const shop = await db.shop.create({
+    data: { name: "Madam Studio", slug: "madam-studio", plan: "pro", currency: "GHS" },
+  });
+  const shopId = shop.id;
+
+  // Staff (all belong to this shop)
   const users = [];
   for (const s of STAFF) {
-    users.push(await db.user.create({ data: s }));
+    users.push(await db.user.create({ data: { ...s, shopId } }));
   }
   const madam = users[0];
   const staff = users.filter((u) => u.role === "staff");
@@ -90,13 +97,13 @@ async function main() {
 
   // Settings
   await db.settings.create({
-    data: { ownerGender: "Madam", studioName: "Madam Studio", overheadAmount: 3500, selfPayout: 2000, currency: "GHS" },
+    data: { shopId, ownerGender: "Madam", studioName: "Madam Studio", overheadAmount: 3500, selfPayout: 2000, currency: "GHS" },
   });
 
   // Customers
   const customers = [];
   for (const c of CUSTOMERS) {
-    customers.push(await db.customer.create({ data: { ...c, status: "Active" } }));
+    customers.push(await db.customer.create({ data: { ...c, shopId, status: "Active" } }));
   }
 
   // Orders — spread across statuses and the last ~5 months
@@ -116,6 +123,7 @@ async function main() {
 
     const order = await db.order.create({
       data: {
+        shopId,
         customerId: cust.id,
         garmentDesign: garment,
         designImage: (status === "Completed" || status === "Collected/Delivered") && i < 10
@@ -177,6 +185,7 @@ async function main() {
     if (["In Production", "Fitting", "Alterations", "Confirmed", "Deposit Paid"].includes(status)) {
       await db.task.create({
         data: {
+          shopId,
           title: i % 2 === 0 ? "Cut fabric panels" : "First fitting preparation",
           orderId: order.id,
           staffId: assignedStaff.id,
@@ -192,6 +201,7 @@ async function main() {
   for (let i = 0; i < 5; i++) {
     await db.measurementSet.create({
       data: {
+        shopId,
         customerId: customers[i].id,
         staffId: pick(staff, i).id,
         dateTaken: new Date(now.getFullYear(), now.getMonth() - 2, (i + 5)),
@@ -209,6 +219,7 @@ async function main() {
   // A couple of approved style concepts
   await db.styleConcept.create({
     data: {
+      shopId,
       customerId: customers[0].id,
       garmentType: "Evening Gown",
       occasion: "Wedding Guest",
@@ -235,6 +246,7 @@ async function main() {
   });
   await db.styleConcept.create({
     data: {
+      shopId,
       customerId: customers[2].id,
       garmentType: "Bridal Gown",
       occasion: "Wedding",
@@ -261,9 +273,9 @@ async function main() {
   });
 
   // Feedback
-  await db.customerFeedback.create({ data: { customerId: customers[0].id, rating: 5, type: "General", feedback: "Absolutely loved the gown. Perfect fit!" } });
-  await db.customerFeedback.create({ data: { customerId: customers[1].id, rating: 4, type: "Fitting", feedback: "Trousers slightly long, otherwise great." } });
-  await db.customerFeedback.create({ data: { customerId: customers[4].id, rating: 5, type: "Delivery", feedback: "On time and beautifully finished." } });
+  await db.customerFeedback.create({ data: { shopId, customerId: customers[0].id, rating: 5, type: "General", feedback: "Absolutely loved the gown. Perfect fit!" } });
+  await db.customerFeedback.create({ data: { shopId, customerId: customers[1].id, rating: 4, type: "Fitting", feedback: "Trousers slightly long, otherwise great." } });
+  await db.customerFeedback.create({ data: { shopId, customerId: customers[4].id, rating: 5, type: "Delivery", feedback: "On time and beautifully finished." } });
 
   // Freelancers — trusted specialists the studio commissions per-piece
   const FREELANCERS = [
@@ -274,7 +286,7 @@ async function main() {
     { name: "Nana Tailoring", specialty: "Tailor", skills: "Suits, agbada, menswear", phone: "+233 24 668 9900", rate: 350, status: "Unavailable", notes: "Travelling until next month." },
   ];
   for (const f of FREELANCERS) {
-    await db.freelancer.create({ data: f });
+    await db.freelancer.create({ data: { ...f, shopId } });
   }
 
   // Community feed — the studio's internal wall
@@ -287,7 +299,7 @@ async function main() {
   ];
   const posts = [];
   for (const p of COMMUNITY) {
-    posts.push(await db.communityPost.create({ data: p }));
+    posts.push(await db.communityPost.create({ data: { ...p, shopId } }));
   }
   // a couple of comments + likes
   await db.communityComment.create({ data: { postId: posts[1].id, authorName: madam.fullName, authorId: madam.id, body: "Beautiful work. Let's get a photo for the portfolio." } });
@@ -306,7 +318,7 @@ async function main() {
       { traineeId: trainees[1].id, mentorId: trainer.id, skill: "Kente cutting", title: "Learned to cut kente on the grain", note: "Understands pattern matching. Ready for a small commission.", status: "Proficient", date: new Date(now.getTime() - 1000 * 60 * 60 * 12) },
     ];
     for (const l of LOGS) {
-      await db.trainingLog.create({ data: l });
+      await db.trainingLog.create({ data: { ...l, shopId } });
     }
   }
 
@@ -327,6 +339,7 @@ async function main() {
       const isGraded = a.score !== null;
       await db.task.create({
         data: {
+          shopId,
           title: a.title,
           staffId: a.staffId,
           status: a.status,
@@ -346,6 +359,7 @@ async function main() {
   if (trainer && trainees.length > 1) {
     await db.certificate.create({
       data: {
+        shopId,
         traineeId: trainees[1].id,
         issuedById: trainer.id,
         programName: "Atelier Apprenticeship Programme",

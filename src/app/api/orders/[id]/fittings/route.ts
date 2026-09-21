@@ -1,13 +1,23 @@
 import { db } from "@/lib/db";
+import { getTenant } from "@/lib/tenant";
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await req.json();
-    const order = await db.order.findUnique({ where: { id } });
+    // Verify the parent order belongs to the tenant.
+    const order = await db.order.findFirst({
+      where: { id, shopId: ctx.shopId },
+      select: { id: true },
+    });
     if (!order) {
       return Response.json({ error: "Order not found" }, { status: 404 });
     }

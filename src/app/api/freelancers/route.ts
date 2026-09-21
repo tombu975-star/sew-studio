@@ -1,8 +1,15 @@
 import { db } from "@/lib/db";
+import { getTenant, tenantWhere } from "@/lib/tenant";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const freelancers = await db.freelancer.findMany({
+      where: tenantWhere(ctx.shopId),
       orderBy: { createdAt: "desc" },
     });
     return Response.json(freelancers);
@@ -14,6 +21,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const ctx = await getTenant(req);
+    if (!ctx) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { name, specialty, skills, phone, email, rate, status, notes } =
       body || {};
@@ -22,6 +34,7 @@ export async function POST(req: Request) {
     }
     const freelancer = await db.freelancer.create({
       data: {
+        shopId: ctx.shopId,
         name: String(name).trim(),
         specialty: specialty || null,
         skills: skills || null,

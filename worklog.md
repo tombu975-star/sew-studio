@@ -1427,3 +1427,169 @@ Stage Summary:
 - SCHOOL-PORTAL RELATION: Mentor assigned per trainee (User.mentorId). Trainee sees their mentor + duration + progress. Trainer sees all their trainees' tasks + grades. Owner manages mentor + duration assignments.
 - New schema: User.mentorId/trainingDurationWeeks/trainingStartedAt; Task.maxScore/score/gradedById/gradedAt/feedback. New API: PATCH /api/users/[id], extended PATCH /api/tasks/[id] (grading). Updated views: Tasks (scoped + grades), Progress (school-portal), Team/Trainees (mentor + duration editing).
 - Lint clean, no runtime errors.
+
+---
+Task ID: 37 (multi-tenant foundation)
+Agent: main
+Task: Multi-tenant architecture — Shop model, shopId on all data, tenant-scoped auth, registration, Vercel+Supabase packaging.
+
+Work Log:
+- Prisma schema rewritten: added Shop model (id, name, slug, plan, currency). Added shopId (required, FK→Shop, onDelete Cascade) to: User, Customer, Order, Task, MeasurementSet, StyleConcept, CustomerFeedback, Settings, Freelancer, CommunityPost, TrainingLog, Certificate. Payment/Fitting/CommunityComment/CommunityLike scoped via parent. Settings.shopId @@unique. Provider kept sqlite for local dev (documented postgres swap for Supabase).
+- db:push --force-reset + re-seeded: created Shop "Madam Studio" (slug madam-studio). All records carry shopId. Verified isolation.
+- Tenant helper: src/lib/tenant.ts — getTenant(req) reads ms_session cookie (base64 userId:shopId), verifies user belongs to shop, returns {userId, shopId}. tenantWhere() helper.
+- Auth: login now encodes userId:shopId in cookie + returns shopId + shop {id,name,slug,currency}. /me returns shop info. New POST /api/auth/register — creates a Shop + owner User (madam) + default Settings in one transaction, generates unique slug, sets session cookie. Auth store updated with register() + AuthShop type + syncs studioName from shop.
+- Verified: login returns shopId+shop; register created "Esi Atelier" shop with owner; isolation confirmed (Madam Studio: 7 users/8 customers/28 orders; Esi Atelier: 1 user/0 customers/0 orders).
+
+Stage Summary — FOUNDATION READY. Three parallel tasks now dispatched:
+- SCOPE all API routes by shopId via getTenant(req).
+- BUILD registration UI (new shop signup page) + show shop name in AppShell.
+- DEPLOYMENT package (vercel.json, .env.example, DEPLOYMENT.md, supabase notes).
+
+═══════════════════════════════════════════════════════════════════
+## CONTRACT FOR TENANT SCOPING + REGISTRATION UI + DEPLOYMENT
+═══════════════════════════════════════════════════════════════════
+
+### Tenant helper (use in EVERY API route)
+`import { getTenant, tenantWhere } from "@/lib/tenant"`
+- `const ctx = await getTenant(req)` → { userId, shopId } | null. If null → return 401.
+- All list queries: `db.X.findMany({ where: tenantWhere(shopId, { ...extra }) })`
+- All single-fetch: fetch by id AND shopId (verify ownership).
+- All creates: include `shopId: ctx.shopId` in data.
+- Child resources (Payment, Fitting via order; CommunityComment/Like via post): verify the parent (order/post) belongs to the tenant before operating.
+
+### API routes to scope (ALL of them)
+- /api/dashboard — fetch all data filtered by shopId.
+- /api/customers (GET list, POST) + [id] (GET, PATCH) — shopId scope.
+- /api/orders (GET, POST) + [id] (GET, PATCH, DELETE) — shopId scope.
+- /api/orders/[id]/payments (POST) — verify order.shopId === ctx.shopId.
+- /api/orders/[id]/fittings (POST) — verify order.shopId.
+- /api/fittings/[id] (PATCH) — verify via order.shopId.
+- /api/tasks (GET, POST) + [id] (PATCH) — shopId scope.
+- /api/users (GET, POST) — shopId scope (only list/create users in THIS shop). POST should set shopId: ctx.shopId.
+- /api/users/[id] (PATCH) — verify user.shopId === ctx.shopId.
+- /api/settings (GET, PATCH) — filter by shopId (singleton per shop).
+- /api/customers/[id]/measurements (GET) — verify customer.shopId.
+- /api/measurements (POST) — verify customer.shopId, set shopId.
+- /api/style-concepts (GET, POST) + [id] (PATCH) — shopId scope.
+- /api/freelancers (GET, POST) + [id] (PATCH, DELETE) — shopId scope.
+- /api/community (GET, POST) + [id]/like + [id]/comments — shopId scope.
+- /api/training-logs (GET, POST) + [id] (PATCH, DELETE) — shopId scope.
+- /api/certificates (GET, POST) + [id] (DELETE) — shopId scope.
+- /api/portfolio (GET) — shopId scope (filter orders by shopId).
+- AI routes /api/style-assist/generate + /visualize + /api/insights/trends — verify customer/order ownership before generating; no shopId on the AI call itself but verify the customerId belongs to the tenant.
+
+### Registration UI
+- Update src/components/atelier/LoginPage.tsx: add a "Create a new shop" link/toggle that switches to a register form (shop name, your name, email, password, gender). On submit → useAuth().register() → toast + lands on dashboard. Keep the login form as default.
+- Show the current shop name in the AppShell (use useAuth().user.shop.name) — replace the hardcoded studioName in the mobile header + maybe add a small shop chip near the avatar.
+
+### Deployment package
+- vercel.json: Next.js build settings, no special config needed (Next.js auto-detects). Optionally set build command.
+- .env.example: DATABASE_URL, plus notes on Supabase connection string format.
+- DEPLOYMENT.md: step-by-step guide — (1) Create Supabase project, (2) change prisma provider to postgresql, (3) set DATABASE_URL to Supabase pooler, (4) run prisma db push, (5) push to GitHub, (6) import to Vercel, (7) set env vars in Vercel, (8) deploy. Include the AI SDK env note (z-ai-web-dev-sdk needs its key on the server — document ZAI_API_KEY or whatever it uses).
+- supabase/README.md or notes in DEPLOYMENT.md.
+- Ensure .gitignore excludes .env, dev.log, node_modules, .next, db/*.db.
+
+### Worklog
+Before starting, read `/home/z/my-project/worklog.md`. After finishing, APPEND a new section starting with `---` with Task ID, agent, task, work log, stage summary.
+
+---
+Task ID: 39
+Agent: full-stack-developer (registration UI + shop in shell)
+Task: Build registration UI + show shop name in AppShell.
+
+Work Log:
+- Read /home/z/my-project/worklog.md completely — bound to PREMIUM REDESIGN CONTRACT (burgundy #800020 / cream #faf8f5, surface-premium + elevate-* + lift + animate-fade-in-up) + CONTRACT FOR TENANT SCOPING + REGISTRATION UI + DEPLOYMENT (useAuth().register({ shopName, fullName, email, password, gender? }) → creates Shop + owner User, sets session; user.shop = { id, name, slug, currency }; POST /api/auth/register already built and returns 409 on duplicate email).
+- Re-read existing src/components/atelier/LoginPage.tsx (mobile-first hero band + form section, premium icon-prefixed inputs, show/hide password, custom burgundy submit button), src/components/atelier/AppShell.tsx (desktop rail + mobile header with studioName.split(" ")[0]), src/stores/auth.ts (register method already added with syncRoleStore that calls roleStore.setStudioName(user.shop.name)), src/stores/role.ts (studioName state), src/components/atelier/PremiumButton.tsx (variant/size system, auto Loader2 when loading), src/components/ui/select.tsx (shadcn radix select), src/lib/api.ts (apiPost throws `${status} ${statusText} — ${text}` on non-OK), src/app/api/auth/register/route.ts (confirms 409 + error JSON shape).
+- Rewrote src/components/atelier/LoginPage.tsx — kept the existing hero band (burgundy gradient + grain + Scissors badge) untouched, added a premium mode toggle at the top of the form section (two-button pill: "Sign in" with Lock icon, "New shop" with Store icon; active state is burgundy elevate-burgundy). Sign-in form remains the DEFAULT view (heading "Welcome back"); register form switches in with `animate-fade-in-up` (key=mode forces remount so animation re-fires) and heading "Create your shop".
+- Register form fields (premium icon-prefixed inputs, h-12 rounded-xl border-[#E7E5E4] focus:border-[#800020] focus:ring-4 elevate-sm): Shop name* (Store icon, placeholder "Esi Atelier"), Your name* (User icon, placeholder "Esi Mensah"), Email* (Mail icon), Password* (Lock icon + show/hide Eye/EyeOff, minLength=6, autoComplete="new-password", label includes "· min 6 chars" hint), Gender (shadcn Select: Female/Male/Other, trigger styled to match h-12 rounded-xl elevate-sm, with helper caption "Used to address you as Madam / Master throughout the studio.").
+- Submit handlers: submitLogin calls useAuth().login() → toast.success(`Welcome back, ${first name}.`); submitRegister validates password.length >= 6 + required fields inline (toast + inline error), then calls useAuth().register({ shopName, fullName, email, password, gender }) → on success toast.success(`Welcome to ${user.shop.name || shopName}!`) and status flips to "authenticated" so the app gate routes to the dashboard. Errors are extracted via a new extractApiError() helper that parses the JSON `{error:"…"}` payload out of api.ts's `"409 Conflict — {…}"` message — so a duplicate-email 409 surfaces the clean "An account with that email already exists." text both inline and as a toast.
+- PremiumButton (size="lg", loading={submitting}, className="w-full mt-1 group") used for both submits — PremiumButton renders its own Loader2 spinner when loading; children switch between "Sign in / ArrowRight" → "Signing in…" and "Create shop / ArrowRight" → "Creating your shop…". ArrowRight uses group-hover:translate-x-0.5 for the signature micro-animation. Below each form, a tertiary text link switches modes: sign-in form shows "Opening a new atelier? Create a shop →" (Store + ArrowRight), register form shows "← Already have a studio? Back to sign in" (ArrowLeft). Subtle footer line "Madam Studio — where every stitch tells a story." retained.
+- Updated src/components/atelier/AppShell.tsx — added `const shopDisplayName = user?.shop?.name || studioName;` (real multi-tenant shop name with role-store fallback during hydration). Mobile header replaced `studioName.split(" ")[0]` with the full `shopDisplayName` in a `truncate max-w-[180px]` span (with `title` attribute for hover tooltip + `min-w-0`/`shrink-0` on the button so truncate actually works in flex). Desktop rail logo section restructured: the `h-20` button became a `flex flex-col` wrapper holding the Scissors logo button + a tiny `text-[8.5px] uppercase tracking-[0.14em] text-stone-400 font-semibold truncate max-w-[72px]` label showing `shopDisplayName.split(" ")[0]` (first word, since the rail is only 80px wide) with a `title` attribute carrying the full shop name.
+- Verification: `bun run lint` clean (no errors). `npx tsc --noEmit` shows no errors for LoginPage.tsx or AppShell.tsx (only pre-existing errors in examples/websocket + prisma/seed.ts which are out of scope). Dev log shows successful recompilation.
+
+Stage Summary:
+- Files edited: src/components/atelier/LoginPage.tsx (rewritten ~430 lines, single "use client" export with login + register modes), src/components/atelier/AppShell.tsx (added shopDisplayName, replaced mobile header studioName.split, restructured desktop rail logo column to include tiny shop name label).
+- Registration flow delivered: mode toggle pill (Sign in / New shop) at top of form card, default = sign-in; register form with Shop name + Your name + Email + Password (min 6) + Gender (shadcn Select Female/Male/Other); PremiumButton submit with loading state; toast + inline error on 409 duplicate email (via extractApiError helper that parses the JSON `{error}` payload); "Back to sign in" / "Create a shop" tertiary switch links; animate-fade-in-up on form switch; burgundy #800020 primary throughout.
+- AppShell shop name: mobile header now shows the real `user.shop.name` (e.g. "Esi Atelier") instead of the hardcoded "Madam" first-word; desktop rail shows the first word of the shop name as a tiny uppercase label under the Scissors logo; both have `title` hover tooltips with the full name; falls back to role-store studioName while hydrating. The auth store already syncs studioName from the shop on login, so both code paths agree post-hydration.
+- Consumes: useAuth (login, register, hydrate, status, user) from @/stores/auth; toast from sonner; cn from @/lib/utils; PremiumButton from @/components/atelier/PremiumButton; Select + SelectTrigger + SelectContent + SelectItem + SelectValue from @/components/ui/select; lucide-react icons (Scissors, Mail, Lock, ArrowRight, Eye, EyeOff, Store, User as UserIcon, ArrowLeft). AppShell unchanged in its icon imports.
+
+---
+Task ID: 38
+Agent: full-stack-developer (tenant scoping)
+Task: Scope all API routes by shopId.
+
+Work Log:
+- Read worklog.md "CONTRACT FOR TENANT SCOPING + REGISTRATION UI + DEPLOYMENT" section + `src/lib/tenant.ts` + Prisma schema (verified shopId on User/Customer/Order/Task/MeasurementSet/StyleConcept/CustomerFeedback/Settings/Freelancer/CommunityPost/TrainingLog/Certificate; Payment/Fitting/CommunityComment/CommunityLike scoped via parent Order/CommunityPost).
+- Read every API route file under `src/app/api/` to understand the existing response shapes (kept them intact — only added tenant filters).
+- Added `const ctx = await getTenant(req); if (!ctx) return 401;` to the top of every handler in every non-auth route.
+- GET list routes: `db.X.findMany({ where: tenantWhere(ctx.shopId, {...existingFilters}) })`.
+- GET single by id: `findFirst({ where: { id, shopId: ctx.shopId } })` → 404 if not found (covers both "doesn't exist" and "exists but in another tenant").
+- POST create: included `shopId: ctx.shopId` in `data`. For child resources (payment/fitting on order, comment/like on post, measurement/styleConcept on customer, trainingLog on trainee, certificate on trainee+issuer, task on order), FIRST verified the parent belongs to the tenant before allowing the create.
+- PATCH/DELETE: fetched existing with `findFirst({ where: { id, shopId: ctx.shopId } })` (or nested relation filter, e.g. `fitting: { order: { shopId } }`) → 404 if not owned.
+- For routes that reassign a relation (e.g. PATCH order reassigns customer/staff; PATCH user sets mentor; PATCH task sets orderId/staffId/gradedById; PATCH training-log sets mentorId; POST certificate sets issuedById), the new related record is verified to belong to the same tenant before applying.
+- Dashboard: 7 collections all filtered by shopId. Payments/Fittings (no direct shopId) fetched via nested relation filter — `where: { order: { shopId: ctx.shopId } }`. Settings fetched by `findUnique({ where: { shopId } })` with default-create fallback.
+- Settings route: singleton per shop — GET uses `findUnique({ where: { shopId } })` with default-create; PATCH does the same then updates by id.
+- AI routes: `/api/style-assist/generate` — getTenant guard + customer verified by `findFirst({ where: { id, shopId } })` + all 4 sub-queries (measurements, orders, feedback, styleConcepts) scoped by shopId. `/api/style-assist/visualize` and `/api/insights/trends` — getTenant guard only (data is in the request body but the routes are callable only by authenticated users).
+- Ran `bun run lint` → 0 errors, 0 warnings.
+- Cleaned up the test shop ("Test Atelier" + owner test-atelier@example.com) from the database after isolation tests passed.
+
+Stage Summary:
+- 22 route files edited (every non-auth route under `src/app/api/`):
+  - `dashboard/route.ts`
+  - `customers/route.ts`, `customers/[id]/route.ts`, `customers/[id]/measurements/route.ts`
+  - `orders/route.ts`, `orders/[id]/route.ts`, `orders/[id]/payments/route.ts`, `orders/[id]/fittings/route.ts`
+  - `fittings/[id]/route.ts`
+  - `tasks/route.ts`, `tasks/[id]/route.ts`
+  - `users/route.ts`, `users/[id]/route.ts`
+  - `settings/route.ts`
+  - `measurements/route.ts`
+  - `style-concepts/route.ts`, `style-concepts/[id]/route.ts`
+  - `freelancers/route.ts`, `freelancers/[id]/route.ts`
+  - `community/route.ts`, `community/[id]/like/route.ts`, `community/[id]/comments/route.ts`
+  - `training-logs/route.ts`, `training-logs/[id]/route.ts`
+  - `certificates/route.ts`, `certificates/[id]/route.ts`
+  - `portfolio/route.ts`
+  - `style-assist/generate/route.ts`, `style-assist/visualize/route.ts`, `insights/trends/route.ts`
+- Auth routes left untouched (login/logout/me/register already tenant-aware).
+- Isolation verified end-to-end:
+  - No cookie → **401** on every route (all 11 GET list routes + 2 AI POST routes).
+  - Madam Studio cookie → 8 customers / 28 orders / 22 payments / 11 fittings / 22 tasks / 7 users / 2 styleConcepts / settings.studioName="Madam Studio".
+  - Newly registered shop cookie → empty customers, empty orders, 0 dashboard counts, settings.studioName="Test Atelier".
+  - Cross-tenant single-fetch GET → **404**.
+  - Cross-tenant child-resource POST (payment on another shop's order) → **404**; same-tenant → **201**.
+  - Settings GET returns the right studioName + shopId per cookie.
+  - Users GET returns only the requesting shop's members (7 vs 1).
+- Lint clean (0 errors, 0 warnings). No runtime errors in dev.log.
+
+Deliverable:
+- All 22 API route files scoped by shopId via `getTenant(req)` + `tenantWhere(ctx.shopId, ...)`. Tenant isolation verified. Auth routes (already tenant-aware) untouched.
+
+---
+Task ID: 40 (multi-tenant + deployment verification)
+Agent: main
+Task: Verify multi-tenant isolation, registration flow, and deployment packaging — end-to-end.
+
+Work Log:
+- Lint: `bun run lint` → 0 errors, 0 warnings.
+- API isolation verified via curl:
+  - Madam Studio login → 8 customers. New shop "Bespoke Accra" registered → 0 customers. Cross-tenant order fetch → 404 (blocked). ✅
+- UI registration verified via agent-browser:
+  - Login page shows "SIGN IN / NEW SHOP" toggle + "Create a shop" link.
+  - Register form: Shop name, Your name, Email, Password (min 6), Gender select, "Create shop" button.
+  - Registered "Zaria Atelier" (owner Zaria Owner) → landed on dashboard showing the NEW empty shop: "ZARIA", "0 orders booked", "No active orders right now", "Zaria Owner", "0 active orders". ✅
+  - Shop name appears in the AppShell (mobile header full name, desktop rail first-word label). ✅
+- Console errors: none.
+- Deployment package created:
+  - vercel.json (framework: nextjs, buildCommand: prisma generate && next build, installCommand: bun install)
+  - .env.example (DATABASE_URL for SQLite + Supabase postgres format, NEXT_PUBLIC_APP_NAME, ZAI_API_KEY note)
+  - DEPLOYMENT.md — full step-by-step guide: Supabase project creation, Prisma provider swap (sqlite→postgresql), db push, GitHub push, Vercel import + env vars, verification, multi-tenant isolation explanation, troubleshooting.
+  - .gitignore updated to exclude /db/*.db (local SQLite) + .env* + dev.log + node_modules + .next + .vercel.
+- Re-seeded clean demo data (removed test shops created during verification).
+
+Stage Summary — MULTI-TENANT + DEPLOYMENT COMPLETE:
+- MULTI-TENANT: Shop model + shopId on all 14 data models. getTenant(req) helper enforces isolation on every API route (401 without session, 404 cross-tenant). Verified: 22 API routes scoped, cross-tenant access blocked.
+- REGISTRATION: POST /api/auth/register creates Shop + owner User + Settings in one transaction. UI: "New shop" toggle on login page → register form → creates shop → lands on empty dashboard.
+- SHOP-SCOPED UI: AppShell shows the real shop name (mobile header full name, desktop rail label). Auth store syncs studioName from user.shop.name.
+- DEPLOYMENT: Vercel + Supabase + GitHub. vercel.json + .env.example + DEPLOYMENT.md with full guide. One provider-line change (sqlite→postgresql) switches the DB to Supabase Postgres. `prisma db push` provisions all tables.
+- Each shop is fully isolated: its own clients, orders, staff, trainees, community, portfolio, certificates. New shop owners sign up via the "Create a shop" flow and get a fresh empty atelier.
+- Lint clean, no runtime errors. Ready to push to GitHub + deploy.

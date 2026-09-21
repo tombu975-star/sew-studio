@@ -1,34 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { getTenant } from "@/lib/tenant";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 // GET /api/customers/[id] → { customer, orders, measurements, feedback, styleConcepts }
-export async function GET(_req: NextRequest, { params }: Ctx) {
+export async function GET(req: NextRequest, { params }: Ctx) {
+  const ctx = await getTenant(req);
+  if (!ctx) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await params;
 
-  const customer = await db.customer.findUnique({ where: { id } });
+  const customer = await db.customer.findFirst({
+    where: { id, shopId: ctx.shopId },
+  });
   if (!customer) {
     return NextResponse.json({ error: "Customer not found" }, { status: 404 });
   }
 
   const [orders, measurements, feedback, styleConcepts] = await Promise.all([
     db.order.findMany({
-      where: { customerId: id },
+      where: { customerId: id, shopId: ctx.shopId },
       orderBy: { orderDate: "desc" },
       include: { assignedStaff: true },
     }),
     db.measurementSet.findMany({
-      where: { customerId: id },
+      where: { customerId: id, shopId: ctx.shopId },
       orderBy: { dateTaken: "desc" },
     }),
     db.customerFeedback.findMany({
-      where: { customerId: id },
+      where: { customerId: id, shopId: ctx.shopId },
       orderBy: { date: "desc" },
     }),
     db.styleConcept.findMany({
-      where: { customerId: id },
+      where: { customerId: id, shopId: ctx.shopId },
       orderBy: { createdAt: "desc" },
     }),
   ]);
@@ -44,11 +52,18 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
 
 // PATCH /api/customers/[id] → Customer
 export async function PATCH(req: NextRequest, { params }: Ctx) {
+  const ctx = await getTenant(req);
+  if (!ctx) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await params;
   const body: Record<string, unknown> = await req.json().catch(() => ({}));
 
-  // Verify the customer exists first.
-  const existing = await db.customer.findUnique({ where: { id } });
+  // Verify the customer exists AND belongs to the tenant.
+  const existing = await db.customer.findFirst({
+    where: { id, shopId: ctx.shopId },
+  });
   if (!existing) {
     return NextResponse.json({ error: "Customer not found" }, { status: 404 });
   }

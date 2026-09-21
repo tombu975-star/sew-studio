@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { getTenant } from "@/lib/tenant";
 
 // POST /api/measurements → MeasurementSet
 export async function POST(req: NextRequest) {
+  const ctx = await getTenant(req);
+  if (!ctx) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await req.json().catch(() => ({}));
 
   if (!body?.customerId || typeof body.customerId !== "string") {
@@ -13,8 +19,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const customer = await db.customer.findUnique({
-    where: { id: body.customerId },
+  // Verify the customer belongs to the tenant.
+  const customer = await db.customer.findFirst({
+    where: { id: body.customerId, shopId: ctx.shopId },
+    select: { id: true },
   });
   if (!customer) {
     return NextResponse.json(
@@ -30,6 +38,7 @@ export async function POST(req: NextRequest) {
   };
 
   const data: Prisma.MeasurementSetUncheckedCreateInput = {
+    shopId: ctx.shopId,
     customerId: body.customerId,
     staffId: body.staffId ?? null,
     unit: body.unit ?? "cm",
@@ -48,4 +57,3 @@ export async function POST(req: NextRequest) {
   const measurement = await db.measurementSet.create({ data });
   return NextResponse.json(measurement, { status: 201 });
 }
-
