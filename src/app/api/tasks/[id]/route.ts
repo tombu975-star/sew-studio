@@ -21,10 +21,25 @@ export async function PATCH(
     if ("dueDate" in body) {
       data.dueDate = body.dueDate ? new Date(body.dueDate) : null;
     }
+    // Grading (school-portal style)
+    if ("maxScore" in body)
+      data.maxScore = body.maxScore != null ? Number(body.maxScore) : null;
+    if ("score" in body)
+      data.score = body.score != null ? Number(body.score) : null;
+    if ("feedback" in body)
+      data.feedback = body.feedback ? String(body.feedback) : null;
+    if ("gradedById" in body) {
+      data.gradedById = body.gradedById ? String(body.gradedById) : null;
+      data.gradedAt = body.gradedById ? new Date() : null;
+    }
     const task = await db.task.update({
       where: { id },
       data: data as Parameters<typeof db.task.update>[0]["data"],
-      include: { order: { include: { customer: true } }, staff: true },
+      include: {
+        order: { include: { customer: true } },
+        staff: true,
+        gradedBy: { select: { id: true, fullName: true } },
+      },
     });
     return Response.json(task);
   } catch (err) {

@@ -20,6 +20,9 @@ import {
   GraduationCap,
   Crown,
   ArrowRight,
+  Pencil,
+  CalendarDays,
+  Clock,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
@@ -61,10 +64,11 @@ import {
 } from "@/components/ui/select";
 
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 import type { Freelancer, TrainingLog, User } from "@/lib/types";
 import { useAuth } from "@/stores/auth";
 import { useNav } from "@/stores/nav";
+import { useRole } from "@/stores/role";
 
 /* ----------------------------- constants ----------------------------- */
 
@@ -111,10 +115,36 @@ function initialOf(name: string): string {
   return (name || "?").trim().charAt(0).toUpperCase() || "?";
 }
 
+/** Weeks elapsed since training started (floor of days/7). 0 if not started. */
+function weeksElapsedFromStart(startedAt: string | null | undefined): number {
+  if (!startedAt) return 0;
+  const start = new Date(startedAt).getTime();
+  if (isNaN(start)) return 0;
+  const diff = Date.now() - start;
+  if (diff < 0) return 0;
+  return Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
+}
+
+/** Convert an ISO date string to a "YYYY-MM-DD" value for <input type="date">. */
+function toDateInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/** Sentinel value used by the mentor Select to mean "Unassigned". */
+const UNASSIGNED_MENTOR = "__none";
+
 /* =============================== Team =============================== */
 
 export default function Team() {
   const { user: owner } = useAuth();
+  const role = useRole();
+  const canEditTrainees = role.isOwner() || role.isTrainer();
   const { go } = useNav();
   const qc = useQueryClient();
   const [tab, setTab] = useState("staff");
@@ -243,6 +273,8 @@ export default function Team() {
           <TraineesCard
             users={users}
             logs={trainingLogs}
+            mentors={mentors}
+            canEdit={canEditTrainees}
             isLoading={usersQ.isLoading || trainingLogsQ.isLoading}
             onAdd={() => setAddTraineeOpen(true)}
             onView={(id) => go("progress", { id })}
@@ -594,16 +626,22 @@ interface TraineeStats {
 function TraineesCard({
   users,
   logs,
+  mentors,
   isLoading,
+  canEdit,
   onAdd,
   onView,
 }: {
   users: User[];
   logs: TrainingLog[];
+  mentors: User[];
   isLoading: boolean;
+  canEdit: boolean;
   onAdd: () => void;
   onView: (id: string) => void;
 }) {
+  const [editTrainee, setEditTrainee] = useState<User | null>(null);
+
   const trainees = useMemo(
     () =>
       users
@@ -611,6 +649,13 @@ function TraineesCard({
         .sort((a, b) => a.fullName.localeCompare(b.fullName)),
     [users]
   );
+
+  // Match mentorId → user client-side (GET /api/users does not include mentor relation).
+  const userById = useMemo(() => {
+    const map = new Map<string, User>();
+    for (const u of users) map.set(u.id, u);
+    return map;
+  }, [users]);
 
   const statsByTrainee = useMemo(() => {
     const map = new Map<string, TraineeStats>();
@@ -633,134 +678,263 @@ function TraineesCard({
   }, [logs]);
 
   return (
-    <SectionCard
-      title={`Apprentices · ${trainees.length}`}
-      bodyClassName="p-0"
-      action={
-        <PremiumButton size="sm" onClick={onAdd}>
-          <GraduationCap className="w-4 h-4" /> Add Trainee
-        </PremiumButton>
-      }
-    >
-      {isLoading ? (
-        <SkeletonList rows={3} />
-      ) : trainees.length === 0 ? (
-        <EmptyState
-          icon={GraduationCap}
-          title="No trainees yet"
-          description="Add your first apprentice — start tracking their skill journey from the Progress view."
-          action={
-            <PremiumButton size="sm" onClick={onAdd}>
-              <GraduationCap className="w-4 h-4" /> Add Trainee
-            </PremiumButton>
-          }
-        />
-      ) : (
-        <div className="divide-y divide-[#E7E5E4]/70">
-          {trainees.map((t) => {
-            const s = statsByTrainee.get(t.id);
-            return (
-              <div
-                key={t.id}
-                className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
-              >
+    <>
+      <SectionCard
+        title={`Apprentices · ${trainees.length}`}
+        bodyClassName="p-0"
+        action={
+          <PremiumButton size="sm" onClick={onAdd}>
+            <GraduationCap className="w-4 h-4" /> Add Trainee
+          </PremiumButton>
+        }
+      >
+        {isLoading ? (
+          <SkeletonList rows={3} />
+        ) : trainees.length === 0 ? (
+          <EmptyState
+            icon={GraduationCap}
+            title="No trainees yet"
+            description="Add your first apprentice — start tracking their skill journey from the Progress view."
+            action={
+              <PremiumButton size="sm" onClick={onAdd}>
+                <GraduationCap className="w-4 h-4" /> Add Trainee
+              </PremiumButton>
+            }
+          />
+        ) : (
+          <div className="divide-y divide-[#E7E5E4]/70">
+            {trainees.map((t) => {
+              const s = statsByTrainee.get(t.id);
+              const mentorUser = t.mentorId
+                ? userById.get(t.mentorId)
+                : undefined;
+              const mentorName =
+                mentorUser?.fullName ??
+                t.mentor?.fullName ??
+                s?.mentor ??
+                "";
+              const weeksElapsed = weeksElapsedFromStart(t.trainingStartedAt);
+              const durationWeeks = t.trainingDurationWeeks ?? 0;
+              const hasSchedule =
+                !!t.trainingStartedAt && durationWeeks > 0;
+              const progressPct = hasSchedule
+                ? Math.min(100, Math.round((weeksElapsed / durationWeeks) * 100))
+                : 0;
+              return (
                 <div
-                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
-                  aria-hidden
+                  key={t.id}
+                  className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
                 >
-                  {initialOf(t.fullName)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-[#1C1917] truncate">
-                      {t.fullName}
-                    </span>
-                    <StatusBadge status="Trainee" />
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
-                    {t.email && (
-                      <span className="inline-flex items-center gap-1 truncate max-w-[220px]">
-                        <Mail className="w-3 h-3 shrink-0" /> {t.email}
-                      </span>
-                    )}
-                    {t.phone && (
-                      <span className="inline-flex items-center gap-1">
-                        <Phone className="w-3 h-3" /> {t.phone}
-                      </span>
-                    )}
-                    {!t.email && !t.phone && (
-                      <span className="italic text-stone-400">
-                        No contact details
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-2 flex items-center gap-x-2.5 gap-y-1 text-[11px] flex-wrap">
-                    {s && s.total > 0 ? (
-                      <>
-                        <span className="inline-flex items-center gap-1 text-stone-500">
-                          <span className="font-semibold text-stone-700 tabular-nums">
-                            {s.total}
-                          </span>
-                          <span className="uppercase tracking-[0.14em]">
-                            {s.total === 1 ? "log" : "logs"}
-                          </span>
-                        </span>
-                        <span className="text-stone-300" aria-hidden>
-                          ·
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-semibold text-emerald-700 tabular-nums">
-                            {s.proficient}
-                          </span>
-                          <span className="text-emerald-700/80">Proficient</span>
-                        </span>
-                        <span className="text-stone-300" aria-hidden>
-                          ·
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-semibold text-sky-700 tabular-nums">
-                            {s.practicing}
-                          </span>
-                          <span className="text-sky-700/80">Practicing</span>
-                        </span>
-                        <span className="text-stone-300" aria-hidden>
-                          ·
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-semibold text-amber-700 tabular-nums">
-                            {s.learning}
-                          </span>
-                          <span className="text-amber-700/80">Learning</span>
-                        </span>
-                      </>
-                    ) : (
-                      <span className="italic text-stone-400">No logs yet</span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pl-14 sm:pl-0">
-                  {s?.mentor && (
-                    <span className="hidden md:inline text-[10px] uppercase tracking-[0.16em] text-stone-400 truncate max-w-[160px]">
-                      Mentor · {s.mentor}
-                    </span>
-                  )}
-                  <PremiumButton
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onView(t.id)}
-                    aria-label={`View progress for ${t.fullName}`}
+                  <div
+                    className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                    aria-hidden
                   >
-                    <GraduationCap className="w-3.5 h-3.5" />
-                    View progress
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </PremiumButton>
+                    {initialOf(t.fullName)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-[#1C1917] truncate">
+                        {t.fullName}
+                      </span>
+                      <StatusBadge status="Trainee" />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
+                      {t.email && (
+                        <span className="inline-flex items-center gap-1 truncate max-w-[220px]">
+                          <Mail className="w-3 h-3 shrink-0" /> {t.email}
+                        </span>
+                      )}
+                      {t.phone && (
+                        <span className="inline-flex items-center gap-1">
+                          <Phone className="w-3 h-3" /> {t.phone}
+                        </span>
+                      )}
+                      {!t.email && !t.phone && (
+                        <span className="italic text-stone-400">
+                          No contact details
+                        </span>
+                      )}
+                    </div>
+
+                    {/* School-portal info — mentor · duration · started + Week X of Y */}
+                    <div className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-xs">
+                      <span className="inline-flex items-center gap-1.5">
+                        <UsersRound className="w-3 h-3 shrink-0 text-stone-400" />
+                        <span className="text-[10px] uppercase tracking-[0.14em] text-stone-400">
+                          Mentor
+                        </span>
+                        {mentorName ? (
+                          <span className="text-stone-700 font-medium truncate max-w-[160px]">
+                            {mentorName}
+                          </span>
+                        ) : (
+                          <span className="text-amber-700 italic">Unassigned</span>
+                        )}
+                      </span>
+
+                      <span className="inline-flex items-center gap-1.5">
+                        <Clock className="w-3 h-3 shrink-0 text-stone-400" />
+                        <span className="text-[10px] uppercase tracking-[0.14em] text-stone-400">
+                          Duration
+                        </span>
+                        {t.trainingDurationWeeks ? (
+                          <span className="text-stone-700 tabular-nums font-medium">
+                            {t.trainingDurationWeeks}{" "}
+                            {t.trainingDurationWeeks === 1 ? "week" : "weeks"}
+                          </span>
+                        ) : (
+                          <span className="text-amber-700 italic">Not set</span>
+                        )}
+                      </span>
+
+                      <span className="inline-flex items-center gap-1.5">
+                        <CalendarDays className="w-3 h-3 shrink-0 text-stone-400" />
+                        <span className="text-[10px] uppercase tracking-[0.14em] text-stone-400">
+                          Started
+                        </span>
+                        {t.trainingStartedAt ? (
+                          <>
+                            <span className="text-stone-700 tabular-nums">
+                              {formatDate(t.trainingStartedAt)}
+                            </span>
+                            {t.trainingDurationWeeks ? (
+                              <>
+                                <span className="text-stone-300" aria-hidden>
+                                  ·
+                                </span>
+                                <span className="inline-flex items-center gap-1 text-[#800020] font-medium">
+                                  <span className="tabular-nums">
+                                    Week {weeksElapsed}
+                                  </span>
+                                  <span className="text-stone-400 font-normal">
+                                    of {t.trainingDurationWeeks}
+                                  </span>
+                                </span>
+                              </>
+                            ) : null}
+                          </>
+                        ) : (
+                          <span className="text-amber-700 italic">
+                            Not started
+                          </span>
+                        )}
+                      </span>
+                    </div>
+
+                    {/* Burgundy progress bar — weeksElapsed / trainingDurationWeeks */}
+                    {hasSchedule ? (
+                      <div className="mt-2.5 max-w-[280px]">
+                        <div
+                          className="h-1.5 rounded-full bg-stone-200/70 overflow-hidden"
+                          role="progressbar"
+                          aria-valuenow={progressPct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`${t.fullName} training progress`}
+                        >
+                          <div
+                            className="h-full bg-gradient-to-r from-[#800020] to-[#a83349] rounded-full transition-all duration-500"
+                            style={{
+                              width: `${
+                                progressPct === 0 ? 1 : progressPct
+                              }%`,
+                            }}
+                          />
+                        </div>
+                        <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-stone-400 tabular-nums">
+                          {progressPct}% complete
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Existing training-log stats (kept) */}
+                    <div className="mt-2 flex items-center gap-x-2.5 gap-y-1 text-[11px] flex-wrap">
+                      {s && s.total > 0 ? (
+                        <>
+                          <span className="inline-flex items-center gap-1 text-stone-500">
+                            <span className="font-semibold text-stone-700 tabular-nums">
+                              {s.total}
+                            </span>
+                            <span className="uppercase tracking-[0.14em]">
+                              {s.total === 1 ? "log" : "logs"}
+                            </span>
+                          </span>
+                          <span className="text-stone-300" aria-hidden>
+                            ·
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="font-semibold text-emerald-700 tabular-nums">
+                              {s.proficient}
+                            </span>
+                            <span className="text-emerald-700/80">
+                              Proficient
+                            </span>
+                          </span>
+                          <span className="text-stone-300" aria-hidden>
+                            ·
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="font-semibold text-sky-700 tabular-nums">
+                              {s.practicing}
+                            </span>
+                            <span className="text-sky-700/80">Practicing</span>
+                          </span>
+                          <span className="text-stone-300" aria-hidden>
+                            ·
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="font-semibold text-amber-700 tabular-nums">
+                              {s.learning}
+                            </span>
+                            <span className="text-amber-700/80">Learning</span>
+                          </span>
+                        </>
+                      ) : (
+                        <span className="italic text-stone-400">
+                          No logs yet
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 pl-14 sm:pl-0">
+                    {canEdit && (
+                      <PremiumButton
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditTrainee(t)}
+                        aria-label={`Edit profile for ${t.fullName}`}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Edit profile</span>
+                      </PremiumButton>
+                    )}
+                    <PremiumButton
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onView(t.id)}
+                      aria-label={`View progress for ${t.fullName}`}
+                    >
+                      <GraduationCap className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">View progress</span>
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </PremiumButton>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </SectionCard>
+              );
+            })}
+          </div>
+        )}
+      </SectionCard>
+
+      <EditTraineeDialog
+        key={editTrainee?.id ?? "closed"}
+        open={!!editTrainee}
+        onOpenChange={(o) => !o && setEditTrainee(null)}
+        trainee={editTrainee}
+        mentors={mentors}
+      />
+    </>
   );
 }
 
@@ -1374,6 +1548,171 @@ function AddFreelancerDialog({
               disabled={!valid}
             >
               <Plus className="w-4 h-4" /> Add freelancer
+            </PremiumButton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ====================== Edit Trainee Profile Dialog ====================== */
+
+interface EditTraineeForm {
+  mentorId: string;
+  trainingDurationWeeks: string;
+  trainingStartedAt: string;
+}
+
+function EditTraineeDialog({
+  open,
+  onOpenChange,
+  trainee,
+  mentors,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  trainee: User | null;
+  mentors: User[];
+}) {
+  const qc = useQueryClient();
+  // Initialise from the trainee prop on mount. The parent passes a `key`
+  // based on `editTrainee?.id` so the dialog remounts (and this runs again)
+  // whenever a different trainee is opened.
+  const [form, setForm] = useState<EditTraineeForm>(() => ({
+    mentorId: trainee?.mentorId ?? UNASSIGNED_MENTOR,
+    trainingDurationWeeks:
+      trainee?.trainingDurationWeeks != null
+        ? String(trainee.trainingDurationWeeks)
+        : "12",
+    trainingStartedAt: toDateInput(trainee?.trainingStartedAt),
+  }));
+
+  const saveMutation = useMutation({
+    mutationFn: (body: {
+      mentorId: string | null;
+      trainingDurationWeeks: number | null;
+      trainingStartedAt: string | null;
+    }) => apiPatch<User>(`/api/users/${trainee?.id}`, body),
+    onSuccess: (u) => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      toast.success(`${u.fullName}'s profile updated.`, {
+        description: "Mentor + training schedule saved.",
+      });
+      onOpenChange(false);
+    },
+    onError: (err: Error) => {
+      toast.error("Could not update profile.", { description: err.message });
+    },
+  });
+
+  const set = <K extends keyof EditTraineeForm>(k: K, v: EditTraineeForm[K]) =>
+    setForm((f) => ({ ...f, [k]: v }));
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!trainee) return;
+    const durationRaw = form.trainingDurationWeeks.trim();
+    const durationNum = durationRaw ? Number(durationRaw) : NaN;
+    saveMutation.mutate({
+      mentorId:
+        form.mentorId && form.mentorId !== UNASSIGNED_MENTOR
+          ? form.mentorId
+          : null,
+      trainingDurationWeeks:
+        !isNaN(durationNum) && durationNum > 0 ? durationNum : null,
+      trainingStartedAt: form.trainingStartedAt || null,
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit trainee profile</DialogTitle>
+          <DialogDescription>
+            Assign a mentor and set the apprenticeship schedule
+            {trainee ? ` for ${trainee.fullName}` : ""}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Field label="Mentor">
+            <Select
+              value={form.mentorId || UNASSIGNED_MENTOR}
+              onValueChange={(v) => set("mentorId", v)}
+            >
+              <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+                <SelectValue placeholder="Unassigned" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={UNASSIGNED_MENTOR}>Unassigned</SelectItem>
+                {mentors.length === 0 ? (
+                  <SelectItem value="__no_mentors" disabled>
+                    No trainers or madam available
+                  </SelectItem>
+                ) : (
+                  mentors.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.fullName} · {roleLabel(m.role)}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </Field>
+          <p className="text-[11px] text-stone-400 -mt-2">
+            Mentors must be a trainer or the Madam.
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Training duration (weeks)">
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                value={form.trainingDurationWeeks}
+                onChange={(e) => set("trainingDurationWeeks", e.target.value)}
+                placeholder="12"
+                className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
+              />
+            </Field>
+            <Field label="Training started date">
+              <Input
+                type="date"
+                value={form.trainingStartedAt}
+                onChange={(e) => set("trainingStartedAt", e.target.value)}
+                className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
+              />
+            </Field>
+          </div>
+
+          <div className="rounded-md bg-[#FBF9F7] border border-[#E7E5E4] px-3 py-2.5 flex items-start gap-2">
+            <CalendarDays className="w-3.5 h-3.5 text-[#800020] shrink-0 mt-0.5" />
+            <p className="text-[11px] text-stone-500 leading-relaxed">
+              The training duration + start date drive the progress bar on the
+              trainee&rsquo;s card and the &ldquo;Week X of Y&rdquo; schedule
+              in the Progress view.
+            </p>
+          </div>
+
+          <DialogFooter>
+            <PremiumButton
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => onOpenChange(false)}
+              disabled={saveMutation.isPending}
+            >
+              Cancel
+            </PremiumButton>
+            <PremiumButton
+              type="submit"
+              variant="primary"
+              size="md"
+              loading={saveMutation.isPending}
+            >
+              <Pencil className="w-4 h-4" /> Save profile
             </PremiumButton>
           </DialogFooter>
         </form>

@@ -1,0 +1,1406 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+     5→import { toast } from "sonner";
+     6→import {
+     7→  UsersRound,
+     8→  UserPlus,
+     9→  Mail,
+    10→  Phone,
+    11→  Plus,
+    12→  Trash2,
+    13→  Scissors,
+    14→  Sparkles,
+    15→  Flower2,
+    16→  Shirt,
+    17→  PenTool,
+    18→  Camera,
+    19→  Briefcase,
+    20→  GraduationCap,
+    21→  Crown,
+    22→  ArrowRight,
+    23→} from "lucide-react";
+    24→
+    25→import { PageHeader } from "@/components/atelier/PageHeader";
+    26→import { SectionCard } from "@/components/atelier/SectionCard";
+    27→import { PremiumMetric } from "@/components/atelier/PremiumMetric";
+    28→import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
+    29→import { EmptyState, SkeletonList } from "@/components/atelier/EmptyState";
+    30→import { PremiumButton } from "@/components/atelier/PremiumButton";
+    31→import { StatusBadge } from "@/components/atelier/StatusBadge";
+    32→
+    33→import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+    34→import {
+    35→  Dialog,
+    36→  DialogContent,
+    37→  DialogDescription,
+    38→  DialogFooter,
+    39→  DialogHeader,
+    40→  DialogTitle,
+    41→} from "@/components/ui/dialog";
+    42→import {
+    43→  AlertDialog,
+    44→  AlertDialogAction,
+    45→  AlertDialogCancel,
+    46→  AlertDialogContent,
+    47→  AlertDialogDescription,
+    48→  AlertDialogFooter,
+    49→  AlertDialogHeader,
+    50→  AlertDialogTitle,
+    51→} from "@/components/ui/alert-dialog";
+    52→import { Input } from "@/components/ui/input";
+    53→import { Label } from "@/components/ui/label";
+    54→import { Textarea } from "@/components/ui/textarea";
+    55→import {
+    56→  Select,
+    57→  SelectContent,
+    58→  SelectItem,
+    59→  SelectTrigger,
+    60→  SelectValue,
+    61→} from "@/components/ui/select";
+    62→
+    63→import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
+    64→import { formatCurrency } from "@/lib/format";
+    65→import type { Freelancer, TrainingLog, User } from "@/lib/types";
+    66→import { useAuth } from "@/stores/auth";
+    67→import { useNav } from "@/stores/nav";
+    68→
+    69→/* ----------------------------- constants ----------------------------- */
+    70→
+    71→const ROLE_OPTIONS = ["staff", "trainer", "trainee"] as const;
+    72→const GENDER_OPTIONS = ["Female", "Male", "Other", "Prefer not to say"] as const;
+    73→const SPECIALTIES = [
+    74→  "Beader",
+    75→  "Embroiderer",
+    76→  "Cutter",
+    77→  "Tailor",
+    78→  "Designer",
+    79→  "Photographer",
+    80→  "Other",
+    81→] as const;
+    82→const FREELANCER_STATUSES = ["Available", "Busy", "Unavailable"] as const;
+    83→
+    84→const SPECIALTY_ICON: Record<
+    85→  string,
+    86→  React.ComponentType<{ className?: string }>
+    87→> = {
+    88→  Beader: Sparkles,
+    89→  Embroiderer: Flower2,
+    90→  Cutter: Scissors,
+    91→  Tailor: Shirt,
+    92→  Designer: PenTool,
+    93→  Photographer: Camera,
+    94→  Other: Briefcase,
+    95→};
+    96→
+    97→const ROLE_ORDER: Record<string, number> = {
+    98→  madam: 0,
+    99→  staff: 1,
+   100→  trainer: 2,
+   101→  trainee: 3,
+   102→};
+   103→
+   104→function roleLabel(role: string): string {
+   105→  if (role === "madam") return "Madam";
+   106→  if (!role) return "Staff";
+   107→  return role.charAt(0).toUpperCase() + role.slice(1);
+   108→}
+   109→
+   110→function initialOf(name: string): string {
+   111→  return (name || "?").trim().charAt(0).toUpperCase() || "?";
+   112→}
+   113→
+   114→/* =============================== Team =============================== */
+   115→
+   116→export default function Team() {
+   117→  const { user: owner } = useAuth();
+   118→  const { go } = useNav();
+   119→  const qc = useQueryClient();
+   120→  const [tab, setTab] = useState("staff");
+   121→  const [addMemberOpen, setAddMemberOpen] = useState(false);
+   122→  const [addTraineeOpen, setAddTraineeOpen] = useState(false);
+   123→  const [addFreelancerOpen, setAddFreelancerOpen] = useState(false);
+   124→
+   125→  const usersQ = useQuery<User[]>({
+   126→    queryKey: ["users"],
+   127→    queryFn: () => apiGet<User[]>("/api/users"),
+   128→  });
+   129→  const freelancersQ = useQuery<Freelancer[]>({
+   130→    queryKey: ["freelancers"],
+   131→    queryFn: () => apiGet<Freelancer[]>("/api/freelancers"),
+   132→  });
+   133→  const trainingLogsQ = useQuery<TrainingLog[]>({
+   134→    queryKey: ["training-logs"],
+   135→    queryFn: () => apiGet<TrainingLog[]>("/api/training-logs"),
+   136→  });
+   137→
+   138→  const users = usersQ.data ?? [];
+   139→  const freelancers = freelancersQ.data ?? [];
+   140→  const trainingLogs = trainingLogsQ.data ?? [];
+   141→
+   142→  const stats = useMemo(
+   143→    () => ({
+   144→      staff: users.filter((u) => u.role === "staff").length,
+   145→      trainers: users.filter((u) => u.role === "trainer").length,
+   146→      trainees: users.filter((u) => u.role === "trainee").length,
+   147→      freelancers: freelancers.length,
+   148→    }),
+   149→    [users, freelancers]
+   150→  );
+   151→
+   152→  const mentors = useMemo(
+   153→    () =>
+   154→      users
+   155→        .filter((u) => u.role === "trainer" || u.role === "madam")
+   156→        .sort((a, b) => a.fullName.localeCompare(b.fullName)),
+   157→    [users]
+   158→  );
+   159→
+   160→  return (
+   161→    <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+   162→      <PageHeader
+   163→        eyebrow="Atelier people"
+   164→        eyebrowIcon={UsersRound}
+   165→        title="Team"
+   166→        subtitle="Manage staff, trainers and the freelancers you commission."
+   167→        actions={
+   168→          owner ? (
+   169→            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E7E5E4] bg-white pl-2 pr-3 py-1.5 elevate-sm">
+   170→              <span className="w-6 h-6 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white text-[11px] font-display font-semibold">
+   171→                {initialOf(owner.fullName)}
+   172→              </span>
+   173→              <div className="leading-tight">
+   174→                <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   175→                  Owner
+   176→                </div>
+   177→                <div className="text-xs font-medium text-[#1C1917]">
+   178→                  {owner.fullName}
+   179→                </div>
+   180→              </div>
+   181→            </div>
+   182→          ) : undefined
+   183→        }
+   184→      />
+   185→
+   186→      {/* Premium stat strip */}
+   187→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+   188→        <PremiumMetric
+   189→          label="Staff"
+   190→          value={<AnimatedNumber value={stats.staff} />}
+   191→          icon={UsersRound}
+   192→          accent
+   193→        />
+   194→        <PremiumMetric
+   195→          label="Trainers"
+   196→          value={<AnimatedNumber value={stats.trainers} />}
+   197→          icon={GraduationCap}
+   198→        />
+   199→        <PremiumMetric
+   200→          label="Trainees"
+   201→          value={<AnimatedNumber value={stats.trainees} />}
+   202→          icon={GraduationCap}
+   203→        />
+   204→        <PremiumMetric
+   205→          label="Freelancers"
+   206→          value={<AnimatedNumber value={stats.freelancers} />}
+   207→          icon={Briefcase}
+   208→        />
+   209→      </div>
+   210→
+   211→      <Tabs value={tab} onValueChange={setTab} className="w-full">
+   212→        <TabsList className="bg-white border border-[#E7E5E4] rounded-lg h-auto p-1 overflow-x-auto max-w-full inline-flex w-auto gap-0.5">
+   213→          <TabsTrigger
+   214→            value="staff"
+   215→            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+   216→          >
+   217→            Staff &amp; Trainers
+   218→          </TabsTrigger>
+   219→          <TabsTrigger
+   220→            value="trainees"
+   221→            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+   222→          >
+   223→            Trainees
+   224→          </TabsTrigger>
+   225→          <TabsTrigger
+   226→            value="freelancers"
+   227→            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+   228→          >
+   229→            Freelancers
+   230→          </TabsTrigger>
+   231→        </TabsList>
+   232→
+   233→        <TabsContent value="staff" className="mt-5">
+   234→          <StaffTrainersCard
+   235→            users={users}
+   236→            isLoading={usersQ.isLoading}
+   237→            ownerId={owner?.id}
+   238→            onAdd={() => setAddMemberOpen(true)}
+   239→          />
+   240→        </TabsContent>
+   241→
+   242→        <TabsContent value="trainees" className="mt-5">
+   243→          <TraineesCard
+   244→            users={users}
+   245→            logs={trainingLogs}
+   246→            isLoading={usersQ.isLoading || trainingLogsQ.isLoading}
+   247→            onAdd={() => setAddTraineeOpen(true)}
+   248→            onView={(id) => go("progress", { id })}
+   249→          />
+   250→        </TabsContent>
+   251→
+   252→        <TabsContent value="freelancers" className="mt-5">
+   253→          <FreelancersCard
+   254→            freelancers={freelancers}
+   255→            isLoading={freelancersQ.isLoading}
+   256→            onAdd={() => setAddFreelancerOpen(true)}
+   257→          />
+   258→        </TabsContent>
+   259→      </Tabs>
+   260→
+   261→      <AddMemberDialog
+   262→        open={addMemberOpen}
+   263→        onOpenChange={setAddMemberOpen}
+   264→        onDone={() => qc.invalidateQueries({ queryKey: ["users"] })}
+   265→      />
+   266→      <AddTraineeDialog
+   267→        open={addTraineeOpen}
+   268→        onOpenChange={setAddTraineeOpen}
+   269→        onDone={() => {
+   270→          qc.invalidateQueries({ queryKey: ["users"] });
+   271→          qc.invalidateQueries({ queryKey: ["training-logs"] });
+   272→        }}
+   273→        mentors={mentors}
+   274→      />
+   275→      <AddFreelancerDialog
+   276→        open={addFreelancerOpen}
+   277→        onOpenChange={setAddFreelancerOpen}
+   278→        onDone={() => qc.invalidateQueries({ queryKey: ["freelancers"] })}
+   279→      />
+   280→    </div>
+   281→  );
+   282→}
+   283→
+   284→/* ======================= Staff & Trainers card ======================= */
+   285→
+   286→function StaffTrainersCard({
+   287→  users,
+   288→  isLoading,
+   289→  ownerId,
+   290→  onAdd,
+   291→}: {
+   292→  users: User[];
+   293→  isLoading: boolean;
+   294→  ownerId?: string;
+   295→  onAdd: () => void;
+   296→}) {
+   297→  const sorted = useMemo(() => {
+   298→    return [...users].sort((a, b) => {
+   299→      const ao = ROLE_ORDER[a.role] ?? 9;
+   300→      const bo = ROLE_ORDER[b.role] ?? 9;
+   301→      if (ao !== bo) return ao - bo;
+   302→      return a.fullName.localeCompare(b.fullName);
+   303→    });
+   304→  }, [users]);
+   305→
+   306→  return (
+   307→    <SectionCard
+   308→      title={`Atelier Roster · ${users.length}`}
+   309→      bodyClassName="p-0"
+   310→      action={
+   311→        <PremiumButton size="sm" onClick={onAdd}>
+   312→          <UserPlus className="w-4 h-4" /> Add Member
+   313→        </PremiumButton>
+   314→      }
+   315→    >
+   316→      {isLoading ? (
+   317→        <SkeletonList rows={4} />
+   318→      ) : sorted.length === 0 ? (
+   319→        <EmptyState
+   320→          icon={UsersRound}
+   321→          title="No members yet"
+   322→          description="Add your first staff member or trainer to start building the atelier roster."
+   323→          action={
+   324→            <PremiumButton size="sm" onClick={onAdd}>
+   325→              <UserPlus className="w-4 h-4" /> Add Member
+   326→            </PremiumButton>
+   327→          }
+   328→        />
+   329→      ) : (
+   330→        <div className="divide-y divide-[#E7E5E4]/70">
+   331→          {sorted.map((u) => {
+   332→            const isOwner = u.role === "madam";
+   333→            const isMe = ownerId === u.id;
+   334→            return (
+   335→              <div
+   336→                key={u.id}
+   337→                className="group flex items-center gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
+   338→              >
+   339→                <div
+   340→                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+   341→                  aria-hidden
+   342→                >
+   343→                  {initialOf(u.fullName)}
+   344→                </div>
+   345→                <div className="flex-1 min-w-0">
+   346→                  <div className="flex items-center gap-2 flex-wrap">
+   347→                    <span className="font-medium text-[#1C1917] truncate">
+   348→                      {u.fullName}
+   349→                    </span>
+   350→                    {isOwner && (
+   351→                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#800020] bg-[#800020]/8 border border-[#800020]/15 px-1.5 py-0.5 rounded-md">
+   352→                        <Crown className="w-3 h-3" /> Owner
+   353→                      </span>
+   354→                    )}
+   355→                    {isMe && !isOwner && (
+   356→                      <span className="inline-flex items-center text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded-md">
+   357→                        You
+   358→                      </span>
+   359→                    )}
+   360→                  </div>
+   361→                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
+   362→                    {u.email && (
+   363→                      <span className="inline-flex items-center gap-1 truncate max-w-[220px]">
+   364→                        <Mail className="w-3 h-3 shrink-0" /> {u.email}
+   365→                      </span>
+   366→                    )}
+   367→                    {u.phone && (
+   368→                      <span className="inline-flex items-center gap-1">
+   369→                        <Phone className="w-3 h-3" /> {u.phone}
+   370→                      </span>
+   371→                    )}
+   372→                    {u.gender && (
+   373→                      <span className="inline-flex items-center rounded-md bg-[#FBF9F7] border border-[#E7E5E4] px-1.5 py-0.5 text-[10px] uppercase tracking-[0.14em] text-stone-500">
+   374→                        {u.gender}
+   375→                      </span>
+   376→                    )}
+   377→                    {!u.email && !u.phone && !u.gender && (
+   378→                      <span className="italic text-stone-400">
+   379→                        No contact details
+   380→                      </span>
+   381→                    )}
+   382→                  </div>
+   383→                </div>
+   384→                <div className="flex items-center gap-2 shrink-0">
+   385→                  <StatusBadge status={roleLabel(u.role)} />
+   386→                  {isOwner && (
+   387→                    <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-stone-300">
+   388→                      Permanent
+   389→                    </span>
+   390→                  )}
+   391→                </div>
+   392→              </div>
+   393→            );
+   394→          })}
+   395→        </div>
+   396→      )}
+   397→    </SectionCard>
+   398→  );
+   399→}
+   400→
+   401→/* ========================== Freelancers card ========================= */
+   402→
+   403→function FreelancersCard({
+   404→  freelancers,
+   405→  isLoading,
+   406→  onAdd,
+   407→}: {
+   408→  freelancers: Freelancer[];
+   409→  isLoading: boolean;
+   410→  onAdd: () => void;
+   411→}) {
+   412→  const qc = useQueryClient();
+   413→  const [deleteId, setDeleteId] = useState<string | null>(null);
+   414→
+   415→  const statusMutation = useMutation({
+   416→    mutationFn: ({ id, status }: { id: string; status: string }) =>
+   417→      apiPatch<Freelancer>(`/api/freelancers/${id}`, { status }),
+   418→    onSuccess: (f) => {
+   419→      qc.invalidateQueries({ queryKey: ["freelancers"] });
+   420→      toast.success(`${f.name} is now ${f.status}`);
+   421→    },
+   422→    onError: () => toast.error("Could not update status."),
+   423→  });
+   424→
+   425→  const deleteMutation = useMutation({
+   426→    mutationFn: (id: string) => apiDelete(`/api/freelancers/${id}`),
+   427→    onSuccess: () => {
+   428→      qc.invalidateQueries({ queryKey: ["freelancers"] });
+   429→      toast.success("Freelancer removed from roster.");
+   430→      setDeleteId(null);
+   431→    },
+   432→    onError: () => toast.error("Could not remove freelancer."),
+   433→  });
+   434→
+   435→  const target = freelancers.find((f) => f.id === deleteId) || null;
+   436→
+   437→  return (
+   438→    <SectionCard
+   439→      title={`Commissioned Talent · ${freelancers.length}`}
+   440→      bodyClassName="p-0"
+   441→      action={
+   442→        <PremiumButton size="sm" onClick={onAdd}>
+   443→          <Plus className="w-4 h-4" /> Add Freelancer
+   444→        </PremiumButton>
+   445→      }
+   446→    >
+   447→      {isLoading ? (
+   448→        <SkeletonList rows={4} />
+   449→      ) : freelancers.length === 0 ? (
+   450→        <EmptyState
+   451→          icon={UsersRound}
+   452→          title="No freelancers yet"
+   453→          description="Add the beaders, embroiderers, cutters and tailors you commission for bespoke work."
+   454→          action={
+   455→            <PremiumButton size="sm" onClick={onAdd}>
+   456→              <Plus className="w-4 h-4" /> Add Freelancer
+   457→            </PremiumButton>
+   458→          }
+   459→        />
+   460→      ) : (
+   461→        <div className="divide-y divide-[#E7E5E4]/70">
+   462→          {freelancers.map((f) => {
+   463→            const SpecialtyIcon =
+   464→              SPECIALTY_ICON[f.specialty || "Other"] || Briefcase;
+   465→            return (
+   466→              <div
+   467→                key={f.id}
+   468→                className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
+   469→              >
+   470→                <div
+   471→                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white shrink-0 shadow-sm"
+   472→                  aria-hidden
+   473→                >
+   474→                  <SpecialtyIcon className="w-5 h-5" />
+   475→                </div>
+   476→                <div className="flex-1 min-w-0">
+   477→                  <div className="flex items-center gap-2 flex-wrap">
+   478→                    <span className="font-medium text-[#1C1917] truncate">
+   479→                      {f.name}
+   480→                    </span>
+   481→                    {f.specialty && (
+   482→                      <span className="inline-flex items-center rounded-md bg-[#800020]/8 text-[#800020] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] border border-[#800020]/15">
+   483→                        {f.specialty}
+   484→                      </span>
+   485→                    )}
+   486→                  </div>
+   487→                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
+   488→                    {f.skills && (
+   489→                      <span className="italic text-stone-400 truncate max-w-[280px]">
+   490→                        {f.skills}
+   491→                      </span>
+   492→                    )}
+   493→                    {f.phone && (
+   494→                      <span className="inline-flex items-center gap-1">
+   495→                        <Phone className="w-3 h-3" /> {f.phone}
+   496→                      </span>
+   497→                    )}
+   498→                    {f.email && (
+   499→                      <span className="inline-flex items-center gap-1 truncate max-w-[200px]">
+   500→                        <Mail className="w-3 h-3 shrink-0" /> {f.email}
+   501→                      </span>
+   502→                    )}
+   503→                    {!f.skills && !f.phone && !f.email && (
+   504→                      <span className="italic text-stone-400">
+   505→                        No contact details
+   506→                      </span>
+   507→                    )}
+   508→                  </div>
+   509→                </div>
+   510→                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pl-14 sm:pl-0">
+   511→                  <div className="text-right">
+   512→                    <div className="font-display font-semibold text-[#1C1917] tabular-nums text-sm leading-none">
+   513→                      {f.rate ? formatCurrency(f.rate) : "—"}
+   514→                    </div>
+   515→                    <div className="text-[10px] uppercase tracking-[0.14em] text-stone-400 mt-1">
+   516→                      per piece
+   517→                    </div>
+   518→                  </div>
+   519→                  <StatusBadge status={f.status} />
+   520→                  <Select
+   521→                    value={f.status}
+   522→                    onValueChange={(v) =>
+   523→                      statusMutation.mutate({ id: f.id, status: v })
+   524→                    }
+   525→                  >
+   526→                    <SelectTrigger
+   527→                      size="sm"
+   528→                      className="w-[130px] bg-white border-[#E7E5E4] rounded-md h-9"
+   529→                      disabled={statusMutation.isPending}
+   530→                      aria-label={`Change status for ${f.name}`}
+   531→                    >
+   532→                      <SelectValue />
+   533→                    </SelectTrigger>
+   534→                    <SelectContent>
+   535→                      {FREELANCER_STATUSES.map((s) => (
+   536→                        <SelectItem key={s} value={s}>
+   537→                          {s}
+   538→                        </SelectItem>
+   539→                      ))}
+   540→                    </SelectContent>
+   541→                  </Select>
+   542→                  <PremiumButton
+   543→                    variant="ghost"
+   544→                    size="icon"
+   545→                    onClick={() => setDeleteId(f.id)}
+   546→                    aria-label={`Remove ${f.name}`}
+   547→                    className="text-stone-400 hover:text-[#b91c1c] hover:bg-[#b91c1c]/8"
+   548→                  >
+   549→                    <Trash2 className="w-4 h-4" />
+   550→                  </PremiumButton>
+   551→                </div>
+   552→              </div>
+   553→            );
+   554→          })}
+   555→        </div>
+   556→      )}
+   557→
+   558→      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+   559→        <AlertDialogContent>
+   560→          <AlertDialogHeader>
+   561→            <AlertDialogTitle>Remove freelancer?</AlertDialogTitle>
+   562→            <AlertDialogDescription>
+   563→              {target
+   564→                ? `This will permanently remove ${target.name} from your roster. This action cannot be undone.`
+   565→                : "This will permanently remove the freelancer from your roster. This action cannot be undone."}
+   566→            </AlertDialogDescription>
+   567→          </AlertDialogHeader>
+   568→          <AlertDialogFooter>
+   569→            <AlertDialogCancel>Cancel</AlertDialogCancel>
+   570→            <AlertDialogAction
+   571→              className="bg-[#b91c1c] hover:bg-[#991b1b] text-white border-[#b91c1c]"
+   572→              disabled={deleteMutation.isPending}
+   573→              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+   574→            >
+   575→              {deleteMutation.isPending ? "Removing…" : "Remove"}
+   576→            </AlertDialogAction>
+   577→          </AlertDialogFooter>
+   578→        </AlertDialogContent>
+   579→      </AlertDialog>
+   580→    </SectionCard>
+   581→  );
+   582→}
+   583→
+   584→/* ========================== Trainees card =========================== */
+   585→
+   586→interface TraineeStats {
+   587→  total: number;
+   588→  proficient: number;
+   589→  practicing: number;
+   590→  learning: number;
+   591→  mentor?: string;
+   592→}
+   593→
+   594→function TraineesCard({
+   595→  users,
+   596→  logs,
+   597→  isLoading,
+   598→  onAdd,
+   599→  onView,
+   600→}: {
+   601→  users: User[];
+   602→  logs: TrainingLog[];
+   603→  isLoading: boolean;
+   604→  onAdd: () => void;
+   605→  onView: (id: string) => void;
+   606→}) {
+   607→  const trainees = useMemo(
+   608→    () =>
+   609→      users
+   610→        .filter((u) => u.role === "trainee")
+   611→        .sort((a, b) => a.fullName.localeCompare(b.fullName)),
+   612→    [users]
+   613→  );
+   614→
+   615→  const statsByTrainee = useMemo(() => {
+   616→    const map = new Map<string, TraineeStats>();
+   617→    for (const log of logs) {
+   618→      const s =
+   619→        map.get(log.traineeId) ?? {
+   620→          total: 0,
+   621→          proficient: 0,
+   622→          practicing: 0,
+   623→          learning: 0,
+   624→        };
+   625→      s.total += 1;
+   626→      if (log.status === "Proficient") s.proficient += 1;
+   627→      else if (log.status === "Practicing") s.practicing += 1;
+   628→      else s.learning += 1;
+   629→      if (!s.mentor && log.mentor?.fullName) s.mentor = log.mentor.fullName;
+   630→      map.set(log.traineeId, s);
+   631→    }
+   632→    return map;
+   633→  }, [logs]);
+   634→
+   635→  return (
+   636→    <SectionCard
+   637→      title={`Apprentices · ${trainees.length}`}
+   638→      bodyClassName="p-0"
+   639→      action={
+   640→        <PremiumButton size="sm" onClick={onAdd}>
+   641→          <GraduationCap className="w-4 h-4" /> Add Trainee
+   642→        </PremiumButton>
+   643→      }
+   644→    >
+   645→      {isLoading ? (
+   646→        <SkeletonList rows={3} />
+   647→      ) : trainees.length === 0 ? (
+   648→        <EmptyState
+   649→          icon={GraduationCap}
+   650→          title="No trainees yet"
+   651→          description="Add your first apprentice — start tracking their skill journey from the Progress view."
+   652→          action={
+   653→            <PremiumButton size="sm" onClick={onAdd}>
+   654→              <GraduationCap className="w-4 h-4" /> Add Trainee
+   655→            </PremiumButton>
+   656→          }
+   657→        />
+   658→      ) : (
+   659→        <div className="divide-y divide-[#E7E5E4]/70">
+   660→          {trainees.map((t) => {
+   661→            const s = statsByTrainee.get(t.id);
+   662→            return (
+   663→              <div
+   664→                key={t.id}
+   665→                className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
+   666→              >
+   667→                <div
+   668→                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+   669→                  aria-hidden
+   670→                >
+   671→                  {initialOf(t.fullName)}
+   672→                </div>
+   673→                <div className="flex-1 min-w-0">
+   674→                  <div className="flex items-center gap-2 flex-wrap">
+   675→                    <span className="font-medium text-[#1C1917] truncate">
+   676→                      {t.fullName}
+   677→                    </span>
+   678→                    <StatusBadge status="Trainee" />
+   679→                  </div>
+   680→                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
+   681→                    {t.email && (
+   682→                      <span className="inline-flex items-center gap-1 truncate max-w-[220px]">
+   683→                        <Mail className="w-3 h-3 shrink-0" /> {t.email}
+   684→                      </span>
+   685→                    )}
+   686→                    {t.phone && (
+   687→                      <span className="inline-flex items-center gap-1">
+   688→                        <Phone className="w-3 h-3" /> {t.phone}
+   689→                      </span>
+   690→                    )}
+   691→                    {!t.email && !t.phone && (
+   692→                      <span className="italic text-stone-400">
+   693→                        No contact details
+   694→                      </span>
+   695→                    )}
+   696→                  </div>
+   697→                  <div className="mt-2 flex items-center gap-x-2.5 gap-y-1 text-[11px] flex-wrap">
+   698→                    {s && s.total > 0 ? (
+   699→                      <>
+   700→                        <span className="inline-flex items-center gap-1 text-stone-500">
+   701→                          <span className="font-semibold text-stone-700 tabular-nums">
+   702→                            {s.total}
+   703→                          </span>
+   704→                          <span className="uppercase tracking-[0.14em]">
+   705→                            {s.total === 1 ? "log" : "logs"}
+   706→                          </span>
+   707→                        </span>
+   708→                        <span className="text-stone-300" aria-hidden>
+   709→                          ·
+   710→                        </span>
+   711→                        <span className="inline-flex items-center gap-1">
+   712→                          <span className="font-semibold text-emerald-700 tabular-nums">
+   713→                            {s.proficient}
+   714→                          </span>
+   715→                          <span className="text-emerald-700/80">Proficient</span>
+   716→                        </span>
+   717→                        <span className="text-stone-300" aria-hidden>
+   718→                          ·
+   719→                        </span>
+   720→                        <span className="inline-flex items-center gap-1">
+   721→                          <span className="font-semibold text-sky-700 tabular-nums">
+   722→                            {s.practicing}
+   723→                          </span>
+   724→                          <span className="text-sky-700/80">Practicing</span>
+   725→                        </span>
+   726→                        <span className="text-stone-300" aria-hidden>
+   727→                          ·
+   728→                        </span>
+   729→                        <span className="inline-flex items-center gap-1">
+   730→                          <span className="font-semibold text-amber-700 tabular-nums">
+   731→                            {s.learning}
+   732→                          </span>
+   733→                          <span className="text-amber-700/80">Learning</span>
+   734→                        </span>
+   735→                      </>
+   736→                    ) : (
+   737→                      <span className="italic text-stone-400">No logs yet</span>
+   738→                    )}
+   739→                  </div>
+   740→                </div>
+   741→                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pl-14 sm:pl-0">
+   742→                  {s?.mentor && (
+   743→                    <span className="hidden md:inline text-[10px] uppercase tracking-[0.16em] text-stone-400 truncate max-w-[160px]">
+   744→                      Mentor · {s.mentor}
+   745→                    </span>
+   746→                  )}
+   747→                  <PremiumButton
+   748→                    variant="outline"
+   749→                    size="sm"
+   750→                    onClick={() => onView(t.id)}
+   751→                    aria-label={`View progress for ${t.fullName}`}
+   752→                  >
+   753→                    <GraduationCap className="w-3.5 h-3.5" />
+   754→                    View progress
+   755→                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+   756→                  </PremiumButton>
+   757→                </div>
+   758→              </div>
+   759→            );
+   760→          })}
+   761→        </div>
+   762→      )}
+   763→    </SectionCard>
+   764→  );
+   765→}
+   766→
+   767→/* ========================= Add Member Dialog ======================== */
+   768→
+   769→interface MemberForm {
+   770→  fullName: string;
+   771→  email: string;
+   772→  role: string;
+   773→  gender: string;
+   774→  phone: string;
+   775→  password: string;
+   776→}
+   777→
+   778→const EMPTY_MEMBER: MemberForm = {
+   779→  fullName: "",
+   780→  email: "",
+   781→  role: "staff",
+   782→  gender: "",
+   783→  phone: "",
+   784→  password: "atelier2025",
+   785→};
+   786→
+   787→function AddMemberDialog({
+   788→  open,
+   789→  onOpenChange,
+   790→  onDone,
+   791→}: {
+   792→  open: boolean;
+   793→  onOpenChange: (v: boolean) => void;
+   794→  onDone: () => void;
+   795→}) {
+   796→  const [form, setForm] = useState<MemberForm>(EMPTY_MEMBER);
+   797→
+   798→  const createMutation = useMutation({
+   799→    mutationFn: (body: MemberForm) => apiPost<User>("/api/users", body),
+   800→    onSuccess: (u) => {
+   801→      toast.success(`${u.fullName} added to the atelier.`, {
+   802→        description: `Signed in as ${u.role}. Default password: ${form.password || "atelier2025"}.`,
+   803→      });
+   804→      onDone();
+   805→      setForm(EMPTY_MEMBER);
+   806→      onOpenChange(false);
+   807→    },
+   808→    onError: (err: Error) => {
+   809→      const msg = err.message || "";
+   810→      if (msg.includes("409")) {
+   811→        toast.error("That email is already in use.", {
+   812→          description: "Try a different email address.",
+   813→        });
+   814→      } else {
+   815→        toast.error("Could not add member.", { description: msg });
+   816→      }
+   817→    },
+   818→  });
+   819→
+   820→  const set = <K extends keyof MemberForm>(k: K, v: MemberForm[K]) =>
+   821→    setForm((f) => ({ ...f, [k]: v }));
+   822→
+   823→  const valid = form.fullName.trim().length > 0 && form.email.trim().length > 0;
+   824→
+   825→  function handleSubmit(e: React.FormEvent) {
+   826→    e.preventDefault();
+   827→    if (!valid) return;
+   828→    createMutation.mutate(form);
+   829→  }
+   830→
+   831→  function handleOpenChange(v: boolean) {
+   832→    if (!v) {
+   833→      // reset on close if not submitting
+   834→      if (!createMutation.isPending) setForm(EMPTY_MEMBER);
+   835→    }
+   836→    onOpenChange(v);
+   837→  }
+   838→
+   839→  return (
+   840→    <Dialog open={open} onOpenChange={handleOpenChange}>
+   841→      <DialogContent className="sm:max-w-lg">
+   842→        <DialogHeader>
+   843→          <DialogTitle>Add atelier member</DialogTitle>
+   844→          <DialogDescription>
+   845→            Create a sign-in for a staff member, trainer, or trainee.
+   846→          </DialogDescription>
+   847→        </DialogHeader>
+   848→
+   849→        <form onSubmit={handleSubmit} className="space-y-4">
+   850→          <div className="grid sm:grid-cols-2 gap-3">
+   851→            <Field label="Full Name" required>
+   852→              <Input
+   853→                value={form.fullName}
+   854→                onChange={(e) => set("fullName", e.target.value)}
+   855→                placeholder="e.g. Akosua Mensah"
+   856→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   857→                required
+   858→                autoFocus
+   859→              />
+   860→            </Field>
+   861→            <Field label="Email" required>
+   862→              <Input
+   863→                type="email"
+   864→                value={form.email}
+   865→                onChange={(e) => set("email", e.target.value)}
+   866→                placeholder="name@studio.com"
+   867→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   868→                required
+   869→              />
+   870→            </Field>
+   871→          </div>
+   872→
+   873→          <div className="grid sm:grid-cols-2 gap-3">
+   874→            <Field label="Role">
+   875→              <Select
+   876→                value={form.role}
+   877→                onValueChange={(v) => set("role", v)}
+   878→              >
+   879→                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+   880→                  <SelectValue />
+   881→                </SelectTrigger>
+   882→                <SelectContent>
+   883→                  {ROLE_OPTIONS.map((r) => (
+   884→                    <SelectItem key={r} value={r}>
+   885→                      {roleLabel(r)}
+   886→                    </SelectItem>
+   887→                  ))}
+   888→                </SelectContent>
+   889→              </Select>
+   890→            </Field>
+   891→            <Field label="Gender">
+   892→              <Select
+   893→                value={form.gender}
+   894→                onValueChange={(v) => set("gender", v)}
+   895→              >
+   896→                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+   897→                  <SelectValue placeholder="Select gender" />
+   898→                </SelectTrigger>
+   899→                <SelectContent>
+   900→                  {GENDER_OPTIONS.map((g) => (
+   901→                    <SelectItem key={g} value={g}>
+   902→                      {g}
+   903→                    </SelectItem>
+   904→                  ))}
+   905→                </SelectContent>
+   906→              </Select>
+   907→            </Field>
+   908→          </div>
+   909→
+   910→          <div className="grid sm:grid-cols-2 gap-3">
+   911→            <Field label="Phone">
+   912→              <Input
+   913→                value={form.phone}
+   914→                onChange={(e) => set("phone", e.target.value)}
+   915→                placeholder="+233 …"
+   916→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   917→              />
+   918→            </Field>
+   919→            <Field label="Password">
+   920→              <Input
+   921→                value={form.password}
+   922→                onChange={(e) => set("password", e.target.value)}
+   923→                placeholder="atelier2025"
+   924→                className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
+   925→              />
+   926→            </Field>
+   927→          </div>
+   928→          <p className="text-[11px] text-stone-400 -mt-1">
+   929→            Default password is{" "}
+   930→            <span className="font-medium text-stone-500">atelier2025</span>. The
+   931→            member can sign in and you can change it later from the database.
+   932→          </p>
+   933→
+   934→          <DialogFooter>
+   935→            <PremiumButton
+   936→              type="button"
+   937→              variant="outline"
+   938→              size="md"
+   939→              onClick={() => handleOpenChange(false)}
+   940→              disabled={createMutation.isPending}
+   941→            >
+   942→              Cancel
+   943→            </PremiumButton>
+   944→            <PremiumButton
+   945→              type="submit"
+   946→              variant="primary"
+   947→              size="md"
+   948→              loading={createMutation.isPending}
+   949→              disabled={!valid}
+   950→            >
+   951→              <UserPlus className="w-4 h-4" /> Add member
+   952→            </PremiumButton>
+   953→          </DialogFooter>
+   954→        </form>
+   955→      </DialogContent>
+   956→    </Dialog>
+   957→  );
+   958→}
+   959→
+   960→/* ======================== Add Trainee Dialog ======================== */
+   961→
+   962→interface TraineeForm {
+   963→  fullName: string;
+   964→  email: string;
+   965→  mentorId: string; // informational only — not persisted on the user
+   966→  gender: string;
+   967→  phone: string;
+   968→  password: string;
+   969→}
+   970→
+   971→const EMPTY_TRAINEE: TraineeForm = {
+   972→  fullName: "",
+   973→  email: "",
+   974→  mentorId: "",
+   975→  gender: "",
+   976→  phone: "",
+   977→  password: "atelier2025",
+   978→};
+   979→
+   980→function AddTraineeDialog({
+   981→  open,
+   982→  onOpenChange,
+   983→  onDone,
+   984→  mentors,
+   985→}: {
+   986→  open: boolean;
+   987→  onOpenChange: (v: boolean) => void;
+   988→  onDone: () => void;
+   989→  mentors: User[];
+   990→}) {
+   991→  const [form, setForm] = useState<TraineeForm>(EMPTY_TRAINEE);
+   992→
+   993→  const createMutation = useMutation({
+   994→    mutationFn: (body: TraineeForm) =>
+   995→      apiPost<User>("/api/users", {
+   996→        fullName: body.fullName,
+   997→        email: body.email,
+   998→        role: "trainee",
+   999→        gender: body.gender || undefined,
+  1000→        phone: body.phone || undefined,
+  1001→        password: body.password || "atelier2025",
+  1002→      }),
+  1003→    onSuccess: (u) => {
+  1004→      toast.success(`${u.fullName} added as a trainee.`, {
+  1005→        description: `Default password: ${form.password || "atelier2025"}.`,
+  1006→      });
+  1007→      onDone();
+  1008→      setForm(EMPTY_TRAINEE);
+  1009→      onOpenChange(false);
+  1010→    },
+  1011→    onError: (err: Error) => {
+  1012→      const msg = err.message || "";
+  1013→      if (msg.includes("409")) {
+  1014→        toast.error("That email is already in use.", {
+  1015→          description: "Try a different email address.",
+  1016→        });
+  1017→      } else {
+  1018→        toast.error("Could not add trainee.", { description: msg });
+  1019→      }
+  1020→    },
+  1021→  });
+  1022→
+  1023→  const set = <K extends keyof TraineeForm>(k: K, v: TraineeForm[K]) =>
+  1024→    setForm((f) => ({ ...f, [k]: v }));
+  1025→
+  1026→  const valid = form.fullName.trim().length > 0 && form.email.trim().length > 0;
+  1027→
+  1028→  function handleSubmit(e: React.FormEvent) {
+  1029→    e.preventDefault();
+  1030→    if (!valid) return;
+  1031→    createMutation.mutate(form);
+  1032→  }
+  1033→
+  1034→  function handleOpenChange(v: boolean) {
+  1035→    if (!v && !createMutation.isPending) setForm(EMPTY_TRAINEE);
+  1036→    onOpenChange(v);
+  1037→  }
+  1038→
+  1039→  return (
+  1040→    <Dialog open={open} onOpenChange={handleOpenChange}>
+  1041→      <DialogContent className="sm:max-w-lg">
+  1042→        <DialogHeader>
+  1043→          <DialogTitle>Add trainee</DialogTitle>
+  1044→          <DialogDescription>
+  1045→            Create an apprenticeship sign-in. Log their skill progress from the
+  1046→            Progress view.
+  1047→          </DialogDescription>
+  1048→        </DialogHeader>
+  1049→
+  1050→        <form onSubmit={handleSubmit} className="space-y-4">
+  1051→          <div className="grid sm:grid-cols-2 gap-3">
+  1052→            <Field label="Full Name" required>
+  1053→              <Input
+  1054→                value={form.fullName}
+  1055→                onChange={(e) => set("fullName", e.target.value)}
+  1056→                placeholder="e.g. Ama Mensah"
+  1057→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+  1058→                required
+  1059→                autoFocus
+  1060→              />
+  1061→            </Field>
+  1062→            <Field label="Email" required>
+  1063→              <Input
+  1064→                type="email"
+  1065→                value={form.email}
+  1066→                onChange={(e) => set("email", e.target.value)}
+  1067→                placeholder="name@studio.com"
+  1068→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+  1069→                required
+  1070→              />
+  1071→            </Field>
+  1072→          </div>
+  1073→
+  1074→          <Field label="Mentor (optional)">
+  1075→            <Select
+  1076→              value={form.mentorId}
+  1077→              onValueChange={(v) => set("mentorId", v)}
+  1078→            >
+  1079→              <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+  1080→                <SelectValue placeholder="For your reference only" />
+  1081→              </SelectTrigger>
+  1082→              <SelectContent>
+  1083→                {mentors.length === 0 ? (
+  1084→                  <SelectItem value="__none" disabled>
+  1085→                    No trainers or madam available
+  1086→                  </SelectItem>
+  1087→                ) : (
+  1088→                  mentors.map((m) => (
+  1089→                    <SelectItem key={m.id} value={m.id}>
+  1090→                      {m.fullName} · {roleLabel(m.role)}
+  1091→                    </SelectItem>
+  1092→                  ))
+  1093→                )}
+  1094→              </SelectContent>
+  1095→            </Select>
+  1096→          </Field>
+  1097→          <p className="text-[11px] text-stone-400 -mt-2">
+  1098→            Mentor is informational only — you&rsquo;ll assign training logs to a
+  1099→            mentor from the Progress view.
+  1100→          </p>
+  1101→
+  1102→          <div className="grid sm:grid-cols-2 gap-3">
+  1103→            <Field label="Gender">
+  1104→              <Select
+  1105→                value={form.gender}
+  1106→                onValueChange={(v) => set("gender", v)}
+  1107→              >
+  1108→                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+  1109→                  <SelectValue placeholder="Select gender" />
+  1110→                </SelectTrigger>
+  1111→                <SelectContent>
+  1112→                  {GENDER_OPTIONS.map((g) => (
+  1113→                    <SelectItem key={g} value={g}>
+  1114→                      {g}
+  1115→                    </SelectItem>
+  1116→                  ))}
+  1117→                </SelectContent>
+  1118→              </Select>
+  1119→            </Field>
+  1120→            <Field label="Phone">
+  1121→              <Input
+  1122→                value={form.phone}
+  1123→                onChange={(e) => set("phone", e.target.value)}
+  1124→                placeholder="+233 …"
+  1125→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+  1126→              />
+  1127→            </Field>
+  1128→          </div>
+  1129→
+  1130→          <Field label="Password">
+  1131→            <Input
+  1132→              value={form.password}
+  1133→              onChange={(e) => set("password", e.target.value)}
+  1134→              placeholder="atelier2025"
+  1135→              className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
+  1136→            />
+  1137→          </Field>
+  1138→          <p className="text-[11px] text-stone-400 -mt-1">
+  1139→            Default password is{" "}
+  1140→            <span className="font-medium text-stone-500">atelier2025</span>. The
+  1141→            trainee can sign in and you can change it later.
+  1142→          </p>
+  1143→
+  1144→          <DialogFooter>
+  1145→            <PremiumButton
+  1146→              type="button"
+  1147→              variant="outline"
+  1148→              size="md"
+  1149→              onClick={() => handleOpenChange(false)}
+  1150→              disabled={createMutation.isPending}
+  1151→            >
+  1152→              Cancel
+  1153→            </PremiumButton>
+  1154→            <PremiumButton
+  1155→              type="submit"
+  1156→              variant="primary"
+  1157→              size="md"
+  1158→              loading={createMutation.isPending}
+  1159→              disabled={!valid}
+  1160→            >
+  1161→              <GraduationCap className="w-4 h-4" /> Add trainee
+  1162→            </PremiumButton>
+  1163→          </DialogFooter>
+  1164→        </form>
+  1165→      </DialogContent>
+  1166→    </Dialog>
+  1167→  );
+  1168→}
+  1169→
+  1170→/* ======================= Add Freelancer Dialog ====================== */
+  1171→
+  1172→interface FreelancerForm {
+  1173→  name: string;
+  1174→  specialty: string;
+  1175→  skills: string;
+  1176→  phone: string;
+  1177→  email: string;
+  1178→  rate: string;
+  1179→  status: string;
+  1180→  notes: string;
+  1181→}
+  1182→
+  1183→const EMPTY_FREELANCER: FreelancerForm = {
+  1184→  name: "",
+  1185→  specialty: "Beader",
+  1186→  skills: "",
+  1187→  phone: "",
+  1188→  email: "",
+  1189→  rate: "",
+  1190→  status: "Available",
+  1191→  notes: "",
+  1192→};
+  1193→
+  1194→function AddFreelancerDialog({
+  1195→  open,
+  1196→  onOpenChange,
+  1197→  onDone,
+  1198→}: {
+  1199→  open: boolean;
+  1200→  onOpenChange: (v: boolean) => void;
+  1201→  onDone: () => void;
+  1202→}) {
+  1203→  const [form, setForm] = useState<FreelancerForm>(EMPTY_FREELANCER);
+  1204→
+  1205→  const createMutation = useMutation({
+  1206→    mutationFn: (body: FreelancerForm) =>
+  1207→      apiPost<Freelancer>("/api/freelancers", {
+  1208→        name: body.name,
+  1209→        specialty: body.specialty,
+  1210→        skills: body.skills || null,
+  1211→        phone: body.phone || null,
+  1212→        email: body.email || null,
+  1213→        rate: body.rate ? Number(body.rate) : null,
+  1214→        status: body.status,
+  1215→        notes: body.notes || null,
+  1216→      }),
+  1217→    onSuccess: (f) => {
+  1218→      toast.success(`${f.name} added to your freelancer roster.`, {
+  1219→        description: f.specialty ? `${f.specialty} · ${f.status}` : f.status,
+  1220→      });
+  1221→      onDone();
+  1222→      setForm(EMPTY_FREELANCER);
+  1223→      onOpenChange(false);
+  1224→    },
+  1225→    onError: (err: Error) => {
+  1226→      toast.error("Could not add freelancer.", {
+  1227→        description: err.message,
+  1228→      });
+  1229→    },
+  1230→  });
+  1231→
+  1232→  const set = <K extends keyof FreelancerForm>(k: K, v: FreelancerForm[K]) =>
+  1233→    setForm((f) => ({ ...f, [k]: v }));
+  1234→
+  1235→  const valid = form.name.trim().length > 0;
+  1236→
+  1237→  function handleSubmit(e: React.FormEvent) {
+  1238→    e.preventDefault();
+  1239→    if (!valid) return;
+  1240→    createMutation.mutate(form);
+  1241→  }
+  1242→
+  1243→  function handleOpenChange(v: boolean) {
+  1244→    if (!v && !createMutation.isPending) setForm(EMPTY_FREELANCER);
+  1245→    onOpenChange(v);
+  1246→  }
+  1247→
+  1248→  return (
+  1249→    <Dialog open={open} onOpenChange={handleOpenChange}>
+  1250→      <DialogContent className="sm:max-w-lg">
+  1251→        <DialogHeader>
+  1252→          <DialogTitle>Add freelancer</DialogTitle>
+  1253→          <DialogDescription>
+  1254→            Commission a beader, embroiderer, cutter, tailor or other
+  1255→            specialist for bespoke work.
+  1256→          </DialogDescription>
+  1257→        </DialogHeader>
+  1258→
+  1259→        <form onSubmit={handleSubmit} className="space-y-4">
+  1260→          <div className="grid sm:grid-cols-2 gap-3">
+  1261→            <Field label="Name" required>
+  1262→              <Input
+  1263→                value={form.name}
+  1264→                onChange={(e) => set("name", e.target.value)}
+  1265→                placeholder="e.g. Adwoa Beads"
+  1266→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+  1267→                required
+  1268→                autoFocus
+  1269→              />
+  1270→            </Field>
+  1271→            <Field label="Specialty">
+  1272→              <Select
+  1273→                value={form.specialty}
+  1274→                onValueChange={(v) => set("specialty", v)}
+  1275→              >
+  1276→                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+  1277→                  <SelectValue />
+  1278→                </SelectTrigger>
+  1279→                <SelectContent>
+  1280→                  {SPECIALTIES.map((s) => (
+  1281→                    <SelectItem key={s} value={s}>
+  1282→                      {s}
+  1283→                    </SelectItem>
+  1284→                  ))}
+  1285→                </SelectContent>
+  1286→              </Select>
+  1287→            </Field>
+  1288→          </div>
+  1289→
+  1290→          <Field label="Skills">
+  1291→            <Input
+  1292→              value={form.skills}
+  1293→              onChange={(e) => set("skills", e.target.value)}
+  1294→              placeholder="Comma-separated, e.g. pearl threading, bead embroidery"
+  1295→              className="h-10 bg-white border-[#E7E5E4] rounded-md"
+  1296→            />
+  1297→          </Field>
+  1298→
+  1299→          <div className="grid sm:grid-cols-2 gap-3">
+  1300→            <Field label="Phone">
+  1301→              <Input
+  1302→                value={form.phone}
+  1303→                onChange={(e) => set("phone", e.target.value)}
+  1304→                placeholder="+233 …"
+  1305→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+  1306→              />
+  1307→            </Field>
+  1308→            <Field label="Email">
+  1309→              <Input
+  1310→                type="email"
+  1311→                value={form.email}
+  1312→                onChange={(e) => set("email", e.target.value)}
+  1313→                placeholder="name@example.com"
+  1314→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+  1315→              />
+  1316→            </Field>
+  1317→          </div>
+  1318→
+  1319→          <div className="grid sm:grid-cols-2 gap-3">
+  1320→            <Field label="Rate (GHS)">
+  1321→              <Input
+  1322→                type="number"
+  1323→                min="0"
+  1324→                step="1"
+  1325→                value={form.rate}
+  1326→                onChange={(e) => set("rate", e.target.value)}
+  1327→                placeholder="e.g. 150"
+  1328→                className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
+  1329→              />
+  1330→            </Field>
+  1331→            <Field label="Status">
+  1332→              <Select
+  1333→                value={form.status}
+  1334→                onValueChange={(v) => set("status", v)}
+  1335→              >
+  1336→                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+  1337→                  <SelectValue />
+  1338→                </SelectTrigger>
+  1339→                <SelectContent>
+  1340→                  {FREELANCER_STATUSES.map((s) => (
+  1341→                    <SelectItem key={s} value={s}>
+  1342→                      {s}
+  1343→                    </SelectItem>
+  1344→                  ))}
+  1345→                </SelectContent>
+  1346→              </Select>
+  1347→            </Field>
+  1348→          </div>
+  1349→
+  1350→          <Field label="Notes">
+  1351→            <Textarea
+  1352→              value={form.notes}
+  1353→              onChange={(e) => set("notes", e.target.value)}
+  1354→              placeholder="Lead time, preferred fabrics, payment terms…"
+  1355→              className="bg-white border-[#E7E5E4] rounded-md min-h-[80px] resize-y"
+  1356→            />
+  1357→          </Field>
+  1358→
+  1359→          <DialogFooter>
+  1360→            <PremiumButton
+  1361→              type="button"
+  1362→              variant="outline"
+  1363→              size="md"
+  1364→              onClick={() => handleOpenChange(false)}
+  1365→              disabled={createMutation.isPending}
+  1366→            >
+  1367→              Cancel
+  1368→            </PremiumButton>
+  1369→            <PremiumButton
+  1370→              type="submit"
+  1371→              variant="primary"
+  1372→              size="md"
+  1373→              loading={createMutation.isPending}
+  1374→              disabled={!valid}
+  1375→            >
+  1376→              <Plus className="w-4 h-4" /> Add freelancer
+  1377→            </PremiumButton>
+  1378→          </DialogFooter>
+  1379→        </form>
+  1380→      </DialogContent>
+  1381→    </Dialog>
+  1382→  );
+  1383→}
+  1384→
+  1385→/* ------------------------------ Field ------------------------------ */
+  1386→
+  1387→function Field({
+  1388→  label,
+  1389→  required,
+  1390→  children,
+  1391→}: {
+  1392→  label: string;
+  1393→  required?: boolean;
+  1394→  children: React.ReactNode;
+  1395→}) {
+  1396→  return (
+  1397→    <div className="space-y-1.5">
+  1398→      <Label className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500 flex items-center gap-1">
+  1399→        {label}
+  1400→        {required && <span className="text-[#800020]">*</span>}
+  1401→      </Label>
+  1402→      {children}
+  1403→    </div>
+  1404→  );
+  1405→}
+  1406→

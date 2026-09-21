@@ -3,7 +3,11 @@ import { db } from "@/lib/db";
 export async function GET() {
   try {
     const tasks = await db.task.findMany({
-      include: { order: { include: { customer: true } }, staff: true },
+      include: {
+        order: { include: { customer: true } },
+        staff: true,
+        gradedBy: { select: { id: true, fullName: true } },
+      },
       orderBy: { createdAt: "desc" },
     });
     return Response.json(tasks);

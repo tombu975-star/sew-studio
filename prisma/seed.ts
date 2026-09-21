@@ -74,6 +74,20 @@ async function main() {
   const trainer = users.find((u) => u.role === "trainer");
   const trainees = users.filter((u) => u.role === "trainee");
 
+  // Assign mentors + training duration to trainees (school-portal style)
+  if (trainer) {
+    for (let i = 0; i < trainees.length; i++) {
+      await db.user.update({
+        where: { id: trainees[i].id },
+        data: {
+          mentorId: trainer.id,
+          trainingDurationWeeks: 12,
+          trainingStartedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7 * (8 - i * 2)), // started 8 / 6 weeks ago
+        },
+      });
+    }
+  }
+
   // Settings
   await db.settings.create({
     data: { ownerGender: "Madam", studioName: "Madam Studio", overheadAmount: 3500, selfPayout: 2000, currency: "GHS" },
@@ -293,6 +307,38 @@ async function main() {
     ];
     for (const l of LOGS) {
       await db.trainingLog.create({ data: l });
+    }
+  }
+
+  // Trainee practice assignments — graded by the trainer (school-portal style)
+  if (trainer && trainees.length > 0) {
+    const ASSIGNMENTS = [
+      // Ama's assignments
+      { staffId: trainees[0].id, title: "Practice: flat-felled seam sample (cotton)", maxScore: 20, score: 18, feedback: "Clean finish. Keep the seam allowance even.", status: "Done", dueDate: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 5) },
+      { staffId: trainees[0].id, title: "Practice: dart manipulation on bodice block", maxScore: 20, score: 15, feedback: "Good grasp. Two darts slightly off-centre.", status: "Done", dueDate: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3) },
+      { staffId: trainees[0].id, title: "Practice: hand-picked zipper", maxScore: 20, score: null, feedback: null, status: "In Progress", dueDate: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 2) },
+      { staffId: trainees[0].id, title: "Practice: bias binding finish", maxScore: 20, score: null, feedback: null, status: "To Do", dueDate: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 7) },
+      // Kojo's assignments
+      { staffId: trainees[1].id, title: "Practice: kente pattern matching", maxScore: 20, score: 19, feedback: "Excellent pattern alignment.", status: "Done", dueDate: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 4) },
+      { staffId: trainees[1].id, title: "Practice: measuring a client (bust/waist/hip)", maxScore: 20, score: 17, feedback: "Accurate. Refine shoulder measurement.", status: "Done", dueDate: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2) },
+      { staffId: trainees[1].id, title: "Practice: hemming a pair of trousers", maxScore: 20, score: null, feedback: null, status: "In Progress", dueDate: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 3) },
+    ];
+    for (const a of ASSIGNMENTS) {
+      const isGraded = a.score !== null;
+      await db.task.create({
+        data: {
+          title: a.title,
+          staffId: a.staffId,
+          status: a.status,
+          priority: "Medium",
+          dueDate: a.dueDate,
+          maxScore: a.maxScore,
+          score: a.score,
+          gradedById: isGraded ? trainer.id : null,
+          gradedAt: isGraded ? new Date(a.dueDate.getTime() + 1000 * 60 * 60 * 24) : null,
+          feedback: a.feedback,
+        },
+      });
     }
   }
 

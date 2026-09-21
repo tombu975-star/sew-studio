@@ -1,0 +1,1164 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+     5→import { toast } from "sonner";
+     6→import {
+     7→  GraduationCap,
+     8→  Plus,
+     9→  Mail,
+    10→  Phone,
+    11→  Trash2,
+    12→  CheckSquare,
+    13→  ShoppingBag,
+    14→  ArrowRight,
+    15→  Sparkles,
+    16→  Scissors,
+    17→  CalendarDays,
+    18→} from "lucide-react";
+    19→
+    20→import { PageHeader } from "@/components/atelier/PageHeader";
+    21→import { SectionCard } from "@/components/atelier/SectionCard";
+    22→import { PremiumMetric } from "@/components/atelier/PremiumMetric";
+    23→import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
+    24→import { EmptyState, SkeletonList } from "@/components/atelier/EmptyState";
+    25→import { PremiumButton } from "@/components/atelier/PremiumButton";
+    26→import { StatusBadge } from "@/components/atelier/StatusBadge";
+    27→
+    28→import {
+    29→  Dialog,
+    30→  DialogContent,
+    31→  DialogFooter,
+    32→  DialogHeader,
+    33→  DialogTitle,
+    34→} from "@/components/ui/dialog";
+    35→import {
+    36→  AlertDialog,
+    37→  AlertDialogAction,
+    38→  AlertDialogCancel,
+    39→  AlertDialogContent,
+    40→  AlertDialogDescription,
+    41→  AlertDialogFooter,
+    42→  AlertDialogHeader,
+    43→  AlertDialogTitle,
+    44→} from "@/components/ui/alert-dialog";
+    45→import { Input } from "@/components/ui/input";
+    46→import { Label } from "@/components/ui/label";
+    47→import { Textarea } from "@/components/ui/textarea";
+    48→import { Separator } from "@/components/ui/separator";
+    49→import {
+    50→  Select,
+    51→  SelectContent,
+    52→  SelectItem,
+    53→  SelectTrigger,
+    54→  SelectValue,
+    55→} from "@/components/ui/select";
+    56→
+    57→import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
+    58→import {
+    59→  formatCurrency,
+    60→  formatDate,
+    61→  shortDate,
+    62→  todayISO,
+    63→  isOverdue,
+    64→} from "@/lib/format";
+    65→import type {
+    66→  Order,
+    67→  Task,
+    68→  TrainingLog,
+    69→  TrainingStatus,
+    70→  User,
+    71→} from "@/lib/types";
+    72→import { useAuth } from "@/stores/auth";
+    73→import { useNav } from "@/stores/nav";
+    74→import { useRole } from "@/stores/role";
+    75→import { cn } from "@/lib/utils";
+    76→
+    77→/* ----------------------------- constants ----------------------------- */
+    78→
+    79→const COMMON_SKILLS = [
+    80→  "Pattern drafting",
+    81→  "Flat-felled seams",
+    82→  "Bodice boning",
+    83→  "Measurements",
+    84→  "Kente cutting",
+    85→  "Zippers",
+    86→  "Hems",
+    87→  "Alterations",
+    88→  "Other",
+    89→] as const;
+    90→
+    91→const TRAINING_STATUSES: TrainingStatus[] = [
+    92→  "Learning",
+    93→  "Practicing",
+    94→  "Proficient",
+    95→];
+    96→
+    97→const STATUS_HINT: Record<TrainingStatus, string> = {
+    98→  Learning: "Early days — keep practising.",
+    99→  Practicing: "Solid — refining technique.",
+   100→  Proficient: "Mastered — ready to teach others.",
+   101→};
+   102→
+   103→function initialOf(name: string): string {
+   104→  return (name || "?").trim().charAt(0).toUpperCase() || "?";
+   105→}
+   106→
+   107→function gradientFor(name: string): string {
+   108→  // Deterministic burgundy-leaning gradient avatar.
+   109→  const palettes = [
+   110→    "from-[#800020] to-[#6b0018]",
+   111→    "from-[#800020] to-[#b45309]",
+   112→    "from-[#6b0018] to-[#0e7490]",
+   113→    "from-[#800020] to-[#15803D]",
+   114→    "from-[#6b0018] to-[#800020]",
+   115→  ];
+   116→  let h = 0;
+   117→  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+   118→  return palettes[h % palettes.length];
+   119→}
+   120→
+   121→/* =============================== Progress =============================== */
+   122→
+   123→export default function Progress() {
+   124→  const { user } = useAuth();
+   125→  const { isTrainee } = useRole();
+   126→
+   127→  // Trainee always sees their own progress.
+   128→  // Owner/trainer uses useNav().selectedId to pick a trainee.
+   129→  if (user && isTrainee()) {
+   130→    return <TraineeProgress traineeId={user.id} />;
+   131→  }
+   132→  return <OwnerProgress />;
+   133→}
+   134→
+   135→/* =========================== Trainee mode ============================ */
+   136→
+   137→function TraineeProgress({ traineeId }: { traineeId: string }) {
+   138→  return (
+   139→    <div className="p-5 md:p-8 max-w-[1100px] mx-auto w-full">
+   140→      <PageHeader
+   141→        eyebrow="My apprenticeship"
+   142→        eyebrowIcon={GraduationCap}
+   143→        title="My Progress"
+   144→        subtitle="Your skill journey at the atelier."
+   145→      />
+   146→      <ProgressBody traineeId={traineeId} viewerRole="trainee" />
+   147→    </div>
+   148→  );
+   149→}
+   150→
+   151→/* ========================= Owner / Trainer mode ====================== */
+   152→
+   153→function OwnerProgress() {
+   154→  const { user } = useAuth();
+   155→  const { selectedId, go } = useNav();
+   156→  const qc = useQueryClient();
+   157→
+   158→  const usersQ = useQuery<User[]>({
+   159→    queryKey: ["users"],
+   160→    queryFn: () => apiGet<User[]>("/api/users"),
+   161→  });
+   162→
+   163→  const trainees = useMemo(
+   164→    () =>
+   165→      (usersQ.data ?? [])
+   166→        .filter((u) => u.role === "trainee")
+   167→        .sort((a, b) => a.fullName.localeCompare(b.fullName)),
+   168→    [usersQ.data]
+   169→  );
+   170→
+   171→  const selectedTrainee = useMemo(
+   172→    () => trainees.find((t) => t.id === selectedId) ?? null,
+   173→    [trainees, selectedId]
+   174→  );
+   175→
+   176→  // If the selectedId doesn't point to a trainee, treat as no selection.
+   177→  const activeTraineeId = selectedTrainee ? selectedTrainee.id : null;
+   178→
+   179→  return (
+   180→    <div className="p-5 md:p-8 max-w-[1100px] mx-auto w-full">
+   181→      <PageHeader
+   182→        eyebrow="Apprenticeship"
+   183→        eyebrowIcon={GraduationCap}
+   184→        title="Trainee Progress"
+   185→        subtitle="Review your trainees' skill journeys."
+   186→        actions={
+   187→          user ? (
+   188→            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E7E5E4] bg-white pl-2 pr-3 py-1.5 elevate-sm">
+   189→              <span
+   190→                className={cn(
+   191→                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-display font-semibold",
+   192→                  gradientFor(user.fullName)
+   193→                )}
+   194→              >
+   195→                {initialOf(user.fullName)}
+   196→              </span>
+   197→              <div className="leading-tight">
+   198→                <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   199→                  {user.role === "trainer" ? "Trainer" : "Owner"}
+   200→                </div>
+   201→                <div className="text-xs font-medium text-[#1C1917]">
+   202→                  {user.fullName}
+   203→                </div>
+   204→              </div>
+   205→            </div>
+   206→          ) : undefined
+   207→        }
+   208→      />
+   209→
+   210→      {/* Trainee picker */}
+   211→      <SectionCard
+   212→        title="Select a trainee"
+   213→        bodyClassName="p-4 sm:p-5"
+   214→        className="mb-6"
+   215→      >
+   216→        {usersQ.isLoading ? (
+   217→          <div className="flex gap-3 overflow-x-auto pb-1">
+   218→            {Array.from({ length: 3 }).map((_, i) => (
+   219→              <div
+   220→                key={i}
+   221→                className="shrink-0 h-14 w-44 rounded-lg shimmer"
+   222→                aria-hidden
+   223→              />
+   224→            ))}
+   225→          </div>
+   226→        ) : trainees.length === 0 ? (
+   227→          <EmptyState
+   228→            icon={GraduationCap}
+   229→            title="No trainees yet"
+   230→            description="Add trainees from the Team view to track their apprenticeship here."
+   231→            action={
+   232→              <PremiumButton
+   233→                size="sm"
+   234→                variant="outline"
+   235→                onClick={() => go("team")}
+   236→              >
+   237→                Go to Team <ArrowRight className="w-3.5 h-3.5" />
+   238→              </PremiumButton>
+   239→            }
+   240→          />
+   241→        ) : (
+   242→          <>
+   243→            {/* Mobile: Select dropdown */}
+   244→            <div className="md:hidden">
+   245→              <Select
+   246→                value={activeTraineeId ?? undefined}
+   247→                onValueChange={(v) => go("progress", { id: v })}
+   248→              >
+   249→                <SelectTrigger className="w-full h-11 bg-white">
+   250→                  <SelectValue placeholder="Choose a trainee…" />
+   251→                </SelectTrigger>
+   252→                <SelectContent>
+   253→                  {trainees.map((t) => (
+   254→                    <SelectItem key={t.id} value={t.id}>
+   255→                      {t.fullName}
+   256→                    </SelectItem>
+   257→                  ))}
+   258→                </SelectContent>
+   259→              </Select>
+   260→            </div>
+   261→
+   262→            {/* Desktop: chips row */}
+   263→            <div className="hidden md:flex gap-3 overflow-x-auto pb-1">
+   264→              {trainees.map((t) => {
+   265→                const active = t.id === activeTraineeId;
+   266→                return (
+   267→                  <button
+   268→                    key={t.id}
+   269→                    type="button"
+   270→                    onClick={() => go("progress", { id: t.id })}
+   271→                    aria-pressed={active}
+   272→                    className={cn(
+   273→                      "group shrink-0 flex items-center gap-3 rounded-xl border px-3 py-2 transition-all duration-200",
+   274→                      active
+   275→                        ? "bg-gradient-to-br from-[#800020] to-[#6b0018] border-[#6b0018] text-white elevate-burgundy"
+   276→                        : "bg-white border-[#E7E5E4] text-[#1C1917] hover:border-[#800020]/30 hover:bg-[#faf8f5] elevate-sm lift"
+   277→                    )}
+   278→                  >
+   279→                    <span
+   280→                      className={cn(
+   281→                        "w-9 h-9 rounded-full flex items-center justify-center font-display font-semibold text-sm shrink-0",
+   282→                        active
+   283→                          ? "bg-white/15 text-white"
+   284→                          : "bg-gradient-to-br text-white " +
+   285→                            gradientFor(t.fullName)
+   286→                      )}
+   287→                    >
+   288→                      {initialOf(t.fullName)}
+   289→                    </span>
+   290→                    <span className="text-left">
+   291→                      <span className="block text-sm font-medium leading-tight">
+   292→                        {t.fullName}
+   293→                      </span>
+   294→                      <span
+   295→                        className={cn(
+   296→                          "block text-[10px] uppercase tracking-[0.16em]",
+   297→                          active ? "text-white/70" : "text-stone-400"
+   298→                        )}
+   299→                      >
+   300→                        Trainee
+   301→                      </span>
+   302→                    </span>
+   303→                  </button>
+   304→                );
+   305→              })}
+   306→            </div>
+   307→          </>
+   308→        )}
+   309→      </SectionCard>
+   310→
+   311→      {/* Selected trainee body */}
+   312→      {activeTraineeId && selectedTrainee ? (
+   313→        <SelectedTraineeHeader
+   314→          trainee={selectedTrainee}
+   315→          onClear={() => go("progress", { id: null })}
+   316→        />
+   317→      ) : null}
+   318→      {activeTraineeId ? (
+   319→        <ProgressBody
+   320→          traineeId={activeTraineeId}
+   321→          viewerRole="owner"
+   322→          mentorId={user?.id}
+   323→        />
+   324→      ) : (
+   325→        !usersQ.isLoading &&
+   326→        trainees.length > 0 && (
+   327→          <SectionCard>
+   328→            <EmptyState
+   329→              icon={GraduationCap}
+   330→              title="Pick a trainee to begin"
+   331→              description="Choose an apprentice above to review their skills, training log, tasks and contributions."
+   332→            />
+   333→          </SectionCard>
+   334→        )
+   335→      )}
+   336→    </div>
+   337→  );
+   338→}
+   339→
+   340→function SelectedTraineeHeader({
+   341→  trainee,
+   342→  onClear,
+   343→}: {
+   344→  trainee: User;
+   345→  onClear: () => void;
+   346→}) {
+   347→  return (
+   348→    <div className="surface-premium border border-[#E7E5E4] rounded-lg elevate-sm lift p-5 mb-6 flex items-center gap-4 animate-fade-in-up">
+   349→      <div
+   350→        className={cn(
+   351→          "w-14 h-14 rounded-full bg-gradient-to-br flex items-center justify-center text-white font-display font-semibold text-xl shrink-0 shadow-sm",
+   352→          gradientFor(trainee.fullName)
+   353→        )}
+   354→        aria-hidden
+   355→      >
+   356→        {initialOf(trainee.fullName)}
+   357→      </div>
+   358→      <div className="flex-1 min-w-0">
+   359→        <div className="flex items-center gap-2 flex-wrap">
+   360→          <h2 className="font-display font-semibold text-[#1C1917] text-xl leading-tight">
+   361→            {trainee.fullName}
+   362→          </h2>
+   363→          <StatusBadge status="Trainee" />
+   364→        </div>
+   365→        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500">
+   366→          {trainee.email && (
+   367→            <span className="inline-flex items-center gap-1.5">
+   368→              <Mail className="w-3.5 h-3.5" /> {trainee.email}
+   369→            </span>
+   370→          )}
+   371→          {trainee.phone && (
+   372→            <span className="inline-flex items-center gap-1.5">
+   373→              <Phone className="w-3.5 h-3.5" /> {trainee.phone}
+   374→            </span>
+   375→          )}
+   376→        </div>
+   377→      </div>
+   378→      <PremiumButton
+   379→        size="sm"
+   380→        variant="ghost"
+   381→        onClick={onClear}
+   382→        className="hidden sm:inline-flex"
+   383→      >
+   384→        Change trainee
+   385→      </PremiumButton>
+   386→    </div>
+   387→  );
+   388→}
+   389→
+   390→/* ===================== Shared progress body ===================== */
+   391→
+   392→function ProgressBody({
+   393→  traineeId,
+   394→  viewerRole,
+   395→  mentorId,
+   396→}: {
+   397→  traineeId: string;
+   398→  viewerRole: "trainee" | "owner";
+   399→  mentorId?: string;
+   400→}) {
+   401→  const qc = useQueryClient();
+   402→  const [logOpen, setLogOpen] = useState(false);
+   403→
+   404→  // Training logs for this trainee.
+   405→  const logsQ = useQuery<TrainingLog[]>({
+   406→    queryKey: ["training-logs", traineeId],
+   407→    queryFn: () =>
+   408→      apiGet<TrainingLog[]>(`/api/training-logs?traineeId=${traineeId}`),
+   409→  });
+   410→
+   411→  // Tasks for this trainee.
+   412→  const tasksQ = useQuery<Task[]>({
+   413→    queryKey: ["tasks"],
+   414→    queryFn: () => apiGet<Task[]>("/api/tasks"),
+   415→  });
+   416→
+   417→  // Orders for this trainee (assignedStaffId).
+   418→  const ordersQ = useQuery<Order[]>({
+   419→    queryKey: ["orders"],
+   420→    queryFn: () => apiGet<Order[]>("/api/orders"),
+   421→  });
+   422→
+   423→  const logs = logsQ.data ?? [];
+   424→
+   425→  const stats = useMemo(() => {
+   426→    const total = logs.length;
+   427→    const proficient = logs.filter((l) => l.status === "Proficient").length;
+   428→    const practicing = logs.filter((l) => l.status === "Practicing").length;
+   429→    const learning = logs.filter((l) => l.status === "Learning").length;
+   430→    return { total, proficient, practicing, learning };
+   431→  }, [logs]);
+   432→
+   433→  // Group logs by skill for the mastery overview.
+   434→  const skillGroups = useMemo(() => {
+   435→    const map = new Map<
+   436→      string,
+   437→      { skill: string; logs: TrainingLog[]; latest: TrainingLog }
+   438→    >();
+   439→    for (const log of logs) {
+   440→      const skill = log.skill?.trim() || "General";
+   441→      const existing = map.get(skill);
+   442→      if (!existing) {
+   443→        map.set(skill, { skill, logs: [log], latest: log });
+   444→      } else {
+   445→        existing.logs.push(log);
+   446→        // logs come newest-first from the API (date desc); keep latest as the first seen
+   447→        // (which is the most recent by date).
+   448→        if (
+   449→          new Date(log.date).getTime() > new Date(existing.latest.date).getTime()
+   450→        ) {
+   451→          existing.latest = log;
+   452→        }
+   453→      }
+   454→    }
+   455→    // Sort skills by latest entry date desc.
+   456→    return Array.from(map.values()).sort(
+   457→      (a, b) =>
+   458→        new Date(b.latest.date).getTime() - new Date(a.latest.date).getTime()
+   459→    );
+   460→  }, [logs]);
+   461→
+   462→  const myTasks = useMemo(
+   463→    () =>
+   464→      (tasksQ.data ?? [])
+   465→        .filter((t) => t.staffId === traineeId)
+   466→        .sort((a, b) => {
+   467→          // Pending first, then by due date asc.
+   468→          const aDone = a.status === "Done" ? 1 : 0;
+   469→          const bDone = b.status === "Done" ? 1 : 0;
+   470→          if (aDone !== bDone) return aDone - bDone;
+   471→          const ad = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+   472→          const bd = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+   473→          return ad - bd;
+   474→        }),
+   475→    [tasksQ.data, traineeId]
+   476→  );
+   477→
+   478→  const myOrders = useMemo(
+   479→    () =>
+   480→      (ordersQ.data ?? [])
+   481→        .filter((o) => o.assignedStaffId === traineeId)
+   482→        .sort(
+   483→          (a, b) =>
+   484→            new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
+   485→        )
+   486→        .slice(0, 8),
+   487→    [ordersQ.data, traineeId]
+   488→  );
+   489→
+   490→  const invalidateAll = () => {
+   491→    qc.invalidateQueries({ queryKey: ["training-logs", traineeId] });
+   492→    qc.invalidateQueries({ queryKey: ["training-logs"] });
+   493→  };
+   494→
+   495→  return (
+   496→    <>
+   497→      {/* Premium stat strip */}
+   498→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+   499→        <PremiumMetric
+   500→          label="Total Logs"
+   501→          value={<AnimatedNumber value={stats.total} />}
+   502→          icon={GraduationCap}
+   503→          accent
+   504→        />
+   505→        <PremiumMetric
+   506→          label="Proficient"
+   507→          value={<AnimatedNumber value={stats.proficient} />}
+   508→          icon={Sparkles}
+   509→        />
+   510→        <PremiumMetric
+   511→          label="Practicing"
+   512→          value={<AnimatedNumber value={stats.practicing} />}
+   513→          icon={Scissors}
+   514→        />
+   515→        <PremiumMetric
+   516→          label="Learning"
+   517→          value={<AnimatedNumber value={stats.learning} />}
+   518→          icon={GraduationCap}
+   519→        />
+   520→      </div>
+   521→
+   522→      {/* Skills mastery overview */}
+   523→      <div className="mb-6">
+   524→        <SkillMasteryCard
+   525→          skillGroups={skillGroups}
+   526→          isLoading={logsQ.isLoading}
+   527→        />
+   528→      </div>
+   529→
+   530→      {/* Training log timeline */}
+   531→      <div className="mb-6">
+   532→        <SectionCard
+   533→          title="Training log"
+   534→          bodyClassName="p-0"
+   535→          action={
+   536→            <PremiumButton size="sm" onClick={() => setLogOpen(true)}>
+   537→              <Plus className="w-4 h-4" />
+   538→              {viewerRole === "trainee" ? "Log new learning" : "Log for trainee"}
+   539→            </PremiumButton>
+   540→          }
+   541→        >
+   542→          {logsQ.isLoading ? (
+   543→            <SkeletonList rows={4} />
+   544→          ) : logs.length === 0 ? (
+   545→            <EmptyState
+   546→              icon={GraduationCap}
+   547→              title="No log entries yet"
+   548→              description={
+   549→                viewerRole === "trainee"
+   550→                  ? "Log your first learning to start tracking your skill journey."
+   551→                  : "Log the first learning entry for this trainee."
+   552→              }
+   553→              action={
+   554→                <PremiumButton size="sm" onClick={() => setLogOpen(true)}>
+   555→                  <Plus className="w-4 h-4" />{" "}
+   556→                  {viewerRole === "trainee"
+   557→                    ? "Log new learning"
+   558→                    : "Log for trainee"}
+   559→                </PremiumButton>
+   560→              }
+   561→            />
+   562→          ) : (
+   563→            <div className="divide-y divide-[#E7E5E4]/70">
+   564→              {logs.map((log, idx) => (
+   565→                <TrainingLogRow
+   566→                  key={log.id}
+   567→                  log={log}
+   568→                  index={idx}
+   569→                  canEdit
+   570→                  onInvalidated={invalidateAll}
+   571→                />
+   572→              ))}
+   573→            </div>
+   574→          )}
+   575→        </SectionCard>
+   576→      </div>
+   577→
+   578→      {/* My tasks */}
+   579→      <div className="mb-6">
+   580→        <MyTasksCard tasks={myTasks} isLoading={tasksQ.isLoading} />
+   581→      </div>
+   582→
+   583→      {/* Orders contributed */}
+   584→      <div className="mb-2">
+   585→        <OrdersContributedCard orders={myOrders} isLoading={ordersQ.isLoading} />
+   586→      </div>
+   587→
+   588→      {/* Log dialog */}
+   589→      <LogDialog
+   590→        open={logOpen}
+   591→        onOpenChange={setLogOpen}
+   592→        traineeId={traineeId}
+   593→        mentorId={viewerRole === "owner" ? mentorId : undefined}
+   594→        onDone={invalidateAll}
+   595→      />
+   596→    </>
+   597→  );
+   598→}
+   599→
+   600→/* ======================= Skill mastery card ======================= */
+   601→
+   602→function SkillMasteryCard({
+   603→  skillGroups,
+   604→  isLoading,
+   605→}: {
+   606→  skillGroups: {
+   607→    skill: string;
+   608→    logs: TrainingLog[];
+   609→    latest: TrainingLog;
+   610→  }[];
+   611→  isLoading: boolean;
+   612→}) {
+   613→  return (
+   614→    <SectionCard title="Skill mastery" bodyClassName="p-0">
+   615→      {isLoading ? (
+   616→        <SkeletonList rows={3} />
+   617→      ) : skillGroups.length === 0 ? (
+   618→        <EmptyState
+   619→          icon={GraduationCap}
+   620→          title="No skills logged yet"
+   621→          description="Once training entries are logged, this overview groups them by skill."
+   622→        />
+   623→      ) : (
+   624→        <ul className="divide-y divide-[#E7E5E4]/70">
+   625→          {skillGroups.map((group, idx) => {
+   626→            const proficientCount = group.logs.filter(
+   627→              (l) => l.status === "Proficient"
+   628→            ).length;
+   629→            const pct = Math.round(
+   630→              (proficientCount / group.logs.length) * 100
+   631→            );
+   632→            return (
+   633→              <li
+   634→                key={group.skill}
+   635→                className="flex items-center gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors animate-fade-in-up"
+   636→                style={{ animationDelay: `${Math.min(idx, 8) * 50}ms` }}
+   637→              >
+   638→                <div className="flex-1 min-w-0">
+   639→                  <div className="flex items-center gap-2 flex-wrap">
+   640→                    <span className="font-medium text-[#1C1917]">
+   641→                      {group.skill}
+   642→                    </span>
+   643→                    <StatusBadge status={group.latest.status} />
+   644→                    <span className="text-[11px] text-stone-400 tabular-nums">
+   645→                      {group.logs.length}{" "}
+   646→                      {group.logs.length === 1 ? "entry" : "entries"}
+   647→                    </span>
+   648→                  </div>
+   649→                  <p className="text-xs text-stone-400 mt-1">
+   650→                    {STATUS_HINT[group.latest.status]}
+   651→                  </p>
+   652→                  {/* Progress hint bar */}
+   653→                  <div className="mt-2 h-1 w-full max-w-[220px] rounded-full bg-[#E7E5E4]/80 overflow-hidden">
+   654→                    <div
+   655→                      className="h-full bg-gradient-to-r from-[#800020] to-[#6b0018] rounded-full transition-all"
+   656→                      style={{ width: `${pct}%` }}
+   657→                      aria-hidden
+   658→                    />
+   659→                  </div>
+   660→                </div>
+   661→                <div className="text-right shrink-0">
+   662→                  <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   663→                    Latest
+   664→                  </div>
+   665→                  <div className="text-xs text-stone-500 tabular-nums">
+   666→                    {shortDate(group.latest.date)}
+   667→                  </div>
+   668→                </div>
+   669→              </li>
+   670→            );
+   671→          })}
+   672→        </ul>
+   673→      )}
+   674→    </SectionCard>
+   675→  );
+   676→}
+   677→
+   678→/* ===================== Training log timeline row ===================== */
+   679→
+   680→function TrainingLogRow({
+   681→  log,
+   682→  index,
+   683→  canEdit,
+   684→  onInvalidated,
+   685→}: {
+   686→  log: TrainingLog;
+   687→  index: number;
+   688→  canEdit: boolean;
+   689→  onInvalidated: () => void;
+   690→}) {
+   691→  const qc = useQueryClient();
+   692→  const [confirmOpen, setConfirmOpen] = useState(false);
+   693→
+   694→  const patchMut = useMutation({
+   695→    mutationFn: (status: TrainingStatus) =>
+   696→      apiPatch<TrainingLog>(`/api/training-logs/${log.id}`, { status }),
+   697→    onSuccess: () => {
+   698→      toast.success("Training log updated.");
+   699→      onInvalidated();
+   700→    },
+   701→    onError: (e: Error) => toast.error(e.message || "Could not update log."),
+   702→  });
+   703→
+   704→  const deleteMut = useMutation({
+   705→    mutationFn: () => apiDelete(`/api/training-logs/${log.id}`),
+   706→    onSuccess: () => {
+   707→      toast.success("Training log deleted.");
+   708→      onInvalidated();
+   709→      qc.invalidateQueries({ queryKey: ["training-logs"] });
+   710→    },
+   711→    onError: (e: Error) => toast.error(e.message || "Could not delete log."),
+   712→  });
+   713→
+   714→  return (
+   715→    <div
+   716→      className="group px-5 py-4 hover:bg-[#faf8f5] transition-colors animate-fade-in-up"
+   717→      style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
+   718→    >
+   719→      <div className="flex items-start gap-4">
+   720→        {/* Date column */}
+   721→        <div className="shrink-0 w-16 text-center pt-0.5">
+   722→          <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   723→            {new Date(log.date).toLocaleDateString("en-GB", {
+   724→              month: "short",
+   725→            })}
+   726→          </div>
+   727→          <div className="font-display font-semibold text-[#1C1917] text-lg leading-none tabular-nums">
+   728→            {new Date(log.date).getDate()}
+   729→          </div>
+   730→          <div className="text-[10px] text-stone-400 tabular-nums mt-0.5">
+   731→            {new Date(log.date).getFullYear()}
+   732→          </div>
+   733→        </div>
+   734→
+   735→        <Separator orientation="vertical" className="h-16 bg-[#E7E5E4]/70" />
+   736→
+   737→        {/* Content */}
+   738→        <div className="flex-1 min-w-0">
+   739→          <div className="flex items-center gap-2 flex-wrap">
+   740→            {log.skill && (
+   741→              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#800020] bg-[#800020]/8 border border-[#800020]/15 px-1.5 py-0.5 rounded-md">
+   742→                <Scissors className="w-3 h-3" /> {log.skill}
+   743→              </span>
+   744→            )}
+   745→            <span className="font-medium text-[#1C1917]">{log.title}</span>
+   746→          </div>
+   747→          {log.note && (
+   748→            <p className="text-xs text-stone-500 mt-1.5 whitespace-pre-wrap leading-relaxed">
+   749→              {log.note}
+   750→            </p>
+   751→          )}
+   752→          {log.mentor && (
+   753→            <p className="text-[11px] text-stone-400 mt-2 inline-flex items-center gap-1.5">
+   754→              <GraduationCap className="w-3 h-3" /> with {log.mentor.fullName}
+   755→            </p>
+   756→          )}
+   757→        </div>
+   758→
+   759→        {/* Actions column */}
+   760→        <div className="shrink-0 flex flex-col items-end gap-2">
+   761→          {canEdit ? (
+   762→            <Select
+   763→              value={log.status}
+   764→              onValueChange={(v) =>
+   765→                patchMut.mutate(v as TrainingStatus)
+   766→              }
+   767→              disabled={patchMut.isPending}
+   768→            >
+   769→              <SelectTrigger
+   770→                size="sm"
+   771→                className="h-7 w-[120px] text-[11px] bg-white"
+   772→                aria-label="Update status"
+   773→              >
+   774→                <SelectValue />
+   775→              </SelectTrigger>
+   776→              <SelectContent>
+   777→                {TRAINING_STATUSES.map((s) => (
+   778→                  <SelectItem key={s} value={s}>
+   779→                    {s}
+   780→                  </SelectItem>
+   781→                ))}
+   782→              </SelectContent>
+   783→            </Select>
+   784→          ) : (
+   785→            <StatusBadge status={log.status} />
+   786→          )}
+   787→          {canEdit && (
+   788→            <button
+   789→              type="button"
+   790→              onClick={() => setConfirmOpen(true)}
+   791→              aria-label="Delete log entry"
+   792→              className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center w-7 h-7 rounded-md text-stone-400 hover:text-[#b91c1c] hover:bg-[#b91c1c]/8 focus:opacity-100"
+   793→            >
+   794→              <Trash2 className="w-3.5 h-3.5" />
+   795→            </button>
+   796→          )}
+   797→        </div>
+   798→      </div>
+   799→
+   800→      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+   801→        <AlertDialogContent>
+   802→          <AlertDialogHeader>
+   803→            <AlertDialogTitle>Delete this log entry?</AlertDialogTitle>
+   804→            <AlertDialogDescription>
+   805→              &ldquo;{log.title}&rdquo; logged on {formatDate(log.date)} will be
+   806→              permanently removed. This cannot be undone.
+   807→            </AlertDialogDescription>
+   808→          </AlertDialogHeader>
+   809→          <AlertDialogFooter>
+   810→            <AlertDialogCancel>Cancel</AlertDialogCancel>
+   811→            <AlertDialogAction
+   812→              className="bg-[#b91c1c] text-white hover:bg-[#991b1b]"
+   813→              onClick={() => deleteMut.mutate()}
+   814→              disabled={deleteMut.isPending}
+   815→            >
+   816→              {deleteMut.isPending ? "Deleting…" : "Delete entry"}
+   817→            </AlertDialogAction>
+   818→          </AlertDialogFooter>
+   819→        </AlertDialogContent>
+   820→      </AlertDialog>
+   821→    </div>
+   822→  );
+   823→}
+   824→
+   825→/* ========================= My tasks card ========================= */
+   826→
+   827→function MyTasksCard({
+   828→  tasks,
+   829→  isLoading,
+   830→}: {
+   831→  tasks: Task[];
+   832→  isLoading: boolean;
+   833→}) {
+   834→  const { go } = useNav();
+   835→  return (
+   836→    <SectionCard title="My tasks" bodyClassName="p-0">
+   837→      {isLoading ? (
+   838→        <SkeletonList rows={3} />
+   839→      ) : tasks.length === 0 ? (
+   840→        <EmptyState
+   841→          icon={CheckSquare}
+   842→          title="No tasks assigned to you"
+   843→          description="When the atelier assigns you a task, it will appear here."
+   844→        />
+   845→      ) : (
+   846→        <ul className="divide-y divide-[#E7E5E4]/70">
+   847→          {tasks.map((task) => {
+   848→            const overdue =
+   849→              task.status !== "Done" &&
+   850→              task.dueDate &&
+   851→              isOverdue(task.dueDate);
+   852→            return (
+   853→              <li
+   854→                key={task.id}
+   855→                className="px-5 py-3.5 flex items-center gap-4 hover:bg-[#faf8f5] transition-colors"
+   856→              >
+   857→                <div className="flex-1 min-w-0">
+   858→                  <div className="flex items-center gap-2 flex-wrap">
+   859→                    <span className="font-medium text-[#1C1917] text-sm">
+   860→                      {task.title}
+   861→                    </span>
+   862→                    {task.priority && (
+   863→                      <StatusBadge status={task.priority} />
+   864→                    )}
+   865→                  </div>
+   866→                  {task.order?.customer && (
+   867→                    <p className="text-xs text-stone-400 mt-0.5 truncate">
+   868→                      {task.order.customer.name} ·{" "}
+   869→                      {task.order.garmentDesign}
+   870→                    </p>
+   871→                  )}
+   872→                </div>
+   873→                <div className="shrink-0 flex items-center gap-3">
+   874→                  {task.dueDate && (
+   875→                    <span
+   876→                      className={cn(
+   877→                        "text-[11px] tabular-nums inline-flex items-center gap-1",
+   878→                        overdue ? "text-[#b91c1c] font-medium" : "text-stone-500"
+   879→                      )}
+   880→                    >
+   881→                      <CalendarDays className="w-3.5 h-3.5" />
+   882→                      {shortDate(task.dueDate)}
+   883→                    </span>
+   884→                  )}
+   885→                  <StatusBadge status={task.status} />
+   886→                </div>
+   887→              </li>
+   888→            );
+   889→          })}
+   890→        </ul>
+   891→      )}
+   892→    </SectionCard>
+   893→  );
+   894→}
+   895→
+   896→/* ===================== Orders contributed card ===================== */
+   897→
+   898→function OrdersContributedCard({
+   899→  orders,
+   900→  isLoading,
+   901→}: {
+   902→  orders: Order[];
+   903→  isLoading: boolean;
+   904→}) {
+   905→  const { go } = useNav();
+   906→
+   907→  if (isLoading) {
+   908→    return (
+   909→      <SectionCard title="Orders I've contributed to" bodyClassName="p-0">
+   910→        <SkeletonList rows={3} />
+   911→      </SectionCard>
+   912→    );
+   913→  }
+   914→  if (orders.length === 0) {
+   915→    return (
+   916→      <SectionCard title="Orders I've contributed to" bodyClassName="p-0">
+   917→        <EmptyState
+   918→          icon={ShoppingBag}
+   919→          title="No orders yet"
+   920→          description="Orders you've worked on will be tracked here."
+   921→        />
+   922→      </SectionCard>
+   923→    );
+   924→  }
+   925→  return (
+   926→    <SectionCard
+   927→      title="Orders I've contributed to"
+   928→      bodyClassName="p-0"
+   929→    >
+   930→      <ul className="divide-y divide-[#E7E5E4]/70">
+   931→        {orders.map((order) => (
+   932→          <li key={order.id}>
+   933→            <button
+   934→              type="button"
+   935→              onClick={() => go("order", { id: order.id })}
+   936→              className="w-full text-left px-5 py-3.5 flex items-center gap-4 hover:bg-[#faf8f5] transition-colors group"
+   937→            >
+   938→              <div className="flex-1 min-w-0">
+   939→                <div className="flex items-center gap-2 flex-wrap">
+   940→                  <span className="font-medium text-[#1C1917] text-sm">
+   941→                    {order.garmentDesign}
+   942→                  </span>
+   943→                  {order.customer && (
+   944→                    <span className="text-xs text-stone-400">
+   945→                      · {order.customer.name}
+   946→                    </span>
+   947→                  )}
+   948→                </div>
+   949→                <p className="text-[11px] text-stone-400 mt-0.5 tabular-nums">
+   950→                  {shortDate(order.orderDate)}
+   951→                </p>
+   952→              </div>
+   953→              <div className="shrink-0 flex items-center gap-3">
+   954→                <span className="text-sm font-medium text-[#1C1917] tabular-nums">
+   955→                  {formatCurrency(order.sellingPrice)}
+   956→                </span>
+   957→                <StatusBadge status={order.status} />
+   958→                <ArrowRight className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors" />
+   959→              </div>
+   960→            </button>
+   961→          </li>
+   962→        ))}
+   963→      </ul>
+   964→    </SectionCard>
+   965→  );
+   966→}
+   967→
+   968→/* ========================== Log dialog ========================== */
+   969→
+   970→function LogDialog({
+   971→  open,
+   972→  onOpenChange,
+   973→  traineeId,
+   974→  mentorId,
+   975→  onDone,
+   976→}: {
+   977→  open: boolean;
+   978→  onOpenChange: (v: boolean) => void;
+   979→  traineeId: string;
+   980→  mentorId?: string;
+   981→  onDone: () => void;
+   982→}) {
+   983→  return (
+   984→    <Dialog open={open} onOpenChange={onOpenChange}>
+   985→      <DialogContent className="sm:max-w-lg">
+   986→        {/* Remount the form on each open so fields reset to defaults. */}
+   987→        {open ? (
+   988→          <LogForm
+   989→            key="log-form"
+   990→            traineeId={traineeId}
+   991→            mentorId={mentorId}
+   992→            onDone={onDone}
+   993→            onCancel={() => onOpenChange(false)}
+   994→          />
+   995→        ) : null}
+   996→      </DialogContent>
+   997→    </Dialog>
+   998→  );
+   999→}
+  1000→
+  1001→function LogForm({
+  1002→  traineeId,
+  1003→  mentorId,
+  1004→  onDone,
+  1005→  onCancel,
+  1006→}: {
+  1007→  traineeId: string;
+  1008→  mentorId?: string;
+  1009→  onDone: () => void;
+  1010→  onCancel: () => void;
+  1011→}) {
+  1012→  const [skill, setSkill] = useState<string>("Pattern drafting");
+  1013→  const [customSkill, setCustomSkill] = useState("");
+  1014→  const [title, setTitle] = useState("");
+  1015→  const [note, setNote] = useState("");
+  1016→  const [status, setStatus] = useState<TrainingStatus>("Learning");
+  1017→  const [date, setDate] = useState<string>(todayISO());
+  1018→
+  1019→  const createMut = useMutation({
+  1020→    mutationFn: () => {
+  1021→      const finalSkill =
+  1022→        skill === "Other" ? customSkill.trim() || "Other" : skill;
+  1023→      return apiPost<TrainingLog>("/api/training-logs", {
+  1024→        traineeId,
+  1025→        mentorId: mentorId ?? null,
+  1026→        skill: finalSkill,
+  1027→        title: title.trim(),
+  1028→        note: note.trim() || null,
+  1029→        status,
+  1030→        date,
+  1031→      });
+  1032→    },
+  1033→    onSuccess: () => {
+  1034→      toast.success("Training log added.");
+  1035→      onDone();
+  1036→      onCancel();
+  1037→    },
+  1038→    onError: (e: Error) =>
+  1039→      toast.error(e.message || "Could not add training log."),
+  1040→  });
+  1041→
+  1042→  const finalSkillIsOther = skill === "Other";
+  1043→  const titleValid = title.trim().length > 0;
+  1044→  const canSubmit = titleValid && !createMut.isPending;
+  1045→
+  1046→  return (
+  1047→    <>
+  1048→      <DialogHeader>
+  1049→        <DialogTitle>Log a training entry</DialogTitle>
+  1050→      </DialogHeader>
+  1051→
+  1052→      <div className="grid gap-4">
+  1053→        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  1054→          <div className="grid gap-1.5">
+  1055→            <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+  1056→              Skill
+  1057→            </Label>
+  1058→            <Select value={skill} onValueChange={setSkill}>
+  1059→              <SelectTrigger className="w-full bg-white">
+  1060→                <SelectValue />
+  1061→              </SelectTrigger>
+  1062→              <SelectContent>
+  1063→                {COMMON_SKILLS.map((s) => (
+  1064→                  <SelectItem key={s} value={s}>
+  1065→                    {s}
+  1066→                  </SelectItem>
+  1067→                ))}
+  1068→              </SelectContent>
+  1069→            </Select>
+  1070→          </div>
+  1071→          <div className="grid gap-1.5">
+  1072→            <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+  1073→              Status
+  1074→            </Label>
+  1075→            <Select
+  1076→              value={status}
+  1077→              onValueChange={(v) => setStatus(v as TrainingStatus)}
+  1078→            >
+  1079→              <SelectTrigger className="w-full bg-white">
+  1080→                <SelectValue />
+  1081→              </SelectTrigger>
+  1082→              <SelectContent>
+  1083→                {TRAINING_STATUSES.map((s) => (
+  1084→                  <SelectItem key={s} value={s}>
+  1085→                    {s}
+  1086→                  </SelectItem>
+  1087→                ))}
+  1088→              </SelectContent>
+  1089→            </Select>
+  1090→          </div>
+  1091→        </div>
+  1092→
+  1093→        {finalSkillIsOther && (
+  1094→          <div className="grid gap-1.5">
+  1095→            <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+  1096→              Skill name
+  1097→            </Label>
+  1098→            <Input
+  1099→              value={customSkill}
+  1100→              onChange={(e) => setCustomSkill(e.target.value)}
+  1101→              placeholder="e.g. French seams"
+  1102→              className="bg-white"
+  1103→            />
+  1104→          </div>
+  1105→        )}
+  1106→
+  1107→        <div className="grid gap-1.5">
+  1108→          <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+  1109→            Title <span className="text-[#800020]">*</span>
+  1110→          </Label>
+  1111→          <Input
+  1112→            value={title}
+  1113→            onChange={(e) => setTitle(e.target.value)}
+  1114→            placeholder="e.g. Practised princess seam bodice"
+  1115→            className="bg-white"
+  1116→          />
+  1117→        </div>
+  1118→
+  1119→        <div className="grid gap-1.5">
+  1120→          <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+  1121→            Note
+  1122→          </Label>
+  1123→          <Textarea
+  1124→            value={note}
+  1125→            onChange={(e) => setNote(e.target.value)}
+  1126→            placeholder="What did you learn or struggle with?"
+  1127→            rows={3}
+  1128→            className="bg-white resize-none"
+  1129→          />
+  1130→        </div>
+  1131→
+  1132→        <div className="grid gap-1.5">
+  1133→          <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+  1134→            Date
+  1135→          </Label>
+  1136→          <Input
+  1137→            type="date"
+  1138→            value={date}
+  1139→            onChange={(e) => setDate(e.target.value)}
+  1140→            className="bg-white"
+  1141→          />
+  1142→        </div>
+  1143→      </div>
+  1144→
+  1145→      <DialogFooter>
+  1146→        <PremiumButton
+  1147→          variant="outline"
+  1148→          onClick={onCancel}
+  1149→          disabled={createMut.isPending}
+  1150→        >
+  1151→          Cancel
+  1152→        </PremiumButton>
+  1153→        <PremiumButton
+  1154→          onClick={() => createMut.mutate()}
+  1155→          loading={createMut.isPending}
+  1156→          disabled={!canSubmit}
+  1157→        >
+  1158→          <Plus className="w-4 h-4" /> Add entry
+  1159→        </PremiumButton>
+  1160→      </DialogFooter>
+  1161→    </>
+  1162→  );
+  1163→}
+  1164→

@@ -18,6 +18,12 @@ model User {
   gender    String?  // Male | Female | Other (drives Madam/Master label)
   phone     String?
   password  String?  // demo-only plaintext; real apps must hash
+  // Trainee profile (school-portal style) — set by trainer/owner
+  mentorId           String?  // the trainer assigned to this trainee
+  mentor             User?    @relation("TraineeMentor", fields: [mentorId], references: [id])
+  trainees           User[]   @relation("TraineeMentor")
+  trainingDurationWeeks Int?  // programme length set by trainer/owner
+  trainingStartedAt  DateTime? // when the apprenticeship began (to compute progress)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -28,6 +34,7 @@ model User {
   trainingAsMentor  TrainingLog[] @relation("MentorLogs")
   certificatesAsTrainee Certificate[] @relation("TraineeCerts")
   certificatesAsIssuer Certificate[] @relation("IssuerCerts")
+  gradedTasks   Task[]   @relation("TaskGrader")
 }
 
 model Customer {
@@ -123,6 +130,13 @@ model Task {
   priority  String   @default("Medium")
   dueDate   DateTime?
   notes     String?
+  // Grading (school-portal style) — trainer/owner scores completed trainee tasks
+  maxScore  Int?     // e.g. 100
+  score     Int?     // achieved
+  gradedById String?
+  gradedBy  User?    @relation("TaskGrader", fields: [gradedById], references: [id])
+  gradedAt  DateTime?
+  feedback  String?  // grader's comment
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

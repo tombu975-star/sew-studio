@@ -20,6 +20,10 @@ export interface User {
   role: string;
   gender?: string | null;
   phone?: string | null;
+  mentorId?: string | null;
+  mentor?: { id: string; fullName: string } | null;
+  trainingDurationWeeks?: number | null;
+  trainingStartedAt?: string | null;
 }
 
 export interface Customer {
@@ -101,6 +105,13 @@ export interface Task {
   priority: string;
   dueDate?: string | null;
   notes?: string | null;
+  // Grading (school-portal style)
+  maxScore?: number | null;
+  score?: number | null;
+  gradedById?: string | null;
+  gradedBy?: { id: string; fullName: string } | null;
+  gradedAt?: string | null;
+  feedback?: string | null;
   createdAt: string;
 }
 
