@@ -1,5 +1,7 @@
 # Deploying Madam Studio — Vercel + Supabase (via GitHub)
 
+> **Status (2026-09-21):** the old "Sewsiness" Supabase project (`tombu975-star's Project`, ref `bgdvhxcgobolcdvieeuf`) has been **paused**. A new project, **`madam-studio`** (ref `bhjihkodfepbskmobszk`, eu-west-1), is live with the schema below already pushed and the old project's demo data migrated in as the "Adom Couture" shop, with Row Level Security enabled on every table. Get the DB password/connection string from the Supabase dashboard → this project → Project Settings → Database (not retrievable via API). This copy of the repo has `provider = "postgresql"` already set and `.github/workflows/` already added — see the CI/CD section below.
+
 Madam Studio is a multi-tenant atelier management platform. Each "shop" is an isolated tenant with its own clients, orders, staff, trainees, and community. This guide deploys it to **Vercel** (frontend + API) with **Supabase** (Postgres database), continuously deployed from a **GitHub** repository.
 
 ---
@@ -158,6 +160,26 @@ bun run dev         # starts on http://localhost:3000
 ```
 
 The dev server uses SQLite by default (`DATABASE_URL=file:./db/custom.db`). To develop against Supabase locally, set `DATABASE_URL` to your Supabase string and switch the provider to `postgresql`.
+
+---
+
+## CI/CD — auto-deploy on every push to GitHub
+
+Two things auto-deploy from this repo; they're independent and use different mechanisms:
+
+**1. The Next.js app (server + API routes) → Vercel.** This is Vercel's own GitHub integration, not a GitHub Action — it needs no workflow file. One-time setup: import the repo at vercel.com (Step 5 above); every push to `main` after that redeploys automatically.
+
+**2. Supabase (DB schema + Edge Functions) → GitHub Actions.** Two workflows in `.github/workflows/`:
+  - `deploy-db.yml` — on any push to `main` that touches `prisma/schema.prisma` or `prisma/migrations/`, runs `prisma db push` against Supabase.
+  - `deploy-edge-functions.yml` — on any push to `main` that touches `supabase/functions/`, deploys every function in that folder with the Supabase CLI. A starter `supabase/functions/health` is included — drop new functions in as sibling folders and they deploy automatically, no workflow edits needed.
+
+Add these repo secrets (GitHub repo → **Settings → Secrets and variables → Actions**):
+
+| Secret | Value |
+|---|---|
+| `DATABASE_URL` | madam-studio's Supabase pooler connection string (Project Settings → Database) |
+| `SUPABASE_ACCESS_TOKEN` | personal access token from https://supabase.com/dashboard/account/tokens |
+| `SUPABASE_PROJECT_ID` | `bhjihkodfepbskmobszk` |
 
 ---
 
