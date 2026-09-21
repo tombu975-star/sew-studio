@@ -7,6 +7,7 @@ import { Providers } from "@/components/Providers";
 import { LoginPage } from "@/components/atelier/LoginPage";
 import { useAuth } from "@/stores/auth";
 import { useNav } from "@/stores/nav";
+import { setOnSessionExpired } from "@/lib/api";
 import { Scissors, Lock } from "lucide-react";
 
 // Load all views lazily so each is a separate client bundle.
@@ -138,6 +139,14 @@ function AuthGate() {
   useEffect(() => {
     if (status === "loading") hydrate();
   }, [status, hydrate]);
+
+  // Wire up the global 401 handler: when any API call returns 401 (session expired),
+  // re-hydrate auth — which will show the login page if the session is truly gone.
+  useEffect(() => {
+    setOnSessionExpired(() => {
+      hydrate();
+    });
+  }, [hydrate]);
 
   if (status === "loading") return <FullScreenLoader />;
   if (status === "unauthenticated") return <LoginPage />;

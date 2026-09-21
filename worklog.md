@@ -1892,3 +1892,22 @@ Stage Summary:
 - The trainer/owner grants access per-trainee via Team → Trainees → Edit profile → two independent Switch toggles (Orders access / Production Board access).
 - The nav hides the items for unpermitted trainees; the GuardView shows a friendly "ask your trainer" notice if they somehow navigate to a guarded route.
 - Independent: a trainee can be granted Orders without Board, or both, or neither.
+
+---
+Task ID: 50 (fix dashboard keeps loading)
+Agent: main
+Task: Fix the dashboard that kept loading.
+
+Work Log:
+- Diagnosed: the dev log showed a flood of 401s on every API endpoint. The API itself was fine (curl with cookie returned 200), but the browser wasn't sending the cookie — caused by a stale session from earlier schema/client changes. The dashboard's TanStack Query would get 401 → error state, but the initial hydrate race + slow compile made it appear stuck.
+- Fixes:
+  1. Dashboard query: added `retry: 1, refetchOnMount: true` so it recovers quickly on transient 401s.
+  2. Global 401 handler: src/lib/api.ts now exposes `setOnSessionExpired(cb)`. On ANY 401 (except auth routes), the callback fires.
+  3. AuthGate wires the callback to `hydrate()` — so a 401 anywhere triggers a re-hydrate, which shows the login page if the session is truly gone (instead of an infinite loading skeleton).
+- Verified:
+  - Dashboard loads fully with real data (GHS 14,250 / 2,775 / 44,925 / 35,350 + active orders + fittings). VLM confirmed "fully loaded with real data, no loading indicators".
+  - Cleared cookie + reloaded → app correctly shows the login page (401 recovery) instead of getting stuck. ✅
+  - Lint clean.
+
+Stage Summary:
+- Dashboard loading issue fixed. Root cause was stale session cookies from earlier schema migrations. Added a global 401 → re-hydrate handler so any expired session cleanly returns to the login page instead of hanging on a loading skeleton.

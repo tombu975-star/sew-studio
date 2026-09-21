@@ -1,5 +1,12 @@
 // Lightweight fetch helpers for the atelier API.
 
+let onSessionExpired: (() => void) | null = null;
+
+/** Register a callback fired when any API call returns 401 (session expired). */
+export function setOnSessionExpired(cb: () => void) {
+  onSessionExpired = cb;
+}
+
 export async function api<T>(
   path: string,
   init?: RequestInit
@@ -12,6 +19,10 @@ export async function api<T>(
     },
   });
   if (!res.ok) {
+    // On 401, the session has expired — trigger a global re-auth.
+    if (res.status === 401 && onSessionExpired && !path.includes("/auth/")) {
+      onSessionExpired();
+    }
     const text = await res.text().catch(() => "");
     throw new Error(`${res.status} ${res.statusText} — ${text}`);
   }

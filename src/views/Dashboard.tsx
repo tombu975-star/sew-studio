@@ -201,6 +201,8 @@ function MainDashboard() {
   const { data, isLoading, isError } = useQuery<DashboardData>({
     queryKey: ["dashboard"],
     queryFn: () => apiGet<DashboardData>("/api/dashboard"),
+    retry: 1,
+    refetchOnMount: true,
   });
 
   const m = useMemo(() => {
