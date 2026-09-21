@@ -33,6 +33,8 @@ export async function POST(req: Request) {
       phone: user.phone,
       shopId: user.shopId,
       shop: user.shop,
+      canAccessOrders: user.canAccessOrders,
+      canAccessBoard: user.canAccessBoard,
     };
 
     // Session token encodes userId:shopId (demo only).

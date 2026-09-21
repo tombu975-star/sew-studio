@@ -207,9 +207,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
 
   const shopDisplayName = user?.shop?.name || studioName;
-  const sections = SECTIONS[role] || SECTIONS.staff;
+
+  // Trainee access to Orders + Board is gated by trainer-granted permissions.
+  // Default trainee sees only Tasks in the Studio section; permitted trainees see the granted items.
+  const traineeStudioItems: NavItem[] = [{ to: "tasks", label: "Tasks", icon: CheckSquare }];
+  if (user?.canAccessBoard) {
+    traineeStudioItems.unshift({ to: "board", label: "Board", icon: LayoutGrid });
+  }
+  if (user?.canAccessOrders) {
+    traineeStudioItems.unshift({ to: "orders", label: "Orders", icon: ShoppingBag });
+  }
+
+  // Build the effective sections for the current role.
+  const baseSections = SECTIONS[role] || SECTIONS.staff;
+  const sections: NavSection[] =
+    role === "trainee"
+      ? baseSections.map((s) =>
+          s.label === "Studio" ? { ...s, items: traineeStudioItems } : s
+        )
+      : baseSections;
+
   const allItems = sections.flatMap((s) => s.items);
-  const priorityKeys = MOBILE_PRIORITY[role] || MOBILE_PRIORITY.staff;
+
+  // Mobile priority: filter the default list to only items the trainee can access.
+  const basePriority = MOBILE_PRIORITY[role] || MOBILE_PRIORITY.staff;
+  const priorityKeys = basePriority.filter((k) =>
+    allItems.some((i) => i.to === k)
+  );
   const mobileItems = priorityKeys
     .map((k) => allItems.find((i) => i.to === k))
     .filter(Boolean) as NavItem[];

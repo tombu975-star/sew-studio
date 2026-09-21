@@ -27,6 +27,8 @@ export async function GET(req: Request) {
         phone: user.phone,
         shopId: user.shopId,
         shop: user.shop,
+        canAccessOrders: user.canAccessOrders,
+        canAccessBoard: user.canAccessBoard,
       },
     });
   } catch {

@@ -23,6 +23,10 @@ import {
   Pencil,
   CalendarDays,
   Clock,
+  Lock,
+  ShieldCheck,
+  ShoppingBag,
+  LayoutGrid,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
@@ -62,6 +66,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -895,6 +900,31 @@ function TraineesCard({
                         </span>
                       )}
                     </div>
+
+                    {/* Studio access badges */}
+                    <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[9px] uppercase tracking-[0.14em] text-stone-400">
+                        Access:
+                      </span>
+                      {(t as any).canAccessOrders || (t as any).canAccessBoard ? (
+                        <>
+                          {(t as any).canAccessOrders && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#800020] bg-[#800020]/8 border border-[#800020]/15 rounded px-1.5 py-0.5">
+                              <ShoppingBag className="w-2.5 h-2.5" /> Orders
+                            </span>
+                          )}
+                          {(t as any).canAccessBoard && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#800020] bg-[#800020]/8 border border-[#800020]/15 rounded px-1.5 py-0.5">
+                              <LayoutGrid className="w-2.5 h-2.5" /> Board
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-stone-400">
+                          <Lock className="w-2.5 h-2.5" /> Tasks only
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 pl-14 sm:pl-0">
@@ -1562,6 +1592,8 @@ interface EditTraineeForm {
   mentorId: string;
   trainingDurationWeeks: string;
   trainingStartedAt: string;
+  canAccessOrders: boolean;
+  canAccessBoard: boolean;
 }
 
 function EditTraineeDialog({
@@ -1586,6 +1618,8 @@ function EditTraineeDialog({
         ? String(trainee.trainingDurationWeeks)
         : "12",
     trainingStartedAt: toDateInput(trainee?.trainingStartedAt),
+    canAccessOrders: (trainee as any)?.canAccessOrders ?? false,
+    canAccessBoard: (trainee as any)?.canAccessBoard ?? false,
   }));
 
   const saveMutation = useMutation({
@@ -1593,6 +1627,8 @@ function EditTraineeDialog({
       mentorId: string | null;
       trainingDurationWeeks: number | null;
       trainingStartedAt: string | null;
+      canAccessOrders: boolean;
+      canAccessBoard: boolean;
     }) => apiPatch<User>(`/api/users/${trainee?.id}`, body),
     onSuccess: (u) => {
       qc.invalidateQueries({ queryKey: ["users"] });
@@ -1622,6 +1658,8 @@ function EditTraineeDialog({
       trainingDurationWeeks:
         !isNaN(durationNum) && durationNum > 0 ? durationNum : null,
       trainingStartedAt: form.trainingStartedAt || null,
+      canAccessOrders: form.canAccessOrders,
+      canAccessBoard: form.canAccessBoard,
     });
   }
 
@@ -1695,6 +1733,50 @@ function EditTraineeDialog({
               in the Progress view.
             </p>
           </div>
+
+          {/* Trainee access permissions */}
+          <div className="rounded-md border border-[#E7E5E4] divide-y divide-[#E7E5E4]">
+            <div className="px-3 py-2 bg-[#faf8f5] flex items-center gap-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#800020]" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+                Studio access permissions
+              </p>
+            </div>
+            <label className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-[#1C1917] flex items-center gap-1.5">
+                  <ShoppingBag className="w-3.5 h-3.5 text-stone-400" />
+                  Orders access
+                </p>
+                <p className="text-[11px] text-stone-400 mt-0.5">
+                  Let this trainee view the Orders list and order details.
+                </p>
+              </div>
+              <Switch
+                checked={form.canAccessOrders}
+                onCheckedChange={(v) => set("canAccessOrders", v)}
+              />
+            </label>
+            <label className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-[#1C1917] flex items-center gap-1.5">
+                  <LayoutGrid className="w-3.5 h-3.5 text-stone-400" />
+                  Production Board access
+                </p>
+                <p className="text-[11px] text-stone-400 mt-0.5">
+                  Let this trainee view the Production Board kanban.
+                </p>
+              </div>
+              <Switch
+                checked={form.canAccessBoard}
+                onCheckedChange={(v) => set("canAccessBoard", v)}
+              />
+            </label>
+          </div>
+          <p className="text-[11px] text-stone-400 -mt-2 flex items-center gap-1.5">
+            <Lock className="w-3 h-3" />
+            Trainees only see Orders and the Board when you grant access here.
+          </p>
 
           <DialogFooter>
             <PremiumButton

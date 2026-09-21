@@ -24,8 +24,16 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { mentorId, trainingDurationWeeks, trainingStartedAt, fullName, phone, gender } =
-      body || {};
+    const {
+      mentorId,
+      trainingDurationWeeks,
+      trainingStartedAt,
+      fullName,
+      phone,
+      gender,
+      canAccessOrders,
+      canAccessBoard,
+    } = body || {};
 
     const data: Record<string, unknown> = {};
     if (mentorId !== undefined) {
@@ -51,6 +59,11 @@ export async function PATCH(
     if (fullName !== undefined) data.fullName = fullName;
     if (phone !== undefined) data.phone = phone || null;
     if (gender !== undefined) data.gender = gender || null;
+    // Trainee access permissions (trainer/owner grants these)
+    if (canAccessOrders !== undefined)
+      data.canAccessOrders = Boolean(canAccessOrders);
+    if (canAccessBoard !== undefined)
+      data.canAccessBoard = Boolean(canAccessBoard);
 
     const updated = await db.user.update({ where: { id }, data });
     return Response.json(updated);

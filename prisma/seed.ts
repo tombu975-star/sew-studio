@@ -91,6 +91,9 @@ async function main() {
           mentorId: trainer.id,
           trainingDurationWeeks: 12,
           trainingStartedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7 * (8 - i * 2)), // started 8 / 6 weeks ago
+          // Kojo (further along) gets production access; Ama (newer) doesn't yet.
+          canAccessOrders: i === 1,
+          canAccessBoard: i === 1,
         },
       });
     }

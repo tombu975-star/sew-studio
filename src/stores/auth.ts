@@ -15,11 +15,13 @@ export interface AuthUser {
   id: string;
   email: string;
   fullName: string;
-  role: string; // madam | staff | trainer | trainee
+  role: string; // madam | staff | trainer | trainee | freelancer
   gender?: string | null;
   phone?: string | null;
   shopId: string;
   shop?: AuthShop | null;
+  canAccessOrders?: boolean;
+  canAccessBoard?: boolean;
 }
 
 type Status = "loading" | "authenticated" | "unauthenticated";

@@ -1865,3 +1865,30 @@ Work Log:
 
 Stage Summary:
 - One-line fix: `min-h-screen flex` → `min-h-screen flex flex-col md:flex-row`. Mobile top bar now renders full-width at the top; desktop sidebar layout preserved.
+
+---
+Task ID: 49 (trainee orders/board permission gating)
+Agent: main
+Task: Production Board and Orders shouldn't be accessible to trainees unless permitted by the trainer.
+
+Work Log:
+- Schema: added canAccessOrders + canAccessBoard (Boolean, default false) to User. db:push'd (non-destructive). Re-seeded: Kojo (further along) gets both; Ama (newer) gets neither.
+- API: /api/auth/login + /api/auth/me now return canAccessOrders + canAccessBoard. PATCH /api/users/[id] accepts + persists both fields.
+- Types: User + AuthUser include the permission fields.
+- AppShell: trainee Studio section is now dynamic — base = Tasks only; if canAccessOrders → add Orders; if canAccessBoard → add Board (independent toggles). Mobile priority list filters to only permitted items.
+- page.tsx: added a GuardView wrapper around Orders/OrderDetail/NewOrder/ProductionBoard. Trainees without the relevant permission see a friendly "Access not yet granted — your trainer hasn't granted you access to Orders/the Production Board yet" card with a Back-to-dashboard button. Non-trainees always pass.
+- Team → Trainees tab:
+  - Each trainee row now shows an "Access:" badge row — "Orders" + "Board" burgundy pills if granted, "Tasks only" (with Lock icon) if not.
+  - EditTraineeDialog has a new "Studio access permissions" section with two Switch toggles (Orders access / Production Board access) + a Lock hint "Trainees only see Orders and the Board when you grant access here."
+- Verified end-to-end:
+  - Ama (no access): nav = Dashboard, Tasks, My Progress, Portfolio, Certificate, Community — NO Orders/Board. ✅
+  - Kojo (both): nav = Dashboard, Board, Orders, Tasks, My Progress, Portfolio, Certificate, Community. ✅
+  - Owner granted Ama Orders access via Edit profile → Ama re-login → nav now shows Orders but NOT Board (independent toggles). ✅ Persisted to DB (orders:true, board:false).
+  - Access badges: Ama "Tasks only", Kojo "Orders" + "Board". ✅
+- Lint clean. Re-seeded clean demo data.
+
+Stage Summary:
+- Trainees default to NO access to Orders or the Production Board.
+- The trainer/owner grants access per-trainee via Team → Trainees → Edit profile → two independent Switch toggles (Orders access / Production Board access).
+- The nav hides the items for unpermitted trainees; the GuardView shows a friendly "ask your trainer" notice if they somehow navigate to a guarded route.
+- Independent: a trainee can be granted Orders without Board, or both, or neither.

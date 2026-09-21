@@ -7,7 +7,7 @@ import { Providers } from "@/components/Providers";
 import { LoginPage } from "@/components/atelier/LoginPage";
 import { useAuth } from "@/stores/auth";
 import { useNav } from "@/stores/nav";
-import { Scissors } from "lucide-react";
+import { Scissors, Lock } from "lucide-react";
 
 // Load all views lazily so each is a separate client bundle.
 const Dashboard = dynamic(() => import("@/views/Dashboard").then((m) => m.default), { ssr: false });
@@ -39,13 +39,13 @@ function CurrentView() {
     case "customer":
       return <CustomerProfile />;
     case "orders":
-      return <Orders />;
+      return <GuardView view="orders"><Orders /></GuardView>;
     case "order":
-      return <OrderDetail />;
+      return <GuardView view="orders"><OrderDetail /></GuardView>;
     case "new-order":
-      return <NewOrder />;
+      return <GuardView view="orders"><NewOrder /></GuardView>;
     case "board":
-      return <ProductionBoard />;
+      return <GuardView view="board"><ProductionBoard /></GuardView>;
     case "fittings":
       return <Fittings />;
     case "tasks":
@@ -71,6 +71,51 @@ function CurrentView() {
     default:
       return <Dashboard />;
   }
+}
+
+/**
+ * Guards a view behind a trainee permission (orders / board).
+ * Trainees without the permission see a friendly "ask your trainer" notice.
+ * Non-trainees always pass.
+ */
+function GuardView({
+  view,
+  children,
+}: {
+  view: "orders" | "board";
+  children: React.ReactNode;
+}) {
+  const { user } = useAuth();
+  const { go } = useNav();
+  const isTrainee = user?.role === "trainee";
+  const permitted =
+    view === "orders" ? user?.canAccessOrders : user?.canAccessBoard;
+  if (isTrainee && !permitted) {
+    return (
+      <div className="p-5 md:p-8 max-w-md mx-auto w-full">
+        <div className="surface-premium border border-[#E7E5E4] rounded-lg elevate-sm p-8 text-center">
+          <div className="w-14 h-14 rounded-full bg-[#800020]/8 flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-6 h-6 text-[#800020]" />
+          </div>
+          <h2 className="font-display text-xl font-semibold text-[#1C1917]">
+            Access not yet granted
+          </h2>
+          <p className="text-sm text-stone-500 mt-2 leading-relaxed">
+            Your trainer hasn&apos;t granted you access to{" "}
+            {view === "orders" ? "Orders" : "the Production Board"} yet. Once
+            they feel you&apos;re ready, they&apos;ll unlock it for you.
+          </p>
+          <button
+            onClick={() => go("dashboard")}
+            className="mt-5 inline-flex items-center gap-2 px-4 py-2 bg-[#800020] text-white text-sm font-medium rounded-md hover:bg-[#6b0018] transition"
+          >
+            Back to dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return <>{children}</>;
 }
 
 function FullScreenLoader() {

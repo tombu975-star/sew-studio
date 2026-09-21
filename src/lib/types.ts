@@ -24,6 +24,8 @@ export interface User {
   mentor?: { id: string; fullName: string } | null;
   trainingDurationWeeks?: number | null;
   trainingStartedAt?: string | null;
+  canAccessOrders?: boolean;
+  canAccessBoard?: boolean;
 }
 
 export interface Customer {
