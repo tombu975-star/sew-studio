@@ -1,0 +1,873 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+     5→import { toast } from "sonner";
+     6→import {
+     7→  ArrowLeft,
+     8→  Plus,
+     9→  CalendarDays,
+    10→  Phone,
+    11→  Mail,
+    12→  CheckCircle2,
+    13→  AlertCircle,
+    14→  Clock,
+    15→  StickyNote,
+    16→} from "lucide-react";
+    17→
+    18→import { apiGet, apiPatch, apiPost } from "@/lib/api";
+    19→import { useNav } from "@/stores/nav";
+    20→import {
+    21→  formatCurrency,
+    22→  formatDate,
+    23→  shortDate,
+    24→  todayISO,
+    25→  isOverdue,
+    26→  ORDER_STATUSES,
+    27→  PRIORITY_LEVELS,
+    28→} from "@/lib/format";
+    29→import type { Order } from "@/lib/types";
+    30→
+    31→import { AtelierCard } from "@/components/atelier/AtelierCard";
+    32→import { StatusBadge } from "@/components/atelier/StatusBadge";
+    33→import { StatusStepper } from "@/components/atelier/StatusStepper";
+    34→import { Button } from "@/components/ui/button";
+    35→import { Input } from "@/components/ui/input";
+    36→import { Label } from "@/components/ui/label";
+    37→import { Textarea } from "@/components/ui/textarea";
+    38→import {
+    39→  Dialog,
+    40→  DialogContent,
+    41→  DialogFooter,
+    42→  DialogHeader,
+    43→  DialogTitle,
+    44→  DialogTrigger,
+    45→} from "@/components/ui/dialog";
+    46→import {
+    47→  Select,
+    48→  SelectContent,
+    49→  SelectItem,
+    50→  SelectTrigger,
+    51→  SelectValue,
+    52→} from "@/components/ui/select";
+    53→import { cn } from "@/lib/utils";
+    54→
+    55→export default function OrderDetail() {
+    56→  const { selectedId, go } = useNav();
+    57→  const qc = useQueryClient();
+    58→
+    59→  const { data: order, isLoading } = useQuery<Order>({
+    60→    queryKey: ["order", selectedId],
+    61→    queryFn: () => apiGet<Order>(`/api/orders/${selectedId}`),
+    62→    enabled: !!selectedId,
+    63→  });
+    64→
+    65→  const paid = useMemo(
+    66→    () =>
+    67→      order?.payments?.reduce(
+    68→        (sum, p) => sum + (Number(p.amount) || 0),
+    69→        0
+    70→      ) ?? 0,
+    71→    [order]
+    72→  );
+    73→  const outstanding = useMemo(() => {
+    74→    const selling = Number(order?.sellingPrice) || 0;
+    75→    return Math.max(0, selling - paid);
+    76→  }, [order, paid]);
+    77→  const estMargin = useMemo(() => {
+    78→    const selling = Number(order?.sellingPrice) || 0;
+    79→    const fabric = Number(order?.fabricCost) || 0;
+    80→    const labour = Number(order?.labourCost) || 0;
+    81→    return selling - fabric - labour;
+    82→  }, [order]);
+    83→
+    84→  // Status change mutation
+    85→  const statusMut = useMutation({
+    86→    mutationFn: (status: string) =>
+    87→      apiPatch<Order>(`/api/orders/${selectedId}`, { status }),
+    88→    onSuccess: (updated) => {
+    89→      toast.success(`Status updated to ${updated.status}`);
+    90→      qc.setQueryData(["order", selectedId], updated);
+    91→      qc.invalidateQueries({ queryKey: ["orders"] });
+    92→    },
+    93→    onError: (e: Error) => toast.error(e.message),
+    94→  });
+    95→
+    96→  // Payment mutation
+    97→  const payMut = useMutation({
+    98→    mutationFn: (body: { amount: number; method?: string; note?: string }) =>
+    99→      apiPost(`/api/orders/${selectedId}/payments`, body),
+   100→    onSuccess: async () => {
+   101→      toast.success("Payment recorded");
+   102→      await qc.invalidateQueries({ queryKey: ["order", selectedId] });
+   103→      qc.invalidateQueries({ queryKey: ["orders"] });
+   104→    },
+   105→    onError: (e: Error) => toast.error(e.message),
+   106→  });
+   107→
+   108→  // Fitting mutation
+   109→  const fitMut = useMutation({
+   110→    mutationFn: (body: { date: string; notes?: string }) =>
+   111→      apiPost(`/api/orders/${selectedId}/fittings`, {
+   112→        ...body,
+   113→        status: "Scheduled",
+   114→      }),
+   115→    onSuccess: async () => {
+   116→      toast.success("Fitting scheduled");
+   117→      await qc.invalidateQueries({ queryKey: ["order", selectedId] });
+   118→    },
+   119→    onError: (e: Error) => toast.error(e.message),
+   120→  });
+   121→
+   122→  // Task mutation (uses /api/tasks with orderId)
+   123→  const taskMut = useMutation({
+   124→    mutationFn: (body: {
+   125→      title: string;
+   126→      priority: string;
+   127→      dueDate?: string;
+   128→    }) =>
+   129→      apiPost(`/api/tasks`, {
+   130→        ...body,
+   131→        orderId: selectedId,
+   132→        status: "To Do",
+   133→      }),
+   134→    onSuccess: async () => {
+   135→      toast.success("Task added");
+   136→      await qc.invalidateQueries({ queryKey: ["order", selectedId] });
+   137→      qc.invalidateQueries({ queryKey: ["tasks"] });
+   138→    },
+   139→    onError: (e: Error) => toast.error(e.message),
+   140→  });
+   141→
+   142→  // Notes mutation
+   143→  const notesMut = useMutation({
+   144→    mutationFn: (notes: string) =>
+   145→      apiPatch<Order>(`/api/orders/${selectedId}`, { notes }),
+   146→    onSuccess: async (updated) => {
+   147→      toast.success("Notes saved");
+   148→      qc.setQueryData(["order", selectedId], updated);
+   149→      qc.invalidateQueries({ queryKey: ["orders"] });
+   150→    },
+   151→    onError: (e: Error) => toast.error(e.message),
+   152→  });
+   153→
+   154→  if (!selectedId) {
+   155→    return (
+   156→      <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+   157→        <AtelierCard>
+   158→          <div className="py-12 text-center text-sm text-stone-500">
+   159→            No order selected.
+   160→          </div>
+   161→        </AtelierCard>
+   162→      </div>
+   163→    );
+   164→  }
+   165→
+   166→  if (isLoading || !order) {
+   167→    return (
+   168→      <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+   169→        <div className="h-4 w-24 bg-stone-200 rounded mb-6 animate-pulse" />
+   170→        <AtelierCard>
+   171→          <div className="py-10 text-center text-sm text-stone-400">
+   172→            Loading order…
+   173→          </div>
+   174→        </AtelierCard>
+   175→      </div>
+   176→    );
+   177→  }
+   178→
+   179→  const overdue = !!order.deliveryDate && isOverdue(order.deliveryDate);
+   180→
+   181→  return (
+   182→    <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+   183→      <button
+   184→        onClick={() => go("orders")}
+   185→        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
+   186→      >
+   187→        <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
+   188→      </button>
+   189→
+   190→      {/* Header */}
+   191→      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5 mb-6">
+   192→        <div className="min-w-0">
+   193→          <h1
+   194→            className="font-display font-semibold text-[#1C1917] leading-tight"
+   195→            style={{ fontSize: "clamp(26px, 3.6vw, 34px)" }}
+   196→          >
+   197→            {order.garmentDesign}
+   198→          </h1>
+   199→          <button
+   200→            onClick={() => go("customer", { id: order.customerId })}
+   201→            className="text-sm text-[#800020] hover:underline mt-1.5 font-medium"
+   202→          >
+   203→            {order.customer?.name || "—"}
+   204→          </button>
+   205→          <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-3 text-[12px] text-stone-500">
+   206→            <span className="flex items-center gap-1.5">
+   207→              <CalendarDays className="w-3.5 h-3.5" />
+   208→              Ordered {formatDate(order.orderDate)}
+   209→            </span>
+   210→            <span
+   211→              className={cn(
+   212→                "flex items-center gap-1.5",
+   213→                overdue && "text-amber-700 font-semibold"
+   214→              )}
+   215→            >
+   216→              <Clock className="w-3.5 h-3.5" />
+   217→              Delivery {order.deliveryDate ? formatDate(order.deliveryDate) : "—"}
+   218→              {overdue && (
+   219→                <span className="text-[10px] uppercase tracking-wide">
+   220→                  · overdue
+   221→                </span>
+   222→              )}
+   223→            </span>
+   224→            {order.priority === "High" && (
+   225→              <span className="flex items-center gap-1 text-[#800020] font-semibold">
+   226→                <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
+   227→                High priority
+   228→              </span>
+   229→            )}
+   230→            {order.assignedStaff && (
+   231→              <span>Staff: {order.assignedStaff.fullName}</span>
+   232→            )}
+   233→          </div>
+   234→        </div>
+   235→
+   236→        {/* Status changer */}
+   237→        <div className="flex items-center gap-2 shrink-0">
+   238→          <StatusBadge status={order.status} />
+   239→          <Select
+   240→            value={order.status}
+   241→            onValueChange={(v) => statusMut.mutate(v)}
+   242→            disabled={statusMut.isPending}
+   243→          >
+   244→            <SelectTrigger className="w-[180px] rounded-sm h-9 text-sm">
+   245→              <SelectValue placeholder="Change status" />
+   246→            </SelectTrigger>
+   247→            <SelectContent>
+   248→              {ORDER_STATUSES.map((s) => (
+   249→                <SelectItem key={s} value={s}>
+   250→                  {s}
+   251→                </SelectItem>
+   252→              ))}
+   253→            </SelectContent>
+   254→          </Select>
+   255→        </div>
+   256→      </div>
+   257→
+   258→      {/* Order Journey / Stepper */}
+   259→      <AtelierCard
+   260→        title="Order Journey"
+   261→        className="mb-4"
+   262→        bodyClassName="pt-6"
+   263→      >
+   264→        <StatusStepper current={order.status} />
+   265→      </AtelierCard>
+   266→
+   267→      {/* Grid */}
+   268→      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+   269→        {/* LEFT 2/3 */}
+   270→        <div className="lg:col-span-2 space-y-4">
+   271→          {/* Financials */}
+   272→          <AtelierCard
+   273→            title="Financials"
+   274→            action={<PaymentDialog onConfirm={(b) => payMut.mutate(b)} />}
+   275→          >
+   276→            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+   277→              <Stat
+   278→                label="Selling price"
+   279→                value={formatCurrency(order.sellingPrice)}
+   280→                primary
+   281→              />
+   282→              <Stat label="Paid so far" value={formatCurrency(paid)} />
+   283→              <Stat
+   284→                label="Outstanding"
+   285→                value={formatCurrency(outstanding)}
+   286→                tone={outstanding > 0 ? "warn" : "ok"}
+   287→              />
+   288→              <Stat label="Fabric cost" value={formatCurrency(order.fabricCost)} />
+   289→              <Stat label="Labour cost" value={formatCurrency(order.labourCost)} />
+   290→              <Stat
+   291→                label="Est. margin"
+   292→                value={formatCurrency(estMargin)}
+   293→                tone={estMargin >= 0 ? "ok" : "warn"}
+   294→              />
+   295→            </div>
+   296→
+   297→            <div>
+   298→              <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-2">
+   299→                Payments
+   300→              </div>
+   301→              {order.payments && order.payments.length > 0 ? (
+   302→                <div className="divide-y divide-[#E7E5E4] border border-[#E7E5E4] rounded-sm">
+   303→                  {order.payments.map((p) => (
+   304→                    <div
+   305→                      key={p.id}
+   306→                      className="px-3 py-2.5 flex items-center justify-between gap-3"
+   307→                    >
+   308→                      <div className="min-w-0">
+   309→                        <div className="text-sm font-medium text-[#1C1917]">
+   310→                          {formatCurrency(p.amount)}
+   311→                        </div>
+   312→                        <div className="text-[11px] text-stone-400">
+   313→                          {formatDate(p.date)}
+   314→                          {p.method ? ` · ${p.method}` : ""}
+   315→                          {p.note ? ` · ${p.note}` : ""}
+   316→                        </div>
+   317→                      </div>
+   318→                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+   319→                    </div>
+   320→                  ))}
+   321→                </div>
+   322→              ) : (
+   323→                <p className="text-sm text-stone-400">
+   324→                  No payments recorded yet.
+   325→                </p>
+   326→              )}
+   327→            </div>
+   328→          </AtelierCard>
+   329→
+   330→          {/* Fittings */}
+   331→          <AtelierCard
+   332→            title="Fittings"
+   333→            action={<FittingDialog onConfirm={(b) => fitMut.mutate(b)} />}
+   334→          >
+   335→            {order.fittings && order.fittings.length > 0 ? (
+   336→              <div className="space-y-2">
+   337→                {order.fittings.map((f) => (
+   338→                  <div
+   339→                    key={f.id}
+   340→                    className="flex items-start justify-between gap-3 p-3 border border-[#E7E5E4] rounded-sm"
+   341→                  >
+   342→                    <div className="min-w-0">
+   343→                      <div className="text-sm font-medium text-[#1C1917]">
+   344→                        {formatDate(f.date)}
+   345→                      </div>
+   346→                      {f.notes && (
+   347→                        <div className="text-[12px] text-stone-500 mt-0.5">
+   348→                          {f.notes}
+   349→                        </div>
+   350→                      )}
+   351→                    </div>
+   352→                    <StatusBadge status={f.status} />
+   353→                  </div>
+   354→                ))}
+   355→              </div>
+   356→            ) : (
+   357→              <p className="text-sm text-stone-400">No fittings scheduled.</p>
+   358→            )}
+   359→          </AtelierCard>
+   360→
+   361→          {/* Tasks */}
+   362→          <AtelierCard
+   363→            title="Tasks"
+   364→            action={<TaskDialog onConfirm={(b) => taskMut.mutate(b)} />}
+   365→          >
+   366→            {order.tasks && order.tasks.length > 0 ? (
+   367→              <div className="space-y-2">
+   368→                {order.tasks.map((t) => (
+   369→                  <div
+   370→                    key={t.id}
+   371→                    className="flex items-center justify-between gap-3 p-3 border border-[#E7E5E4] rounded-sm"
+   372→                  >
+   373→                    <div className="min-w-0">
+   374→                      <div className="text-sm font-medium text-[#1C1917] truncate">
+   375→                        {t.title}
+   376→                      </div>
+   377→                      <div className="text-[11px] text-stone-400 mt-0.5">
+   378→                        {t.dueDate ? `Due ${shortDate(t.dueDate)}` : "No due date"}
+   379→                        {t.staff ? ` · ${t.staff.fullName}` : ""}
+   380→                      </div>
+   381→                    </div>
+   382→                    <div className="flex items-center gap-2 shrink-0">
+   383→                      <StatusBadge status={t.priority} />
+   384→                      <StatusBadge status={t.status} />
+   385→                    </div>
+   386→                  </div>
+   387→                ))}
+   388→              </div>
+   389→            ) : (
+   390→              <p className="text-sm text-stone-400">No tasks for this order.</p>
+   391→            )}
+   392→          </AtelierCard>
+   393→
+   394→          {/* Notes */}
+   395→          <AtelierCard title="Notes">
+   396→            <NotesEditor
+   397→              initial={order.notes || ""}
+   398→              onSave={(v) => notesMut.mutate(v)}
+   399→              saving={notesMut.isPending}
+   400→            />
+   401→          </AtelierCard>
+   402→        </div>
+   403→
+   404→        {/* RIGHT 1/3 */}
+   405→        <div className="space-y-4">
+   406→          {/* Customer snapshot */}
+   407→          <AtelierCard title="Customer Snapshot">
+   408→            {order.customer ? (
+   409→              <div className="space-y-3">
+   410→                <div>
+   411→                  <button
+   412→                    onClick={() =>
+   413→                      go("customer", { id: order.customerId })
+   414→                    }
+   415→                    className="text-sm font-semibold text-[#800020] hover:underline"
+   416→                  >
+   417→                    {order.customer.name}
+   418→                  </button>
+   419→                  {order.customer.customerType && (
+   420→                    <div className="text-[11px] uppercase tracking-wide text-stone-400 mt-0.5">
+   421→                      {order.customer.customerType}
+   422→                    </div>
+   423→                  )}
+   424→                </div>
+   425→                <div className="space-y-1.5 text-[12px] text-stone-600">
+   426→                  {order.customer.phone && (
+   427→                    <div className="flex items-center gap-1.5">
+   428→                      <Phone className="w-3.5 h-3.5 text-stone-400" />
+   429→                      {order.customer.phone}
+   430→                    </div>
+   431→                  )}
+   432→                  {order.customer.email && (
+   433→                    <div className="flex items-center gap-1.5">
+   434→                      <Mail className="w-3.5 h-3.5 text-stone-400" />
+   435→                      {order.customer.email}
+   436→                    </div>
+   437→                  )}
+   438→                </div>
+   439→                <div className="pt-2 border-t border-[#E7E5E4] space-y-1.5 text-[12px]">
+   440→                  <Row label="Entry" value={order.customer.entrySource} />
+   441→                  <Row
+   442→                    label="Styles"
+   443→                    value={order.customer.preferredStyles}
+   444→                  />
+   445→                  <Row label="City" value={order.customer.city} />
+   446→                </div>
+   447→                <Button
+   448→                  variant="outline"
+   449→                  size="sm"
+   450→                  className="w-full rounded-sm mt-1"
+   451→                  onClick={() => go("customer", { id: order.customerId })}
+   452→                >
+   453→                  Open full profile
+   454→                </Button>
+   455→              </div>
+   456→            ) : (
+   457→              <p className="text-sm text-stone-400">No customer linked.</p>
+   458→            )}
+   459→          </AtelierCard>
+   460→
+   461→          {/* Timeline (simple) */}
+   462→          <AtelierCard title="Timeline">
+   463→            <div className="space-y-2 text-[12px] text-stone-600">
+   464→              <div className="flex items-center gap-2">
+   465→                <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
+   466→                Created {formatDate(order.createdAt)}
+   467→              </div>
+   468→              <div className="flex items-center gap-2">
+   469→                <AlertCircle className="w-3.5 h-3.5 text-stone-400" />
+   470→                Current status: {order.status}
+   471→              </div>
+   472→            </div>
+   473→          </AtelierCard>
+   474→        </div>
+   475→      </div>
+   476→    </div>
+   477→  );
+   478→}
+   479→
+   480→/* ---------- Helpers ---------- */
+   481→
+   482→function Stat({
+   483→  label,
+   484→  value,
+   485→  primary,
+   486→  tone,
+   487→}: {
+   488→  label: string;
+   489→  value: string;
+   490→  primary?: boolean;
+   491→  tone?: "ok" | "warn";
+   492→}) {
+   493→  return (
+   494→    <div>
+   495→      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold">
+   496→        {label}
+   497→      </div>
+   498→      <div
+   499→        className={cn(
+   500→          "mt-1 text-lg font-display font-semibold",
+   501→          primary && "text-[#1C1917]",
+   502→          tone === "ok" && "text-emerald-700",
+   503→          tone === "warn" && "text-amber-700",
+   504→          !primary && !tone && "text-[#1C1917]"
+   505→        )}
+   506→      >
+   507→        {value}
+   508→      </div>
+   509→    </div>
+   510→  );
+   511→}
+   512→
+   513→function Row({ label, value }: { label: string; value?: string | null }) {
+   514→  if (!value) return null;
+   515→  return (
+   516→    <div className="flex justify-between gap-3">
+   517→      <span className="text-stone-400">{label}</span>
+   518→      <span className="text-[#1C1917] text-right">{value}</span>
+   519→    </div>
+   520→  );
+   521→}
+   522→
+   523→function NotesEditor({
+   524→  initial,
+   525→  onSave,
+   526→  saving,
+   527→}: {
+   528→  initial: string;
+   529→  onSave: (v: string) => void;
+   530→  saving: boolean;
+   531→}) {
+   532→  const [val, setVal] = useState(initial);
+   533→  const [editing, setEditing] = useState(false);
+   534→  const [lastInitial, setLastInitial] = useState(initial);
+   535→  if (initial !== lastInitial) {
+   536→    setLastInitial(initial);
+   537→    setVal(initial);
+   538→  }
+   539→
+   540→  if (!editing) {
+   541→    return (
+   542→      <div>
+   543→        {initial ? (
+   544→          <p className="text-sm text-stone-700 whitespace-pre-wrap">
+   545→            {initial}
+   546→          </p>
+   547→        ) : (
+   548→          <p className="text-sm text-stone-400">No notes yet.</p>
+   549→        )}
+   550→        <div className="mt-3">
+   551→          <Button
+   552→            variant="outline"
+   553→            size="sm"
+   554→            className="rounded-sm"
+   555→            onClick={() => setEditing(true)}
+   556→          >
+   557→            <StickyNote className="w-3.5 h-3.5" /> Edit notes
+   558→          </Button>
+   559→        </div>
+   560→      </div>
+   561→    );
+   562→  }
+   563→  return (
+   564→    <div>
+   565→      <Textarea
+   566→        value={val}
+   567→        onChange={(e) => setVal(e.target.value)}
+   568→        rows={5}
+   569→        placeholder="Notes about this order…"
+   570→        className="rounded-sm"
+   571→      />
+   572→      <div className="flex gap-2 mt-3">
+   573→        <Button
+   574→          size="sm"
+   575→          className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm"
+   576→          disabled={saving}
+   577→          onClick={() => {
+   578→            onSave(val);
+   579→            setEditing(false);
+   580→          }}
+   581→        >
+   582→          {saving ? "Saving…" : "Save"}
+   583→        </Button>
+   584→        <Button
+   585→          variant="outline"
+   586→          size="sm"
+   587→          className="rounded-sm"
+   588→          onClick={() => {
+   589→            setVal(initial);
+   590→            setEditing(false);
+   591→          }}
+   592→        >
+   593→          Cancel
+   594→        </Button>
+   595→      </div>
+   596→    </div>
+   597→  );
+   598→}
+   599→
+   600→/* ---------- Dialogs ---------- */
+   601→
+   602→function PaymentDialog({
+   603→  onConfirm,
+   604→}: {
+   605→  onConfirm: (b: { amount: number; method?: string; note?: string }) => void;
+   606→}) {
+   607→  const [open, setOpen] = useState(false);
+   608→  const [amount, setAmount] = useState("");
+   609→  const [method, setMethod] = useState("Cash");
+   610→  const [note, setNote] = useState("");
+   611→
+   612→  return (
+   613→    <Dialog
+   614→      open={open}
+   615→      onOpenChange={(v) => {
+   616→        setOpen(v);
+   617→        if (!v) {
+   618→          setAmount("");
+   619→          setNote("");
+   620→          setMethod("Cash");
+   621→        }
+   622→      }}
+   623→    >
+   624→      <DialogTrigger asChild>
+   625→        <Button
+   626→          size="sm"
+   627→          className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm gap-1.5"
+   628→        >
+   629→          <Plus className="w-3.5 h-3.5" /> Record Payment
+   630→        </Button>
+   631→      </DialogTrigger>
+   632→      <DialogContent className="max-w-md">
+   633→        <DialogHeader>
+   634→          <DialogTitle>Record Payment</DialogTitle>
+   635→        </DialogHeader>
+   636→        <div className="space-y-3">
+   637→          <div>
+   638→            <Label>Amount (GHS) *</Label>
+   639→            <Input
+   640→              type="number"
+   641→              value={amount}
+   642→              onChange={(e) => setAmount(e.target.value)}
+   643→              placeholder="0"
+   644→              className="rounded-sm mt-1"
+   645→            />
+   646→          </div>
+   647→          <div>
+   648→            <Label>Method</Label>
+   649→            <Select value={method} onValueChange={setMethod}>
+   650→              <SelectTrigger className="rounded-sm mt-1 w-full">
+   651→                <SelectValue />
+   652→              </SelectTrigger>
+   653→              <SelectContent>
+   654→                {["Cash", "Transfer", "Card", "Cheque"].map((m) => (
+   655→                  <SelectItem key={m} value={m}>
+   656→                    {m}
+   657→                  </SelectItem>
+   658→                ))}
+   659→              </SelectContent>
+   660→            </Select>
+   661→          </div>
+   662→          <div>
+   663→            <Label>Note</Label>
+   664→            <Textarea
+   665→              value={note}
+   666→              onChange={(e) => setNote(e.target.value)}
+   667→              rows={2}
+   668→              placeholder="Optional"
+   669→              className="rounded-sm mt-1"
+   670→            />
+   671→          </div>
+   672→        </div>
+   673→        <DialogFooter>
+   674→          <Button
+   675→            variant="outline"
+   676→            className="rounded-sm"
+   677→            onClick={() => setOpen(false)}
+   678→          >
+   679→            Cancel
+   680→          </Button>
+   681→          <Button
+   682→            className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm"
+   683→            disabled={!amount || Number(amount) <= 0}
+   684→            onClick={() => {
+   685→              onConfirm({
+   686→                amount: Number(amount),
+   687→                method,
+   688→                note: note || undefined,
+   689→              });
+   690→              setOpen(false);
+   691→            }}
+   692→          >
+   693→            Save payment
+   694→          </Button>
+   695→        </DialogFooter>
+   696→      </DialogContent>
+   697→    </Dialog>
+   698→  );
+   699→}
+   700→
+   701→function FittingDialog({
+   702→  onConfirm,
+   703→}: {
+   704→  onConfirm: (b: { date: string; notes?: string }) => void;
+   705→}) {
+   706→  const [open, setOpen] = useState(false);
+   707→  const [date, setDate] = useState(todayISO());
+   708→  const [notes, setNotes] = useState("");
+   709→
+   710→  return (
+   711→    <Dialog
+   712→      open={open}
+   713→      onOpenChange={(v) => {
+   714→        setOpen(v);
+   715→        if (!v) {
+   716→          setNotes("");
+   717→          setDate(todayISO());
+   718→        }
+   719→      }}
+   720→    >
+   721→      <DialogTrigger asChild>
+   722→        <Button
+   723→          size="sm"
+   724→          variant="outline"
+   725→          className="rounded-sm gap-1.5"
+   726→        >
+   727→          <Plus className="w-3.5 h-3.5" /> Schedule Fitting
+   728→        </Button>
+   729→      </DialogTrigger>
+   730→      <DialogContent className="max-w-md">
+   731→        <DialogHeader>
+   732→          <DialogTitle>Schedule Fitting</DialogTitle>
+   733→        </DialogHeader>
+   734→        <div className="space-y-3">
+   735→          <div>
+   736→            <Label>Date *</Label>
+   737→            <Input
+   738→              type="date"
+   739→              value={date}
+   740→              onChange={(e) => setDate(e.target.value)}
+   741→              className="rounded-sm mt-1"
+   742→            />
+   743→          </div>
+   744→          <div>
+   745→            <Label>Notes</Label>
+   746→            <Textarea
+   747→              value={notes}
+   748→              onChange={(e) => setNotes(e.target.value)}
+   749→              rows={3}
+   750→              placeholder="Any prep notes for this fitting…"
+   751→              className="rounded-sm mt-1"
+   752→            />
+   753→          </div>
+   754→        </div>
+   755→        <DialogFooter>
+   756→          <Button
+   757→            variant="outline"
+   758→            className="rounded-sm"
+   759→            onClick={() => setOpen(false)}
+   760→          >
+   761→            Cancel
+   762→          </Button>
+   763→          <Button
+   764→            className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm"
+   765→            onClick={() => {
+   766→              onConfirm({ date, notes: notes || undefined });
+   767→              setOpen(false);
+   768→            }}
+   769→          >
+   770→            Schedule
+   771→          </Button>
+   772→        </DialogFooter>
+   773→      </DialogContent>
+   774→    </Dialog>
+   775→  );
+   776→}
+   777→
+   778→function TaskDialog({
+   779→  onConfirm,
+   780→}: {
+   781→  onConfirm: (b: { title: string; priority: string; dueDate?: string }) => void;
+   782→}) {
+   783→  const [open, setOpen] = useState(false);
+   784→  const [title, setTitle] = useState("");
+   785→  const [priority, setPriority] = useState("Medium");
+   786→  const [dueDate, setDueDate] = useState("");
+   787→
+   788→  return (
+   789→    <Dialog
+   790→      open={open}
+   791→      onOpenChange={(v) => {
+   792→        setOpen(v);
+   793→        if (!v) {
+   794→          setTitle("");
+   795→          setPriority("Medium");
+   796→          setDueDate("");
+   797→        }
+   798→      }}
+   799→    >
+   800→      <DialogTrigger asChild>
+   801→        <Button size="sm" variant="outline" className="rounded-sm gap-1.5">
+   802→          <Plus className="w-3.5 h-3.5" /> Add Task
+   803→        </Button>
+   804→      </DialogTrigger>
+   805→      <DialogContent className="max-w-md">
+   806→        <DialogHeader>
+   807→          <DialogTitle>Add Task</DialogTitle>
+   808→        </DialogHeader>
+   809→        <div className="space-y-3">
+   810→          <div>
+   811→            <Label>Title *</Label>
+   812→            <Input
+   813→              value={title}
+   814→              onChange={(e) => setTitle(e.target.value)}
+   815→              placeholder="e.g. Source fabric"
+   816→              className="rounded-sm mt-1"
+   817→            />
+   818→          </div>
+   819→          <div className="grid grid-cols-2 gap-3">
+   820→            <div>
+   821→              <Label>Priority</Label>
+   822→              <Select value={priority} onValueChange={setPriority}>
+   823→                <SelectTrigger className="rounded-sm mt-1 w-full">
+   824→                  <SelectValue />
+   825→                </SelectTrigger>
+   826→                <SelectContent>
+   827→                  {PRIORITY_LEVELS.map((p) => (
+   828→                    <SelectItem key={p} value={p}>
+   829→                      {p}
+   830→                    </SelectItem>
+   831→                  ))}
+   832→                </SelectContent>
+   833→              </Select>
+   834→            </div>
+   835→            <div>
+   836→              <Label>Due date</Label>
+   837→              <Input
+   838→                type="date"
+   839→                value={dueDate}
+   840→                onChange={(e) => setDueDate(e.target.value)}
+   841→                className="rounded-sm mt-1"
+   842→              />
+   843→            </div>
+   844→          </div>
+   845→        </div>
+   846→        <DialogFooter>
+   847→          <Button
+   848→            variant="outline"
+   849→            className="rounded-sm"
+   850→            onClick={() => setOpen(false)}
+   851→          >
+   852→            Cancel
+   853→          </Button>
+   854→          <Button
+   855→            className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm"
+   856→            disabled={!title.trim()}
+   857→            onClick={() => {
+   858→              onConfirm({
+   859→                title: title.trim(),
+   860→                priority,
+   861→                dueDate: dueDate || undefined,
+   862→              });
+   863→              setOpen(false);
+   864→            }}
+   865→          >
+   866→            Add task
+   867→          </Button>
+   868→        </DialogFooter>
+   869→      </DialogContent>
+   870→    </Dialog>
+   871→  );
+   872→}
+   873→

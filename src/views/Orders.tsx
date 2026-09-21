@@ -2,7 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, ArrowLeft, AlertCircle } from "lucide-react";
+import {
+  Plus,
+  Search,
+  ArrowLeft,
+  AlertCircle,
+  ShoppingBag,
+  CheckCircle2,
+  Clock,
+  Loader2,
+} from "lucide-react";
 
 import { apiGet } from "@/lib/api";
 import { useNav } from "@/stores/nav";
@@ -11,12 +20,16 @@ import {
   shortDate,
   isOverdue,
   ORDER_STATUSES,
+  ACTIVE_STATUSES,
 } from "@/lib/format";
 import type { Order, User } from "@/lib/types";
 
-import { AtelierCard } from "@/components/atelier/AtelierCard";
+import { PageHeader } from "@/components/atelier/PageHeader";
+import { SectionCard } from "@/components/atelier/SectionCard";
+import { PremiumMetric } from "@/components/atelier/PremiumMetric";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
-import { Button } from "@/components/ui/button";
+import { EmptyState, SkeletonList } from "@/components/atelier/EmptyState";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -27,6 +40,14 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
+const AVATAR_GRADIENTS = [
+  "from-[#800020] to-[#b45309]",
+  "from-[#0e7490] to-[#800020]",
+  "from-[#15803D] to-[#0e7490]",
+  "from-[#b45309] to-[#800020]",
+  "from-[#800020] to-[#6b0018]",
+];
+
 function initials(name: string) {
   return name
     .split(" ")
@@ -34,6 +55,21 @@ function initials(name: string) {
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase())
     .join("");
+}
+
+function hashIndex(s: string, mod: number) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % mod;
+}
+
+function sameMonth(dateStr?: string | null) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return (
+    d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+  );
 }
 
 export default function Orders() {
@@ -51,225 +87,284 @@ export default function Orders() {
     queryFn: () => apiGet<User[]>("/api/users"),
   });
 
+  const enriched = useMemo(() => {
+    return (orders || []).map((o) => ({
+      ...o,
+      paid:
+        o.payments?.reduce((sum, p) => sum + (Number(p.amount) || 0), 0) ?? 0,
+    }));
+  }, [orders]);
+
+  const stats = useMemo(() => {
+    const total = enriched.length;
+    const active = enriched.filter((o) =>
+      ACTIVE_STATUSES.includes(
+        o.status as (typeof ACTIVE_STATUSES)[number]
+      )
+    ).length;
+    const ready = enriched.filter((o) => o.status === "Ready").length;
+    const completedThisMonth = enriched.filter(
+      (o) => o.status === "Completed" && sameMonth(o.orderDate)
+    ).length;
+    return { total, active, ready, completedThisMonth };
+  }, [enriched]);
+
   const rows = useMemo(() => {
-    if (!orders) return [];
     const q = search.trim().toLowerCase();
-    return orders
+    return enriched
       .filter((o) => statusFilter === "all" || o.status === statusFilter)
-      .filter((o) => staffFilter === "all" || o.assignedStaffId === staffFilter)
+      .filter(
+        (o) => staffFilter === "all" || o.assignedStaffId === staffFilter
+      )
       .filter(
         (o) =>
           !q ||
           o.garmentDesign?.toLowerCase().includes(q) ||
           o.customer?.name?.toLowerCase().includes(q)
-      )
-      .map((o) => ({
-        ...o,
-        paid:
-          o.payments?.reduce((sum, p) => sum + (Number(p.amount) || 0), 0) ?? 0,
-      }));
-  }, [orders, statusFilter, staffFilter, search]);
+      );
+  }, [enriched, statusFilter, staffFilter, search]);
+
+  const clearFilters = () => {
+    setStatusFilter("all");
+    setStaffFilter("all");
+    setSearch("");
+  };
 
   return (
-    <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1
-            className="font-display font-semibold text-[#1C1917] leading-tight"
-            style={{ fontSize: "clamp(28px, 4vw, 36px)" }}
-          >
-            Orders
-          </h1>
-          <p className="text-sm text-stone-500 mt-1">
-            {isLoading
-              ? "Loading…"
-              : `${rows.length} order${rows.length === 1 ? "" : "s"}`}
-          </p>
-        </div>
-        <Button
-          onClick={() => go("new-order")}
-          className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm gap-2"
-        >
-          <Plus className="w-4 h-4" /> New Order
-        </Button>
+    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+      <PageHeader
+        eyebrow="Production"
+        eyebrowIcon={ShoppingBag}
+        title="Orders"
+        subtitle="Every garment, from enquiry to collection."
+        actions={
+          <PremiumButton onClick={() => go("new-order")}>
+            <Plus className="w-4 h-4" /> New Order
+          </PremiumButton>
+        }
+      />
+
+      {/* Premium stat strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <PremiumMetric
+          label="Total Orders"
+          value={isLoading ? "—" : stats.total}
+          icon={ShoppingBag}
+          accent
+        />
+        <PremiumMetric
+          label="Active"
+          value={isLoading ? "—" : stats.active}
+          icon={Clock}
+        />
+        <PremiumMetric
+          label="Ready for Collection"
+          value={isLoading ? "—" : stats.ready}
+          icon={CheckCircle2}
+        />
+        <PremiumMetric
+          label="Completed This Month"
+          value={isLoading ? "—" : stats.completedThisMonth}
+          icon={CheckCircle2}
+        />
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-          <Input
-            placeholder="Search garment or customer…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 rounded-sm h-9"
+      {/* Filter bar */}
+      <SectionCard className="mb-6" bodyClassName="py-3">
+        <div className="flex flex-col md:flex-row md:items-center gap-3">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+            <Input
+              placeholder="Search by garment or customer…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 rounded-md h-9 bg-white"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full md:w-[190px] rounded-md h-9 text-sm bg-white">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {ORDER_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={staffFilter} onValueChange={setStaffFilter}>
+            <SelectTrigger className="w-full md:w-[180px] rounded-md h-9 text-sm bg-white">
+              <SelectValue placeholder="All staff" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All staff</SelectItem>
+              {(users || []).map((u) => (
+                <SelectItem key={u.id} value={u.id}>
+                  {u.fullName || u.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </SectionCard>
+
+      {/* Orders table */}
+      <SectionCard bodyClassName="p-0">
+        {isLoading ? (
+          <SkeletonList rows={6} />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            icon={ShoppingBag}
+            title="No orders match your filters"
+            description="Try adjusting your search or filters, or create a new commission."
+            action={
+              <PremiumButton variant="outline" size="sm" onClick={clearFilters}>
+                Clear filters
+              </PremiumButton>
+            }
           />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[170px] rounded-sm h-9 text-sm">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {ORDER_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={staffFilter} onValueChange={setStaffFilter}>
-          <SelectTrigger className="w-[170px] rounded-sm h-9 text-sm">
-            <SelectValue placeholder="All staff" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All staff</SelectItem>
-            {(users || []).map((u) => (
-              <SelectItem key={u.id} value={u.id}>
-                {u.fullName || u.email}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+        ) : (
+          <>
+            {/* Table header (desktop) */}
+            <div className="hidden md:grid grid-cols-[1.4fr_2.1fr_0.85fr_0.85fr_1fr_0.95fr_1fr] gap-3 px-5 py-3 border-b border-[#E7E5E4] bg-[#faf8f5]/60 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+              <span>Customer</span>
+              <span>Garment</span>
+              <span>Ordered</span>
+              <span>Delivery</span>
+              <span>Status</span>
+              <span className="text-right">Amount</span>
+              <span className="text-right">Paid</span>
+            </div>
 
-      {/* List */}
-      {isLoading ? (
-        <AtelierCard>
-          <div className="py-10 text-center text-sm text-stone-400">
-            Loading orders…
-          </div>
-        </AtelierCard>
-      ) : rows.length === 0 ? (
-        <AtelierCard>
-          <div className="py-12 text-center">
-            <AlertCircle className="w-6 h-6 text-stone-300 mx-auto mb-3" />
-            <p className="text-sm text-stone-500">No orders found.</p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3 rounded-sm"
-              onClick={() => {
-                setStatusFilter("all");
-                setStaffFilter("all");
-                setSearch("");
-              }}
-            >
-              Clear filters
-            </Button>
-          </div>
-        </AtelierCard>
-      ) : (
-        <div className="border border-[#E7E5E4] rounded-sm bg-white divide-y divide-[#E7E5E4] overflow-hidden">
-          {/* Table header (desktop) */}
-          <div className="hidden md:grid grid-cols-[1.4fr_2fr_0.8fr_0.8fr_1fr_0.9fr_0.9fr] gap-3 px-4 py-2.5 bg-[#FBF9F7] text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-            <span>Customer</span>
-            <span>Garment</span>
-            <span>Ordered</span>
-            <span>Delivery</span>
-            <span>Status</span>
-            <span className="text-right">Price</span>
-            <span className="text-right">Paid</span>
-          </div>
-
-          {rows.map((o) => {
-            const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
-            return (
-              <button
-                key={o.id}
-                onClick={() => go("order", { id: o.id })}
-                className="w-full text-left px-4 py-3.5 hover:bg-[#FBF9F7] transition-colors grid grid-cols-2 md:grid-cols-[1.4fr_2fr_0.8fr_0.8fr_1fr_0.9fr_0.9fr] gap-3 items-center"
-              >
-                {/* Customer */}
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-[#800020]/10 text-[#800020] flex items-center justify-center text-[11px] font-semibold shrink-0">
-                    {initials(o.customer?.name || "?")}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-[#1C1917] truncate">
-                      {o.customer?.name || "—"}
-                    </div>
-                    {o.priority === "High" && (
-                      <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#800020] font-semibold mt-0.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
-                        High priority
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Garment */}
-                <div className="min-w-0">
-                  <div className="text-sm text-[#1C1917] truncate">
-                    {o.garmentDesign || "—"}
-                  </div>
-                  {o.assignedStaff && (
-                    <div className="text-[11px] text-stone-400 truncate md:hidden">
-                      {o.assignedStaff.fullName}
-                    </div>
-                  )}
-                </div>
-
-                {/* Ordered */}
-                <div className="text-[12px] text-stone-500">
-                  <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                    Ordered
-                  </span>
-                  {shortDate(o.orderDate)}
-                </div>
-
-                {/* Delivery */}
-                <div
-                  className={cn(
-                    "text-[12px]",
-                    overdue ? "text-amber-700 font-semibold" : "text-stone-500"
-                  )}
-                >
-                  <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                    Delivery
-                  </span>
-                  {o.deliveryDate ? shortDate(o.deliveryDate) : "—"}
-                  {overdue && (
-                    <span className="ml-1 text-[10px] uppercase tracking-wide">
-                      · overdue
-                    </span>
-                  )}
-                </div>
-
-                {/* Status */}
-                <div className="md:col-auto col-span-2">
-                  <StatusBadge status={o.status} />
-                </div>
-
-                {/* Price */}
-                <div className="text-sm font-medium text-[#1C1917] md:text-right">
-                  <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                    Price
-                  </span>
-                  {formatCurrency(o.sellingPrice)}
-                </div>
-
-                {/* Paid */}
-                <div className="text-sm md:text-right">
-                  <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                    Paid
-                  </span>
-                  <span
-                    className={cn(
-                      o.paid >= Number(o.sellingPrice) && o.sellingPrice > 0
-                        ? "text-emerald-700 font-semibold"
-                        : "text-stone-600"
-                    )}
+            <div className="divide-y divide-[#E7E5E4]/70">
+              {rows.map((o) => {
+                const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
+                const paidPct =
+                  o.sellingPrice > 0
+                    ? Math.min(100, Math.round((o.paid / o.sellingPrice) * 100))
+                    : 0;
+                const grad =
+                  AVATAR_GRADIENTS[
+                    hashIndex(o.customer?.id || o.id, AVATAR_GRADIENTS.length)
+                  ];
+                return (
+                  <button
+                    key={o.id}
+                    onClick={() => go("order", { id: o.id })}
+                    className="w-full text-left px-5 py-3.5 hover:bg-[#faf8f5] transition-colors grid grid-cols-2 md:grid-cols-[1.4fr_2.1fr_0.85fr_0.85fr_1fr_0.95fr_1fr] gap-3 items-center group"
                   >
-                    {formatCurrency(o.paid)}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+                    {/* Customer */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={cn(
+                          "w-9 h-9 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-semibold shrink-0 elevate-xs",
+                          grad
+                        )}
+                      >
+                        {initials(o.customer?.name || "?")}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-[#1C1917] truncate group-hover:text-[#800020] transition-colors">
+                          {o.customer?.name || "—"}
+                        </div>
+                        {o.priority === "High" && (
+                          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-[#800020] font-semibold mt-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
+                            Priority
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Garment */}
+                    <div className="min-w-0">
+                      <div className="text-sm text-[#1C1917] truncate">
+                        {o.garmentDesign || "—"}
+                      </div>
+                      {o.assignedStaff && (
+                        <div className="text-[11px] text-stone-400 truncate md:hidden">
+                          {o.assignedStaff.fullName}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Ordered */}
+                    <div className="text-[12px] text-stone-500 tabular-nums">
+                      <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
+                        Ordered
+                      </span>
+                      {shortDate(o.orderDate)}
+                    </div>
+
+                    {/* Delivery */}
+                    <div
+                      className={cn(
+                        "text-[12px] tabular-nums flex items-center gap-1",
+                        overdue
+                          ? "text-amber-700 font-semibold"
+                          : "text-stone-500"
+                      )}
+                    >
+                      <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
+                        Delivery
+                      </span>
+                      {overdue && <AlertCircle className="w-3 h-3 shrink-0" />}
+                      {o.deliveryDate ? shortDate(o.deliveryDate) : "—"}
+                    </div>
+
+                    {/* Status */}
+                    <div className="md:col-auto col-span-2">
+                      <StatusBadge status={o.status} />
+                    </div>
+
+                    {/* Amount */}
+                    <div className="text-sm font-medium text-[#1C1917] md:text-right tabular-nums">
+                      <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
+                        Amount
+                      </span>
+                      {formatCurrency(o.sellingPrice)}
+                    </div>
+
+                    {/* Paid */}
+                    <div className="text-sm md:text-right">
+                      <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
+                        Paid
+                      </span>
+                      <div
+                        className={cn(
+                          "font-medium tabular-nums",
+                          paidPct >= 100 && o.sellingPrice > 0
+                            ? "text-emerald-700"
+                            : paidPct > 0
+                              ? "text-[#1C1917]"
+                              : "text-stone-400"
+                        )}
+                      >
+                        {formatCurrency(o.paid)}
+                      </div>
+                      {o.sellingPrice > 0 && (
+                        <div className="mt-1 h-1 w-full md:w-20 md:ml-auto bg-[#E7E5E4] rounded-full overflow-hidden">
+                          <div
+                            className={cn(
+                              "h-full rounded-full transition-all",
+                              paidPct >= 100
+                                ? "bg-emerald-500"
+                                : "bg-[#800020]"
+                            )}
+                            style={{ width: `${paidPct}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </SectionCard>
 
       {/* Back link */}
       <button

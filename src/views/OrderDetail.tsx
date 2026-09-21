@@ -13,6 +13,10 @@ import {
   AlertCircle,
   Clock,
   StickyNote,
+  Pencil,
+  UserCircle2,
+  MapPin,
+  Sparkles,
 } from "lucide-react";
 
 import { apiGet, apiPatch, apiPost } from "@/lib/api";
@@ -28,10 +32,12 @@ import {
 } from "@/lib/format";
 import type { Order } from "@/lib/types";
 
-import { AtelierCard } from "@/components/atelier/AtelierCard";
+import { PageHeader } from "@/components/atelier/PageHeader";
+import { SectionCard } from "@/components/atelier/SectionCard";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
 import { StatusStepper } from "@/components/atelier/StatusStepper";
-import { Button } from "@/components/ui/button";
+import { EmptyState, SkeletonCard } from "@/components/atelier/EmptyState";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -51,6 +57,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+
+const AVATAR_GRADIENTS = [
+  "from-[#800020] to-[#b45309]",
+  "from-[#0e7490] to-[#800020]",
+  "from-[#15803D] to-[#0e7490]",
+  "from-[#b45309] to-[#800020]",
+];
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+}
+
+function hashIndex(s: string, mod: number) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % mod;
+}
 
 export default function OrderDetail() {
   const { selectedId, go } = useNav();
@@ -79,6 +107,17 @@ export default function OrderDetail() {
     const fabric = Number(order?.fabricCost) || 0;
     const labour = Number(order?.labourCost) || 0;
     return selling - fabric - labour;
+  }, [order]);
+
+  const paidPct = order && order.sellingPrice > 0
+    ? Math.min(100, Math.round((paid / order.sellingPrice) * 100))
+    : 0;
+
+  const daysInProduction = useMemo(() => {
+    if (!order) return 0;
+    const start = new Date(order.createdAt).getTime();
+    const end = Date.now();
+    return Math.max(0, Math.round((end - start) / (1000 * 60 * 60 * 24)));
   }, [order]);
 
   // Status change mutation
@@ -153,33 +192,51 @@ export default function OrderDetail() {
 
   if (!selectedId) {
     return (
-      <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
-        <AtelierCard>
-          <div className="py-12 text-center text-sm text-stone-500">
-            No order selected.
-          </div>
-        </AtelierCard>
+      <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+        <SectionCard>
+          <EmptyState
+            icon={AlertCircle}
+            title="No order selected"
+            description="Choose an order from the list to view its detail."
+          />
+        </SectionCard>
       </div>
     );
   }
 
   if (isLoading || !order) {
     return (
-      <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
-        <div className="h-4 w-24 bg-stone-200 rounded mb-6 animate-pulse" />
-        <AtelierCard>
-          <div className="py-10 text-center text-sm text-stone-400">
-            Loading order…
+      <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+        <button
+          onClick={() => go("orders")}
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
+        </button>
+        <div className="h-28 w-full rounded-xl bg-[#faf8f5] border border-[#E7E5E4] shimmer mb-6" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 space-y-4">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
           </div>
-        </AtelierCard>
+          <div className="space-y-4">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </div>
       </div>
     );
   }
 
   const overdue = !!order.deliveryDate && isOverdue(order.deliveryDate);
+  const custGrad =
+    AVATAR_GRADIENTS[
+      hashIndex(order.customer?.id || order.id, AVATAR_GRADIENTS.length)
+    ];
 
   return (
-    <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
       <button
         onClick={() => go("orders")}
         className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
@@ -187,137 +244,191 @@ export default function OrderDetail() {
         <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
       </button>
 
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5 mb-6">
-        <div className="min-w-0">
-          <h1
-            className="font-display font-semibold text-[#1C1917] leading-tight"
-            style={{ fontSize: "clamp(26px, 3.6vw, 34px)" }}
-          >
-            {order.garmentDesign}
-          </h1>
-          <button
-            onClick={() => go("customer", { id: order.customerId })}
-            className="text-sm text-[#800020] hover:underline mt-1.5 font-medium"
-          >
-            {order.customer?.name || "—"}
-          </button>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-3 text-[12px] text-stone-500">
-            <span className="flex items-center gap-1.5">
-              <CalendarDays className="w-3.5 h-3.5" />
-              Ordered {formatDate(order.orderDate)}
-            </span>
-            <span
-              className={cn(
-                "flex items-center gap-1.5",
-                overdue && "text-amber-700 font-semibold"
-              )}
+      {/* Premium header band */}
+      <div className="rounded-xl elevate-md surface-premium border border-[#E7E5E4] p-6 mb-6 animate-fade-in-up">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+          <div className="min-w-0 flex-1">
+            <h1
+              className="font-display font-semibold text-[#1C1917] leading-[1.1]"
+              style={{ fontSize: "clamp(26px, 3.4vw, 34px)" }}
             >
-              <Clock className="w-3.5 h-3.5" />
-              Delivery {order.deliveryDate ? formatDate(order.deliveryDate) : "—"}
-              {overdue && (
-                <span className="text-[10px] uppercase tracking-wide">
-                  · overdue
+              {order.garmentDesign}
+            </h1>
+            <button
+              onClick={() => go("customer", { id: order.customerId })}
+              className="inline-flex items-center gap-2 mt-2 group"
+            >
+              <div
+                className={cn(
+                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-semibold",
+                  custGrad
+                )}
+              >
+                {initials(order.customer?.name || "?")}
+              </div>
+              <span className="text-sm text-[#800020] hover:underline font-medium">
+                {order.customer?.name || "—"}
+              </span>
+            </button>
+
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 text-[12px] text-stone-500">
+              <span className="flex items-center gap-1.5">
+                <CalendarDays className="w-3.5 h-3.5" />
+                Ordered {formatDate(order.orderDate)}
+              </span>
+              <span
+                className={cn(
+                  "flex items-center gap-1.5",
+                  overdue && "text-amber-700 font-semibold"
+                )}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                Delivery{" "}
+                {order.deliveryDate ? formatDate(order.deliveryDate) : "—"}
+                {overdue && (
+                  <span className="text-[10px] uppercase tracking-wide ml-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> overdue
+                  </span>
+                )}
+              </span>
+              {order.priority && (
+                <StatusBadge status={order.priority} dot={false} />
+              )}
+              {order.assignedStaff && (
+                <span className="flex items-center gap-1.5">
+                  <UserCircle2 className="w-3.5 h-3.5" />
+                  {order.assignedStaff.fullName}
                 </span>
               )}
-            </span>
-            {order.priority === "High" && (
-              <span className="flex items-center gap-1 text-[#800020] font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
-                High priority
-              </span>
-            )}
-            {order.assignedStaff && (
-              <span>Staff: {order.assignedStaff.fullName}</span>
-            )}
+            </div>
           </div>
-        </div>
 
-        {/* Status changer */}
-        <div className="flex items-center gap-2 shrink-0">
-          <StatusBadge status={order.status} />
-          <Select
-            value={order.status}
-            onValueChange={(v) => statusMut.mutate(v)}
-            disabled={statusMut.isPending}
-          >
-            <SelectTrigger className="w-[180px] rounded-sm h-9 text-sm">
-              <SelectValue placeholder="Change status" />
-            </SelectTrigger>
-            <SelectContent>
-              {ORDER_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2 shrink-0">
+            <Select
+              value={order.status}
+              onValueChange={(v) => statusMut.mutate(v)}
+              disabled={statusMut.isPending}
+            >
+              <SelectTrigger className="w-[180px] rounded-md h-9 text-sm bg-white">
+                <SelectValue placeholder="Change status" />
+              </SelectTrigger>
+              <SelectContent>
+                {ORDER_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <PremiumButton variant="outline" size="md">
+              <Pencil className="w-3.5 h-3.5" /> Edit
+            </PremiumButton>
+          </div>
         </div>
       </div>
 
       {/* Order Journey / Stepper */}
-      <AtelierCard
+      <SectionCard
         title="Order Journey"
-        className="mb-4"
+        className="mb-6"
         bodyClassName="pt-6"
       >
         <StatusStepper current={order.status} />
-      </AtelierCard>
+      </SectionCard>
 
       {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* LEFT 2/3 */}
         <div className="lg:col-span-2 space-y-4">
           {/* Financials */}
-          <AtelierCard
+          <SectionCard
             title="Financials"
             action={<PaymentDialog onConfirm={(b) => payMut.mutate(b)} />}
           >
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
               <Stat
-                label="Selling price"
+                label="Selling Price"
                 value={formatCurrency(order.sellingPrice)}
                 primary
               />
-              <Stat label="Paid so far" value={formatCurrency(paid)} />
               <Stat
-                label="Outstanding"
+                label="Paid So Far"
+                value={formatCurrency(paid)}
+                sub={`${paidPct}% of total`}
+              />
+              <Stat
+                label="Outstanding Balance"
                 value={formatCurrency(outstanding)}
                 tone={outstanding > 0 ? "warn" : "ok"}
               />
-              <Stat label="Fabric cost" value={formatCurrency(order.fabricCost)} />
-              <Stat label="Labour cost" value={formatCurrency(order.labourCost)} />
               <Stat
-                label="Est. margin"
+                label="Fabric Cost"
+                value={formatCurrency(order.fabricCost)}
+              />
+              <Stat
+                label="Labour Cost"
+                value={formatCurrency(order.labourCost)}
+              />
+              <Stat
+                label="Est. Margin"
                 value={formatCurrency(estMargin)}
                 tone={estMargin >= 0 ? "ok" : "warn"}
               />
             </div>
 
+            {/* Paid progress bar */}
+            {order.sellingPrice > 0 && (
+              <div className="mb-5">
+                <div className="flex justify-between text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-1.5">
+                  <span>Payment progress</span>
+                  <span className="tabular-nums">{paidPct}%</span>
+                </div>
+                <div className="h-2 w-full bg-[#E7E5E4] rounded-full overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      paidPct >= 100 ? "bg-emerald-500" : "bg-[#800020]"
+                    )}
+                    style={{ width: `${paidPct}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-2">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-2.5">
                 Payments
               </div>
               {order.payments && order.payments.length > 0 ? (
-                <div className="divide-y divide-[#E7E5E4] border border-[#E7E5E4] rounded-sm">
-                  {order.payments.map((p) => (
-                    <div
-                      key={p.id}
-                      className="px-3 py-2.5 flex items-center justify-between gap-3"
-                    >
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium text-[#1C1917]">
-                          {formatCurrency(p.amount)}
-                        </div>
-                        <div className="text-[11px] text-stone-400">
-                          {formatDate(p.date)}
-                          {p.method ? ` · ${p.method}` : ""}
-                          {p.note ? ` · ${p.note}` : ""}
+                <div className="divide-y divide-[#E7E5E4]/70 border border-[#E7E5E4] rounded-md overflow-hidden">
+                  {order.payments
+                    .slice()
+                    .sort(
+                      (a, b) =>
+                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                    )
+                    .map((p) => (
+                      <div
+                        key={p.id}
+                        className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-[#faf8f5]/60"
+                      >
+                        <div className="min-w-0 flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-[#1C1917] tabular-nums">
+                              {formatCurrency(p.amount)}
+                            </div>
+                            <div className="text-[11px] text-stone-400">
+                              {formatDate(p.date)}
+                              {p.method ? ` · ${p.method}` : ""}
+                              {p.note ? ` · ${p.note}` : ""}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    </div>
-                  ))}
+                    ))}
                 </div>
               ) : (
                 <p className="text-sm text-stone-400">
@@ -325,26 +436,27 @@ export default function OrderDetail() {
                 </p>
               )}
             </div>
-          </AtelierCard>
+          </SectionCard>
 
           {/* Fittings */}
-          <AtelierCard
+          <SectionCard
             title="Fittings"
             action={<FittingDialog onConfirm={(b) => fitMut.mutate(b)} />}
           >
             {order.fittings && order.fittings.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {order.fittings.map((f) => (
                   <div
                     key={f.id}
-                    className="flex items-start justify-between gap-3 p-3 border border-[#E7E5E4] rounded-sm"
+                    className="flex items-start justify-between gap-3 p-3.5 border border-[#E7E5E4] rounded-md hover:bg-[#faf8f5]/50 transition-colors"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-[#1C1917]">
+                      <div className="text-sm font-medium text-[#1C1917] flex items-center gap-1.5">
+                        <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
                         {formatDate(f.date)}
                       </div>
                       {f.notes && (
-                        <div className="text-[12px] text-stone-500 mt-0.5">
+                        <div className="text-[12px] text-stone-500 mt-1">
                           {f.notes}
                         </div>
                       )}
@@ -354,21 +466,25 @@ export default function OrderDetail() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-stone-400">No fittings scheduled.</p>
+              <EmptyState
+                icon={CalendarDays}
+                title="No fittings scheduled"
+                description="Schedule the first fitting when production begins."
+              />
             )}
-          </AtelierCard>
+          </SectionCard>
 
           {/* Tasks */}
-          <AtelierCard
+          <SectionCard
             title="Tasks"
             action={<TaskDialog onConfirm={(b) => taskMut.mutate(b)} />}
           >
             {order.tasks && order.tasks.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {order.tasks.map((t) => (
                   <div
                     key={t.id}
-                    className="flex items-center justify-between gap-3 p-3 border border-[#E7E5E4] rounded-sm"
+                    className="flex items-center justify-between gap-3 p-3.5 border border-[#E7E5E4] rounded-md hover:bg-[#faf8f5]/50 transition-colors"
                   >
                     <div className="min-w-0">
                       <div className="text-sm font-medium text-[#1C1917] truncate">
@@ -379,98 +495,145 @@ export default function OrderDetail() {
                         {t.staff ? ` · ${t.staff.fullName}` : ""}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <StatusBadge status={t.priority} />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <StatusBadge status={t.priority} dot={false} />
                       <StatusBadge status={t.status} />
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-stone-400">No tasks for this order.</p>
+              <EmptyState
+                icon={CheckCircle2}
+                title="No tasks for this order"
+                description="Break the work into steps so nothing falls through the cracks."
+              />
             )}
-          </AtelierCard>
+          </SectionCard>
 
           {/* Notes */}
-          <AtelierCard title="Notes">
+          <SectionCard title="Notes">
             <NotesEditor
               initial={order.notes || ""}
               onSave={(v) => notesMut.mutate(v)}
               saving={notesMut.isPending}
             />
-          </AtelierCard>
+          </SectionCard>
         </div>
 
         {/* RIGHT 1/3 */}
         <div className="space-y-4">
           {/* Customer snapshot */}
-          <AtelierCard title="Customer Snapshot">
+          <SectionCard title="Customer Snapshot">
             {order.customer ? (
-              <div className="space-y-3">
-                <div>
-                  <button
-                    onClick={() =>
-                      go("customer", { id: order.customerId })
-                    }
-                    className="text-sm font-semibold text-[#800020] hover:underline"
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      "w-12 h-12 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-sm font-semibold elevate-xs",
+                      custGrad
+                    )}
                   >
-                    {order.customer.name}
-                  </button>
-                  {order.customer.customerType && (
-                    <div className="text-[11px] uppercase tracking-wide text-stone-400 mt-0.5">
-                      {order.customer.customerType}
-                    </div>
-                  )}
+                    {initials(order.customer.name)}
+                  </div>
+                  <div className="min-w-0">
+                    <button
+                      onClick={() =>
+                        go("customer", { id: order.customerId })
+                      }
+                      className="text-sm font-semibold text-[#1C1917] hover:text-[#800020] transition-colors truncate block"
+                    >
+                      {order.customer.name}
+                    </button>
+                    {order.customer.customerType && (
+                      <div className="mt-0.5">
+                        <StatusBadge
+                          status={order.customer.customerType}
+                          dot={false}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-1.5 text-[12px] text-stone-600">
+
+                <div className="space-y-2 text-[12px] text-stone-600">
                   {order.customer.phone && (
-                    <div className="flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-stone-400" />
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                       {order.customer.phone}
                     </div>
                   )}
                   {order.customer.email && (
-                    <div className="flex items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-stone-400" />
-                      {order.customer.email}
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                      <span className="truncate">{order.customer.email}</span>
+                    </div>
+                  )}
+                  {order.customer.city && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                      {order.customer.city}
                     </div>
                   )}
                 </div>
-                <div className="pt-2 border-t border-[#E7E5E4] space-y-1.5 text-[12px]">
-                  <Row label="Entry" value={order.customer.entrySource} />
+
+                <div className="pt-3 border-t border-[#E7E5E4]/70 space-y-2 text-[12px]">
                   <Row
-                    label="Styles"
+                    label="Entry Source"
+                    value={order.customer.entrySource}
+                  />
+                  <Row
+                    label="Preferred Styles"
                     value={order.customer.preferredStyles}
                   />
-                  <Row label="City" value={order.customer.city} />
                 </div>
-                <Button
-                  variant="outline"
+
+                <PremiumButton
+                  variant="ghost"
                   size="sm"
-                  className="w-full rounded-sm mt-1"
+                  className="w-full"
                   onClick={() => go("customer", { id: order.customerId })}
                 >
-                  Open full profile
-                </Button>
+                  <UserCircle2 className="w-3.5 h-3.5" /> View profile
+                </PremiumButton>
               </div>
             ) : (
               <p className="text-sm text-stone-400">No customer linked.</p>
             )}
-          </AtelierCard>
+          </SectionCard>
 
-          {/* Timeline (simple) */}
-          <AtelierCard title="Timeline">
-            <div className="space-y-2 text-[12px] text-stone-600">
+          {/* Timeline */}
+          <SectionCard title="Timeline">
+            <div className="space-y-3 text-[12px] text-stone-600">
               <div className="flex items-center gap-2">
                 <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
-                Created {formatDate(order.createdAt)}
+                <span>
+                  Created{" "}
+                  <span className="text-[#1C1917] font-medium">
+                    {formatDate(order.createdAt)}
+                  </span>
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-3.5 h-3.5 text-stone-400" />
-                Current status: {order.status}
+                <Clock className="w-3.5 h-3.5 text-stone-400" />
+                <span>
+                  Last updated{" "}
+                  <span className="text-[#1C1917] font-medium">
+                    {formatDate(order.createdAt)}
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-[#800020]" />
+                <span>
+                  In production for{" "}
+                  <span className="text-[#1C1917] font-medium tabular-nums">
+                    {daysInProduction} day{daysInProduction === 1 ? "" : "s"}
+                  </span>
+                </span>
               </div>
             </div>
-          </AtelierCard>
+          </SectionCard>
         </div>
       </div>
     </div>
@@ -484,11 +647,13 @@ function Stat({
   value,
   primary,
   tone,
+  sub,
 }: {
   label: string;
   value: string;
   primary?: boolean;
   tone?: "ok" | "warn";
+  sub?: string;
 }) {
   return (
     <div>
@@ -497,7 +662,7 @@ function Stat({
       </div>
       <div
         className={cn(
-          "mt-1 text-lg font-display font-semibold",
+          "mt-1 text-lg font-display font-semibold tabular-nums",
           primary && "text-[#1C1917]",
           tone === "ok" && "text-emerald-700",
           tone === "warn" && "text-amber-700",
@@ -506,6 +671,7 @@ function Stat({
       >
         {value}
       </div>
+      {sub && <div className="text-[10px] text-stone-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -541,21 +707,20 @@ function NotesEditor({
     return (
       <div>
         {initial ? (
-          <p className="text-sm text-stone-700 whitespace-pre-wrap">
+          <p className="text-sm text-stone-700 whitespace-pre-wrap leading-relaxed">
             {initial}
           </p>
         ) : (
           <p className="text-sm text-stone-400">No notes yet.</p>
         )}
         <div className="mt-3">
-          <Button
+          <PremiumButton
             variant="outline"
             size="sm"
-            className="rounded-sm"
             onClick={() => setEditing(true)}
           >
             <StickyNote className="w-3.5 h-3.5" /> Edit notes
-          </Button>
+          </PremiumButton>
         </div>
       </div>
     );
@@ -567,31 +732,30 @@ function NotesEditor({
         onChange={(e) => setVal(e.target.value)}
         rows={5}
         placeholder="Notes about this order…"
-        className="rounded-sm"
+        className="rounded-md"
       />
       <div className="flex gap-2 mt-3">
-        <Button
+        <PremiumButton
           size="sm"
-          className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm"
+          loading={saving}
           disabled={saving}
           onClick={() => {
             onSave(val);
             setEditing(false);
           }}
         >
-          {saving ? "Saving…" : "Save"}
-        </Button>
-        <Button
+          Save
+        </PremiumButton>
+        <PremiumButton
           variant="outline"
           size="sm"
-          className="rounded-sm"
           onClick={() => {
             setVal(initial);
             setEditing(false);
           }}
         >
           Cancel
-        </Button>
+        </PremiumButton>
       </div>
     </div>
   );
@@ -622,12 +786,9 @@ function PaymentDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button
-          size="sm"
-          className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm gap-1.5"
-        >
+        <PremiumButton size="sm">
           <Plus className="w-3.5 h-3.5" /> Record Payment
-        </Button>
+        </PremiumButton>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -641,13 +802,13 @@ function PaymentDialog({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
-              className="rounded-sm mt-1"
+              className="rounded-md mt-1 tabular-nums"
             />
           </div>
           <div>
             <Label>Method</Label>
             <Select value={method} onValueChange={setMethod}>
-              <SelectTrigger className="rounded-sm mt-1 w-full">
+              <SelectTrigger className="rounded-md mt-1 w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -666,20 +827,18 @@ function PaymentDialog({
               onChange={(e) => setNote(e.target.value)}
               rows={2}
               placeholder="Optional"
-              className="rounded-sm mt-1"
+              className="rounded-md mt-1"
             />
           </div>
         </div>
         <DialogFooter>
-          <Button
+          <PremiumButton
             variant="outline"
-            className="rounded-sm"
             onClick={() => setOpen(false)}
           >
             Cancel
-          </Button>
-          <Button
-            className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm"
+          </PremiumButton>
+          <PremiumButton
             disabled={!amount || Number(amount) <= 0}
             onClick={() => {
               onConfirm({
@@ -691,7 +850,7 @@ function PaymentDialog({
             }}
           >
             Save payment
-          </Button>
+          </PremiumButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -719,13 +878,9 @@ function FittingDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button
-          size="sm"
-          variant="outline"
-          className="rounded-sm gap-1.5"
-        >
+        <PremiumButton variant="outline" size="sm">
           <Plus className="w-3.5 h-3.5" /> Schedule Fitting
-        </Button>
+        </PremiumButton>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -738,7 +893,7 @@ function FittingDialog({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="rounded-sm mt-1"
+              className="rounded-md mt-1"
             />
           </div>
           <div>
@@ -748,27 +903,22 @@ function FittingDialog({
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="Any prep notes for this fitting…"
-              className="rounded-sm mt-1"
+              className="rounded-md mt-1"
             />
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="outline"
-            className="rounded-sm"
-            onClick={() => setOpen(false)}
-          >
+          <PremiumButton variant="outline" onClick={() => setOpen(false)}>
             Cancel
-          </Button>
-          <Button
-            className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm"
+          </PremiumButton>
+          <PremiumButton
             onClick={() => {
               onConfirm({ date, notes: notes || undefined });
               setOpen(false);
             }}
           >
             Schedule
-          </Button>
+          </PremiumButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -798,9 +948,9 @@ function TaskDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="rounded-sm gap-1.5">
+        <PremiumButton variant="outline" size="sm">
           <Plus className="w-3.5 h-3.5" /> Add Task
-        </Button>
+        </PremiumButton>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -813,14 +963,14 @@ function TaskDialog({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Source fabric"
-              className="rounded-sm mt-1"
+              className="rounded-md mt-1"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Priority</Label>
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="rounded-sm mt-1 w-full">
+                <SelectTrigger className="rounded-md mt-1 w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -838,21 +988,16 @@ function TaskDialog({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="rounded-sm mt-1"
+                className="rounded-md mt-1"
               />
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="outline"
-            className="rounded-sm"
-            onClick={() => setOpen(false)}
-          >
+          <PremiumButton variant="outline" onClick={() => setOpen(false)}>
             Cancel
-          </Button>
-          <Button
-            className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm"
+          </PremiumButton>
+          <PremiumButton
             disabled={!title.trim()}
             onClick={() => {
               onConfirm({
@@ -864,7 +1009,7 @@ function TaskDialog({
             }}
           >
             Add task
-          </Button>
+          </PremiumButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -13,11 +13,17 @@ import {
   Wand2,
   ShoppingBag,
   Star,
+  Palette,
+  Shirt,
+  Scissors,
 } from "lucide-react";
 
-import { AtelierCard } from "@/components/atelier/AtelierCard";
+import { PageHeader } from "@/components/atelier/PageHeader";
+import { SectionCard } from "@/components/atelier/SectionCard";
+import { EmptyState, SkeletonCard } from "@/components/atelier/EmptyState";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
-import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,7 +91,6 @@ interface CustomerDetail {
   styleConcepts: StyleConcept[];
 }
 
-// Shared shape for both drafts and saved concepts.
 interface ConceptFields {
   id?: string;
   tempId?: string;
@@ -130,15 +135,13 @@ const SEASONS = [
 ];
 
 const REJECT_REASONS = [
-  "Customer dislikes style",
-  "Colour not suitable",
-  "Fabric unavailable",
+  "Too bold",
+  "Wrong colour",
+  "Wrong silhouette",
+  "Over budget",
   "Too fitted",
   "Too loose",
-  "Too revealing",
-  "Too traditional",
-  "Too modern",
-  "Over budget",
+  "Fabric unavailable",
   "Other",
 ];
 
@@ -158,59 +161,12 @@ function conceptKey(c: ConceptFields): string {
   return c.id ?? c.tempId ?? "";
 }
 
-function ConfidenceDot({ level }: { level: DataConfidence }) {
-  const color =
-    level === "Complete"
-      ? "bg-[#15803D]"
-      : level === "Good"
-      ? "bg-[#B45309]"
-      : "bg-stone-400";
-  return <span className={cn("inline-block w-2 h-2 rounded-full", color)} />;
-}
-
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-sm bg-[#FBF9F7] text-[#1C1917] border border-[#E7E5E4]">
-      {children}
-    </span>
-  );
-}
-
-function ProfileRow({
-  label,
-  value,
-}: {
-  label: string;
-  value?: string | null | number;
-}) {
-  return (
-    <div className="flex justify-between gap-3 text-sm py-1.5 border-b border-[#E7E5E4] last:border-0">
-      <span className="text-stone-500 shrink-0">{label}</span>
-      <span className="font-medium text-[#1C1917] text-right max-w-[65%] break-words">
-        {value ?? "—"}
-      </span>
-    </div>
-  );
-}
-
-function SpecField({ label, value }: { label: string; value?: string | null }) {
-  if (!value) return null;
-  return (
-    <div className="min-w-0">
-      <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-        {label}
-      </dt>
-      <dd className="text-sm text-[#1C1917] mt-0.5 break-words">{value}</dd>
-    </div>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400 font-semibold mb-1.5">
-      {children}
-    </p>
-  );
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 // ============================================================
@@ -228,7 +184,7 @@ export default function StyleAssist() {
 }
 
 // ============================================================
-// Customer picker
+// Customer Picker — premium centered
 // ============================================================
 
 function CustomerPicker({ onPick }: { onPick: (id: string) => void }) {
@@ -238,55 +194,91 @@ function CustomerPicker({ onPick }: { onPick: (id: string) => void }) {
   });
 
   return (
-    <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
-      <div className="flex items-center gap-2 mb-5">
-        <Sparkles className="w-5 h-5 text-[#800020]" />
-        <h1
-          className="font-display font-semibold text-[#1C1917]"
-          style={{ fontSize: "clamp(24px, 3.5vw, 30px)" }}
-        >
-          Style Assist
-        </h1>
-      </div>
+    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+      <PageHeader
+        eyebrow="AI Design Studio"
+        eyebrowIcon={Sparkles}
+        title="Style Assist"
+        subtitle="Generate bespoke concepts, visualize them, and convert to orders."
+      />
 
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <AtelierCard
-          className="w-full max-w-md"
-          title="Choose a client to design for"
-        >
-          <div className="space-y-3">
-            <p className="text-sm text-stone-500 leading-relaxed">
-              Select a customer to begin generating AI-powered style concepts
-              tailored to their preferences, measurements, and history.
-            </p>
-            <Select onValueChange={onPick} disabled={isLoading || isError}>
-              <SelectTrigger className="w-full rounded-sm h-10">
-                <SelectValue
-                  placeholder={
-                    isError
-                      ? "Could not load clients"
-                      : isLoading
-                      ? "Loading clients…"
-                      : "Select a customer"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {customers?.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {isError && (
-              <p className="text-xs text-red-600">
-                We couldn&apos;t reach the customer list. Please try again
-                later.
-              </p>
-            )}
-          </div>
-        </AtelierCard>
+      <div className="flex items-center justify-center min-h-[55vh] animate-fade-in-up">
+        <div className="w-full max-w-lg">
+          <SectionCard bodyClassName="p-0 overflow-hidden">
+            {/* Gradient hero with icon */}
+            <div className="relative bg-gradient-to-br from-[#800020] via-[#6b0018] to-[#4a0010] px-7 py-9 text-center overflow-hidden">
+              {/* Decorative grain overlay */}
+              <div
+                className="absolute inset-0 opacity-[0.12] pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(circle at 20% 30%, rgba(255,255,255,0.6) 0%, transparent 35%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.4) 0%, transparent 35%)",
+                }}
+              />
+              <div className="relative flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center mb-4 elevate-md">
+                  <Sparkles className="w-7 h-7 text-white" />
+                </div>
+                <h2
+                  className="font-display font-semibold text-white leading-tight"
+                  style={{ fontSize: "clamp(22px, 3vw, 28px)" }}
+                >
+                  Choose a client to design for
+                </h2>
+                <p className="text-sm text-white/75 mt-2 max-w-sm leading-relaxed">
+                  Select a customer to begin generating AI-powered style
+                  concepts tailored to their preferences, measurements, and
+                  history.
+                </p>
+              </div>
+            </div>
+
+            {/* Picker body */}
+            <div className="p-7 space-y-3">
+              <Label className="text-[10px] uppercase tracking-[0.22em] text-stone-400 font-semibold">
+                Select customer
+              </Label>
+              <Select onValueChange={onPick} disabled={isLoading || isError}>
+                <SelectTrigger className="w-full h-11 rounded-md text-sm">
+                  <SelectValue
+                    placeholder={
+                      isError
+                        ? "Could not load clients"
+                        : isLoading
+                        ? "Loading clients…"
+                        : "Choose from your clientele…"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <span className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-[#800020]/10 text-[#800020] text-[10px] font-semibold inline-flex items-center justify-center">
+                          {initials(c.name)}
+                        </span>
+                        {c.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isError && (
+                <p className="text-xs text-red-600">
+                  We couldn&apos;t reach the customer list. Please try again
+                  later.
+                </p>
+              )}
+              <div className="flex items-center gap-2 pt-3 text-[11px] text-stone-400">
+                <Sparkles className="w-3 h-3 text-[#800020]/60" />
+                <span>
+                  The AI uses each client&apos;s profile, measurements, and
+                  history as design context.
+                </span>
+              </div>
+            </div>
+          </SectionCard>
+        </div>
       </div>
     </div>
   );
@@ -363,7 +355,8 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
       toast.success(
         `Generated ${newDrafts.length} concept${
           newDrafts.length === 1 ? "" : "s"
-        }.`
+        }.`,
+        { description: res.confidenceNote || undefined }
       );
     } catch (e) {
       toast.error("Could not generate concepts.", {
@@ -387,13 +380,11 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
       const imageUrl = res.imageUrl;
 
       if (concept.id) {
-        // saved concept → PATCH then refetch
         await apiPatch<StyleConcept>(`/api/style-concepts/${concept.id}`, {
           imageUrl,
         });
         await refetch();
       } else if (concept.tempId) {
-        // draft → store image locally
         setDrafts((prev) =>
           prev.map((d) =>
             d.tempId === concept.tempId ? { ...d, imageUrl } : d
@@ -427,6 +418,8 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
     season: request.season || undefined,
     budget: request.budget ? Number(request.budget) : undefined,
     colourPreference: request.colourPreference || undefined,
+    fabricAvailable: request.fabricAvailable || undefined,
+    designerDirection: request.designerDirection || undefined,
     conceptName: draft.conceptName,
     silhouette: draft.silhouette,
     neckline: draft.neckline,
@@ -455,7 +448,9 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
       );
       setDrafts((prev) => prev.filter((d) => d.tempId !== draft.tempId));
       await refetch();
-      toast.success("Concept approved and saved.");
+      toast.success("Concept approved and saved.", {
+        description: draft.conceptName,
+      });
     } catch (e) {
       toast.error("Could not save concept.", {
         description: e instanceof Error ? e.message : undefined,
@@ -474,7 +469,9 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
       );
       setDrafts((prev) => prev.filter((d) => d.tempId !== draft.tempId));
       await refetch();
-      toast.success("Concept dismissed.");
+      toast.success("Concept dismissed.", {
+        description: reason,
+      });
     } catch (e) {
       toast.error("Could not save dismissal.", {
         description: e instanceof Error ? e.message : undefined,
@@ -494,91 +491,93 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
     ]
       .filter(Boolean)
       .join(" — ");
-    go("new-order", {
-      params: { customerId, garment },
-    });
+    go("new-order", { params: { customerId, garment } });
+    toast.success("Opening new order with concept details…");
   };
 
   // ---------- render ----------
 
   if (isLoading) {
     return (
-      <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
-        <div className="flex items-center gap-2 mb-5">
-          <Sparkles className="w-5 h-5 text-[#800020]" />
-          <h1
-            className="font-display font-semibold text-[#1C1917]"
-            style={{ fontSize: "clamp(24px, 3.5vw, 30px)" }}
-          >
-            Style Assist
-          </h1>
+      <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+        <PageHeader
+          eyebrow="AI Design Studio"
+          eyebrowIcon={Sparkles}
+          title="Style Assist"
+          subtitle="Loading the client profile…"
+        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <SkeletonCard className="h-[520px]" />
+          <div className="lg:col-span-2 space-y-5">
+            <SkeletonCard className="h-72" />
+            <SkeletonCard className="h-80" />
+          </div>
         </div>
-        <p className="text-sm text-stone-400">Loading customer profile…</p>
       </div>
     );
   }
 
   if (isError || !customer) {
     return (
-      <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
-        <div className="flex items-center gap-2 mb-5">
-          <Sparkles className="w-5 h-5 text-[#800020]" />
-          <h1
-            className="font-display font-semibold text-[#1C1917]"
-            style={{ fontSize: "clamp(24px, 3.5vw, 30px)" }}
-          >
-            Style Assist
-          </h1>
-        </div>
-        <AtelierCard title="Could not load customer">
-          <p className="text-sm text-stone-500 mb-3">
-            We couldn&apos;t load this customer&apos;s profile. Please try
-            again.
-          </p>
-          <Button
-            variant="outline"
-            className="rounded-sm"
-            onClick={() => refetch()}
-          >
-            Retry
-          </Button>
-        </AtelierCard>
+      <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+        <PageHeader
+          eyebrow="AI Design Studio"
+          eyebrowIcon={Sparkles}
+          title="Style Assist"
+        />
+        <SectionCard title="Could not load customer">
+          <EmptyState
+            icon={Sparkles}
+            title="We couldn't load this customer's profile"
+            description="Please try again or pick another client."
+            action={
+              <PremiumButton variant="outline" onClick={() => refetch()}>
+                Retry
+              </PremiumButton>
+            }
+          />
+        </SectionCard>
       </div>
     );
   }
 
   return (
-    <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
       {/* Back link */}
       <button
         onClick={() => go("customer", { id: customerId })}
-        className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-5 transition"
+        className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-5 transition group animate-fade-in"
       >
-        <ArrowLeft className="w-4 h-4" /> Back to {customer.name}
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />{" "}
+        Back to {customer.name}
       </button>
 
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <Sparkles className="w-5 h-5 text-[#800020]" />
-        <h1
-          className="font-display font-semibold text-[#1C1917]"
-          style={{ fontSize: "clamp(24px, 3.5vw, 30px)" }}
-        >
-          Style Assist
-        </h1>
-      </div>
+      <PageHeader
+        eyebrow="AI Design Studio"
+        eyebrowIcon={Sparkles}
+        title="Style Assist"
+        subtitle="Generate bespoke concepts, visualize them, and convert to orders."
+        actions={
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#800020]/8 text-[#800020] text-[11px] font-semibold uppercase tracking-[0.18em] border border-[#800020]/15">
+            <Sparkles className="w-3 h-3" />
+            AI-powered
+          </span>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left 1/3 — Customer style summary */}
+        {/* Left 1/3 — Customer style profile */}
         <div className="lg:col-span-1">
-          <CustomerStyleSummary
-            customer={customer}
-            latestSet={latestSet}
-            orders={orders}
-            feedback={feedback}
-            dataConfidence={dataConfidence}
-            confidenceNote={confidenceNote}
-          />
+          <div className="lg:sticky lg:top-5">
+            <CustomerStyleProfile
+              customer={customer}
+              latestSet={latestSet}
+              orders={orders}
+              feedback={feedback}
+              dataConfidence={dataConfidence}
+              confidenceNote={confidenceNote}
+            />
+          </div>
         </div>
 
         {/* Right 2/3 — Form + concepts */}
@@ -592,63 +591,82 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
 
           {/* Skeleton loaders while generating */}
           {generating && drafts.length === 0 && (
-            <>
-              <ConceptSkeleton />
-              <ConceptSkeleton />
-            </>
+            <div className="space-y-5">
+              {[0, 1, 2].map((i) => (
+                <ConceptSkeleton key={i} />
+              ))}
+            </div>
           )}
 
           {/* Empty state */}
           {drafts.length === 0 &&
             savedConcepts.length === 0 &&
             !generating && (
-              <div className="text-center py-10 px-4 border border-dashed border-[#E7E5E4] rounded-sm bg-[#FBF9F7]">
-                <Sparkles className="w-6 h-6 text-[#800020]/50 mx-auto mb-2" />
-                <p className="text-sm text-stone-500">
-                  Fill in the design request and generate style suggestions for{" "}
-                  <span className="font-medium text-[#1C1917]">
-                    {customer.name}
-                  </span>
-                  .
-                </p>
-              </div>
+              <SectionCard>
+                <EmptyState
+                  icon={Sparkles}
+                  title="Ready when you are"
+                  description={`Fill in the design request and generate style suggestions for ${customer.name}.`}
+                />
+              </SectionCard>
             )}
 
           {/* Drafts */}
-          {drafts.map((draft) => (
-            <ConceptCard
-              key={draft.tempId}
-              concept={draft}
-              isDraft
-              onApprove={() => handleApprove(draft)}
-              onReject={(reason) => handleReject(draft, reason)}
-              onVisualize={() => handleVisualize(draft)}
-              onConvert={() => handleConvert(draft)}
-              visualizing={visualizingKeys.has(draft.tempId)}
-              saving={savingKey === draft.tempId}
-            />
-          ))}
-
-          {/* Saved concepts */}
-          {savedConcepts.length > 0 && (
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center gap-2">
-                <Separator className="flex-1" />
-                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400 font-semibold">
-                  Saved Concepts
+          {drafts.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 px-1">
+                <Sparkles className="w-3.5 h-3.5 text-[#800020]" />
+                <span className="text-[11px] uppercase tracking-[0.22em] text-stone-500 font-semibold">
+                  Fresh Concepts · {drafts.length}
                 </span>
                 <Separator className="flex-1" />
               </div>
-              {savedConcepts.map((concept) => (
-                <ConceptCard
+              {drafts.map((draft, idx) => (
+                <div
+                  key={draft.tempId}
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${idx * 80}ms` }}
+                >
+                  <ConceptCard
+                    concept={draft}
+                    isDraft
+                    onApprove={() => handleApprove(draft)}
+                    onReject={(reason) => handleReject(draft, reason)}
+                    onVisualize={() => handleVisualize(draft)}
+                    onConvert={() => handleConvert(draft)}
+                    visualizing={visualizingKeys.has(draft.tempId)}
+                    saving={savingKey === draft.tempId}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Saved concepts */}
+          {savedConcepts.length > 0 && (
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-2 px-1">
+                <Star className="w-3.5 h-3.5 text-[#800020]" />
+                <span className="text-[11px] uppercase tracking-[0.22em] text-stone-500 font-semibold">
+                  Saved Concepts · {savedConcepts.length}
+                </span>
+                <Separator className="flex-1" />
+              </div>
+              {savedConcepts.map((concept, idx) => (
+                <div
                   key={concept.id}
-                  concept={concept}
-                  isDraft={false}
-                  onVisualize={() => handleVisualize(concept)}
-                  onConvert={() => handleConvert(concept)}
-                  visualizing={visualizingKeys.has(concept.id)}
-                  saving={false}
-                />
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${idx * 80}ms` }}
+                >
+                  <ConceptCard
+                    concept={concept}
+                    isDraft={false}
+                    onVisualize={() => handleVisualize(concept)}
+                    onConvert={() => handleConvert(concept)}
+                    visualizing={visualizingKeys.has(concept.id)}
+                    saving={false}
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -659,10 +677,10 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
 }
 
 // ============================================================
-// Customer Style Summary
+// Customer Style Profile (premium left rail)
 // ============================================================
 
-function CustomerStyleSummary({
+function CustomerStyleProfile({
   customer,
   latestSet,
   orders,
@@ -681,201 +699,345 @@ function CustomerStyleSummary({
   const colorChips = listToChips(customer.favouriteColours);
   const avoidChips = listToChips(customer.coloursToAvoid);
   const fabricChips = listToChips(customer.favouriteFabrics);
-  const recentOrders = orders.slice(0, 5);
-  const recentFeedback = feedback.slice(0, 3);
+  const recentOrders = orders.slice(0, 3);
+  const recentFeedback = feedback.slice(0, 2);
+
+  const confidenceConfig: Record<
+    DataConfidence,
+    { color: string; dot: string; ring: string }
+  > = {
+    Limited: {
+      color: "text-amber-700 bg-amber-50 border-amber-200",
+      dot: "bg-amber-500",
+      ring: "ring-amber-200",
+    },
+    Good: {
+      color: "text-sky-700 bg-sky-50 border-sky-200",
+      dot: "bg-sky-500",
+      ring: "ring-sky-200",
+    },
+    Complete: {
+      color: "text-emerald-700 bg-emerald-50 border-emerald-200",
+      dot: "bg-emerald-500",
+      ring: "ring-emerald-200",
+    },
+  };
 
   return (
-    <AtelierCard
-      title={`${customer.name} — Style Profile`}
-      bodyClassName="space-y-4"
-    >
-      {/* Preferred styles */}
-      {styleChips.length > 0 && (
-        <div>
-          <SectionLabel>Preferred Styles</SectionLabel>
-          <div className="flex flex-wrap gap-1.5">
-            {styleChips.map((s) => (
-              <Chip key={s}>{s}</Chip>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Colours */}
-      {(colorChips.length > 0 || avoidChips.length > 0) && (
-        <div className="space-y-2.5">
-          {colorChips.length > 0 && (
-            <div>
-              <SectionLabel>Favourite Colours</SectionLabel>
-              <div className="flex flex-wrap gap-1.5">
-                {colorChips.map((c) => (
-                  <Chip key={c}>{c}</Chip>
-                ))}
-              </div>
-            </div>
-          )}
-          {avoidChips.length > 0 && (
-            <div>
-              <SectionLabel>Colours to Avoid</SectionLabel>
-              <div className="flex flex-wrap gap-1.5">
-                {avoidChips.map((c) => (
-                  <span
-                    key={c}
-                    className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-sm bg-orange-50 text-orange-700 border border-orange-200"
-                  >
-                    {c}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Profile rows */}
-      <div>
-        {fabricChips.length > 0 && (
-          <ProfileRow
-            label="Favourite Fabrics"
-            value={fabricChips.join(", ")}
-          />
-        )}
-        <ProfileRow label="Preferred Fit" value={customer.preferredFit} />
-        <ProfileRow
-          label="Design Preferences"
-          value={customer.designPreferences}
+    <SectionCard bodyClassName="p-0">
+      {/* Gradient avatar hero */}
+      <div className="relative bg-gradient-to-br from-[#800020] via-[#6b0018] to-[#4a0010] px-5 py-6 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.1] pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.5) 0%, transparent 40%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.3) 0%, transparent 40%)",
+          }}
         />
-        <ProfileRow label="Style Notes" value={customer.styleNotes} />
-      </div>
-
-      <Separator />
-
-      {/* Latest measurements */}
-      <div>
-        <SectionLabel>Latest Measurements</SectionLabel>
-        {latestSet ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-            <div className="flex justify-between">
-              <span className="text-stone-500">Bust</span>
-              <span className="font-medium text-[#1C1917]">
-                {latestSet.bust ? `${latestSet.bust} ${latestSet.unit}` : "—"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-stone-500">Waist</span>
-              <span className="font-medium text-[#1C1917]">
-                {latestSet.waist ? `${latestSet.waist} ${latestSet.unit}` : "—"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-stone-500">Hip</span>
-              <span className="font-medium text-[#1C1917]">
-                {latestSet.hip ? `${latestSet.hip} ${latestSet.unit}` : "—"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-stone-500">Height</span>
-              <span className="font-medium text-[#1C1917]">
-                {customer.height ? `${customer.height} cm` : "—"}
-              </span>
-            </div>
-            <p className="col-span-2 text-[10px] uppercase tracking-wide text-stone-400 mt-1">
-              Taken {shortDate(latestSet.dateTaken)}
+        <div className="relative flex items-center gap-3.5">
+          <div className="w-14 h-14 rounded-full bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center text-white font-display text-lg font-semibold">
+            {initials(customer.name)}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-white/60 font-semibold">
+              Style Profile
+            </p>
+            <h2
+              className="font-display font-semibold text-white leading-tight truncate"
+              style={{ fontSize: "clamp(18px, 2vw, 22px)" }}
+            >
+              {customer.name}
+            </h2>
+            <p className="text-[11px] text-white/60 mt-0.5">
+              {customer.customerType || "Client"} ·{" "}
+              {orders.length} order{orders.length === 1 ? "" : "s"}
             </p>
           </div>
-        ) : (
-          <p className="text-sm text-stone-400">No measurements on file.</p>
-        )}
+        </div>
       </div>
 
-      <Separator />
-
-      {/* Previous orders */}
-      <div>
-        <SectionLabel>Previous Orders ({orders.length})</SectionLabel>
-        {recentOrders.length > 0 ? (
-          <ul className="space-y-1.5">
-            {recentOrders.map((o) => (
-              <li
-                key={o.id}
-                className="flex items-center justify-between gap-2 text-sm"
-              >
-                <span className="text-[#1C1917] truncate">{o.garmentDesign}</span>
-                <StatusBadge status={o.status} className="shrink-0" />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-stone-400">No previous orders.</p>
-        )}
-      </div>
-
-      <Separator />
-
-      {/* Recent feedback */}
-      <div>
-        <SectionLabel>Recent Feedback</SectionLabel>
-        {recentFeedback.length > 0 ? (
-          <ul className="space-y-2.5">
-            {recentFeedback.map((f) => (
-              <li key={f.id} className="text-sm">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="inline-flex items-center gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={cn(
-                          "w-3 h-3",
-                          i < f.rating
-                            ? "text-[#800020] fill-[#800020]"
-                            : "text-stone-300"
-                        )}
-                      />
-                    ))}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-wide text-stone-400">
-                    {f.type}
-                  </span>
-                </div>
-                {f.feedback && (
-                  <p className="text-stone-600 text-xs leading-relaxed italic">
-                    &ldquo;{f.feedback}&rdquo;
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-stone-400">No feedback yet.</p>
-        )}
-      </div>
-
-      {/* Data confidence (after first generation) */}
-      {dataConfidence && (
-        <>
-          <Separator />
+      <div className="p-5 space-y-5">
+        {/* Preferred styles */}
+        {styleChips.length > 0 && (
           <div>
-            <SectionLabel>Data Confidence</SectionLabel>
-            <div className="flex items-center gap-2">
-              <ConfidenceDot level={dataConfidence} />
-              <span className="text-sm font-semibold text-[#1C1917]">
-                {dataConfidence}
-              </span>
+            <SectionLabel>Preferred Styles</SectionLabel>
+            <div className="flex flex-wrap gap-1.5">
+              {styleChips.map((s) => (
+                <span
+                  key={s}
+                  className="rounded-md bg-[#800020]/8 text-[#800020] px-2 py-1 text-xs font-medium"
+                >
+                  {s}
+                </span>
+              ))}
             </div>
-            {confidenceNote && (
-              <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">
-                {confidenceNote}
-              </p>
+          </div>
+        )}
+
+        {/* Definition grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <DefCell
+            label="Favourite Colours"
+            value={
+              colorChips.length > 0 ? colorChips.join(", ") : "—"
+            }
+          />
+          <DefCell
+            label="Colours to Avoid"
+            value={
+              avoidChips.length > 0 ? avoidChips.join(", ") : "—"
+            }
+            accent="avoid"
+          />
+          <DefCell
+            label="Favourite Fabrics"
+            value={
+              fabricChips.length > 0 ? fabricChips.join(", ") : "—"
+            }
+          />
+          <DefCell
+            label="Preferred Fit"
+            value={customer.preferredFit || "—"}
+          />
+        </div>
+
+        {/* Design preferences + style notes */}
+        {(customer.designPreferences || customer.styleNotes) && (
+          <div className="space-y-2.5">
+            {customer.designPreferences && (
+              <TintedNote
+                label="Design Preferences"
+                value={customer.designPreferences}
+              />
+            )}
+            {customer.styleNotes && (
+              <TintedNote
+                label="Style Notes"
+                value={customer.styleNotes}
+                subtle
+              />
             )}
           </div>
-        </>
+        )}
+
+        <Separator />
+
+        {/* Latest measurements */}
+        <div>
+          <SectionLabel>Latest Measurements</SectionLabel>
+          {latestSet ? (
+            <div className="grid grid-cols-2 gap-2">
+              <MeasureCell
+                label="Bust"
+                value={latestSet.bust}
+                unit={latestSet.unit}
+              />
+              <MeasureCell
+                label="Waist"
+                value={latestSet.waist}
+                unit={latestSet.unit}
+              />
+              <MeasureCell
+                label="Hip"
+                value={latestSet.hip}
+                unit={latestSet.unit}
+              />
+              <MeasureCell
+                label="Height"
+                value={customer.height ?? null}
+                unit="cm"
+              />
+              <p className="col-span-2 text-[10px] uppercase tracking-[0.18em] text-stone-400 mt-1">
+                Taken {shortDate(latestSet.dateTaken)}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-stone-400">No measurements on file.</p>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Previous orders */}
+        <div>
+          <SectionLabel>
+            Previous Orders · {orders.length}
+          </SectionLabel>
+          {recentOrders.length > 0 ? (
+            <ul className="space-y-2">
+              {recentOrders.map((o) => (
+                <li
+                  key={o.id}
+                  className="flex items-center justify-between gap-2 text-sm"
+                >
+                  <span className="text-[#1C1917] truncate text-[13px]">
+                    {o.garmentDesign}
+                  </span>
+                  <StatusBadge status={o.status} className="shrink-0" />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-stone-400">No previous orders.</p>
+          )}
+        </div>
+
+        {/* Recent feedback */}
+        {recentFeedback.length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <SectionLabel>Recent Feedback</SectionLabel>
+              <ul className="space-y-2.5">
+                {recentFeedback.map((f) => (
+                  <li key={f.id} className="text-sm">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="inline-flex items-center gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={cn(
+                              "w-3 h-3",
+                              i < f.rating
+                                ? "text-[#800020] fill-[#800020]"
+                                : "text-stone-300"
+                            )}
+                          />
+                        ))}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+                        {f.type}
+                      </span>
+                    </div>
+                    {f.feedback && (
+                      <p className="text-stone-600 text-xs leading-relaxed italic">
+                        &ldquo;{f.feedback}&rdquo;
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
+
+        {/* Data confidence (after first generation) */}
+        {dataConfidence && (
+          <>
+            <Separator />
+            <div>
+              <SectionLabel>Data Confidence</SectionLabel>
+              <div
+                className={cn(
+                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border",
+                  confidenceConfig[dataConfidence].color
+                )}
+              >
+                <span
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full ring-2",
+                    confidenceConfig[dataConfidence].dot,
+                    confidenceConfig[dataConfidence].ring
+                  )}
+                />
+                {dataConfidence}
+              </div>
+              {confidenceNote && (
+                <p className="text-xs text-stone-500 mt-2 leading-relaxed">
+                  {confidenceNote}
+                </p>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </SectionCard>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400 font-semibold mb-2">
+      {children}
+    </p>
+  );
+}
+
+function DefCell({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: "avoid";
+}) {
+  return (
+    <div className="rounded-md bg-[#faf8f5] border border-[#E7E5E4] p-2.5">
+      <p
+        className={cn(
+          "text-[10px] uppercase tracking-[0.18em] font-semibold mb-1",
+          accent === "avoid" ? "text-orange-600" : "text-stone-400"
+        )}
+      >
+        {label}
+      </p>
+      <p className="text-[13px] text-[#1C1917] leading-snug line-clamp-2">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function MeasureCell({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value?: number | null;
+  unit: string;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-2 px-2 py-1.5 rounded-md bg-white border border-[#E7E5E4]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400 font-semibold">
+        {label}
+      </span>
+      <span className="text-sm font-semibold text-[#1C1917] tabular-nums">
+        {value != null ? `${value} ${unit}` : "—"}
+      </span>
+    </div>
+  );
+}
+
+function TintedNote({
+  label,
+  value,
+  subtle,
+}: {
+  label: string;
+  value: string;
+  subtle?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-md border-l-2 pl-3 py-1.5",
+        subtle
+          ? "bg-stone-50 border-stone-300"
+          : "bg-[#800020]/4 border-[#800020]/30"
       )}
-    </AtelierCard>
+    >
+      <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-0.5">
+        {label}
+      </p>
+      <p className="text-xs text-[#1C1917] leading-relaxed">{value}</p>
+    </div>
   );
 }
 
 // ============================================================
-// Design Request Form
+// Design Request Form (premium)
 // ============================================================
 
 function DesignRequestForm({
@@ -889,54 +1051,62 @@ function DesignRequestForm({
   onGenerate: () => void;
   generating: boolean;
 }) {
-  const set = <K extends keyof DesignRequest>(k: K, v: DesignRequest[K]) =>
-    onChange({ ...value, [k]: v });
+  const set = <K extends keyof DesignRequest>(
+    k: K,
+    v: DesignRequest[K]
+  ) => onChange({ ...value, [k]: v });
 
   return (
-    <AtelierCard title="Design Request" bodyClassName="space-y-4">
+    <SectionCard
+      title="Design Request"
+      action={
+        <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-stone-400">
+          <Scissors className="w-3 h-3 text-[#800020]" />
+          Brief
+        </span>
+      }
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="sa-garment">
-            Garment Type <span className="text-[#800020]">*</span>
-          </Label>
+        <Field
+          id="sa-garment"
+          label="Garment Type"
+          required
+        >
           <Input
             id="sa-garment"
-            className="rounded-sm"
+            className="rounded-md h-10"
             placeholder="Evening Gown, Agbada, Suit…"
             value={value.garmentType}
             onChange={(e) => set("garmentType", e.target.value)}
           />
-        </div>
+        </Field>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="sa-occasion">Occasion</Label>
+        <Field id="sa-occasion" label="Occasion">
           <Input
             id="sa-occasion"
-            className="rounded-sm"
+            className="rounded-md h-10"
             placeholder="Wedding Guest, Corporate Event…"
             value={value.occasion}
             onChange={(e) => set("occasion", e.target.value)}
           />
-        </div>
+        </Field>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="sa-look">Desired Look</Label>
+        <Field id="sa-look" label="Desired Look">
           <Input
             id="sa-look"
-            className="rounded-sm"
+            className="rounded-md h-10"
             placeholder="Elegant, dramatic…"
             value={value.desiredLook}
             onChange={(e) => set("desiredLook", e.target.value)}
           />
-        </div>
+        </Field>
 
-        <div className="space-y-1.5">
-          <Label>Season</Label>
+        <Field label="Season">
           <Select
             value={value.season}
             onValueChange={(v) => set("season", v)}
           >
-            <SelectTrigger className="w-full rounded-sm">
+            <SelectTrigger className="w-full rounded-md h-10">
               <SelectValue placeholder="Select season" />
             </SelectTrigger>
             <SelectContent>
@@ -947,77 +1117,110 @@ function DesignRequestForm({
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </Field>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="sa-budget">Budget (GHS)</Label>
+        <Field id="sa-budget" label="Budget (GHS)">
           <Input
             id="sa-budget"
             type="number"
             min={0}
-            className="rounded-sm"
+            className="rounded-md h-10 tabular-nums"
             placeholder="e.g. 2500"
             value={value.budget}
             onChange={(e) => set("budget", e.target.value)}
           />
-        </div>
+        </Field>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="sa-fabric">Fabric Available</Label>
+        <Field id="sa-fabric" label="Fabric Available">
           <Input
             id="sa-fabric"
-            className="rounded-sm"
+            className="rounded-md h-10"
             placeholder="Italian lace, silk…"
             value={value.fabricAvailable}
             onChange={(e) => set("fabricAvailable", e.target.value)}
           />
+        </Field>
+
+        <div className="sm:col-span-2">
+          <Field id="sa-colour" label="Colour Preference">
+            <Input
+              id="sa-colour"
+              className="rounded-md h-10"
+              placeholder="Customer's preferred colour or your suggestion"
+              value={value.colourPreference}
+              onChange={(e) => set("colourPreference", e.target.value)}
+            />
+          </Field>
         </div>
 
-        <div className="space-y-1.5 sm:col-span-2">
-          <Label htmlFor="sa-colour">Colour Preference</Label>
-          <Input
-            id="sa-colour"
-            className="rounded-sm"
-            placeholder="Customer's preferred colour or your suggestion"
-            value={value.colourPreference}
-            onChange={(e) => set("colourPreference", e.target.value)}
-          />
+        <div className="sm:col-span-2">
+          <Field id="sa-direction" label="Designer Direction">
+            <Textarea
+              id="sa-direction"
+              rows={3}
+              className="rounded-md resize-none"
+              placeholder="e.g. elegant but not too fitted, with African print incorporated"
+              value={value.designerDirection}
+              onChange={(e) => set("designerDirection", e.target.value)}
+            />
+          </Field>
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="sa-direction">Designer Direction</Label>
-        <Textarea
-          id="sa-direction"
-          rows={3}
-          className="rounded-sm resize-none"
-          placeholder="e.g. elegant but not too fitted, with African print incorporated"
-          value={value.designerDirection}
-          onChange={(e) => set("designerDirection", e.target.value)}
-        />
+      <div className="flex flex-wrap items-center justify-between gap-3 mt-5 pt-4 border-t border-[#E7E5E4]/70">
+        <p className="text-[11px] text-stone-400 leading-relaxed max-w-md">
+          The AI will craft three bespoke concepts using{" "}
+          <span className="text-[#800020] font-medium">
+            this client&apos;s profile
+          </span>{" "}
+          as design context.
+        </p>
+        <PremiumButton
+          onClick={onGenerate}
+          loading={generating}
+          disabled={!value.garmentType.trim()}
+          size="lg"
+        >
+          {generating ? (
+            <>Designing…</>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4" /> Generate Concepts
+            </>
+          )}
+        </PremiumButton>
       </div>
+    </SectionCard>
+  );
+}
 
-      <Button
-        onClick={onGenerate}
-        disabled={generating || !value.garmentType.trim()}
-        className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm gap-2 w-full sm:w-auto"
+function Field({
+  id,
+  label,
+  required,
+  children,
+}: {
+  id?: string;
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label
+        htmlFor={id}
+        className="text-[11px] uppercase tracking-[0.16em] text-stone-500 font-semibold"
       >
-        {generating ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin" /> Designing…
-          </>
-        ) : (
-          <>
-            <Sparkles className="w-4 h-4" /> Generate Concepts
-          </>
-        )}
-      </Button>
-    </AtelierCard>
+        {label}
+        {required && <span className="text-[#800020] ml-0.5">*</span>}
+      </Label>
+      {children}
+    </div>
   );
 }
 
 // ============================================================
-// Concept Card
+// Concept Card — premium lookbook style
 // ============================================================
 
 function ConceptCard({
@@ -1041,273 +1244,332 @@ function ConceptCard({
 }) {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const status = concept.status;
   const showStatusBadge = !isDraft && !!status && status !== "Suggested";
 
   const specs = [
-    { label: "Silhouette", value: concept.silhouette },
-    { label: "Neckline", value: concept.neckline },
-    { label: "Sleeve", value: concept.sleeveStyle },
-    { label: "Length", value: concept.length },
-    { label: "Fabric", value: concept.fabric },
-    { label: "Colour", value: concept.colour },
-    { label: "Detailing", value: concept.detailing },
-    { label: "Embellishment", value: concept.embellishment },
+    {
+      label: "Silhouette",
+      value: concept.silhouette,
+      icon: Shirt,
+    },
+    { label: "Neckline", value: concept.neckline, icon: null },
+    { label: "Sleeve", value: concept.sleeveStyle, icon: null },
+    { label: "Length", value: concept.length, icon: null },
+    {
+      label: "Fabric",
+      value: concept.fabric,
+      icon: Scissors,
+    },
+    {
+      label: "Colour",
+      value: concept.colour,
+      icon: Palette,
+    },
+    { label: "Detailing", value: concept.detailing, icon: null },
+    { label: "Embellishment", value: concept.embellishment, icon: null },
   ].filter((s) => s.value);
 
   const showVisualizeActionForSaved =
     !isDraft && !concept.imageUrl && status === "Approved";
 
   return (
-    <div className="bg-white border border-[#E7E5E4] rounded-sm p-5">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 mb-4">
+    <div className="surface-premium rounded-xl border border-[#E7E5E4] elevate-md lift overflow-hidden">
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-[#E7E5E4]/70">
         <div className="flex-1 min-w-0">
-          <h4 className="font-display text-lg font-semibold text-[#1C1917] leading-snug break-words">
+          <h4
+            className="font-display font-semibold text-[#1C1917] leading-snug break-words"
+            style={{ fontSize: "clamp(18px, 2vw, 22px)" }}
+          >
             {concept.conceptName}
           </h4>
           {showStatusBadge && (
-            <div className="mt-1.5">
+            <div className="mt-2">
               <StatusBadge status={status!} />
             </div>
           )}
         </div>
         {concept.matchPercent != null && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#800020]/10 text-[#800020] whitespace-nowrap shrink-0">
-            <Sparkles className="w-3 h-3" />
-            {concept.matchPercent}% match
-          </span>
+          <div className="relative shrink-0">
+            {/* Burgundy gradient pill */}
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-white px-2.5 py-1.5 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] elevate-burgundy">
+              <Sparkles className="w-3 h-3" />
+              {concept.matchPercent}% match
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Image / Visualize area */}
-      <div className="mb-4">
-        {concept.imageUrl ? (
-          <div className="aspect-[3/4] bg-[#FBF9F7] rounded-sm overflow-hidden max-w-[280px] mx-auto border border-[#E7E5E4]">
-            <img
-              src={concept.imageUrl}
-              alt={`Concept visualization for ${concept.conceptName}`}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onVisualize}
-            disabled={visualizing}
-            className="aspect-[3/4] max-w-[280px] mx-auto w-full bg-[#FBF9F7] rounded-sm border border-dashed border-[#E7E5E4] flex flex-col items-center justify-center gap-2 hover:bg-[#F5F0EB] hover:border-[#800020]/40 transition group disabled:cursor-not-allowed disabled:opacity-60"
-            aria-label="Visualize concept"
-          >
-            {visualizing ? (
+      <div className="px-5 pb-5 pt-4 space-y-4">
+        {/* Image area — premium lookbook frame */}
+        <div className="relative">
+          <div className="aspect-[4/5] bg-gradient-to-br from-[#faf8f5] to-[#f5f1ec] rounded-lg overflow-hidden border border-[#E7E5E4] shadow-inner">
+            {concept.imageUrl ? (
               <>
-                <Loader2 className="w-6 h-6 text-[#800020] animate-spin" />
-                <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500 font-semibold">
-                  Rendering…
-                </span>
+                {!imageLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 text-[#800020] animate-spin" />
+                  </div>
+                )}
+                <img
+                  src={concept.imageUrl}
+                  alt={`Concept visualization for ${concept.conceptName}`}
+                  className={cn(
+                    "w-full h-full object-cover transition-opacity duration-500",
+                    imageLoaded ? "opacity-100" : "opacity-0"
+                  )}
+                  style={{
+                    boxShadow: "inset 0 0 60px rgba(28,25,23,0.08)",
+                  }}
+                  onLoad={() => setImageLoaded(true)}
+                />
               </>
+            ) : visualizing ? (
+              // Shimmer + spinner overlay
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <div className="absolute inset-0 shimmer opacity-50" />
+                <div className="relative w-14 h-14 rounded-full bg-white/80 border border-[#800020]/20 backdrop-blur-sm flex items-center justify-center elevate-sm">
+                  <Loader2 className="w-6 h-6 text-[#800020] animate-spin" />
+                </div>
+                <p className="relative text-[10px] uppercase tracking-[0.22em] text-[#800020] font-semibold">
+                  Painting your concept…
+                </p>
+                <p className="relative text-[10px] text-stone-400 max-w-[200px] text-center">
+                  Rendering a bespoke visualization
+                </p>
+              </div>
             ) : (
-              <>
-                <div className="w-12 h-12 rounded-full bg-white border border-[#800020]/30 flex items-center justify-center group-hover:bg-[#800020] group-hover:border-[#800020] transition">
+              // Empty visualize CTA
+              <button
+                type="button"
+                onClick={onVisualize}
+                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group hover:bg-[#f5f0eb]/60 transition"
+                aria-label="Visualize concept"
+              >
+                <div className="w-14 h-14 rounded-full bg-white border border-[#800020]/30 flex items-center justify-center group-hover:bg-[#800020] group-hover:border-[#800020] transition elevate-sm">
                   <Wand2 className="w-5 h-5 text-[#800020] group-hover:text-white transition" />
                 </div>
-                <span className="text-[11px] uppercase tracking-[0.18em] text-[#800020] font-semibold">
-                  Visualize Concept
-                </span>
-                <span className="text-[10px] text-stone-400 max-w-[200px] text-center leading-relaxed">
-                  Generate an AI concept image of this design
-                </span>
+                <div className="text-center">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#800020] font-semibold">
+                    Visualize Concept
+                  </p>
+                  <p className="text-[10px] text-stone-400 max-w-[200px] mt-1 leading-relaxed">
+                    Generate an AI concept image of this design
+                  </p>
+                </div>
+              </button>
+            )}
+          </div>
+
+          {/* Decorative corner label */}
+          {concept.imageUrl && (
+            <div className="absolute -top-1 -left-1 px-2 py-0.5 rounded-full bg-white border border-[#E7E5E4] text-[9px] uppercase tracking-[0.22em] text-stone-500 font-semibold elevate-xs">
+              AI Visual
+            </div>
+          )}
+        </div>
+
+        {/* Specs grid */}
+        {specs.length > 0 && (
+          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-2.5">
+            {specs.map((s) => (
+              <div key={s.label} className="min-w-0">
+                <dt className="flex items-center gap-1 text-[9px] uppercase tracking-[0.18em] text-stone-400 font-semibold">
+                  {s.icon && <s.icon className="w-2.5 h-2.5 text-[#800020]/60" />}
+                  {s.label}
+                </dt>
+                <dd className="text-[13px] text-[#1C1917] mt-0.5 break-words leading-snug">
+                  {s.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {/* Why this may work */}
+        {concept.whyThisMayWork && (
+          <div className="bg-[#800020]/4 border-l-2 border-[#800020]/30 pl-3 py-2 rounded-r-md">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#800020] font-semibold mb-1">
+              Why this may work
+            </p>
+            <p className="text-[13px] text-[#1C1917] leading-relaxed">
+              {concept.whyThisMayWork}
+            </p>
+          </div>
+        )}
+
+        {/* Fit considerations + Design direction */}
+        {(concept.fitConsiderations || concept.designDirection) && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {concept.fitConsiderations && (
+              <div>
+                <p className="flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-stone-400 font-semibold mb-1">
+                  <Scissors className="w-3 h-3 text-[#800020]/60" />
+                  Fit Considerations
+                </p>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  {concept.fitConsiderations}
+                </p>
+              </div>
+            )}
+            {concept.designDirection && (
+              <div>
+                <p className="flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-stone-400 font-semibold mb-1">
+                  <Sparkles className="w-3 h-3 text-[#800020]/60" />
+                  Design Direction
+                </p>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  {concept.designDirection}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Actions */}
+        {rejecting ? (
+          <div className="pt-4 border-t border-[#E7E5E4]/70 space-y-2.5">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold">
+              Reason for dismissal
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {REJECT_REASONS.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setReason(r)}
+                  className={cn(
+                    "text-[11px] px-2.5 py-1 rounded-full border transition",
+                    reason === r
+                      ? "bg-[#800020] text-white border-[#800020]"
+                      : "border-[#E7E5E4] text-stone-500 hover:border-stone-300 bg-white"
+                  )}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <Textarea
+              rows={2}
+              className="rounded-md resize-none text-sm"
+              placeholder="Add details or write your own reason…"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <PremiumButton
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setRejecting(false);
+                  setReason("");
+                }}
+              >
+                Cancel
+              </PremiumButton>
+              <PremiumButton
+                variant="danger"
+                size="sm"
+                disabled={!reason.trim()}
+                onClick={() => {
+                  onReject?.(reason.trim());
+                  setRejecting(false);
+                  setReason("");
+                }}
+              >
+                <X className="w-3.5 h-3.5" /> Confirm Dismiss
+              </PremiumButton>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-[#E7E5E4]/70">
+            {isDraft && (
+              <>
+                <PremiumButton
+                  variant="primary"
+                  size="sm"
+                  onClick={onApprove}
+                  loading={saving}
+                  className="bg-[#15803D] hover:bg-[#128037]"
+                >
+                  <Check className="w-3.5 h-3.5" /> Approve
+                </PremiumButton>
+                <PremiumButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRejecting(true)}
+                  disabled={saving}
+                  className="text-stone-500"
+                >
+                  <X className="w-3.5 h-3.5" /> Reject
+                </PremiumButton>
               </>
             )}
-          </button>
+
+            <PremiumButton
+              variant="primary"
+              size="sm"
+              onClick={onConvert}
+              className={cn(isDraft && "ml-auto")}
+            >
+              <ShoppingBag className="w-3.5 h-3.5" /> Convert to Order
+            </PremiumButton>
+
+            {showVisualizeActionForSaved && (
+              <PremiumButton
+                variant="outline"
+                size="sm"
+                onClick={onVisualize}
+                loading={visualizing}
+              >
+                <Wand2 className="w-3.5 h-3.5" /> Visualize
+              </PremiumButton>
+            )}
+          </div>
         )}
       </div>
-
-      {/* Specs grid */}
-      {specs.length > 0 && (
-        <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-4 pb-4 border-b border-[#E7E5E4]">
-          {specs.map((s) => (
-            <SpecField key={s.label} label={s.label} value={s.value} />
-          ))}
-        </dl>
-      )}
-
-      {/* Why this may work */}
-      {concept.whyThisMayWork && (
-        <div className="bg-[#FBF9F7] border-l-2 border-[#800020]/30 pl-3 py-2 mb-3">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-1">
-            Why this may work
-          </p>
-          <p className="text-sm text-[#1C1917] leading-relaxed">
-            {concept.whyThisMayWork}
-          </p>
-        </div>
-      )}
-
-      {/* Fit considerations */}
-      {concept.fitConsiderations && (
-        <div className="mb-2">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-1">
-            Fit Considerations
-          </p>
-          <p className="text-sm text-stone-600 leading-relaxed">
-            {concept.fitConsiderations}
-          </p>
-        </div>
-      )}
-
-      {/* Design direction */}
-      {concept.designDirection && (
-        <div className="mb-2">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-1">
-            Design Direction
-          </p>
-          <p className="text-sm text-stone-600 leading-relaxed">
-            {concept.designDirection}
-          </p>
-        </div>
-      )}
-
-      {/* Actions */}
-      {rejecting ? (
-        <div className="mt-4 pt-4 border-t border-[#E7E5E4] space-y-2.5">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500 font-semibold">
-            Reason for dismissal
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {REJECT_REASONS.map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setReason(r)}
-                className={cn(
-                  "text-[11px] px-2.5 py-1 rounded-full border transition",
-                  reason === r
-                    ? "bg-[#800020] text-white border-[#800020]"
-                    : "border-[#E7E5E4] text-stone-500 hover:border-stone-300"
-                )}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-          <Textarea
-            rows={2}
-            className="rounded-sm resize-none text-sm"
-            placeholder="Add details or write your own reason…"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="rounded-sm"
-              onClick={() => {
-                setRejecting(false);
-                setReason("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              className="rounded-sm bg-stone-800 hover:bg-stone-700 text-white gap-1.5"
-              disabled={!reason.trim()}
-              onClick={() => {
-                onReject?.(reason.trim());
-                setRejecting(false);
-                setReason("");
-              }}
-            >
-              <X className="w-3.5 h-3.5" /> Confirm Dismiss
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[#E7E5E4]">
-          {isDraft && (
-            <>
-              <Button
-                size="sm"
-                className="rounded-sm bg-[#15803D] hover:bg-[#15803D]/90 text-white gap-1.5"
-                onClick={onApprove}
-                disabled={saving}
-              >
-                {saving ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Check className="w-3.5 h-3.5" />
-                )}
-                Approve
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="rounded-sm gap-1.5 text-stone-500"
-                onClick={() => setRejecting(true)}
-                disabled={saving}
-              >
-                <X className="w-3.5 h-3.5" /> Reject
-              </Button>
-            </>
-          )}
-
-          <Button
-            size="sm"
-            className={cn(
-              "rounded-sm gap-1.5 bg-[#800020] hover:bg-[#6b0018] text-white",
-              isDraft && "ml-auto"
-            )}
-            onClick={onConvert}
-          >
-            <ShoppingBag className="w-3.5 h-3.5" /> Convert to Order
-          </Button>
-
-          {showVisualizeActionForSaved && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="rounded-sm gap-1.5"
-              onClick={onVisualize}
-              disabled={visualizing}
-            >
-              {visualizing ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Wand2 className="w-3.5 h-3.5" />
-              )}
-              Visualize
-            </Button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
 
 // ============================================================
-// Concept Skeleton (loading state)
+// Concept Skeleton (premium shimmer)
 // ============================================================
 
 function ConceptSkeleton() {
   return (
-    <div className="bg-white border border-[#E7E5E4] rounded-sm p-5 animate-pulse">
-      <div className="flex justify-between items-start mb-4">
-        <div className="h-5 bg-stone-100 rounded w-1/2" />
-        <div className="h-5 bg-stone-100 rounded-full w-20" />
+    <div className="surface-premium rounded-xl border border-[#E7E5E4] elevate-sm overflow-hidden">
+      {/* Header shimmer */}
+      <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-[#E7E5E4]/70">
+        <div className="space-y-2 flex-1">
+          <div className="h-5 w-2/3 shimmer rounded-md" />
+          <div className="h-3 w-20 shimmer rounded" />
+        </div>
+        <div className="h-7 w-20 shimmer rounded-full" />
       </div>
-      <div className="aspect-[3/4] max-w-[280px] mx-auto w-full bg-stone-100 rounded-sm mb-4" />
-      <div className="grid grid-cols-3 gap-3 mb-4 pb-4 border-b border-[#E7E5E4]">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-10 bg-stone-100 rounded" />
-        ))}
-      </div>
-      <div className="h-16 bg-stone-100 rounded mb-4" />
-      <div className="flex gap-2 pt-2">
-        <div className="h-8 bg-stone-100 rounded w-20" />
-        <div className="h-8 bg-stone-100 rounded w-20" />
-        <div className="h-8 bg-stone-100 rounded w-32 ml-auto" />
+      <div className="p-5 space-y-4">
+        {/* Image shimmer */}
+        <div className="aspect-[4/5] max-w-[280px] mx-auto w-full shimmer rounded-lg" />
+        {/* Specs shimmer */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="space-y-1.5">
+              <div className="h-2 w-12 shimmer rounded" />
+              <div className="h-3 w-16 shimmer rounded" />
+            </div>
+          ))}
+        </div>
+        {/* Why box shimmer */}
+        <div className="h-16 shimmer rounded-md" />
+        {/* Actions shimmer */}
+        <div className="flex gap-2 pt-4 border-t border-[#E7E5E4]/70">
+          <div className="h-8 w-20 shimmer rounded-md" />
+          <div className="h-8 w-20 shimmer rounded-md" />
+          <div className="h-8 w-32 shimmer rounded-md ml-auto" />
+        </div>
       </div>
     </div>
   );

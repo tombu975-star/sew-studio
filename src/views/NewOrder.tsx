@@ -3,15 +3,17 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Pencil, TrendingUp } from "lucide-react";
 
 import { apiGet, apiPost } from "@/lib/api";
 import { useNav } from "@/stores/nav";
-import { ORDER_STATUSES, PRIORITY_LEVELS, todayISO } from "@/lib/format";
+import { ORDER_STATUSES, PRIORITY_LEVELS, todayISO, formatCurrency } from "@/lib/format";
 import type { Customer, Order, User } from "@/lib/types";
 
-import { AtelierCard } from "@/components/atelier/AtelierCard";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/atelier/PageHeader";
+import { SectionCard } from "@/components/atelier/SectionCard";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
+import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 export default function NewOrder() {
   const { go, params } = useNav();
@@ -58,6 +61,13 @@ export default function NewOrder() {
   const [priority, setPriority] = useState<string>("Medium");
   const [notes, setNotes] = useState("");
 
+  const estMargin = useMemo(() => {
+    const s = Number(sellingPrice) || 0;
+    const f = Number(fabricCost) || 0;
+    const l = Number(labourCost) || 0;
+    return s - f - l;
+  }, [sellingPrice, fabricCost, labourCost]);
+
   const createMut = useMutation({
     mutationFn: () => {
       const body: Record<string, unknown> = {
@@ -87,7 +97,7 @@ export default function NewOrder() {
   const valid = !!customerId && !!garmentDesign.trim() && !!orderDate;
 
   return (
-    <div className="p-5 md:p-8 max-w-[800px] mx-auto w-full">
+    <div className="p-5 md:p-8 max-w-[820px] mx-auto w-full">
       <button
         onClick={() => go("orders")}
         className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
@@ -95,17 +105,14 @@ export default function NewOrder() {
         <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
       </button>
 
-      <h1
-        className="font-display font-semibold text-[#1C1917] leading-tight mb-1"
-        style={{ fontSize: "clamp(26px, 3.6vw, 34px)" }}
-      >
-        New Custom Order
-      </h1>
-      <p className="text-sm text-stone-500 mb-6">
-        Capture every detail so production can begin.
-      </p>
+      <PageHeader
+        eyebrow="New commission"
+        eyebrowIcon={Pencil}
+        title="New Custom Order"
+        subtitle="Capture every detail so production can begin."
+      />
 
-      <AtelierCard title="Order details">
+      <SectionCard title="Order Details" className="animate-fade-in-up">
         <div className="space-y-5">
           {/* Customer */}
           <div>
@@ -113,7 +120,7 @@ export default function NewOrder() {
               Customer <span className="text-[#800020]">*</span>
             </Label>
             <Select value={customerId} onValueChange={setCustomerId}>
-              <SelectTrigger className="rounded-sm mt-1.5 w-full">
+              <SelectTrigger className="rounded-md mt-1.5 w-full bg-white">
                 <SelectValue placeholder="Select a customer…" />
               </SelectTrigger>
               <SelectContent>
@@ -142,7 +149,7 @@ export default function NewOrder() {
               onChange={(e) => setGarmentDesign(e.target.value)}
               rows={3}
               placeholder="Describe the garment: silhouette, fabric, detailing…"
-              className="rounded-sm mt-1.5"
+              className="rounded-md mt-1.5"
             />
           </div>
 
@@ -156,7 +163,7 @@ export default function NewOrder() {
                 type="date"
                 value={orderDate}
                 onChange={(e) => setOrderDate(e.target.value)}
-                className="rounded-sm mt-1.5"
+                className="rounded-md mt-1.5"
               />
             </div>
             <div>
@@ -165,7 +172,7 @@ export default function NewOrder() {
                 type="date"
                 value={deliveryDate}
                 onChange={(e) => setDeliveryDate(e.target.value)}
-                className="rounded-sm mt-1.5"
+                className="rounded-md mt-1.5"
               />
             </div>
           </div>
@@ -175,7 +182,7 @@ export default function NewOrder() {
             <div>
               <Label>Status</Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="rounded-sm mt-1.5 w-full">
+                <SelectTrigger className="rounded-md mt-1.5 w-full bg-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -190,7 +197,7 @@ export default function NewOrder() {
             <div>
               <Label>Assigned Staff</Label>
               <Select value={assignedStaffId} onValueChange={setAssignedStaffId}>
-                <SelectTrigger className="rounded-sm mt-1.5 w-full">
+                <SelectTrigger className="rounded-md mt-1.5 w-full bg-white">
                   <SelectValue placeholder="Unassigned" />
                 </SelectTrigger>
                 <SelectContent>
@@ -215,7 +222,7 @@ export default function NewOrder() {
                 value={sellingPrice}
                 onChange={(e) => setSellingPrice(e.target.value)}
                 placeholder="0"
-                className="rounded-sm mt-1.5"
+                className="rounded-md mt-1.5 tabular-nums"
               />
             </div>
             <div>
@@ -226,7 +233,7 @@ export default function NewOrder() {
                 value={fabricCost}
                 onChange={(e) => setFabricCost(e.target.value)}
                 placeholder="0"
-                className="rounded-sm mt-1.5"
+                className="rounded-md mt-1.5 tabular-nums"
               />
             </div>
             <div>
@@ -237,16 +244,63 @@ export default function NewOrder() {
                 value={labourCost}
                 onChange={(e) => setLabourCost(e.target.value)}
                 placeholder="0"
-                className="rounded-sm mt-1.5"
+                className="rounded-md mt-1.5 tabular-nums"
               />
             </div>
           </div>
+
+          {/* Live margin preview */}
+          {(sellingPrice || fabricCost || labourCost) && (
+            <div
+              className={cn(
+                "flex items-center justify-between gap-3 p-4 rounded-md border elevate-sm animate-fade-in",
+                estMargin >= 0
+                  ? "bg-emerald-50/60 border-emerald-200"
+                  : "bg-amber-50/60 border-amber-200"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center",
+                    estMargin >= 0
+                      ? "bg-emerald-100"
+                      : "bg-amber-100"
+                  )}
+                >
+                  <TrendingUp
+                    className={cn(
+                      "w-4 h-4",
+                      estMargin >= 0 ? "text-emerald-600" : "text-amber-600"
+                    )}
+                  />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold">
+                    Estimated Margin
+                  </div>
+                  <div className="text-[11px] text-stone-400">
+                    Selling − Fabric − Labour
+                  </div>
+                </div>
+              </div>
+              <div
+                className={cn(
+                  "font-display font-semibold tabular-nums",
+                  estMargin >= 0 ? "text-emerald-700" : "text-amber-700"
+                )}
+                style={{ fontSize: "clamp(22px, 2.6vw, 28px)" }}
+              >
+                <AnimatedNumber value={estMargin} format="currency" duration={400} />
+              </div>
+            </div>
+          )}
 
           {/* Priority */}
           <div>
             <Label>Priority</Label>
             <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger className="rounded-sm mt-1.5 w-full sm:w-[200px]">
+              <SelectTrigger className="rounded-md mt-1.5 w-full sm:w-[220px] bg-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -267,33 +321,30 @@ export default function NewOrder() {
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="Any special instructions, deadlines, references…"
-              className="rounded-sm mt-1.5"
+              className="rounded-md mt-1.5"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E7E5E4]">
-            <Button
+          <div className="flex justify-end gap-2 pt-4 border-t border-[#E7E5E4]/70">
+            <PremiumButton
               variant="outline"
-              className="rounded-sm"
               onClick={() => go("orders")}
               disabled={createMut.isPending}
             >
               Cancel
-            </Button>
-            <Button
-              className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm gap-1.5"
+            </PremiumButton>
+            <PremiumButton
+              className="w-full sm:w-auto"
+              loading={createMut.isPending}
               disabled={!valid || createMut.isPending}
               onClick={() => createMut.mutate()}
             >
-              {createMut.isPending && (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              )}
               {createMut.isPending ? "Saving…" : "Create Order"}
-            </Button>
+            </PremiumButton>
           </div>
         </div>
-      </AtelierCard>
+      </SectionCard>
     </div>
   );
 }

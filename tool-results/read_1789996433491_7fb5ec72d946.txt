@@ -1,0 +1,1129 @@
+     1→"use client";
+     2→
+     3→import { useState } from "react";
+     4→import { useQuery, useQueryClient } from "@tanstack/react-query";
+     5→import {
+     6→  ArrowLeft,
+     7→  Sparkles,
+     8→  Star,
+     9→  Plus,
+    10→  Phone,
+    11→  Mail,
+    12→  MessageSquare,
+    13→  MapPin,
+    14→  Scissors,
+    15→  Pencil,
+    16→  ShoppingBag,
+    17→} from "lucide-react";
+    18→import { toast } from "sonner";
+    19→
+    20→import { apiGet, apiPost, apiPatch } from "@/lib/api";
+    21→import type {
+    22→  Customer,
+    23→  Order,
+    24→  MeasurementSet,
+    25→  StyleConcept,
+    26→  CustomerFeedback,
+    27→} from "@/lib/types";
+    28→import {
+    29→  ENTRY_SOURCES,
+    30→  CUSTOMER_TYPES,
+    31→  PREFERRED_STYLES,
+    32→  formatCurrency,
+    33→  formatDate,
+    34→  shortDate,
+    35→} from "@/lib/format";
+    36→import { useNav } from "@/stores/nav";
+    37→import { cn } from "@/lib/utils";
+    38→
+    39→import { Button } from "@/components/ui/button";
+    40→import { Input } from "@/components/ui/input";
+    41→import { Label } from "@/components/ui/label";
+    42→import { Textarea } from "@/components/ui/textarea";
+    43→import {
+    44→  Dialog,
+    45→  DialogContent,
+    46→  DialogDescription,
+    47→  DialogFooter,
+    48→  DialogHeader,
+    49→  DialogTitle,
+    50→} from "@/components/ui/dialog";
+    51→import {
+    52→  Select,
+    53→  SelectContent,
+    54→  SelectItem,
+    55→  SelectTrigger,
+    56→  SelectValue,
+    57→} from "@/components/ui/select";
+    58→import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+    59→import { AtelierCard } from "@/components/atelier/AtelierCard";
+    60→import { StatusBadge } from "@/components/atelier/StatusBadge";
+    61→
+    62→const GENDERS = ["Female", "Male", "Other"];
+    63→
+    64→interface CustomerDetail {
+    65→  customer: Customer;
+    66→  orders: Order[];
+    67→  measurements: MeasurementSet[];
+    68→  feedback: CustomerFeedback[];
+    69→  styleConcepts: StyleConcept[];
+    70→}
+    71→
+    72→export default function CustomerProfile() {
+    73→  const { selectedId, go } = useNav();
+    74→  const qc = useQueryClient();
+    75→  const [editOpen, setEditOpen] = useState(false);
+    76→  const [measureOpen, setMeasureOpen] = useState(false);
+    77→
+    78→  const { data, isLoading, isError, refetch } = useQuery<CustomerDetail>({
+    79→    queryKey: ["customer", selectedId],
+    80→    queryFn: () => {
+    81→      if (!selectedId) throw new Error("No customer selected");
+    82→      return apiGet<CustomerDetail>(`/api/customers/${selectedId}`);
+    83→    },
+    84→    enabled: !!selectedId,
+    85→  });
+    86→
+    87→  if (!selectedId) {
+    88→    return (
+    89→      <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+    90→        <div className="border border-[#E7E5E4] rounded-sm bg-white p-10 text-center">
+    91→          <p className="text-stone-500">Select a customer to view their profile.</p>
+    92→          <Button
+    93→            className="mt-4 bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+    94→            onClick={() => go("customers")}
+    95→          >
+    96→            Browse Customers
+    97→          </Button>
+    98→        </div>
+    99→      </div>
+   100→    );
+   101→  }
+   102→
+   103→  if (isLoading) {
+   104→    return (
+   105→      <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+   106→        <div className="h-9 w-40 bg-stone-100 rounded-sm animate-pulse mb-6" />
+   107→        <div className="flex gap-4 mb-6">
+   108→          <div className="w-16 h-16 rounded-full bg-stone-100 animate-pulse" />
+   109→          <div className="flex-1 space-y-2">
+   110→            <div className="h-7 w-56 bg-stone-100 rounded-sm animate-pulse" />
+   111→            <div className="h-4 w-72 bg-stone-100 rounded-sm animate-pulse" />
+   112→          </div>
+   113→        </div>
+   114→        <div className="h-10 w-full bg-stone-100 rounded-sm animate-pulse" />
+   115→      </div>
+   116→    );
+   117→  }
+   118→
+   119→  if (isError || !data) {
+   120→    return (
+   121→      <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+   122→        <button
+   123→          onClick={() => go("customers")}
+   124→          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-4"
+   125→        >
+   126→          <ArrowLeft className="w-4 h-4" /> Back to Customers
+   127→        </button>
+   128→        <div className="border border-[#E7E5E4] rounded-sm bg-white p-10 text-center">
+   129→          <p className="text-stone-500">
+   130→            We couldn’t load this customer’s profile.
+   131→          </p>
+   132→          <Button
+   133→            variant="outline"
+   134→            className="mt-4 rounded-sm border-[#E7E5E4]"
+   135→            onClick={() => refetch()}
+   136→          >
+   137→            Try again
+   138→          </Button>
+   139→        </div>
+   140→      </div>
+   141→    );
+   142→  }
+   143→
+   144→  const { customer, orders, measurements, feedback, styleConcepts } = data;
+   145→
+   146→  const handleSaved = () => {
+   147→    qc.invalidateQueries({ queryKey: ["customer", selectedId] });
+   148→    qc.invalidateQueries({ queryKey: ["customers"] });
+   149→    setEditOpen(false);
+   150→    toast.success("Customer updated");
+   151→  };
+   152→
+   153→  const handleMeasurementSaved = () => {
+   154→    qc.invalidateQueries({ queryKey: ["customer", selectedId] });
+   155→    setMeasureOpen(false);
+   156→    toast.success("Measurements added");
+   157→  };
+   158→
+   159→  return (
+   160→    <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+   161→      {/* Back link */}
+   162→      <button
+   163→        onClick={() => go("customers")}
+   164→        className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-4 transition-colors"
+   165→      >
+   166→        <ArrowLeft className="w-4 h-4" /> Back to Customers
+   167→      </button>
+   168→
+   169→      {/* Header */}
+   170→      <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6 mb-6">
+   171→        <div
+   172→          className="w-16 h-16 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center text-[#800020] font-display font-semibold text-2xl shrink-0"
+   173→          aria-hidden
+   174→        >
+   175→          {(customer.name || "?").charAt(0).toUpperCase()}
+   176→        </div>
+   177→        <div className="flex-1 min-w-0">
+   178→          <div className="flex flex-wrap items-center gap-2">
+   179→            <h1
+   180→              className="font-display font-semibold text-[#1C1917]"
+   181→              style={{ fontSize: "clamp(24px, 3.5vw, 32px)" }}
+   182→            >
+   183→              {customer.name}
+   184→            </h1>
+   185→            {customer.customerType && (
+   186→              <StatusBadge status={customer.customerType} />
+   187→            )}
+   188→            {customer.status && customer.status !== "Active" && (
+   189→              <StatusBadge status={customer.status} />
+   190→            )}
+   191→          </div>
+   192→          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-500 mt-1">
+   193→            {customer.phone && (
+   194→              <a
+   195→                href={`tel:${customer.phone}`}
+   196→                className="inline-flex items-center gap-1 hover:text-[#800020] transition-colors"
+   197→              >
+   198→                <Phone className="w-3.5 h-3.5" /> {customer.phone}
+   199→              </a>
+   200→            )}
+   201→            {customer.email && (
+   202→              <a
+   203→                href={`mailto:${customer.email}`}
+   204→                className="inline-flex items-center gap-1 hover:text-[#800020] transition-colors"
+   205→              >
+   206→                <Mail className="w-3.5 h-3.5" /> {customer.email}
+   207→              </a>
+   208→            )}
+   209→            {customer.whatsapp && (
+   210→              <span className="inline-flex items-center gap-1">
+   211→                <MessageSquare className="w-3.5 h-3.5" /> {customer.whatsapp}
+   212→              </span>
+   213→            )}
+   214→            {customer.city && (
+   215→              <span className="inline-flex items-center gap-1">
+   216→                <MapPin className="w-3.5 h-3.5" /> {customer.city}
+   217→              </span>
+   218→            )}
+   219→            {!customer.phone &&
+   220→              !customer.email &&
+   221→              !customer.whatsapp &&
+   222→              !customer.city && (
+   223→                <span className="italic text-stone-400">No contact info</span>
+   224→              )}
+   225→          </div>
+   226→          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs">
+   227→            {customer.entrySource && (
+   228→              <span className="inline-flex items-center gap-1.5">
+   229→                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   230→                  Source
+   231→                </span>
+   232→                <span className="text-[#1C1917] font-medium">
+   233→                  {customer.entrySource}
+   234→                </span>
+   235→              </span>
+   236→            )}
+   237→            {customer.referredBy && customer.entrySource === "Referral" && (
+   238→              <span className="inline-flex items-center gap-1.5">
+   239→                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   240→                  Referred by
+   241→                </span>
+   242→                <span className="text-[#1C1917] font-medium">
+   243→                  {customer.referredBy}
+   244→                </span>
+   245→              </span>
+   246→            )}
+   247→            <span className="inline-flex items-center gap-1.5">
+   248→              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   249→                Loyalty
+   250→              </span>
+   251→              <span className="text-[#800020] font-semibold">
+   252→                {customer.loyaltyPoints ?? 0} pts
+   253→              </span>
+   254→            </span>
+   255→          </div>
+   256→        </div>
+   257→        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+   258→          <Button
+   259→            variant="outline"
+   260→            onClick={() => setEditOpen(true)}
+   261→            className="border-[#E7E5E4] rounded-sm"
+   262→          >
+   263→            <Pencil className="w-4 h-4" /> Edit
+   264→          </Button>
+   265→          <Button
+   266→            onClick={() => go("style-assist", { id: selectedId })}
+   267→            className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+   268→          >
+   269→            <Sparkles className="w-4 h-4" /> Open Style Assist
+   270→          </Button>
+   271→        </div>
+   272→      </div>
+   273→
+   274→      {/* Tabs */}
+   275→      <Tabs defaultValue="overview" className="w-full">
+   276→        <TabsList className="bg-white border border-[#E7E5E4] rounded-sm h-auto p-1 overflow-x-auto scroll-slim max-w-full inline-flex w-auto">
+   277→          <TabsTrigger value="overview" className="rounded-sm">
+   278→            Overview
+   279→          </TabsTrigger>
+   280→          <TabsTrigger value="measurements" className="rounded-sm">
+   281→            Measurements
+   282→          </TabsTrigger>
+   283→          <TabsTrigger value="orders" className="rounded-sm">
+   284→            Orders
+   285→          </TabsTrigger>
+   286→          <TabsTrigger value="style" className="rounded-sm">
+   287→            Style
+   288→          </TabsTrigger>
+   289→          <TabsTrigger value="notes" className="rounded-sm">
+   290→            Notes
+   291→          </TabsTrigger>
+   292→        </TabsList>
+   293→
+   294→        {/* Overview */}
+   295→        <TabsContent value="overview" className="mt-4">
+   296→          <div className="grid lg:grid-cols-3 gap-4">
+   297→            <AtelierCard title="Profile" className="lg:col-span-2">
+   298→              <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+   299→                <Fact label="Customer Since" value={formatDate(customer.createdAt)} />
+   300→                <Fact label="Occupation" value={customer.occupation} />
+   301→                <Fact label="Gender" value={customer.gender} />
+   302→                <Fact
+   303→                  label="Height / Weight"
+   304→                  value={
+   305→                    customer.height || customer.weight
+   306→                      ? `${customer.height ?? "—"} cm / ${customer.weight ?? "—"} kg`
+   307→                      : null
+   308→                  }
+   309→                />
+   310→                <Fact label="Preferred Fit" value={customer.preferredFit} />
+   311→                <Fact label="Skin Tone" value={customer.skinTone} />
+   312→              </dl>
+   313→            </AtelierCard>
+   314→            <AtelierCard title="Style Snapshot">
+   315→              <div className="space-y-3 text-sm">
+   316→                <StyleRow
+   317→                  label="Favourite Colours"
+   318→                  value={customer.favouriteColours}
+   319→                />
+   320→                <StyleRow
+   321→                  label="Colours to Avoid"
+   322→                  value={customer.coloursToAvoid}
+   323→                />
+   324→                <StyleRow
+   325→                  label="Favourite Fabrics"
+   326→                  value={customer.favouriteFabrics}
+   327→                />
+   328→                <StyleRow
+   329→                  label="Preferred Styles"
+   330→                  value={customer.preferredStyles}
+   331→                />
+   332→              </div>
+   333→            </AtelierCard>
+   334→          </div>
+   335→
+   336→          {feedback.length > 0 && (
+   337→            <AtelierCard title="Recent Feedback" className="mt-4">
+   338→              <ul className="space-y-3">
+   339→                {feedback.slice(0, 5).map((f) => (
+   340→                  <li
+   341→                    key={f.id}
+   342→                    className="border-l-2 border-[#E7E5E4] pl-3"
+   343→                  >
+   344→                    <div className="flex items-center gap-2">
+   345→                      <Stars value={f.rating} />
+   346→                      <span className="text-[10px] uppercase tracking-wider text-stone-400">
+   347→                        {f.type}
+   348→                      </span>
+   349→                      <span className="text-xs text-stone-400 ml-auto">
+   350→                        {formatDate(f.date)}
+   351→                      </span>
+   352→                    </div>
+   353→                    {f.feedback && (
+   354→                      <p className="text-sm text-stone-600 mt-1">
+   355→                        {f.feedback}
+   356→                      </p>
+   357→                    )}
+   358→                  </li>
+   359→                ))}
+   360→              </ul>
+   361→            </AtelierCard>
+   362→          )}
+   363→        </TabsContent>
+   364→
+   365→        {/* Measurements */}
+   366→        <TabsContent value="measurements" className="mt-4">
+   367→          <div className="flex items-center justify-between mb-3 gap-2">
+   368→            <p className="text-sm text-stone-500">
+   369→              {measurements.length} measurement{" "}
+   370→              {measurements.length === 1 ? "set" : "sets"}
+   371→            </p>
+   372→            <Button
+   373→              onClick={() => setMeasureOpen(true)}
+   374→              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+   375→            >
+   376→              <Plus className="w-4 h-4" /> Add Measurement
+   377→            </Button>
+   378→          </div>
+   379→          {measurements.length === 0 ? (
+   380→            <EmptyState
+   381→              icon={<Scissors className="w-5 h-5" />}
+   382→              title="No measurements recorded"
+   383→              subtitle="Add this customer's first measurement set."
+   384→            />
+   385→          ) : (
+   386→            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+   387→              {measurements.map((m) => (
+   388→                <AtelierCard key={m.id}>
+   389→                  <div className="flex items-center justify-between mb-3">
+   390→                    <div className="text-sm font-medium text-[#1C1917]">
+   391→                      {formatDate(m.dateTaken)}
+   392→                    </div>
+   393→                    <div className="text-[10px] uppercase tracking-wider text-stone-400">
+   394→                      {m.unit}
+   395→                    </div>
+   396→                  </div>
+   397→                  <div className="grid grid-cols-3 gap-3 text-sm">
+   398→                    <Meas label="Bust" value={m.bust} unit={m.unit} />
+   399→                    <Meas label="Waist" value={m.waist} unit={m.unit} />
+   400→                    <Meas label="Hip" value={m.hip} unit={m.unit} />
+   401→                    <Meas label="Shoulder" value={m.shoulder} unit={m.unit} />
+   402→                    <Meas label="Length" value={m.length} unit={m.unit} />
+   403→                    <Meas label="Sleeve" value={m.sleeve} unit={m.unit} />
+   404→                  </div>
+   405→                  {m.notes && (
+   406→                    <p className="text-xs text-stone-500 mt-3 italic">
+   407→                      {m.notes}
+   408→                    </p>
+   409→                  )}
+   410→                </AtelierCard>
+   411→              ))}
+   412→            </div>
+   413→          )}
+   414→        </TabsContent>
+   415→
+   416→        {/* Orders */}
+   417→        <TabsContent value="orders" className="mt-4">
+   418→          <div className="flex items-center justify-between mb-3 gap-2">
+   419→            <p className="text-sm text-stone-500">
+   420→              {orders.length} {orders.length === 1 ? "order" : "orders"}
+   421→            </p>
+   422→            <Button
+   423→              onClick={() =>
+   424→                go("new-order", { params: { customerId: selectedId } })
+   425→              }
+   426→              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+   427→            >
+   428→              <Plus className="w-4 h-4" /> New Order for{" "}
+   429→              {customer.name.split(" ")[0]}
+   430→            </Button>
+   431→          </div>
+   432→          {orders.length === 0 ? (
+   433→            <EmptyState
+   434→              icon={<ShoppingBag className="w-5 h-5" />}
+   435→              title="No orders yet"
+   436→              subtitle="Start a new order for this customer."
+   437→            />
+   438→          ) : (
+   439→            <div className="border border-[#E7E5E4] rounded-sm bg-white divide-y divide-[#E7E5E4] overflow-hidden">
+   440→              {orders.map((o) => (
+   441→                <button
+   442→                  key={o.id}
+   443→                  onClick={() => go("order", { id: o.id })}
+   444→                  className="w-full flex flex-wrap items-center gap-3 p-4 text-left hover:bg-[#FBF9F7] transition-colors"
+   445→                >
+   446→                  <div className="flex-1 min-w-0">
+   447→                    <div className="font-medium text-[#1C1917] truncate">
+   448→                      {o.garmentDesign}
+   449→                    </div>
+   450→                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-500 mt-0.5">
+   451→                      <span>Ordered {shortDate(o.orderDate)}</span>
+   452→                      {o.assignedStaff && (
+   453→                        <span>· {o.assignedStaff.fullName}</span>
+   454→                      )}
+   455→                      {o.deliveryDate && (
+   456→                        <span>· Due {shortDate(o.deliveryDate)}</span>
+   457→                      )}
+   458→                    </div>
+   459→                  </div>
+   460→                  <StatusBadge status={o.status} />
+   461→                  <div className="text-right">
+   462→                    <div className="text-sm font-semibold text-[#1C1917]">
+   463→                      {formatCurrency(o.sellingPrice)}
+   464→                    </div>
+   465→                  </div>
+   466→                </button>
+   467→              ))}
+   468→            </div>
+   469→          )}
+   470→        </TabsContent>
+   471→
+   472→        {/* Style */}
+   473→        <TabsContent value="style" className="mt-4">
+   474→          <div className="flex items-center justify-between mb-3 gap-2">
+   475→            <p className="text-sm text-stone-500">
+   476→              {styleConcepts.filter((c) => c.status !== "Rejected").length}{" "}
+   477→              active{" "}
+   478→              {styleConcepts.filter((c) => c.status !== "Rejected").length === 1
+   479→                ? "concept"
+   480→                : "concepts"}
+   481→            </p>
+   482→            <Button
+   483→              onClick={() => go("style-assist", { id: selectedId })}
+   484→              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+   485→            >
+   486→              <Sparkles className="w-4 h-4" /> Generate Concepts
+   487→            </Button>
+   488→          </div>
+   489→          {styleConcepts.length === 0 ? (
+   490→            <EmptyState
+   491→              icon={<Sparkles className="w-5 h-5" />}
+   492→              title="No saved concepts yet"
+   493→              subtitle="Try Style Assist to generate AI concepts for this customer."
+   494→            />
+   495→          ) : (
+   496→            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+   497→              {styleConcepts.map((c) => (
+   498→                <AtelierCard
+   499→                  key={c.id}
+   500→                  className={cn(c.status === "Rejected" && "opacity-60")}
+   501→                  bodyClassName="p-0"
+   502→                >
+   503→                  {c.imageUrl && (
+   504→                    <div className="border-b border-[#E7E5E4]">
+   505→                      <img
+   506→                        src={c.imageUrl}
+   507→                        alt={c.conceptName}
+   508→                        className="w-full h-40 object-cover"
+   509→                      />
+   510→                    </div>
+   511→                  )}
+   512→                  <div className="p-4">
+   513→                    <div className="flex items-start justify-between gap-2 mb-2">
+   514→                      <div className="font-medium text-[#1C1917] leading-tight">
+   515→                        {c.conceptName}
+   516→                      </div>
+   517→                      {typeof c.matchPercent === "number" && (
+   518→                        <span className="shrink-0 text-[10px] uppercase tracking-wider bg-[#800020]/10 text-[#800020] px-1.5 py-0.5 rounded-sm border border-[#800020]/30">
+   519→                          {c.matchPercent}% match
+   520→                        </span>
+   521→                      )}
+   522→                    </div>
+   523→                    <div className="flex items-center gap-2 mb-2">
+   524→                      <StatusBadge status={c.status} />
+   525→                      {c.garmentType && (
+   526→                        <span className="text-[10px] uppercase tracking-wider text-stone-400">
+   527→                          {c.garmentType}
+   528→                        </span>
+   529→                      )}
+   530→                    </div>
+   531→                    <div className="text-xs text-stone-500 space-y-0.5 mb-2">
+   532→                      {c.silhouette && (
+   533→                        <div>
+   534→                          <span className="text-stone-400">Silhouette:</span>{" "}
+   535→                          {c.silhouette}
+   536→                        </div>
+   537→                      )}
+   538→                      {c.fabric && (
+   539→                        <div>
+   540→                          <span className="text-stone-400">Fabric:</span>{" "}
+   541→                          {c.fabric}
+   542→                        </div>
+   543→                      )}
+   544→                      {c.colour && (
+   545→                        <div>
+   546→                          <span className="text-stone-400">Colour:</span>{" "}
+   547→                          {c.colour}
+   548→                        </div>
+   549→                      )}
+   550→                    </div>
+   551→                    {c.whyThisMayWork && (
+   552→                      <p className="text-xs text-stone-600 italic border-l-2 border-[#E7E5E4] pl-2">
+   553→                        {c.whyThisMayWork}
+   554→                      </p>
+   555→                    )}
+   556→                  </div>
+   557→                </AtelierCard>
+   558→              ))}
+   559→            </div>
+   560→          )}
+   561→        </TabsContent>
+   562→
+   563→        {/* Notes */}
+   564→        <TabsContent value="notes" className="mt-4">
+   565→          <div className="grid md:grid-cols-2 gap-4">
+   566→            <AtelierCard
+   567→              title="General Notes"
+   568→              action={
+   569→                <Button
+   570→                  variant="ghost"
+   571→                  size="sm"
+   572→                  onClick={() => setEditOpen(true)}
+   573→                  className="text-xs h-7 text-[#800020] hover:bg-[#800020]/5"
+   574→                >
+   575→                  Edit
+   576→                </Button>
+   577→              }
+   578→            >
+   579→              <p className="text-sm text-stone-600 whitespace-pre-wrap">
+   580→                {customer.notes || (
+   581→                  <span className="italic text-stone-400">
+   582→                    No notes recorded.
+   583→                  </span>
+   584→                )}
+   585→              </p>
+   586→            </AtelierCard>
+   587→            <AtelierCard
+   588→              title="Style Notes"
+   589→              action={
+   590→                <Button
+   591→                  variant="ghost"
+   592→                  size="sm"
+   593→                  onClick={() => setEditOpen(true)}
+   594→                  className="text-xs h-7 text-[#800020] hover:bg-[#800020]/5"
+   595→                >
+   596→                  Edit
+   597→                </Button>
+   598→              }
+   599→            >
+   600→              <p className="text-sm text-stone-600 whitespace-pre-wrap">
+   601→                {customer.styleNotes || (
+   602→                  <span className="italic text-stone-400">
+   603→                    No style notes recorded.
+   604→                  </span>
+   605→                )}
+   606→              </p>
+   607→            </AtelierCard>
+   608→          </div>
+   609→        </TabsContent>
+   610→      </Tabs>
+   611→
+   612→      {/* Dialogs */}
+   613→      <EditPersonalDialog
+   614→        open={editOpen}
+   615→        onOpenChange={setEditOpen}
+   616→        customer={customer}
+   617→        onSaved={handleSaved}
+   618→      />
+   619→      <AddMeasurementDialog
+   620→        open={measureOpen}
+   621→        onOpenChange={setMeasureOpen}
+   622→        customerId={selectedId}
+   623→        onSaved={handleMeasurementSaved}
+   624→      />
+   625→    </div>
+   626→  );
+   627→}
+   628→
+   629→/* ---------- Small presentation helpers ---------- */
+   630→
+   631→function Stars({ value }: { value: number }) {
+   632→  return (
+   633→    <span className="inline-flex items-center gap-0.5" aria-label={`${value} of 5 stars`}>
+   634→      {Array.from({ length: 5 }).map((_, i) => (
+   635→        <Star
+   636→          key={i}
+   637→          className={cn(
+   638→            "w-3.5 h-3.5",
+   639→            i < value
+   640→              ? "fill-amber-400 text-amber-400"
+   641→              : "fill-stone-200 text-stone-200"
+   642→          )}
+   643→        />
+   644→      ))}
+   645→    </span>
+   646→  );
+   647→}
+   648→
+   649→function Fact({
+   650→  label,
+   651→  value,
+   652→}: {
+   653→  label: string;
+   654→  value: string | null | undefined;
+   655→}) {
+   656→  return (
+   657→    <div>
+   658→      <dt className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   659→        {label}
+   660→      </dt>
+   661→      <dd className="text-sm text-[#1C1917] mt-0.5">{value || "—"}</dd>
+   662→    </div>
+   663→  );
+   664→}
+   665→
+   666→function StyleRow({
+   667→  label,
+   668→  value,
+   669→}: {
+   670→  label: string;
+   671→  value: string | null | undefined;
+   672→}) {
+   673→  return (
+   674→    <div>
+   675→      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mb-0.5">
+   676→        {label}
+   677→      </div>
+   678→      <div className="text-[#1C1917]">{value || "—"}</div>
+   679→    </div>
+   680→  );
+   681→}
+   682→
+   683→function Meas({
+   684→  label,
+   685→  value,
+   686→  unit,
+   687→}: {
+   688→  label: string;
+   689→  value: number | null | undefined;
+   690→  unit: string;
+   691→}) {
+   692→  return (
+   693→    <div>
+   694→      <div className="text-[10px] uppercase tracking-wider text-stone-400">
+   695→        {label}
+   696→      </div>
+   697→      <div className="text-[#1C1917] font-medium">
+   698→        {value != null ? `${value} ${unit}` : "—"}
+   699→      </div>
+   700→    </div>
+   701→  );
+   702→}
+   703→
+   704→function EmptyState({
+   705→  icon,
+   706→  title,
+   707→  subtitle,
+   708→}: {
+   709→  icon: React.ReactNode;
+   710→  title: string;
+   711→  subtitle?: string;
+   712→}) {
+   713→  return (
+   714→    <div className="border border-[#E7E5E4] rounded-sm bg-white p-8 text-center">
+   715→      <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] text-[#800020] mb-3">
+   716→        {icon}
+   717→      </div>
+   718→      <p className="text-sm font-medium text-[#1C1917]">{title}</p>
+   719→      {subtitle && <p className="text-xs text-stone-500 mt-1">{subtitle}</p>}
+   720→    </div>
+   721→  );
+   722→}
+   723→
+   724→/* ---------- Edit Personal Dialog (reuses Add form, prefilled) ---------- */
+   725→
+   726→interface CustomerForm {
+   727→  name: string;
+   728→  phone: string;
+   729→  email: string;
+   730→  gender: string;
+   731→  city: string;
+   732→  entrySource: string;
+   733→  referredBy: string;
+   734→  customerType: string;
+   735→  preferredStyles: string;
+   736→  notes: string;
+   737→}
+   738→
+   739→function buildFormFromCustomer(c: Customer): CustomerForm {
+   740→  return {
+   741→    name: c.name || "",
+   742→    phone: c.phone || "",
+   743→    email: c.email || "",
+   744→    gender: c.gender || "",
+   745→    city: c.city || "",
+   746→    entrySource: c.entrySource || "",
+   747→    referredBy: c.referredBy || "",
+   748→    customerType: c.customerType || "",
+   749→    preferredStyles: c.preferredStyles || "",
+   750→    notes: c.notes || "",
+   751→  };
+   752→}
+   753→
+   754→function EditPersonalDialog({
+   755→  open,
+   756→  onOpenChange,
+   757→  customer,
+   758→  onSaved,
+   759→}: {
+   760→  open: boolean;
+   761→  onOpenChange: (v: boolean) => void;
+   762→  customer: Customer;
+   763→  onSaved: () => void;
+   764→}) {
+   765→  // Re-initialise the form whenever the dialog opens so we always start from the persisted customer.
+   766→  const [form, setForm] = useState<CustomerForm>(() =>
+   767→    buildFormFromCustomer(customer)
+   768→  );
+   769→  const [saving, setSaving] = useState(false);
+   770→
+   771→  // Re-sync when the customer changes or the dialog opens.
+   772→  const [lastOpen, setLastOpen] = useState(open);
+   773→  if (open !== lastOpen) {
+   774→    setLastOpen(open);
+   775→    if (open) setForm(buildFormFromCustomer(customer));
+   776→  }
+   777→
+   778→  const set = <K extends keyof CustomerForm>(key: K, value: CustomerForm[K]) =>
+   779→    setForm((f) => ({ ...f, [key]: value }));
+   780→
+   781→  const handleSubmit = async (e: React.FormEvent) => {
+   782→    e.preventDefault();
+   783→    if (!form.name.trim()) {
+   784→      toast.error("Name is required");
+   785→      return;
+   786→    }
+   787→    setSaving(true);
+   788→    try {
+   789→      const body: Record<string, unknown> = {
+   790→        name: form.name.trim(),
+   791→        phone: form.phone.trim() || null,
+   792→        email: form.email.trim() || null,
+   793→        gender: form.gender || null,
+   794→        city: form.city.trim() || null,
+   795→        entrySource: form.entrySource || null,
+   796→        customerType: form.customerType || null,
+   797→        preferredStyles: form.preferredStyles.trim() || null,
+   798→        notes: form.notes.trim() || null,
+   799→      };
+   800→      if (form.entrySource === "Referral") {
+   801→        body.referredBy = form.referredBy.trim() || null;
+   802→      }
+   803→      await apiPatch(`/api/customers/${customer.id}`, body);
+   804→      onSaved();
+   805→    } catch (err) {
+   806→      toast.error("Failed to update customer", {
+   807→        description: err instanceof Error ? err.message : "Unexpected error",
+   808→      });
+   809→    } finally {
+   810→      setSaving(false);
+   811→    }
+   812→  };
+   813→
+   814→  return (
+   815→    <Dialog open={open} onOpenChange={onOpenChange}>
+   816→      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto scroll-slim rounded-sm">
+   817→        <DialogHeader>
+   818→          <DialogTitle className="font-display text-xl">
+   819→            Edit Customer
+   820→          </DialogTitle>
+   821→          <DialogDescription className="text-stone-500">
+   822→            Update personal details for {customer.name}.
+   823→          </DialogDescription>
+   824→        </DialogHeader>
+   825→        <form onSubmit={handleSubmit} className="grid gap-4">
+   826→          <div className="grid gap-2">
+   827→            <Label htmlFor="e-name">
+   828→              Name <span className="text-[#800020]">*</span>
+   829→            </Label>
+   830→            <Input
+   831→              id="e-name"
+   832→              required
+   833→              value={form.name}
+   834→              onChange={(e) => set("name", e.target.value)}
+   835→              className="rounded-sm"
+   836→            />
+   837→          </div>
+   838→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+   839→            <div className="grid gap-2">
+   840→              <Label htmlFor="e-phone">Phone</Label>
+   841→              <Input
+   842→                id="e-phone"
+   843→                value={form.phone}
+   844→                onChange={(e) => set("phone", e.target.value)}
+   845→                className="rounded-sm"
+   846→              />
+   847→            </div>
+   848→            <div className="grid gap-2">
+   849→              <Label htmlFor="e-email">Email</Label>
+   850→              <Input
+   851→                id="e-email"
+   852→                type="email"
+   853→                value={form.email}
+   854→                onChange={(e) => set("email", e.target.value)}
+   855→                className="rounded-sm"
+   856→              />
+   857→            </div>
+   858→          </div>
+   859→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+   860→            <div className="grid gap-2">
+   861→              <Label>Gender</Label>
+   862→              <Select
+   863→                value={form.gender || undefined}
+   864→                onValueChange={(v) => set("gender", v)}
+   865→              >
+   866→                <SelectTrigger className="w-full rounded-sm">
+   867→                  <SelectValue placeholder="Select" />
+   868→                </SelectTrigger>
+   869→                <SelectContent>
+   870→                  {GENDERS.map((g) => (
+   871→                    <SelectItem key={g} value={g}>
+   872→                      {g}
+   873→                    </SelectItem>
+   874→                  ))}
+   875→                </SelectContent>
+   876→              </Select>
+   877→            </div>
+   878→            <div className="grid gap-2">
+   879→              <Label htmlFor="e-city">City</Label>
+   880→              <Input
+   881→                id="e-city"
+   882→                value={form.city}
+   883→                onChange={(e) => set("city", e.target.value)}
+   884→                className="rounded-sm"
+   885→              />
+   886→            </div>
+   887→          </div>
+   888→          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+   889→            <div className="grid gap-2">
+   890→              <Label>Entry Source</Label>
+   891→              <Select
+   892→                value={form.entrySource || undefined}
+   893→                onValueChange={(v) => set("entrySource", v)}
+   894→              >
+   895→                <SelectTrigger className="w-full rounded-sm">
+   896→                  <SelectValue placeholder="Select" />
+   897→                </SelectTrigger>
+   898→                <SelectContent>
+   899→                  {ENTRY_SOURCES.map((s) => (
+   900→                    <SelectItem key={s} value={s}>
+   901→                      {s}
+   902→                    </SelectItem>
+   903→                  ))}
+   904→                </SelectContent>
+   905→              </Select>
+   906→            </div>
+   907→            <div className="grid gap-2">
+   908→              <Label>Customer Type</Label>
+   909→              <Select
+   910→                value={form.customerType || undefined}
+   911→                onValueChange={(v) => set("customerType", v)}
+   912→              >
+   913→                <SelectTrigger className="w-full rounded-sm">
+   914→                  <SelectValue placeholder="Select" />
+   915→                </SelectTrigger>
+   916→                <SelectContent>
+   917→                  {CUSTOMER_TYPES.map((t) => (
+   918→                    <SelectItem key={t} value={t}>
+   919→                      {t}
+   920→                    </SelectItem>
+   921→                  ))}
+   922→                </SelectContent>
+   923→              </Select>
+   924→            </div>
+   925→          </div>
+   926→          {form.entrySource === "Referral" && (
+   927→            <div className="grid gap-2">
+   928→              <Label htmlFor="e-referred">Referred By</Label>
+   929→              <Input
+   930→                id="e-referred"
+   931→                value={form.referredBy}
+   932→                onChange={(e) => set("referredBy", e.target.value)}
+   933→                className="rounded-sm"
+   934→              />
+   935→            </div>
+   936→          )}
+   937→          <div className="grid gap-2">
+   938→            <Label htmlFor="e-styles">Preferred Styles</Label>
+   939→            <Input
+   940→              id="e-styles"
+   941→              value={form.preferredStyles}
+   942→              onChange={(e) => set("preferredStyles", e.target.value)}
+   943→              placeholder="e.g. Classic, Elegant"
+   944→              className="rounded-sm"
+   945→            />
+   946→            <p className="text-xs text-stone-400">
+   947→              Comma-separated. Suggestions: {PREFERRED_STYLES.join(", ")}
+   948→            </p>
+   949→          </div>
+   950→          <div className="grid gap-2">
+   951→            <Label htmlFor="e-notes">Notes</Label>
+   952→            <Textarea
+   953→              id="e-notes"
+   954→              value={form.notes}
+   955→              onChange={(e) => set("notes", e.target.value)}
+   956→              rows={3}
+   957→              className="rounded-sm"
+   958→            />
+   959→          </div>
+   960→          <DialogFooter>
+   961→            <Button
+   962→              type="button"
+   963→              variant="outline"
+   964→              onClick={() => onOpenChange(false)}
+   965→              disabled={saving}
+   966→              className="rounded-sm border-[#E7E5E4]"
+   967→            >
+   968→              Cancel
+   969→            </Button>
+   970→            <Button
+   971→              type="submit"
+   972→              disabled={saving}
+   973→              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+   974→            >
+   975→              {saving ? "Saving…" : "Save Changes"}
+   976→            </Button>
+   977→          </DialogFooter>
+   978→        </form>
+   979→      </DialogContent>
+   980→    </Dialog>
+   981→  );
+   982→}
+   983→
+   984→/* ---------- Add Measurement Dialog ---------- */
+   985→
+   986→interface MeasurementForm {
+   987→  bust: string;
+   988→  waist: string;
+   989→  hip: string;
+   990→  shoulder: string;
+   991→  length: string;
+   992→  sleeve: string;
+   993→  notes: string;
+   994→}
+   995→
+   996→const EMPTY_MEAS: MeasurementForm = {
+   997→  bust: "",
+   998→  waist: "",
+   999→  hip: "",
+  1000→  shoulder: "",
+  1001→  length: "",
+  1002→  sleeve: "",
+  1003→  notes: "",
+  1004→};
+  1005→
+  1006→function AddMeasurementDialog({
+  1007→  open,
+  1008→  onOpenChange,
+  1009→  customerId,
+  1010→  onSaved,
+  1011→}: {
+  1012→  open: boolean;
+  1013→  onOpenChange: (v: boolean) => void;
+  1014→  customerId: string;
+  1015→  onSaved: () => void;
+  1016→}) {
+  1017→  const [saving, setSaving] = useState(false);
+  1018→  const [form, setForm] = useState<MeasurementForm>(EMPTY_MEAS);
+  1019→
+  1020→  const set = <K extends keyof MeasurementForm>(
+  1021→    key: K,
+  1022→    value: MeasurementForm[K]
+  1023→  ) => setForm((f) => ({ ...f, [key]: value }));
+  1024→
+  1025→  const handleOpenChange = (v: boolean) => {
+  1026→    if (!v) setForm(EMPTY_MEAS);
+  1027→    onOpenChange(v);
+  1028→  };
+  1029→
+  1030→  const handleSubmit = async (e: React.FormEvent) => {
+  1031→    e.preventDefault();
+  1032→    setSaving(true);
+  1033→    try {
+  1034→      const num = (v: string) => (v === "" ? null : Number(v));
+  1035→      await apiPost("/api/measurements", {
+  1036→        customerId,
+  1037→        unit: "cm",
+  1038→        bust: num(form.bust),
+  1039→        waist: num(form.waist),
+  1040→        hip: num(form.hip),
+  1041→        shoulder: num(form.shoulder),
+  1042→        length: num(form.length),
+  1043→        sleeve: num(form.sleeve),
+  1044→        notes: form.notes.trim() || null,
+  1045→      });
+  1046→      onSaved();
+  1047→    } catch (err) {
+  1048→      toast.error("Failed to save measurements", {
+  1049→        description: err instanceof Error ? err.message : "Unexpected error",
+  1050→      });
+  1051→    } finally {
+  1052→      setSaving(false);
+  1053→    }
+  1054→  };
+  1055→
+  1056→  const fields: { key: keyof Omit<MeasurementForm, "notes">; label: string }[] = [
+  1057→    { key: "bust", label: "Bust" },
+  1058→    { key: "waist", label: "Waist" },
+  1059→    { key: "hip", label: "Hip" },
+  1060→    { key: "shoulder", label: "Shoulder" },
+  1061→    { key: "length", label: "Length" },
+  1062→    { key: "sleeve", label: "Sleeve" },
+  1063→  ];
+  1064→
+  1065→  return (
+  1066→    <Dialog open={open} onOpenChange={handleOpenChange}>
+  1067→      <DialogContent className="sm:max-w-[480px] rounded-sm">
+  1068→        <DialogHeader>
+  1069→          <DialogTitle className="font-display text-xl">
+  1070→            Add Measurements
+  1071→          </DialogTitle>
+  1072→          <DialogDescription className="text-stone-500">
+  1073→            All values in centimetres (cm).
+  1074→          </DialogDescription>
+  1075→        </DialogHeader>
+  1076→        <form onSubmit={handleSubmit} className="grid gap-4">
+  1077→          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+  1078→            {fields.map(({ key, label }) => (
+  1079→              <div key={key} className="grid gap-2">
+  1080→                <Label htmlFor={`m-${key}`}>{label}</Label>
+  1081→                <Input
+  1082→                  id={`m-${key}`}
+  1083→                  type="number"
+  1084→                  inputMode="decimal"
+  1085→                  step="0.1"
+  1086→                  min="0"
+  1087→                  value={form[key]}
+  1088→                  onChange={(e) => set(key, e.target.value)}
+  1089→                  placeholder="0"
+  1090→                  className="rounded-sm"
+  1091→                />
+  1092→              </div>
+  1093→            ))}
+  1094→          </div>
+  1095→          <div className="grid gap-2">
+  1096→            <Label htmlFor="m-notes">Notes</Label>
+  1097→            <Textarea
+  1098→              id="m-notes"
+  1099→              value={form.notes}
+  1100→              onChange={(e) => set("notes", e.target.value)}
+  1101→              rows={2}
+  1102→              className="rounded-sm"
+  1103→              placeholder="Optional notes…"
+  1104→            />
+  1105→          </div>
+  1106→          <DialogFooter>
+  1107→            <Button
+  1108→              type="button"
+  1109→              variant="outline"
+  1110→              onClick={() => handleOpenChange(false)}
+  1111→              disabled={saving}
+  1112→              className="rounded-sm border-[#E7E5E4]"
+  1113→            >
+  1114→              Cancel
+  1115→            </Button>
+  1116→            <Button
+  1117→              type="submit"
+  1118→              disabled={saving}
+  1119→              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+  1120→            >
+  1121→              {saving ? "Saving…" : "Save Measurements"}
+  1122→            </Button>
+  1123→          </DialogFooter>
+  1124→        </form>
+  1125→      </DialogContent>
+  1126→    </Dialog>
+  1127→  );
+  1128→}
+  1129→

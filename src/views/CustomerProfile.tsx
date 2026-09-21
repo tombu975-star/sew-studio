@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -11,9 +11,12 @@ import {
   Mail,
   MessageSquare,
   MapPin,
-  Scissors,
+  Ruler,
+  Users,
   Pencil,
   ShoppingBag,
+  Check,
+  Save,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,7 +39,6 @@ import {
 import { useNav } from "@/stores/nav";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,8 +58,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AtelierCard } from "@/components/atelier/AtelierCard";
+
+import { SectionCard } from "@/components/atelier/SectionCard";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
+import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
+import {
+  EmptyState,
+  SkeletonCard,
+  SkeletonList,
+} from "@/components/atelier/EmptyState";
 
 const GENDERS = ["Female", "Male", "Other"];
 
@@ -87,15 +97,22 @@ export default function CustomerProfile() {
   if (!selectedId) {
     return (
       <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
-        <div className="border border-[#E7E5E4] rounded-sm bg-white p-10 text-center">
-          <p className="text-stone-500">Select a customer to view their profile.</p>
-          <Button
-            className="mt-4 bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
-            onClick={() => go("customers")}
-          >
-            Browse Customers
-          </Button>
-        </div>
+        <SectionCard bodyClassName="p-0">
+          <EmptyState
+            icon={Users}
+            title="Select a customer"
+            description="Choose a client from your roster to view their profile, orders, and style details."
+            action={
+              <PremiumButton
+                variant="primary"
+                size="sm"
+                onClick={() => go("customers")}
+              >
+                <Users className="w-4 h-4" /> Browse Customers
+              </PremiumButton>
+            }
+          />
+        </SectionCard>
       </div>
     );
   }
@@ -103,15 +120,21 @@ export default function CustomerProfile() {
   if (isLoading) {
     return (
       <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
-        <div className="h-9 w-40 bg-stone-100 rounded-sm animate-pulse mb-6" />
-        <div className="flex gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-stone-100 animate-pulse" />
-          <div className="flex-1 space-y-2">
-            <div className="h-7 w-56 bg-stone-100 rounded-sm animate-pulse" />
-            <div className="h-4 w-72 bg-stone-100 rounded-sm animate-pulse" />
+        <div className="h-4 w-32 bg-stone-100 rounded shimmer mb-4" />
+        <div className="rounded-xl surface-premium border border-[#E7E5E4] p-6 mb-6 flex gap-5 elevate-sm">
+          <div className="w-16 h-16 rounded-full shimmer" />
+          <div className="flex-1 space-y-3">
+            <div className="h-7 w-56 shimmer rounded" />
+            <div className="h-4 w-80 shimmer rounded" />
           </div>
         </div>
-        <div className="h-10 w-full bg-stone-100 rounded-sm animate-pulse" />
+        <div className="grid lg:grid-cols-2 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+        <div className="mt-4">
+          <SkeletonList rows={3} />
+        </div>
       </div>
     );
   }
@@ -121,22 +144,26 @@ export default function CustomerProfile() {
       <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
         <button
           onClick={() => go("customers")}
-          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-4"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-4 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Customers
+          <ArrowLeft className="w-4 h-4" /> Customers
         </button>
-        <div className="border border-[#E7E5E4] rounded-sm bg-white p-10 text-center">
-          <p className="text-stone-500">
-            We couldn’t load this customer’s profile.
-          </p>
-          <Button
-            variant="outline"
-            className="mt-4 rounded-sm border-[#E7E5E4]"
-            onClick={() => refetch()}
-          >
-            Try again
-          </Button>
-        </div>
+        <SectionCard bodyClassName="p-0">
+          <EmptyState
+            icon={Users}
+            title="We couldn't load this profile"
+            description="Something went wrong fetching this customer. Please try again."
+            action={
+              <PremiumButton
+                variant="outline"
+                size="sm"
+                onClick={() => refetch()}
+              >
+                Try again
+              </PremiumButton>
+            }
+          />
+        </SectionCard>
       </div>
     );
   }
@@ -156,6 +183,8 @@ export default function CustomerProfile() {
     toast.success("Measurements added");
   };
 
+  const firstName = (customer.name || "").split(" ")[0] || customer.name;
+
   return (
     <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
       {/* Back link */}
@@ -163,140 +192,132 @@ export default function CustomerProfile() {
         onClick={() => go("customers")}
         className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-4 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" /> Back to Customers
+        <ArrowLeft className="w-4 h-4" /> Customers
       </button>
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6 mb-6">
-        <div
-          className="w-16 h-16 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center text-[#800020] font-display font-semibold text-2xl shrink-0"
-          aria-hidden
-        >
-          {(customer.name || "?").charAt(0).toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
+      {/* Premium customer header (hero band) */}
+      <div className="rounded-xl surface-premium border border-[#E7E5E4] elevate-md p-6 mb-6 animate-fade-in-up">
+        <div className="flex flex-col md:flex-row md:items-start gap-5">
+          <div
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-2xl shrink-0 shadow-md"
+            aria-hidden
+          >
+            {(customer.name || "?").charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
             <h1
-              className="font-display font-semibold text-[#1C1917]"
-              style={{ fontSize: "clamp(24px, 3.5vw, 32px)" }}
+              className="font-display font-semibold text-[#1C1917] leading-[1.05]"
+              style={{ fontSize: "clamp(28px, 4vw, 36px)" }}
             >
               {customer.name}
             </h1>
-            {customer.customerType && (
-              <StatusBadge status={customer.customerType} />
-            )}
-            {customer.status && customer.status !== "Active" && (
-              <StatusBadge status={customer.status} />
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-500 mt-1">
-            {customer.phone && (
-              <a
-                href={`tel:${customer.phone}`}
-                className="inline-flex items-center gap-1 hover:text-[#800020] transition-colors"
-              >
-                <Phone className="w-3.5 h-3.5" /> {customer.phone}
-              </a>
-            )}
-            {customer.email && (
-              <a
-                href={`mailto:${customer.email}`}
-                className="inline-flex items-center gap-1 hover:text-[#800020] transition-colors"
-              >
-                <Mail className="w-3.5 h-3.5" /> {customer.email}
-              </a>
-            )}
-            {customer.whatsapp && (
-              <span className="inline-flex items-center gap-1">
-                <MessageSquare className="w-3.5 h-3.5" /> {customer.whatsapp}
-              </span>
-            )}
-            {customer.city && (
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" /> {customer.city}
-              </span>
-            )}
-            {!customer.phone &&
-              !customer.email &&
-              !customer.whatsapp &&
-              !customer.city && (
-                <span className="italic text-stone-400">No contact info</span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-500 mt-2">
+              {customer.phone && (
+                <a
+                  href={`tel:${customer.phone}`}
+                  className="inline-flex items-center gap-1.5 hover:text-[#800020] transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5" /> {customer.phone}
+                </a>
               )}
+              {customer.email && (
+                <a
+                  href={`mailto:${customer.email}`}
+                  className="inline-flex items-center gap-1.5 hover:text-[#800020] transition-colors"
+                >
+                  <Mail className="w-3.5 h-3.5" /> {customer.email}
+                </a>
+              )}
+              {customer.whatsapp && (
+                <span className="inline-flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5" /> {customer.whatsapp}
+                </span>
+              )}
+              {customer.city && (
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" /> {customer.city}
+                </span>
+              )}
+              {!customer.phone &&
+                !customer.email &&
+                !customer.whatsapp &&
+                !customer.city && (
+                  <span className="italic text-stone-400">No contact info</span>
+                )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              {customer.customerType && (
+                <StatusBadge status={customer.customerType} />
+              )}
+              {customer.entrySource && (
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FBF9F7] border border-[#E7E5E4] px-2 py-0.5 text-[11px] text-stone-600">
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
+                    Source
+                  </span>
+                  <span className="font-medium text-[#1C1917]">
+                    {customer.entrySource}
+                  </span>
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#800020]/8 border border-[#800020]/20 px-2 py-0.5 text-[11px] text-[#800020]">
+                <Sparkles className="w-3 h-3" />
+                <span className="font-semibold">
+                  <AnimatedNumber value={customer.loyaltyPoints ?? 0} /> pts
+                </span>
+              </span>
+              {customer.status && customer.status !== "Active" && (
+                <StatusBadge status={customer.status} />
+              )}
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs">
-            {customer.entrySource && (
-              <span className="inline-flex items-center gap-1.5">
-                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
-                  Source
-                </span>
-                <span className="text-[#1C1917] font-medium">
-                  {customer.entrySource}
-                </span>
-              </span>
-            )}
-            {customer.referredBy && customer.entrySource === "Referral" && (
-              <span className="inline-flex items-center gap-1.5">
-                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
-                  Referred by
-                </span>
-                <span className="text-[#1C1917] font-medium">
-                  {customer.referredBy}
-                </span>
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1.5">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
-                Loyalty
-              </span>
-              <span className="text-[#800020] font-semibold">
-                {customer.loyaltyPoints ?? 0} pts
-              </span>
-            </span>
+          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            <PremiumButton
+              variant="outline"
+              size="md"
+              onClick={() => setEditOpen(true)}
+            >
+              <Pencil className="w-4 h-4" /> Edit
+            </PremiumButton>
+            <PremiumButton
+              variant="primary"
+              size="md"
+              onClick={() => go("style-assist", { id: selectedId })}
+            >
+              <Sparkles className="w-4 h-4" /> Open Style Assist
+            </PremiumButton>
           </div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-          <Button
-            variant="outline"
-            onClick={() => setEditOpen(true)}
-            className="border-[#E7E5E4] rounded-sm"
-          >
-            <Pencil className="w-4 h-4" /> Edit
-          </Button>
-          <Button
-            onClick={() => go("style-assist", { id: selectedId })}
-            className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
-          >
-            <Sparkles className="w-4 h-4" /> Open Style Assist
-          </Button>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="bg-white border border-[#E7E5E4] rounded-sm h-auto p-1 overflow-x-auto scroll-slim max-w-full inline-flex w-auto">
-          <TabsTrigger value="overview" className="rounded-sm">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="measurements" className="rounded-sm">
-            Measurements
-          </TabsTrigger>
-          <TabsTrigger value="orders" className="rounded-sm">
-            Orders
-          </TabsTrigger>
-          <TabsTrigger value="style" className="rounded-sm">
-            Style
-          </TabsTrigger>
-          <TabsTrigger value="notes" className="rounded-sm">
-            Notes
-          </TabsTrigger>
+        <TabsList className="bg-white border border-[#E7E5E4] rounded-lg h-auto p-1 overflow-x-auto scroll-slim max-w-full inline-flex w-auto gap-0.5">
+          {[
+            { v: "overview", l: "Overview" },
+            { v: "measurements", l: "Measurements" },
+            { v: "orders", l: "Orders" },
+            { v: "style", l: "Style" },
+            { v: "notes", l: "Notes" },
+          ].map((t) => (
+            <TabsTrigger
+              key={t.v}
+              value={t.v}
+              className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600"
+            >
+              {t.l}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         {/* Overview */}
         <TabsContent value="overview" className="mt-4">
-          <div className="grid lg:grid-cols-3 gap-4">
-            <AtelierCard title="Profile" className="lg:col-span-2">
-              <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <Fact label="Customer Since" value={formatDate(customer.createdAt)} />
+          <div className="grid lg:grid-cols-2 gap-4">
+            <SectionCard title="Profile">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
+                <Fact
+                  label="Customer Since"
+                  value={formatDate(customer.createdAt)}
+                />
                 <Fact label="Occupation" value={customer.occupation} />
                 <Fact label="Gender" value={customer.gender} />
                 <Fact
@@ -310,31 +331,31 @@ export default function CustomerProfile() {
                 <Fact label="Preferred Fit" value={customer.preferredFit} />
                 <Fact label="Skin Tone" value={customer.skinTone} />
               </dl>
-            </AtelierCard>
-            <AtelierCard title="Style Snapshot">
-              <div className="space-y-3 text-sm">
-                <StyleRow
+            </SectionCard>
+            <SectionCard title="Style Snapshot">
+              <div className="space-y-4">
+                <ChipList
                   label="Favourite Colours"
                   value={customer.favouriteColours}
                 />
-                <StyleRow
+                <ChipList
                   label="Colours to Avoid"
                   value={customer.coloursToAvoid}
                 />
-                <StyleRow
+                <ChipList
                   label="Favourite Fabrics"
                   value={customer.favouriteFabrics}
                 />
-                <StyleRow
+                <ChipList
                   label="Preferred Styles"
                   value={customer.preferredStyles}
                 />
               </div>
-            </AtelierCard>
+            </SectionCard>
           </div>
 
-          {feedback.length > 0 && (
-            <AtelierCard title="Recent Feedback" className="mt-4">
+          {feedback.length > 0 ? (
+            <SectionCard title="Recent Feedback" className="mt-4">
               <ul className="space-y-3">
                 {feedback.slice(0, 5).map((f) => (
                   <li
@@ -343,7 +364,7 @@ export default function CustomerProfile() {
                   >
                     <div className="flex items-center gap-2">
                       <Stars value={f.rating} />
-                      <span className="text-[10px] uppercase tracking-wider text-stone-400">
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
                         {f.type}
                       </span>
                       <span className="text-xs text-stone-400 ml-auto">
@@ -351,260 +372,275 @@ export default function CustomerProfile() {
                       </span>
                     </div>
                     {f.feedback && (
-                      <p className="text-sm text-stone-600 mt-1">
+                      <p className="text-sm text-stone-600 mt-1.5">
                         {f.feedback}
                       </p>
                     )}
                   </li>
                 ))}
               </ul>
-            </AtelierCard>
+            </SectionCard>
+          ) : (
+            <SectionCard title="Recent Feedback" className="mt-4">
+              <EmptyState
+                title="No feedback recorded"
+                description="Customer testimonials will appear here once captured."
+              />
+            </SectionCard>
           )}
         </TabsContent>
 
         {/* Measurements */}
         <TabsContent value="measurements" className="mt-4">
-          <div className="flex items-center justify-between mb-3 gap-2">
-            <p className="text-sm text-stone-500">
-              {measurements.length} measurement{" "}
-              {measurements.length === 1 ? "set" : "sets"}
-            </p>
-            <Button
-              onClick={() => setMeasureOpen(true)}
-              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
-            >
-              <Plus className="w-4 h-4" /> Add Measurement
-            </Button>
-          </div>
-          {measurements.length === 0 ? (
-            <EmptyState
-              icon={<Scissors className="w-5 h-5" />}
-              title="No measurements recorded"
-              subtitle="Add this customer's first measurement set."
-            />
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {measurements.map((m) => (
-                <AtelierCard key={m.id}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-sm font-medium text-[#1C1917]">
-                      {formatDate(m.dateTaken)}
+          <SectionCard
+            title="Measurements"
+            action={
+              <PremiumButton
+                variant="outline"
+                size="sm"
+                onClick={() => setMeasureOpen(true)}
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Measurement
+              </PremiumButton>
+            }
+          >
+            {measurements.length === 0 ? (
+              <EmptyState
+                icon={Ruler}
+                title="No measurements recorded"
+                description="Add this customer's first measurement set to start tracking their fit profile."
+                action={
+                  <PremiumButton
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setMeasureOpen(true)}
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Measurement
+                  </PremiumButton>
+                }
+              />
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {measurements.map((m) => (
+                  <div
+                    key={m.id}
+                    className="rounded-lg border border-[#E7E5E4] p-4 surface-premium lift"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-sm font-medium text-[#1C1917]">
+                        {formatDate(m.dateTaken)}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
+                        {m.unit}
+                      </div>
                     </div>
-                    <div className="text-[10px] uppercase tracking-wider text-stone-400">
-                      {m.unit}
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <Meas label="Bust" value={m.bust} unit={m.unit} />
+                      <Meas label="Waist" value={m.waist} unit={m.unit} />
+                      <Meas label="Hip" value={m.hip} unit={m.unit} />
+                      <Meas label="Shoulder" value={m.shoulder} unit={m.unit} />
+                      <Meas label="Length" value={m.length} unit={m.unit} />
+                      <Meas label="Sleeve" value={m.sleeve} unit={m.unit} />
                     </div>
+                    {m.notes && (
+                      <p className="text-xs text-stone-500 mt-3 italic border-t border-[#E7E5E4]/70 pt-2">
+                        {m.notes}
+                      </p>
+                    )}
                   </div>
-                  <div className="grid grid-cols-3 gap-3 text-sm">
-                    <Meas label="Bust" value={m.bust} unit={m.unit} />
-                    <Meas label="Waist" value={m.waist} unit={m.unit} />
-                    <Meas label="Hip" value={m.hip} unit={m.unit} />
-                    <Meas label="Shoulder" value={m.shoulder} unit={m.unit} />
-                    <Meas label="Length" value={m.length} unit={m.unit} />
-                    <Meas label="Sleeve" value={m.sleeve} unit={m.unit} />
-                  </div>
-                  {m.notes && (
-                    <p className="text-xs text-stone-500 mt-3 italic">
-                      {m.notes}
-                    </p>
-                  )}
-                </AtelierCard>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </SectionCard>
         </TabsContent>
 
         {/* Orders */}
         <TabsContent value="orders" className="mt-4">
-          <div className="flex items-center justify-between mb-3 gap-2">
-            <p className="text-sm text-stone-500">
-              {orders.length} {orders.length === 1 ? "order" : "orders"}
-            </p>
-            <Button
-              onClick={() =>
-                go("new-order", { params: { customerId: selectedId } })
-              }
-              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
-            >
-              <Plus className="w-4 h-4" /> New Order for{" "}
-              {customer.name.split(" ")[0]}
-            </Button>
-          </div>
-          {orders.length === 0 ? (
-            <EmptyState
-              icon={<ShoppingBag className="w-5 h-5" />}
-              title="No orders yet"
-              subtitle="Start a new order for this customer."
-            />
-          ) : (
-            <div className="border border-[#E7E5E4] rounded-sm bg-white divide-y divide-[#E7E5E4] overflow-hidden">
-              {orders.map((o) => (
-                <button
-                  key={o.id}
-                  onClick={() => go("order", { id: o.id })}
-                  className="w-full flex flex-wrap items-center gap-3 p-4 text-left hover:bg-[#FBF9F7] transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-[#1C1917] truncate">
-                      {o.garmentDesign}
+          <SectionCard
+            title={`Orders · ${orders.length}`}
+            bodyClassName="p-0"
+            action={
+              <PremiumButton
+                variant="primary"
+                size="sm"
+                onClick={() =>
+                  go("new-order", { params: { customerId: selectedId } })
+                }
+              >
+                <Plus className="w-3.5 h-3.5" /> New Order
+              </PremiumButton>
+            }
+          >
+            {orders.length === 0 ? (
+              <EmptyState
+                icon={ShoppingBag}
+                title="No orders yet"
+                description={`Start a new order for ${firstName}.`}
+                action={
+                  <PremiumButton
+                    variant="primary"
+                    size="sm"
+                    onClick={() =>
+                      go("new-order", { params: { customerId: selectedId } })
+                    }
+                  >
+                    <Plus className="w-3.5 h-3.5" /> New Order for {firstName}
+                  </PremiumButton>
+                }
+              />
+            ) : (
+              <div className="divide-y divide-[#E7E5E4]/70">
+                {orders.map((o) => (
+                  <button
+                    key={o.id}
+                    onClick={() => go("order", { id: o.id })}
+                    className="group w-full flex flex-wrap items-center gap-3 px-5 py-4 text-left hover:bg-[#faf8f5] transition-all focus:outline-none focus-visible:bg-[#faf8f5]"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center text-[#800020] shrink-0">
+                      <ShoppingBag className="w-4 h-4" />
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-500 mt-0.5">
-                      <span>Ordered {shortDate(o.orderDate)}</span>
-                      {o.assignedStaff && (
-                        <span>· {o.assignedStaff.fullName}</span>
-                      )}
-                      {o.deliveryDate && (
-                        <span>· Due {shortDate(o.deliveryDate)}</span>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-[#1C1917] truncate">
+                        {o.garmentDesign}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-500 mt-0.5">
+                        <span>Ordered {shortDate(o.orderDate)}</span>
+                        {o.assignedStaff && (
+                          <span>· {o.assignedStaff.fullName}</span>
+                        )}
+                        {o.deliveryDate && (
+                          <span>· Due {shortDate(o.deliveryDate)}</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <StatusBadge status={o.status} />
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-[#1C1917]">
-                      {formatCurrency(o.sellingPrice)}
+                    <StatusBadge status={o.status} />
+                    <div className="text-right min-w-[90px]">
+                      <div className="text-sm font-semibold text-[#1C1917] tabular-nums">
+                        {formatCurrency(o.sellingPrice)}
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </SectionCard>
         </TabsContent>
 
         {/* Style */}
         <TabsContent value="style" className="mt-4">
-          <div className="flex items-center justify-between mb-3 gap-2">
-            <p className="text-sm text-stone-500">
-              {styleConcepts.filter((c) => c.status !== "Rejected").length}{" "}
-              active{" "}
-              {styleConcepts.filter((c) => c.status !== "Rejected").length === 1
-                ? "concept"
-                : "concepts"}
-            </p>
-            <Button
-              onClick={() => go("style-assist", { id: selectedId })}
-              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
-            >
-              <Sparkles className="w-4 h-4" /> Generate Concepts
-            </Button>
-          </div>
-          {styleConcepts.length === 0 ? (
-            <EmptyState
-              icon={<Sparkles className="w-5 h-5" />}
-              title="No saved concepts yet"
-              subtitle="Try Style Assist to generate AI concepts for this customer."
-            />
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {styleConcepts.map((c) => (
-                <AtelierCard
-                  key={c.id}
-                  className={cn(c.status === "Rejected" && "opacity-60")}
-                  bodyClassName="p-0"
-                >
-                  {c.imageUrl && (
-                    <div className="border-b border-[#E7E5E4]">
-                      <img
-                        src={c.imageUrl}
-                        alt={c.conceptName}
-                        className="w-full h-40 object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="font-medium text-[#1C1917] leading-tight">
-                        {c.conceptName}
-                      </div>
-                      {typeof c.matchPercent === "number" && (
-                        <span className="shrink-0 text-[10px] uppercase tracking-wider bg-[#800020]/10 text-[#800020] px-1.5 py-0.5 rounded-sm border border-[#800020]/30">
-                          {c.matchPercent}% match
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <StatusBadge status={c.status} />
-                      {c.garmentType && (
-                        <span className="text-[10px] uppercase tracking-wider text-stone-400">
-                          {c.garmentType}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-stone-500 space-y-0.5 mb-2">
-                      {c.silhouette && (
-                        <div>
-                          <span className="text-stone-400">Silhouette:</span>{" "}
-                          {c.silhouette}
-                        </div>
-                      )}
-                      {c.fabric && (
-                        <div>
-                          <span className="text-stone-400">Fabric:</span>{" "}
-                          {c.fabric}
-                        </div>
-                      )}
-                      {c.colour && (
-                        <div>
-                          <span className="text-stone-400">Colour:</span>{" "}
-                          {c.colour}
-                        </div>
-                      )}
-                    </div>
-                    {c.whyThisMayWork && (
-                      <p className="text-xs text-stone-600 italic border-l-2 border-[#E7E5E4] pl-2">
-                        {c.whyThisMayWork}
-                      </p>
+          <SectionCard
+            title="Saved Concepts"
+            action={
+              <PremiumButton
+                variant="primary"
+                size="sm"
+                onClick={() => go("style-assist", { id: selectedId })}
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Generate Concepts
+              </PremiumButton>
+            }
+          >
+            {styleConcepts.length === 0 ? (
+              <EmptyState
+                icon={Sparkles}
+                title="No concepts yet — try Style Assist"
+                description="Generate AI-powered design concepts tailored to this customer's preferences."
+                action={
+                  <PremiumButton
+                    variant="primary"
+                    size="sm"
+                    onClick={() => go("style-assist", { id: selectedId })}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> Open Style Assist
+                  </PremiumButton>
+                }
+              />
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {styleConcepts.map((c) => (
+                  <div
+                    key={c.id}
+                    className={cn(
+                      "rounded-lg border border-[#E7E5E4] surface-premium lift overflow-hidden flex flex-col",
+                      c.status === "Rejected" && "opacity-60"
                     )}
+                  >
+                    {c.imageUrl && (
+                      <div className="aspect-[3/4] w-full bg-[#FBF9F7] border-b border-[#E7E5E4]">
+                        <img
+                          src={c.imageUrl}
+                          alt={c.conceptName}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4 flex-1 flex flex-col">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="font-display text-base text-[#1C1917] leading-tight">
+                          {c.conceptName}
+                        </div>
+                        {typeof c.matchPercent === "number" && (
+                          <span className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] bg-[#800020]/10 text-[#800020] px-2 py-0.5 rounded-md border border-[#800020]/25 font-semibold">
+                            {c.matchPercent}% match
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        <StatusBadge status={c.status} />
+                        {c.garmentType && (
+                          <span className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
+                            {c.garmentType}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-stone-500 space-y-0.5 mb-3">
+                        {c.silhouette && (
+                          <div>
+                            <span className="text-stone-400">Silhouette:</span>{" "}
+                            {c.silhouette}
+                          </div>
+                        )}
+                        {c.fabric && (
+                          <div>
+                            <span className="text-stone-400">Fabric:</span>{" "}
+                            {c.fabric}
+                          </div>
+                        )}
+                        {c.colour && (
+                          <div>
+                            <span className="text-stone-400">Colour:</span>{" "}
+                            {c.colour}
+                          </div>
+                        )}
+                      </div>
+                      {c.whyThisMayWork && (
+                        <div className="mt-auto text-xs text-stone-600 italic bg-[#FBF9F7] border border-[#E7E5E4]/70 rounded-md p-2.5">
+                          {c.whyThisMayWork}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </AtelierCard>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </SectionCard>
         </TabsContent>
 
         {/* Notes */}
         <TabsContent value="notes" className="mt-4">
           <div className="grid md:grid-cols-2 gap-4">
-            <AtelierCard
+            <NotesCard
               title="General Notes"
-              action={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setEditOpen(true)}
-                  className="text-xs h-7 text-[#800020] hover:bg-[#800020]/5"
-                >
-                  Edit
-                </Button>
-              }
-            >
-              <p className="text-sm text-stone-600 whitespace-pre-wrap">
-                {customer.notes || (
-                  <span className="italic text-stone-400">
-                    No notes recorded.
-                  </span>
-                )}
-              </p>
-            </AtelierCard>
-            <AtelierCard
+              field="notes"
+              value={customer.notes}
+              customerId={customer.id}
+            />
+            <NotesCard
               title="Style Notes"
-              action={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setEditOpen(true)}
-                  className="text-xs h-7 text-[#800020] hover:bg-[#800020]/5"
-                >
-                  Edit
-                </Button>
-              }
-            >
-              <p className="text-sm text-stone-600 whitespace-pre-wrap">
-                {customer.styleNotes || (
-                  <span className="italic text-stone-400">
-                    No style notes recorded.
-                  </span>
-                )}
-              </p>
-            </AtelierCard>
+              field="styleNotes"
+              value={customer.styleNotes}
+              customerId={customer.id}
+            />
           </div>
         </TabsContent>
       </Tabs>
@@ -630,14 +666,17 @@ export default function CustomerProfile() {
 
 function Stars({ value }: { value: number }) {
   return (
-    <span className="inline-flex items-center gap-0.5" aria-label={`${value} of 5 stars`}>
+    <span
+      className="inline-flex items-center gap-0.5"
+      aria-label={`${value} of 5 stars`}
+    >
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
           className={cn(
             "w-3.5 h-3.5",
             i < value
-              ? "fill-amber-400 text-amber-400"
+              ? "fill-[#800020] text-[#800020]"
               : "fill-stone-200 text-stone-200"
           )}
         />
@@ -658,24 +697,45 @@ function Fact({
       <dt className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
         {label}
       </dt>
-      <dd className="text-sm text-[#1C1917] mt-0.5">{value || "—"}</dd>
+      <dd className="text-sm text-[#1C1917] mt-1">{value || "—"}</dd>
     </div>
   );
 }
 
-function StyleRow({
+function ChipList({
   label,
   value,
 }: {
   label: string;
   value: string | null | undefined;
 }) {
+  const items = useMemo(
+    () =>
+      (value || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    [value]
+  );
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mb-0.5">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mb-1.5">
         {label}
       </div>
-      <div className="text-[#1C1917]">{value || "—"}</div>
+      {items.length === 0 ? (
+        <div className="text-sm text-stone-300">—</div>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {items.map((item, i) => (
+            <span
+              key={`${item}-${i}`}
+              className="inline-flex items-center rounded-md bg-[#FBF9F7] border border-[#E7E5E4] px-2 py-0.5 text-xs text-stone-700"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -691,37 +751,109 @@ function Meas({
 }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider text-stone-400">
+      <div className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
         {label}
       </div>
-      <div className="text-[#1C1917] font-medium">
-        {value != null ? `${value} ${unit}` : "—"}
+      <div className="text-[#1C1917] font-medium tabular-nums">
+        {value != null ? (
+          <>
+            {value}
+            <span className="text-stone-400 ml-1 text-xs">{unit}</span>
+          </>
+        ) : (
+          "—"
+        )}
       </div>
     </div>
   );
 }
 
-function EmptyState({
-  icon,
+/* ---------- Inline notes editor with auto-save ---------- */
+
+function NotesCard({
   title,
-  subtitle,
+  field,
+  value,
+  customerId,
 }: {
-  icon: React.ReactNode;
   title: string;
-  subtitle?: string;
+  field: "notes" | "styleNotes";
+  value: string | null | undefined;
+  customerId: string;
 }) {
+  const qc = useQueryClient();
+  const [draft, setDraft] = useState(value ?? "");
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    setDraft(value ?? "");
+    setDirty(false);
+  }, [value]);
+
+  const save = async () => {
+    if (!dirty) return;
+    setSaving(true);
+    try {
+      await apiPatch(`/api/customers/${customerId}`, {
+        [field]: draft.trim() || null,
+      });
+      qc.invalidateQueries({ queryKey: ["customer", customerId] });
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      setDirty(false);
+      toast.success(`${title} saved`);
+    } catch (err) {
+      toast.error("Failed to save notes", {
+        description: err instanceof Error ? err.message : "Unexpected error",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="border border-[#E7E5E4] rounded-sm bg-white p-8 text-center">
-      <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] text-[#800020] mb-3">
-        {icon}
-      </div>
-      <p className="text-sm font-medium text-[#1C1917]">{title}</p>
-      {subtitle && <p className="text-xs text-stone-500 mt-1">{subtitle}</p>}
-    </div>
+    <SectionCard
+      title={title}
+      action={
+        dirty ? (
+          <PremiumButton
+            variant="primary"
+            size="sm"
+            onClick={save}
+            loading={saving}
+          >
+            <Save className="w-3.5 h-3.5" /> Save
+          </PremiumButton>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-[11px] text-stone-400">
+            <Check className="w-3 h-3" /> Saved
+          </span>
+        )
+      }
+    >
+      <Textarea
+        value={draft}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          setDirty(true);
+        }}
+        onBlur={save}
+        placeholder={
+          field === "styleNotes"
+            ? "Capture style preferences, fit notes, do's & don'ts…"
+            : "General notes about this customer…"
+        }
+        rows={6}
+        className="rounded-md resize-none"
+      />
+      <p className="text-[10px] text-stone-400 mt-2 uppercase tracking-[0.15em]">
+        Auto-saves on blur
+      </p>
+    </SectionCard>
   );
 }
 
-/* ---------- Edit Personal Dialog (reuses Add form, prefilled) ---------- */
+/* ---------- Edit Personal Dialog (reuses form, prefilled) ---------- */
 
 interface CustomerForm {
   name: string;
@@ -762,7 +894,6 @@ function EditPersonalDialog({
   customer: Customer;
   onSaved: () => void;
 }) {
-  // Re-initialise the form whenever the dialog opens so we always start from the persisted customer.
   const [form, setForm] = useState<CustomerForm>(() =>
     buildFormFromCustomer(customer)
   );
@@ -813,9 +944,9 @@ function EditPersonalDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto scroll-slim rounded-sm">
+      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">
+          <DialogTitle className="font-display text-xl text-[#1C1917]">
             Edit Customer
           </DialogTitle>
           <DialogDescription className="text-stone-500">
@@ -824,7 +955,7 @@ function EditPersonalDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="e-name">
+            <Label htmlFor="e-name" className="text-xs text-stone-600">
               Name <span className="text-[#800020]">*</span>
             </Label>
             <Input
@@ -832,38 +963,42 @@ function EditPersonalDialog({
               required
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
-              className="rounded-sm"
+              className="h-10 rounded-md"
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="e-phone">Phone</Label>
+              <Label htmlFor="e-phone" className="text-xs text-stone-600">
+                Phone
+              </Label>
               <Input
                 id="e-phone"
                 value={form.phone}
                 onChange={(e) => set("phone", e.target.value)}
-                className="rounded-sm"
+                className="h-10 rounded-md"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="e-email">Email</Label>
+              <Label htmlFor="e-email" className="text-xs text-stone-600">
+                Email
+              </Label>
               <Input
                 id="e-email"
                 type="email"
                 value={form.email}
                 onChange={(e) => set("email", e.target.value)}
-                className="rounded-sm"
+                className="h-10 rounded-md"
               />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Gender</Label>
+              <Label className="text-xs text-stone-600">Gender</Label>
               <Select
                 value={form.gender || undefined}
                 onValueChange={(v) => set("gender", v)}
               >
-                <SelectTrigger className="w-full rounded-sm">
+                <SelectTrigger className="h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -876,23 +1011,25 @@ function EditPersonalDialog({
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="e-city">City</Label>
+              <Label htmlFor="e-city" className="text-xs text-stone-600">
+                City
+              </Label>
               <Input
                 id="e-city"
                 value={form.city}
                 onChange={(e) => set("city", e.target.value)}
-                className="rounded-sm"
+                className="h-10 rounded-md"
               />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Entry Source</Label>
+              <Label className="text-xs text-stone-600">Entry Source</Label>
               <Select
                 value={form.entrySource || undefined}
                 onValueChange={(v) => set("entrySource", v)}
               >
-                <SelectTrigger className="w-full rounded-sm">
+                <SelectTrigger className="h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -905,12 +1042,12 @@ function EditPersonalDialog({
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Customer Type</Label>
+              <Label className="text-xs text-stone-600">Customer Type</Label>
               <Select
                 value={form.customerType || undefined}
                 onValueChange={(v) => set("customerType", v)}
               >
-                <SelectTrigger className="w-full rounded-sm">
+                <SelectTrigger className="h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -924,56 +1061,63 @@ function EditPersonalDialog({
             </div>
           </div>
           {form.entrySource === "Referral" && (
-            <div className="grid gap-2">
-              <Label htmlFor="e-referred">Referred By</Label>
+            <div className="grid gap-2 animate-fade-in">
+              <Label htmlFor="e-referred" className="text-xs text-stone-600">
+                Referred By
+              </Label>
               <Input
                 id="e-referred"
                 value={form.referredBy}
                 onChange={(e) => set("referredBy", e.target.value)}
-                className="rounded-sm"
+                className="h-10 rounded-md"
               />
             </div>
           )}
           <div className="grid gap-2">
-            <Label htmlFor="e-styles">Preferred Styles</Label>
+            <Label htmlFor="e-styles" className="text-xs text-stone-600">
+              Preferred Styles
+            </Label>
             <Input
               id="e-styles"
               value={form.preferredStyles}
               onChange={(e) => set("preferredStyles", e.target.value)}
               placeholder="e.g. Classic, Elegant"
-              className="rounded-sm"
+              className="h-10 rounded-md"
             />
             <p className="text-xs text-stone-400">
               Comma-separated. Suggestions: {PREFERRED_STYLES.join(", ")}
             </p>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="e-notes">Notes</Label>
+            <Label htmlFor="e-notes" className="text-xs text-stone-600">
+              Notes
+            </Label>
             <Textarea
               id="e-notes"
               value={form.notes}
               onChange={(e) => set("notes", e.target.value)}
               rows={3}
-              className="rounded-sm"
+              className="rounded-md"
             />
           </div>
-          <DialogFooter>
-            <Button
+          <DialogFooter className="gap-2">
+            <PremiumButton
               type="button"
               variant="outline"
+              size="md"
               onClick={() => onOpenChange(false)}
               disabled={saving}
-              className="rounded-sm border-[#E7E5E4]"
             >
               Cancel
-            </Button>
-            <Button
+            </PremiumButton>
+            <PremiumButton
               type="submit"
-              disabled={saving}
-              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+              variant="primary"
+              size="md"
+              loading={saving}
             >
-              {saving ? "Saving…" : "Save Changes"}
-            </Button>
+              Save Changes
+            </PremiumButton>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -1053,20 +1197,21 @@ function AddMeasurementDialog({
     }
   };
 
-  const fields: { key: keyof Omit<MeasurementForm, "notes">; label: string }[] = [
-    { key: "bust", label: "Bust" },
-    { key: "waist", label: "Waist" },
-    { key: "hip", label: "Hip" },
-    { key: "shoulder", label: "Shoulder" },
-    { key: "length", label: "Length" },
-    { key: "sleeve", label: "Sleeve" },
-  ];
+  const fields: { key: keyof Omit<MeasurementForm, "notes">; label: string }[] =
+    [
+      { key: "bust", label: "Bust" },
+      { key: "waist", label: "Waist" },
+      { key: "hip", label: "Hip" },
+      { key: "shoulder", label: "Shoulder" },
+      { key: "length", label: "Length" },
+      { key: "sleeve", label: "Sleeve" },
+    ];
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[480px] rounded-sm">
+      <DialogContent className="sm:max-w-[480px] rounded-lg">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">
+          <DialogTitle className="font-display text-xl text-[#1C1917]">
             Add Measurements
           </DialogTitle>
           <DialogDescription className="text-stone-500">
@@ -1077,7 +1222,12 @@ function AddMeasurementDialog({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {fields.map(({ key, label }) => (
               <div key={key} className="grid gap-2">
-                <Label htmlFor={`m-${key}`}>{label}</Label>
+                <Label
+                  htmlFor={`m-${key}`}
+                  className="text-xs text-stone-600"
+                >
+                  {label}
+                </Label>
                 <Input
                   id={`m-${key}`}
                   type="number"
@@ -1087,39 +1237,42 @@ function AddMeasurementDialog({
                   value={form[key]}
                   onChange={(e) => set(key, e.target.value)}
                   placeholder="0"
-                  className="rounded-sm"
+                  className="h-10 rounded-md"
                 />
               </div>
             ))}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="m-notes">Notes</Label>
+            <Label htmlFor="m-notes" className="text-xs text-stone-600">
+              Notes
+            </Label>
             <Textarea
               id="m-notes"
               value={form.notes}
               onChange={(e) => set("notes", e.target.value)}
               rows={2}
-              className="rounded-sm"
+              className="rounded-md"
               placeholder="Optional notes…"
             />
           </div>
-          <DialogFooter>
-            <Button
+          <DialogFooter className="gap-2">
+            <PremiumButton
               type="button"
               variant="outline"
+              size="md"
               onClick={() => handleOpenChange(false)}
               disabled={saving}
-              className="rounded-sm border-[#E7E5E4]"
             >
               Cancel
-            </Button>
-            <Button
+            </PremiumButton>
+            <PremiumButton
               type="submit"
-              disabled={saving}
-              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+              variant="primary"
+              size="md"
+              loading={saving}
             >
-              {saving ? "Saving…" : "Save Measurements"}
-            </Button>
+              Save Measurements
+            </PremiumButton>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Zap, ArrowRight } from "lucide-react";
-import { AtelierCard } from "@/components/atelier/AtelierCard";
+import { Zap, ShoppingBag, TrendingUp } from "lucide-react";
+import { PageHeader } from "@/components/atelier/PageHeader";
+import { SectionCard } from "@/components/atelier/SectionCard";
+import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
 import {
   Select,
   SelectContent,
@@ -14,10 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import { useNav } from "@/stores/nav";
+import { cn } from "@/lib/utils";
 
 type GarmentType =
   | "Gown"
@@ -96,6 +98,13 @@ const COMPLEXITY_MULTIPLIER: Record<Complexity, number> = {
   Couture: 2.0,
 };
 
+const COMPLEXITY_LABEL: Record<Complexity, string> = {
+  Simple: "1.0×",
+  Moderate: "1.3×",
+  Elaborate: "1.6×",
+  Couture: "2.0×",
+};
+
 const EMBELLISHMENT_COST: Record<Embellishment, number> = {
   None: 0,
   Beading: 400,
@@ -128,6 +137,11 @@ export default function QuickQuote() {
     const total = subtotal + rushPremium;
     const suggestedDeposit = Math.round(total * 0.5);
 
+    // estimated margin = total minus direct material costs (fabric + embellishment)
+    const directMaterial = fabricCost + embellishmentCost;
+    const estMargin = total - directMaterial;
+    const estMarginPct = total > 0 ? Math.round((estMargin / total) * 100) : 0;
+
     return {
       fabricBase,
       fabricCost,
@@ -137,6 +151,8 @@ export default function QuickQuote() {
       rushPremium,
       total,
       suggestedDeposit,
+      estMargin,
+      estMarginPct,
     };
   }, [garment, fabric, yards, complexity, embellishment, rush]);
 
@@ -147,31 +163,32 @@ export default function QuickQuote() {
   };
 
   return (
-    <div className="p-5 md:p-8 max-w-[800px] mx-auto w-full">
-      {/* Header */}
-      <header className="flex items-start gap-3 mb-6">
-        <div className="hidden sm:flex w-10 h-10 rounded-full border border-[#E7E5E4] items-center justify-center bg-white">
-          <Zap className="w-4 h-4 text-[#800020]" />
-        </div>
-        <div>
-          <h1
-            className="font-display font-semibold text-[#1C1917] leading-tight"
-            style={{ fontSize: "clamp(1.75rem, 1.2rem + 1.6vw, 2.25rem)" }}
-          >
-            Quick Quote
-          </h1>
-          <p className="text-sm text-stone-500 mt-1">
-            Estimate a garment price in seconds.
-          </p>
-        </div>
-      </header>
+    <div className="p-5 md:p-8 max-w-[900px] mx-auto w-full">
+      <PageHeader
+        eyebrow="Instant pricing"
+        eyebrowIcon={Zap}
+        title="Quick Quote"
+        subtitle="Estimate a garment price in seconds."
+        actions={
+          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#800020]/8 border border-[#800020]/15 text-[#800020]">
+            <Zap className="w-4 h-4" />
+          </span>
+        }
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-        {/* Form */}
-        <AtelierCard title="Build Your Estimate" bodyClassName="grid gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 items-start">
+        {/* Calculator form (3/5) */}
+        <SectionCard
+          title="Garment details"
+          className="lg:col-span-3"
+          bodyClassName="grid gap-4"
+        >
           <div className="grid gap-1.5">
             <Label htmlFor="qq-garment">Garment Type</Label>
-            <Select value={garment} onValueChange={(v) => setGarment(v as GarmentType)}>
+            <Select
+              value={garment}
+              onValueChange={(v) => setGarment(v as GarmentType)}
+            >
               <SelectTrigger id="qq-garment" className="w-full bg-white">
                 <SelectValue />
               </SelectTrigger>
@@ -187,18 +204,24 @@ export default function QuickQuote() {
 
           <div className="grid gap-1.5">
             <Label htmlFor="qq-fabric">Fabric</Label>
-            <Select value={fabric} onValueChange={(v) => setFabric(v as FabricType)}>
+            <Select
+              value={fabric}
+              onValueChange={(v) => setFabric(v as FabricType)}
+            >
               <SelectTrigger id="qq-fabric" className="w-full bg-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {FABRICS.map((f) => (
                   <SelectItem key={f.label} value={f.label}>
-                    {f.label} · {formatCurrency(f.basePerYard)}/yd
+                    {f.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-[11px] text-stone-500 tabular-nums">
+              {formatCurrency(calc.fabricBase)} / yard
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -226,12 +249,15 @@ export default function QuickQuote() {
                   {(["Simple", "Moderate", "Elaborate", "Couture"] as Complexity[]).map(
                     (c) => (
                       <SelectItem key={c} value={c}>
-                        {c} · ×{COMPLEXITY_MULTIPLIER[c].toFixed(1)}
+                        {c}
                       </SelectItem>
                     )
                   )}
                 </SelectContent>
               </Select>
+              <p className="text-[11px] text-stone-500 tabular-nums">
+                Multiplier {COMPLEXITY_LABEL[complexity]}
+              </p>
             </div>
           </div>
 
@@ -275,17 +301,17 @@ export default function QuickQuote() {
               aria-label="Toggle rush production"
             />
           </div>
-        </AtelierCard>
+        </SectionCard>
 
-        {/* Live summary */}
-        <div className="md:sticky md:top-6">
-          <AtelierCard title="Live Estimate" bodyClassName="grid gap-3">
+        {/* Live summary (2/5) */}
+        <div className="lg:col-span-2 lg:sticky lg:top-6">
+          <SectionCard title="Estimate" bodyClassName="grid gap-3">
             <LineItem
               label={`Fabric · ${fabric} × ${yards || 0} yd`}
               value={calc.fabricCost}
             />
             <LineItem
-              label={`Labour · ${garment} × ${complexity}`}
+              label={`Labour · ${garment}`}
               value={calc.labour}
             />
             {calc.embellishmentCost > 0 && (
@@ -301,46 +327,55 @@ export default function QuickQuote() {
 
             {rush && (
               <LineItem
-                label="Rush Premium (25%)"
+                label="Rush premium (+25%)"
                 value={calc.rushPremium}
-                muted
+                accent
               />
             )}
 
-            <div
-              className={cn(
-                "mt-1 p-4 rounded-sm border border-[#800020]/20 bg-[#800020]/5"
-              )}
-            >
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[#800020]">
+            <Separator />
+
+            <div className="mt-1 p-4 rounded-md border border-[#800020]/15 bg-gradient-to-br from-[#800020]/5 to-transparent">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[#800020]">
                 Total
               </p>
               <p
-                className="font-display font-semibold text-[#800020] leading-tight"
-                style={{ fontSize: "clamp(1.6rem, 1.1rem + 1.6vw, 2.1rem)" }}
+                className="font-display font-semibold text-[#800020] leading-tight tabular-nums"
+                style={{ fontSize: "clamp(28px, 3vw, 40px)" }}
               >
-                {formatCurrency(calc.total)}
+                <AnimatedNumber value={calc.total} format="currency" />
               </p>
-              <p className="text-xs text-stone-500 mt-1.5">
-                Suggested 50% deposit:{" "}
-                <span className="font-medium text-[#1C1917]">
+              <div className="mt-2 flex items-center justify-between text-xs text-stone-500">
+                <span>50% deposit</span>
+                <span className="font-medium text-[#1C1917] tabular-nums">
                   {formatCurrency(calc.suggestedDeposit)}
                 </span>
-              </p>
+              </div>
             </div>
 
-            <Button
+            <div className="flex items-center justify-between text-[11px] text-[#15803D]">
+              <span className="inline-flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                Est. margin
+              </span>
+              <span className="font-medium tabular-nums">
+                {formatCurrency(calc.estMargin)} · {calc.estMarginPct}%
+              </span>
+            </div>
+
+            <PremiumButton
               onClick={handleConvert}
-              className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm w-full mt-1"
+              size="md"
+              className="w-full mt-1"
             >
+              <ShoppingBag className="w-4 h-4" />
               Convert to Order
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+            </PremiumButton>
 
             <p className="text-[11px] text-stone-400 text-center">
               Estimate only — final price may vary after consultation.
             </p>
-          </AtelierCard>
+          </SectionCard>
         </div>
       </div>
     </div>
@@ -351,19 +386,19 @@ function LineItem({
   label,
   value,
   emphasized,
-  muted,
+  accent,
 }: {
   label: string;
   value: number;
   emphasized?: boolean;
-  muted?: boolean;
+  accent?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <span
         className={cn(
           "text-sm",
-          muted ? "text-stone-400" : "text-stone-500",
+          accent ? "text-amber-700" : "text-stone-500",
           emphasized && "text-[#1C1917] font-medium"
         )}
       >
@@ -372,7 +407,7 @@ function LineItem({
       <span
         className={cn(
           "text-sm tabular-nums",
-          muted ? "text-stone-400" : "text-[#1C1917]",
+          accent ? "text-amber-700 font-medium" : "text-[#1C1917]",
           emphasized && "font-semibold"
         )}
       >

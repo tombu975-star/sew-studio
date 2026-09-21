@@ -4,13 +4,25 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  CheckSquare,
   Plus,
   AlertCircle,
   CalendarDays,
+  Link2,
+  ListTodo,
+  Loader2,
+  CheckCheck,
+  KanbanSquare,
 } from "lucide-react";
-import { AtelierCard } from "@/components/atelier/AtelierCard";
+import { PageHeader } from "@/components/atelier/PageHeader";
+import { SectionCard } from "@/components/atelier/SectionCard";
+import { PremiumMetric } from "@/components/atelier/PremiumMetric";
+import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
+import {
+  EmptyState,
+  SkeletonCard,
+} from "@/components/atelier/EmptyState";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
 import {
   Select,
   SelectContent,
@@ -18,8 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,11 +41,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import { apiGet, apiPatch, apiPost } from "@/lib/api";
 import { isOverdue, PRIORITY_LEVELS, shortDate, todayISO } from "@/lib/format";
 import type { Order, Task, User } from "@/lib/types";
 import { useNav } from "@/stores/nav";
+import { cn } from "@/lib/utils";
 
 interface TaskWithRelations extends Task {
   order?: (Order & { customer: Order["customer"] }) | null;
@@ -46,6 +56,12 @@ const COLUMNS = ["To Do", "In Progress", "Done"] as const;
 type ColumnStatus = (typeof COLUMNS)[number];
 
 const PRIORITY_FILTER_OPTIONS = ["All Priority", ...PRIORITY_LEVELS] as const;
+
+const COLUMN_ICON: Record<ColumnStatus, React.ComponentType<{ className?: string }>> = {
+  "To Do": ListTodo,
+  "In Progress": Loader2,
+  Done: CheckCheck,
+};
 
 export default function Tasks() {
   const go = useNav((s) => s.go);
@@ -65,7 +81,6 @@ export default function Tasks() {
     queryFn: () => apiGet<Order[]>("/api/orders"),
   });
 
-  // Derive unique staff from tasks (those actually assigned).
   const staffOptions = useMemo(() => {
     const map = new Map<string, User>();
     for (const t of tasks) {
@@ -102,6 +117,15 @@ export default function Tasks() {
     return map;
   }, [filtered]);
 
+  const stats = useMemo(
+    () => ({
+      todo: grouped["To Do"].length,
+      inProgress: grouped["In Progress"].length,
+      done: grouped.Done.length,
+    }),
+    [grouped]
+  );
+
   const createMutation = useMutation({
     mutationFn: (payload: {
       title: string;
@@ -121,122 +145,164 @@ export default function Tasks() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       apiPatch<Task>(`/api/tasks/${id}`, { status }),
-    onSuccess: () => {
+    onSuccess: (task) => {
+      toast.success(`Task moved to ${task.status}`);
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
     onError: (err: Error) => toast.error(err.message),
   });
 
   return (
-    <div className="p-5 md:p-8 max-w-[1100px] mx-auto w-full">
-      {/* Header */}
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
-        <div className="flex items-start gap-3">
-          <div className="hidden sm:flex w-10 h-10 rounded-full border border-[#E7E5E4] items-center justify-center bg-white">
-            <CheckSquare className="w-4 h-4 text-[#800020]" />
-          </div>
-          <div>
-            <h1
-              className="font-display font-semibold text-[#1C1917] leading-tight"
-              style={{ fontSize: "clamp(1.75rem, 1.2rem + 1.6vw, 2.25rem)" }}
-            >
-              Tasks
-            </h1>
-            <p className="text-sm text-stone-500 mt-1">
-              Track atelier to-dos from queue to done.
-            </p>
-          </div>
-        </div>
+    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+      <PageHeader
+        eyebrow="Studio workflow"
+        eyebrowIcon={KanbanSquare}
+        title="Tasks"
+        subtitle="Everything the atelier needs to do."
+        actions={
+          <PremiumButton onClick={() => setDialogOpen(true)} size="md">
+            <Plus className="w-4 h-4" />
+            New Task
+          </PremiumButton>
+        }
+      />
 
-        <Button
-          onClick={() => setDialogOpen(true)}
-          className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm h-9"
-        >
-          <Plus className="w-4 h-4" /> New Task
-        </Button>
-      </header>
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
-            Staff
-          </span>
-          <Select value={staffFilter} onValueChange={setStaffFilter}>
-            <SelectTrigger className="w-[170px] h-8 bg-white" aria-label="Filter by staff">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Staff</SelectItem>
-              {staffOptions.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.fullName}
-                </SelectItem>
-              ))}
-              <SelectItem value="Unassigned">Unassigned</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
-            Priority
-          </span>
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[150px] h-8 bg-white" aria-label="Filter by priority">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PRIORITY_FILTER_OPTIONS.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Premium stat strip */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <PremiumMetric
+          label="To Do"
+          value={<AnimatedNumber value={stats.todo} />}
+          icon={ListTodo}
+          accent
+        />
+        <PremiumMetric
+          label="In Progress"
+          value={<AnimatedNumber value={stats.inProgress} />}
+          icon={Loader2}
+        />
+        <PremiumMetric
+          label="Done"
+          value={<AnimatedNumber value={stats.done} />}
+          icon={CheckCheck}
+        />
       </div>
+
+      {/* Filter bar */}
+      <SectionCard bodyClassName="py-3" className="mb-5">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+              Staff
+            </span>
+            <Select value={staffFilter} onValueChange={setStaffFilter}>
+              <SelectTrigger
+                className="w-[180px] h-8 bg-white"
+                aria-label="Filter by staff"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Staff</SelectItem>
+                {staffOptions.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.fullName}
+                  </SelectItem>
+                ))}
+                <SelectItem value="Unassigned">Unassigned</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+              Priority
+            </span>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger
+                className="w-[160px] h-8 bg-white"
+                aria-label="Filter by priority"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PRIORITY_FILTER_OPTIONS.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </SectionCard>
 
       {/* Board */}
       {isError ? (
-        <div className="rounded-sm border border-[#E7E5E4] bg-white p-6 text-sm text-stone-500 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-[#800020]" />
-          Could not load tasks. Please try again.
-        </div>
+        <SectionCard title="Error">
+          <div className="flex items-center gap-2 text-sm text-stone-500">
+            <AlertCircle className="w-4 h-4 text-[#800020]" />
+            Could not load tasks. Please try again.
+          </div>
+        </SectionCard>
       ) : isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-72 rounded-sm bg-white" />
+            <SkeletonCard key={i} className="h-72" />
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {COLUMNS.map((col) => (
-            <AtelierCard
-              key={col}
-              title={`${col} · ${grouped[col].length}`}
-              bodyClassName="p-3 flex flex-col gap-2.5"
-            >
-              {grouped[col].length === 0 ? (
-                <div className="px-2 py-8 text-center">
-                  <p className="text-xs text-stone-400">No tasks here.</p>
-                </div>
-              ) : (
-                grouped[col].map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onStatusChange={(status) =>
-                      statusMutation.mutate({ id: task.id, status })
-                    }
-                    onClick={() =>
-                      task.orderId && go("order", { id: task.orderId })
+          {COLUMNS.map((col) => {
+            const Icon = COLUMN_ICON[col];
+            const count = grouped[col].length;
+            return (
+              <SectionCard
+                key={col}
+                bodyClassName="p-3 flex flex-col gap-2.5"
+                title={col}
+                action={
+                  <div className="flex items-center gap-2">
+                    <Icon
+                      className={cn(
+                        "w-3.5 h-3.5",
+                        col === "To Do" && "text-[#800020]",
+                        col === "In Progress" && "text-blue-600",
+                        col === "Done" && "text-[#15803D]"
+                      )}
+                    />
+                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] text-[10px] font-semibold text-stone-600 tabular-nums">
+                      {count}
+                    </span>
+                  </div>
+                }
+              >
+                {grouped[col].length === 0 ? (
+                  <EmptyState
+                    className="py-8"
+                    title={`No ${col.toLowerCase()} tasks`}
+                    description={
+                      col === "To Do"
+                        ? "Create a new task to get started."
+                        : "Tasks will appear here as they progress."
                     }
                   />
-                ))
-              )}
-            </AtelierCard>
-          ))}
+                ) : (
+                  grouped[col].map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onStatusChange={(status) =>
+                        statusMutation.mutate({ id: task.id, status })
+                      }
+                      onClick={() =>
+                        task.orderId && go("order", { id: task.orderId })
+                      }
+                    />
+                  ))
+                )}
+              </SectionCard>
+            );
+          })}
         </div>
       )}
 
@@ -260,14 +326,15 @@ function TaskCard({
   onStatusChange: (status: string) => void;
   onClick: () => void;
 }) {
-  const overdue = !!task.dueDate && isOverdue(task.dueDate) && task.status !== "Done";
+  const overdue =
+    !!task.dueDate && isOverdue(task.dueDate) && task.status !== "Done";
   const garment = task.order?.garmentDesign;
   const customerName = task.order?.customer?.name;
   const staffName = task.staff?.fullName;
   const initial = staffName ? staffName.charAt(0).toUpperCase() : "?";
 
   return (
-    <div className="border border-[#E7E5E4] rounded-sm p-3 bg-white flex flex-col gap-2">
+    <div className="rounded-lg bg-white border border-[#E7E5E4] p-3.5 elevate-sm lift flex flex-col gap-2.5">
       <div className="flex items-start justify-between gap-2">
         <button
           onClick={onClick}
@@ -288,18 +355,21 @@ function TaskCard({
         <button
           onClick={onClick}
           disabled={!task.orderId}
-          className="text-left text-xs text-stone-500 truncate hover:text-stone-700"
+          className="text-left text-xs text-stone-500 truncate inline-flex items-center gap-1.5 hover:text-stone-700"
         >
-          {garment}
-          {customerName ? ` · ${customerName}` : ""}
+          {task.orderId && <Link2 className="w-3 h-3 text-stone-400 shrink-0" />}
+          <span className="truncate">
+            {garment}
+            {customerName ? ` · ${customerName}` : ""}
+          </span>
         </button>
       )}
 
-      <div className="flex items-center justify-between gap-2 pt-1">
+      <div className="flex items-center justify-between gap-2 pt-0.5">
         <div className="flex items-center gap-2 min-w-0">
           {staffName ? (
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-[#800020]/10 text-[#800020] text-[10px] font-semibold flex items-center justify-center">
+            <span className="inline-flex items-center gap-1.5 min-w-0">
+              <span className="w-5 h-5 rounded-full bg-[#800020]/10 text-[#800020] text-[10px] font-semibold flex items-center justify-center shrink-0">
                 {initial}
               </span>
               <span className="text-xs text-stone-500 truncate">
@@ -316,25 +386,26 @@ function TaskCard({
         {task.dueDate && (
           <span
             className={cn(
-              "inline-flex items-center gap-1 text-[11px]",
+              "inline-flex items-center gap-1 text-[11px] shrink-0",
               overdue ? "text-amber-700 font-medium" : "text-stone-500"
             )}
           >
-            <CalendarDays className="w-3 h-3" />
+            {overdue ? (
+              <AlertCircle className="w-3 h-3" />
+            ) : (
+              <CalendarDays className="w-3 h-3" />
+            )}
             {shortDate(task.dueDate)}
           </span>
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-stone-100">
+      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#E7E5E4]/70">
         <span className="text-[10px] uppercase tracking-[0.16em] text-stone-400">
           Status
         </span>
-        <Select
-          value={task.status}
-          onValueChange={onStatusChange}
-        >
-          <SelectTrigger size="sm" className="h-7 w-[130px] text-xs bg-white">
+        <Select value={task.status} onValueChange={onStatusChange}>
+          <SelectTrigger size="sm" className="h-7 w-[140px] text-xs bg-white">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -409,7 +480,7 @@ function NewTaskDialog({
         if (!v) setTimeout(reset, 150);
       }}
     >
-      <DialogContent className="sm:max-w-md rounded-sm">
+      <DialogContent className="sm:max-w-md rounded-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-[#1C1917]">
             New Task
@@ -491,21 +562,16 @@ function NewTaskDialog({
           </div>
 
           <DialogFooter>
-            <Button
+            <PremiumButton
               type="button"
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="rounded-sm"
             >
               Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm"
-            >
-              {submitting ? "Saving…" : "Create Task"}
-            </Button>
+            </PremiumButton>
+            <PremiumButton type="submit" loading={submitting}>
+              Create Task
+            </PremiumButton>
           </DialogFooter>
         </form>
       </DialogContent>

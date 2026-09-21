@@ -1,0 +1,757 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { useQuery } from "@tanstack/react-query";
+     5→import {
+     6→  AreaChart,
+     7→  Area,
+     8→  XAxis,
+     9→  YAxis,
+    10→  Tooltip,
+    11→  ResponsiveContainer,
+    12→  CartesianGrid,
+    13→} from "recharts";
+    14→import {
+    15→  Plus,
+    16→  CalendarDays,
+    17→  AlertCircle,
+    18→  ChevronRight,
+    19→  Sparkles,
+    20→  TrendingUp,
+    21→  Check,
+    22→} from "lucide-react";
+    23→import { apiGet, apiPost } from "@/lib/api";
+    24→import {
+    25→  formatCurrency,
+    26→  formatDate,
+    27→  shortDate,
+    28→  isWithinDays,
+    29→  isOverdue,
+    30→  ORDER_STATUSES,
+    31→  ACTIVE_STATUSES,
+    32→  ENTRY_SOURCES,
+    33→} from "@/lib/format";
+    34→import type {
+    35→  Order,
+    36→  Payment,
+    37→  Fitting,
+    38→  Task,
+    39→  User,
+    40→  Customer,
+    41→  Settings,
+    42→  StyleConcept,
+    43→} from "@/lib/types";
+    44→import { useNav } from "@/stores/nav";
+    45→import { useRole } from "@/stores/role";
+    46→import { MetricCard } from "@/components/atelier/MetricCard";
+    47→import { AtelierCard } from "@/components/atelier/AtelierCard";
+    48→import { StatusBadge } from "@/components/atelier/StatusBadge";
+    49→import { Button } from "@/components/ui/button";
+    50→
+    51→interface DashboardData {
+    52→  orders: Order[];
+    53→  payments: Payment[];
+    54→  fittings: Fitting[];
+    55→  tasks: Task[];
+    56→  users: User[];
+    57→  customers: Customer[];
+    58→  settings: Settings | null;
+    59→  styleConcepts: StyleConcept[];
+    60→}
+    61→
+    62→/* ---------- local helpers ---------- */
+    63→
+    64→function orderPaidTotal(orderId: string, payments: Payment[]) {
+    65→  return payments
+    66→    .filter((p) => p.orderId === orderId)
+    67→    .reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    68→}
+    69→
+    70→function orderCostTotal(order: Order) {
+    71→  return (Number(order.fabricCost) || 0) + (Number(order.labourCost) || 0);
+    72→}
+    73→
+    74→function sameMonth(d: string | Date | null | undefined, ref: Date) {
+    75→  if (!d) return false;
+    76→  const x = new Date(d);
+    77→  if (isNaN(x.getTime())) return false;
+    78→  return x.getMonth() === ref.getMonth() && x.getFullYear() === ref.getFullYear();
+    79→}
+    80→
+    81→/** Build last `months` monthly income buckets from a flat payments array. */
+    82→function monthlyIncome(payments: Payment[], months = 6) {
+    83→  const now = new Date();
+    84→  const buckets: { key: string; label: string; total: number }[] = [];
+    85→  for (let i = months - 1; i >= 0; i--) {
+    86→    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    87→    buckets.push({
+    88→      key: `${d.getFullYear()}-${d.getMonth()}`,
+    89→      label: d.toLocaleDateString("en-GB", { month: "short" }),
+    90→      total: 0,
+    91→    });
+    92→  }
+    93→  for (const p of payments) {
+    94→    if (!p.date) continue;
+    95→    const d = new Date(p.date);
+    96→    if (isNaN(d.getTime())) continue;
+    97→    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    98→    const b = buckets.find((x) => x.key === key);
+    99→    if (b) b.total += Number(p.amount) || 0;
+   100→  }
+   101→  return buckets;
+   102→}
+   103→
+   104→const ACTIVE = ACTIVE_STATUSES as readonly string[];
+   105→
+   106→/* ---------- main view ---------- */
+   107→
+   108→export default function Dashboard() {
+   109→  const { go } = useNav();
+   110→  const { isStaff, ownerLabel } = useRole();
+   111→  const staff = isStaff();
+   112→
+   113→  const [insights, setInsights] = useState<string[] | null>(null);
+   114→  const [insightsLoading, setInsightsLoading] = useState(false);
+   115→  const [insightsError, setInsightsError] = useState<string | null>(null);
+   116→
+   117→  const { data, isLoading, isError } = useQuery<DashboardData>({
+   118→    queryKey: ["dashboard"],
+   119→    queryFn: () => apiGet<DashboardData>("/api/dashboard"),
+   120→  });
+   121→
+   122→  const m = useMemo(() => {
+   123→    if (!data) return null;
+   124→    const { orders, payments, fittings, tasks, users, customers } = data;
+   125→    const now = new Date();
+   126→
+   127→    const salesThisMonth = orders
+   128→      .filter((o) => sameMonth(o.orderDate, now))
+   129→      .reduce((s, o) => s + (Number(o.sellingPrice) || 0), 0);
+   130→
+   131→    const receivedThisMonth = payments
+   132→      .filter((p) => sameMonth(p.date, now))
+   133→      .reduce((s, p) => s + (Number(p.amount) || 0), 0);
+   134→
+   135→    const outstanding = orders
+   136→      .filter((o) => o.status !== "Completed")
+   137→      .reduce((s, o) => {
+   138→        const paid = orderPaidTotal(o.id, payments);
+   139→        return s + Math.max(0, (Number(o.sellingPrice) || 0) - paid);
+   140→      }, 0);
+   141→
+   142→    const profit = orders.reduce(
+   143→      (s, o) => s + (Number(o.sellingPrice) || 0) - orderCostTotal(o),
+   144→      0
+   145→    );
+   146→
+   147→    const activeOrders = orders.filter((o) => ACTIVE.includes(o.status));
+   148→
+   149→    const statusCounts = ORDER_STATUSES.map((s) => ({
+   150→      status: s,
+   151→      count: orders.filter((o) => o.status === s).length,
+   152→    }));
+   153→
+   154→    const upcomingFittings = fittings
+   155→      .filter((f) => f.status === "Scheduled")
+   156→      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+   157→      .slice(0, 5);
+   158→
+   159→    const overdueTasks = tasks.filter(
+   160→      (t) => t.status !== "Done" && isOverdue(t.dueDate)
+   161→    );
+   162→    const openTasks = tasks.filter((t) => t.status !== "Done");
+   163→    const readyOrders = orders.filter((o) => o.status === "Ready");
+   164→    const dueSoon = orders.filter(
+   165→      (o) =>
+   166→        o.status !== "Completed" &&
+   167→        o.status !== "Collected/Delivered" &&
+   168→        isWithinDays(o.deliveryDate, 7)
+   169→    );
+   170→
+   171→    const staffWorkload = (users || []).map((u) => ({
+   172→      user: u,
+   173→      openTasks: tasks.filter(
+   174→        (t) => t.staffId === u.id && t.status !== "Done"
+   175→      ).length,
+   176→      activeOrders: orders.filter(
+   177→        (o) => o.assignedStaffId === u.id && ACTIVE.includes(o.status)
+   178→      ).length,
+   179→    }));
+   180→
+   181→    const margins = orders.map(
+   182→      (o) => (Number(o.sellingPrice) || 0) - orderCostTotal(o)
+   183→    );
+   184→    const avgMargin =
+   185→      margins.length > 0
+   186→        ? margins.reduce((a, b) => a + b, 0) / margins.length
+   187→        : 0;
+   188→
+   189→    const healthStatus =
+   190→      outstanding > 5000 || overdueTasks.length > 3
+   191→        ? "At Risk"
+   192→        : outstanding > 1000 || overdueTasks.length > 0
+   193→        ? "Needs Attention"
+   194→        : "On Track";
+   195→
+   196→    const incomeSeries = monthlyIncome(payments, 6);
+   197→
+   198→    /* ----- Needs Attention items ----- */
+   199→    const attentionItems: string[] = [];
+   200→    dueSoon.slice(0, 3).forEach((o) => {
+   201→      attentionItems.push(
+   202→        `“${(o.garmentDesign || "Untitled garment").slice(0, 36)}” is due ${shortDate(
+   203→          o.deliveryDate
+   204→        )} — confirm progress with the customer.`
+   205→      );
+   206→    });
+   207→    if (overdueTasks.length > 0) {
+   208→      attentionItems.push(
+   209→        `${overdueTasks.length} overdue task${
+   210→          overdueTasks.length > 1 ? "s" : ""
+   211→        } need attention — review on the Tasks board.`
+   212→      );
+   213→    }
+   214→    if (readyOrders.length > 0) {
+   215→      attentionItems.push(
+   216→        `${readyOrders.length} order${
+   217→          readyOrders.length > 1 ? "s are" : " is"
+   218→        } Ready and awaiting collection.`
+   219→      );
+   220→    }
+   221→    const enquiryCount = orders.filter((o) => o.status === "Enquiry").length;
+   222→    if (enquiryCount > 3) {
+   223→      attentionItems.push(
+   224→        `${enquiryCount} enquiries are still open — follow up to convert them into confirmed orders.`
+   225→      );
+   226→    }
+   227→    const quotedCount = orders.filter((o) => o.status === "Quoted").length;
+   228→    if (quotedCount > 2) {
+   229→      attentionItems.push(
+   230→        `${quotedCount} quotes sent are awaiting a deposit — nudge the clients.`
+   231→      );
+   232→    }
+   233→    if (attentionItems.length === 0) {
+   234→      attentionItems.push(
+   235→        "Nothing pressing — the studio is in good shape today."
+   236→      );
+   237→    }
+   238→
+   239→    return {
+   240→      salesThisMonth,
+   241→      receivedThisMonth,
+   242→      outstanding,
+   243→      profit,
+   244→      activeOrders,
+   245→      statusCounts,
+   246→      upcomingFittings,
+   247→      staffWorkload,
+   248→      avgMargin,
+   249→      healthStatus,
+   250→      overdueTaskCount: overdueTasks.length,
+   251→      openTasks,
+   252→      readyOrders,
+   253→      incomeSeries,
+   254→      attentionItems: attentionItems.slice(0, 6),
+   255→      orders,
+   256→      payments,
+   257→      customers,
+   258→      fittingsCount: fittings.length,
+   259→      upcomingFittingsCount: upcomingFittings.length,
+   260→    };
+   261→  }, [data]);
+   262→
+   263→  /* ----- AI Trend Suggestions ----- */
+   264→  const generateInsights = async () => {
+   265→    if (!m) return;
+   266→    setInsightsLoading(true);
+   267→    setInsightsError(null);
+   268→    try {
+   269→      const statusBreakdown: Record<string, number> = {};
+   270→      ORDER_STATUSES.forEach((s) => {
+   271→        statusBreakdown[s] = m.orders.filter((o) => o.status === s).length;
+   272→      });
+   273→      const customerSources: Record<string, number> = {};
+   274→      ENTRY_SOURCES.forEach((s) => {
+   275→        customerSources[s] = m.customers.filter((c) => c.entrySource === s).length;
+   276→      });
+   277→      const payload = {
+   278→        orders: {
+   279→          orderCount: m.orders.length,
+   280→          totalSales: m.orders.reduce(
+   281→            (s, o) => s + (Number(o.sellingPrice) || 0),
+   282→            0
+   283→          ),
+   284→          outstanding: m.outstanding,
+   285→          statusBreakdown,
+   286→        },
+   287→        payments: {
+   288→          paymentsThisMonth: m.receivedThisMonth,
+   289→          totalReceived: m.payments.reduce(
+   290→            (s, p) => s + (Number(p.amount) || 0),
+   291→            0
+   292→          ),
+   293→        },
+   294→        customers: {
+   295→          count: m.customers.length,
+   296→          customerSources,
+   297→        },
+   298→        fittings: {
+   299→          upcomingCount: m.upcomingFittingsCount,
+   300→        },
+   301→      };
+   302→      const res = await apiPost<{ suggestions: string[] }>(
+   303→        "/api/insights/trends",
+   304→        payload
+   305→      );
+   306→      setInsights(res.suggestions || []);
+   307→    } catch (e) {
+   308→      setInsightsError(
+   309→        e instanceof Error ? e.message : "Failed to generate insights."
+   310→      );
+   311→    } finally {
+   312→      setInsightsLoading(false);
+   313→    }
+   314→  };
+   315→
+   316→  /* ----- render guards ----- */
+   317→  if (isLoading || !m) {
+   318→    return (
+   319→      <div className="p-10 text-stone-400 text-sm">Loading the atelier…</div>
+   320→    );
+   321→  }
+   322→  if (isError) {
+   323→    return (
+   324→      <div className="p-10 text-stone-400 text-sm">
+   325→        Could not load the atelier overview. Please refresh in a moment.
+   326→      </div>
+   327→    );
+   328→  }
+   329→
+   330→  const today = new Date().toLocaleDateString("en-GB", {
+   331→    weekday: "long",
+   332→    day: "numeric",
+   333→    month: "long",
+   334→    year: "numeric",
+   335→  });
+   336→
+   337→  const healthBadgeClass =
+   338→    m.healthStatus === "On Track"
+   339→      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+   340→      : m.healthStatus === "Needs Attention"
+   341→      ? "bg-amber-50 text-amber-700 border-amber-200"
+   342→      : "bg-[#800020]/10 text-[#800020] border-[#800020]/30";
+   343→
+   344→  return (
+   345→    <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
+   346→      {/* ---------- Banner ---------- */}
+   347→      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6 md:mb-8">
+   348→        <div>
+   349→          <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400 mb-2 flex items-center gap-2">
+   350→            <CalendarDays className="w-3.5 h-3.5" />
+   351→            {today}
+   352→          </p>
+   353→          <h1
+   354→            className="font-display font-semibold text-[#1C1917] leading-none"
+   355→            style={{ fontSize: "clamp(32px, 5vw, 44px)" }}
+   356→          >
+   357→            {staff ? "Your Workbench" : `${ownerLabel}'s Atelier`}
+   358→          </h1>
+   359→          <p className="text-sm text-stone-500 mt-2 max-w-xl">
+   360→            {staff
+   361→              ? "Orders and tasks across the studio — keep production moving today."
+   362→              : "A snapshot of the studio today — production, money and momentum at a glance."}
+   363→          </p>
+   364→        </div>
+   365→        <Button
+   366→          onClick={() => go("new-order")}
+   367→          className="hidden md:inline-flex bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm h-11 px-5"
+   368→        >
+   369→          <Plus className="w-4 h-4" />
+   370→          New Custom Order
+   371→        </Button>
+   372→      </div>
+   373→
+   374→      {/* ---------- Money row (Madam only) ---------- */}
+   375→      {!staff && (
+   376→        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-5">
+   377→          <MetricCard
+   378→            label="Sales This Month"
+   379→            value={formatCurrency(m.salesThisMonth)}
+   380→            sub={`${
+   381→              m.orders.filter((o) => sameMonth(o.orderDate, new Date())).length
+   382→            } orders booked`}
+   383→          />
+   384→          <MetricCard
+   385→            label="Money Received"
+   386→            value={formatCurrency(m.receivedThisMonth)}
+   387→            accent
+   388→            sub="Payments collected this month"
+   389→          />
+   390→          <MetricCard
+   391→            label="Outstanding"
+   392→            value={formatCurrency(m.outstanding)}
+   393→            sub="From non-completed orders"
+   394→          />
+   395→          <MetricCard
+   396→            label="Estimated Profit"
+   397→            value={formatCurrency(m.profit)}
+   398→            accent
+   399→            sub="Sales − fabric − labour"
+   400→          />
+   401→        </div>
+   402→      )}
+   403→
+   404→      {/* ---------- Work + People grid ---------- */}
+   405→      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-5">
+   406→        {/* Left 2/3 column — stack */}
+   407→        <div className="lg:col-span-2 flex flex-col gap-3 md:gap-4">
+   408→          {/* Active Orders */}
+   409→          <AtelierCard
+   410→            title="Active Orders"
+   411→            action={
+   412→              <button
+   413→                onClick={() => go("orders")}
+   414→                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+   415→              >
+   416→                View all
+   417→                <ChevronRight className="w-3 h-3" />
+   418→              </button>
+   419→            }
+   420→          >
+   421→            {m.activeOrders.length === 0 ? (
+   422→              <p className="text-sm text-stone-400 py-6 text-center">
+   423→                No active orders right now. Start one with “New Custom Order”.
+   424→              </p>
+   425→            ) : (
+   426→              <div className="flex gap-3 overflow-x-auto scroll-slim pb-2 -mx-1 px-1">
+   427→                {m.activeOrders.slice(0, 10).map((o) => (
+   428→                  <button
+   429→                    key={o.id}
+   430→                    onClick={() => go("order", { id: o.id })}
+   431→                    className="text-left shrink-0 w-56 border border-[#E7E5E4] rounded-sm p-4 hover:border-[#800020]/40 transition group"
+   432→                  >
+   433→                    <p className="text-sm font-medium text-[#1C1917] truncate group-hover:text-[#800020]">
+   434→                      {o.garmentDesign?.slice(0, 40) || "Untitled garment"}
+   435→                    </p>
+   436→                    <p className="text-xs text-stone-400 mt-1">
+   437→                      Deliver {shortDate(o.deliveryDate)}
+   438→                    </p>
+   439→                    <div className="mt-3">
+   440→                      <StatusBadge status={o.status} />
+   441→                    </div>
+   442→                  </button>
+   443→                ))}
+   444→              </div>
+   445→            )}
+   446→          </AtelierCard>
+   447→
+   448→          {/* Status Pipeline */}
+   449→          <AtelierCard title="Status Pipeline">
+   450→            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+   451→              {m.statusCounts.map(({ status, count }) => (
+   452→                <div
+   453→                  key={status}
+   454→                  className="border border-[#E7E5E4] rounded-sm px-3 py-2.5"
+   455→                >
+   456→                  <div className="font-display text-2xl font-semibold text-[#1C1917] leading-none">
+   457→                    {count}
+   458→                  </div>
+   459→                  <div className="text-[10px] text-stone-400 mt-1.5 leading-tight">
+   460→                    {status}
+   461→                  </div>
+   462→                </div>
+   463→              ))}
+   464→            </div>
+   465→          </AtelierCard>
+   466→
+   467→          {/* Upcoming Fittings */}
+   468→          <AtelierCard title="Upcoming Fittings">
+   469→            {m.upcomingFittings.length === 0 ? (
+   470→              <p className="text-sm text-stone-400 py-4 text-center">
+   471→                No fittings scheduled. Add one from an order’s detail page.
+   472→              </p>
+   473→            ) : (
+   474→              <div className="divide-y divide-[#E7E5E4]">
+   475→                {m.upcomingFittings.map((f) => {
+   476→                  const order = m.orders.find((o) => o.id === f.orderId);
+   477→                  return (
+   478→                    <button
+   479→                      key={f.id}
+   480→                      onClick={() => order && go("order", { id: order.id })}
+   481→                      className="flex items-center justify-between py-3 w-full text-left group"
+   482→                    >
+   483→                      <div className="min-w-0">
+   484→                        <p className="text-sm font-medium text-[#1C1917] group-hover:text-[#800020] truncate">
+   485→                          {order?.garmentDesign?.slice(0, 40) ||
+   486→                            "Order fitting"}
+   487→                        </p>
+   488→                        <p className="text-xs text-stone-400 mt-0.5">
+   489→                          {formatDate(f.date)}
+   490→                        </p>
+   491→                      </div>
+   492→                      <StatusBadge status={f.status} />
+   493→                    </button>
+   494→                  );
+   495→                })}
+   496→              </div>
+   497→            )}
+   498→          </AtelierCard>
+   499→        </div>
+   500→
+   501→        {/* Right 1/3 column — Staff Workload / My Open Tasks */}
+   502→        <AtelierCard
+   503→          title={staff ? "My Open Tasks" : "Staff Workload"}
+   504→          action={
+   505→            <button
+   506→              onClick={() => go("tasks")}
+   507→              className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+   508→            >
+   509→              {staff ? "Open" : "All tasks"}
+   510→              <ChevronRight className="w-3 h-3" />
+   511→            </button>
+   512→          }
+   513→        >
+   514→          {staff ? (
+   515→            <div className="flex flex-col items-center justify-center py-10 text-center">
+   516→              <div className="font-display text-5xl font-semibold text-[#800020] leading-none">
+   517→                {m.openTasks.length}
+   518→              </div>
+   519→              <p className="text-xs text-stone-400 mt-2">
+   520→                open tasks in the studio
+   521→              </p>
+   522→              <button
+   523→                onClick={() => go("tasks")}
+   524→                className="mt-4 text-[11px] text-[#800020] font-medium hover:underline"
+   525→              >
+   526→                Go to Tasks →
+   527→              </button>
+   528→            </div>
+   529→          ) : m.staffWorkload.length === 0 ? (
+   530→            <p className="text-sm text-stone-400 py-6 text-center">
+   531→              No team members yet. Add staff in Settings to see workload here.
+   532→            </p>
+   533→          ) : (
+   534→            <div className="divide-y divide-[#E7E5E4]">
+   535→              {m.staffWorkload.map(({ user, openTasks, activeOrders }) => (
+   536→                <div key={user.id} className="flex items-center gap-3 py-3">
+   537→                  <div className="w-9 h-9 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center text-xs font-semibold text-[#800020] shrink-0">
+   538→                    {(user.fullName || user.email || "?")
+   539→                      .charAt(0)
+   540→                      .toUpperCase()}
+   541→                  </div>
+   542→                  <div className="flex-1 min-w-0">
+   543→                    <p className="text-sm font-medium text-[#1C1917] truncate">
+   544→                      {user.fullName || user.email}
+   545→                    </p>
+   546→                    <p className="text-[11px] text-stone-400">
+   547→                      {activeOrders} active order{activeOrders !== 1 ? "s" : ""}
+   548→                    </p>
+   549→                  </div>
+   550→                  <span
+   551→                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-[#800020] bg-[#800020]/10 rounded-full"
+   552→                    title={`${openTasks} open task${openTasks !== 1 ? "s" : ""}`}
+   553→                  >
+   554→                    {openTasks}
+   555→                  </span>
+   556→                </div>
+   557→              ))}
+   558→            </div>
+   559→          )}
+   560→        </AtelierCard>
+   561→      </div>
+   562→
+   563→      {/* ---------- Madam-only sections ---------- */}
+   564→      {!staff && (
+   565→        <>
+   566→          {/* Income Trend */}
+   567→          <div className="mb-4 md:mb-5">
+   568→            <AtelierCard
+   569→              title="Income Trend"
+   570→              action={
+   571→                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   572→                  Last 6 months
+   573→                </span>
+   574→              }
+   575→            >
+   576→              <div className="h-[240px] w-full">
+   577→                <ResponsiveContainer width="100%" height="100%">
+   578→                  <AreaChart
+   579→                    data={m.incomeSeries}
+   580→                    margin={{ top: 8, right: 8, bottom: 0, left: -8 }}
+   581→                  >
+   582→                    <defs>
+   583→                      <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+   584→                        <stop
+   585→                          offset="0%"
+   586→                          stopColor="#800020"
+   587→                          stopOpacity={0.35}
+   588→                        />
+   589→                        <stop
+   590→                          offset="100%"
+   591→                          stopColor="#800020"
+   592→                          stopOpacity={0.02}
+   593→                        />
+   594→                      </linearGradient>
+   595→                    </defs>
+   596→                    <CartesianGrid
+   597→                      stroke="#E7E5E4"
+   598→                      strokeDasharray="3 3"
+   599→                      vertical={false}
+   600→                    />
+   601→                    <XAxis
+   602→                      dataKey="label"
+   603→                      tick={{ fontSize: 11, fill: "#A8A29E" }}
+   604→                      axisLine={{ stroke: "#E7E5E4" }}
+   605→                      tickLine={false}
+   606→                    />
+   607→                    <YAxis
+   608→                      tick={{ fontSize: 11, fill: "#A8A29E" }}
+   609→                      axisLine={false}
+   610→                      tickLine={false}
+   611→                      width={64}
+   612→                      tickFormatter={(v: number | string) =>
+   613→                        formatCurrency(Number(v))
+   614→                      }
+   615→                    />
+   616→                    <Tooltip
+   617→                      formatter={(value: number | string) => [
+   618→                        formatCurrency(Number(value)),
+   619→                        "Received",
+   620→                      ]}
+   621→                      contentStyle={{
+   622→                        border: "1px solid #E7E5E4",
+   623→                        borderRadius: 4,
+   624→                        fontSize: 12,
+   625→                        background: "#FBF9F7",
+   626→                      }}
+   627→                      labelStyle={{ color: "#1C1917", fontWeight: 600 }}
+   628→                    />
+   629→                    <Area
+   630→                      type="monotone"
+   631→                      dataKey="total"
+   632→                      stroke="#800020"
+   633→                      strokeWidth={2}
+   634→                      fill="url(#incomeGrad)"
+   635→                    />
+   636→                  </AreaChart>
+   637→                </ResponsiveContainer>
+   638→              </div>
+   639→            </AtelierCard>
+   640→          </div>
+   641→
+   642→          {/* Business Health + Needs Attention */}
+   643→          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-5">
+   644→            <AtelierCard title="Business Health">
+   645→              <div className="flex items-center gap-3 mb-4">
+   646→                <span
+   647→                  className={`inline-flex items-center px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide border rounded-sm ${healthBadgeClass}`}
+   648→                >
+   649→                  <TrendingUp className="w-3 h-3 mr-1" />
+   650→                  {m.healthStatus}
+   651→                </span>
+   652→              </div>
+   653→              <div className="space-y-3">
+   654→                <div className="flex items-center justify-between text-sm">
+   655→                  <span className="text-stone-500">Avg margin per order</span>
+   656→                  <span className="font-medium text-[#1C1917]">
+   657→                    {formatCurrency(m.avgMargin)}
+   658→                  </span>
+   659→                </div>
+   660→                <div className="flex items-center justify-between text-sm">
+   661→                  <span className="text-stone-500">Outstanding total</span>
+   662→                  <span className="font-medium text-[#1C1917]">
+   663→                    {formatCurrency(m.outstanding)}
+   664→                  </span>
+   665→                </div>
+   666→                <div className="flex items-center justify-between text-sm">
+   667→                  <span className="text-stone-500">Overdue tasks</span>
+   668→                  <span className="font-medium text-[#1C1917]">
+   669→                    {m.overdueTaskCount}
+   670→                  </span>
+   671→                </div>
+   672→                <div className="flex items-center justify-between text-sm">
+   673→                  <span className="text-stone-500">Ready for collection</span>
+   674→                  <span className="font-medium text-[#1C1917]">
+   675→                    {m.readyOrders.length}
+   676→                  </span>
+   677→                </div>
+   678→              </div>
+   679→            </AtelierCard>
+   680→
+   681→            <AtelierCard title="Needs Attention">
+   682→              <ul className="space-y-3">
+   683→                {m.attentionItems.map((item, i) => (
+   684→                  <li key={i} className="flex items-start gap-2.5 text-sm">
+   685→                    <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+   686→                    <span className="text-stone-600 leading-snug">{item}</span>
+   687→                  </li>
+   688→                ))}
+   689→              </ul>
+   690→            </AtelierCard>
+   691→          </div>
+   692→
+   693→          {/* AI Trend Suggestions */}
+   694→          <div className="mb-4 md:mb-5">
+   695→            <AtelierCard title="Trend Suggestions">
+   696→              <div className="flex flex-col gap-4">
+   697→                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+   698→                  <div className="w-10 h-10 rounded-full bg-[#800020]/10 flex items-center justify-center shrink-0">
+   699→                    <Sparkles className="w-4 h-4 text-[#800020]" />
+   700→                  </div>
+   701→                  <p className="text-sm text-stone-600 leading-snug flex-1">
+   702→                    Generate AI insights from your studio’s recent orders,
+   703→                    payments and customer mix. Suggestions focus on cash flow,
+   704→                    status mix and where to focus next.
+   705→                  </p>
+   706→                  <Button
+   707→                    onClick={generateInsights}
+   708→                    disabled={insightsLoading}
+   709→                    className="bg-[#800020] hover:bg-[#6b0018] text-white rounded-sm shrink-0"
+   710→                  >
+   711→                    {insightsLoading ? "Generating…" : "Generate insights"}
+   712→                  </Button>
+   713→                </div>
+   714→
+   715→                {insightsError && (
+   716→                  <p className="text-xs text-[#800020]">{insightsError}</p>
+   717→                )}
+   718→
+   719→                {insights && insights.length > 0 && (
+   720→                  <ul className="space-y-2.5 border-t border-[#E7E5E4] pt-4">
+   721→                    {insights.map((s, i) => (
+   722→                      <li
+   723→                        key={i}
+   724→                        className="flex items-start gap-2.5 text-sm"
+   725→                      >
+   726→                        <span className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
+   727→                          <Check className="w-3 h-3 text-emerald-700" />
+   728→                        </span>
+   729→                        <span className="text-stone-700 leading-snug">{s}</span>
+   730→                      </li>
+   731→                    ))}
+   732→                  </ul>
+   733→                )}
+   734→
+   735→                {insights && insights.length === 0 && !insightsError && (
+   736→                  <p className="text-xs text-stone-400 border-t border-[#E7E5E4] pt-4">
+   737→                    No suggestions returned. Try again later.
+   738→                  </p>
+   739→                )}
+   740→              </div>
+   741→            </AtelierCard>
+   742→          </div>
+   743→        </>
+   744→      )}
+   745→
+   746→      {/* ---------- Mobile floating New Order ---------- */}
+   747→      <button
+   748→        onClick={() => go("new-order")}
+   749→        className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#800020] text-white flex items-center justify-center shadow-lg hover:bg-[#6b0018] transition"
+   750→        aria-label="New Custom Order"
+   751→      >
+   752→        <Plus className="w-6 h-6" />
+   753→      </button>
+   754→    </div>
+   755→  );
+   756→}
+   757→

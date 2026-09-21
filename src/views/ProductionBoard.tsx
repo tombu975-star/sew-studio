@@ -24,7 +24,10 @@ import { useNav } from "@/stores/nav";
 import { formatCurrency, shortDate, isOverdue } from "@/lib/format";
 import type { Order, User } from "@/lib/types";
 
+import { PageHeader } from "@/components/atelier/PageHeader";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
+import { EmptyState } from "@/components/atelier/EmptyState";
 import {
   Select,
   SelectContent,
@@ -49,10 +52,26 @@ const BOARD_COLUMNS: ColumnDef[] = [
   { key: "done", title: "Delivered & Done", statuses: ["Collected/Delivered", "Completed"] },
 ];
 
-function columnForStatus(status: string): ColumnDef {
-  return (
-    BOARD_COLUMNS.find((c) => c.statuses.includes(status)) || BOARD_COLUMNS[0]
-  );
+const AVATAR_GRADIENTS = [
+  "from-[#800020] to-[#b45309]",
+  "from-[#0e7490] to-[#800020]",
+  "from-[#15803D] to-[#0e7490]",
+  "from-[#b45309] to-[#800020]",
+];
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+}
+
+function hashIndex(s: string, mod: number) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % mod;
 }
 
 export default function ProductionBoard() {
@@ -100,8 +119,17 @@ export default function ProductionBoard() {
   }, [orders, staffFilter]);
 
   const flatOrders = useMemo(() => {
-    const map = new Map<string, Order>();
-    (orders || []).forEach((o) => map.set(o.id, o));
+    const map = new Map<string, Order & { paid?: number }>();
+    (orders || [])
+      .map((o) => ({
+        ...o,
+        paid:
+          o.payments?.reduce(
+            (sum, p) => sum + (Number(p.amount) || 0),
+            0
+          ) ?? 0,
+      }))
+      .forEach((o) => map.set(o.id, o));
     return map;
   }, [orders]);
 
@@ -115,7 +143,9 @@ export default function ProductionBoard() {
       if (prev) {
         qc.setQueryData<Order[]>(
           ["orders"],
-          prev.map((o) => (o.id === id ? { ...o, status: status as Order["status"] } : o))
+          prev.map((o) =>
+            o.id === id ? { ...o, status: status as Order["status"] } : o
+          )
         );
       }
       return { prev };
@@ -145,9 +175,6 @@ export default function ProductionBoard() {
     const order = flatOrders.get(orderId);
     if (!order) return;
     if (col.statuses.includes(order.status)) return; // already in this column
-    // Pick the most appropriate status in target column:
-    // - If current status already maps, keep it
-    // - Otherwise default to the first status in the column
     const newStatus = col.statuses[0];
     statusMut.mutate({ id: orderId, status: newStatus });
     toast.success(`Moved to ${col.title}`);
@@ -157,43 +184,61 @@ export default function ProductionBoard() {
 
   return (
     <div className="p-5 md:p-8 w-full">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-6 max-w-[1400px]">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400 mb-2 flex items-center gap-2">
-            <LayoutGrid className="w-3.5 h-3.5" /> Live workflow
-          </p>
-          <h1
-            className="font-display font-semibold text-[#1C1917] leading-none"
-            style={{ fontSize: "clamp(30px, 4.5vw, 42px)" }}
-          >
-            Production Board
-          </h1>
-          <p className="text-sm text-stone-500 mt-2 max-w-[560px]">
-            Every order by stage — drag a card between columns to update its
-            status, or tap a card to open it.
-          </p>
-        </div>
-        <div className="w-full md:w-56">
-          <Select value={staffFilter} onValueChange={setStaffFilter}>
-            <SelectTrigger className="rounded-sm w-full">
-              <SelectValue placeholder="All staff" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All staff</SelectItem>
-              {(users || []).map((u) => (
-                <SelectItem key={u.id} value={u.id}>
-                  {u.fullName || u.email}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Live workflow"
+        eyebrowIcon={LayoutGrid}
+        title="Production Board"
+        subtitle="Every order by stage — drag to move."
+        actions={
+          <div className="w-full md:w-56">
+            <Select value={staffFilter} onValueChange={setStaffFilter}>
+              <SelectTrigger className="rounded-md w-full bg-white">
+                <SelectValue placeholder="All staff" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All staff</SelectItem>
+                {(users || []).map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.fullName || u.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        }
+      />
 
       {/* Board */}
       {isLoading ? (
-        <div className="p-10 text-stone-400 text-sm">Loading board…</div>
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {BOARD_COLUMNS.map((col) => (
+            <div
+              key={col.key}
+              className="w-80 shrink-0 rounded-xl border border-[#E7E5E4] bg-[#faf8f5]/60 p-2.5 space-y-2.5"
+            >
+              <div className="h-8 w-2/3 shimmer rounded" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-28 rounded-lg border border-[#E7E5E4] bg-white shimmer"
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : (orders || []).length === 0 ? (
+        <div className="surface-premium border border-[#E7E5E4] rounded-lg elevate-sm p-6">
+          <EmptyState
+            icon={LayoutGrid}
+            title="No orders on the board"
+            description="Create your first commission to populate the production board."
+            action={
+              <PremiumButton onClick={() => go("new-order")}>
+                New Order
+              </PremiumButton>
+            }
+          />
+        </div>
       ) : (
         <DndContext
           sensors={sensors}
@@ -202,7 +247,7 @@ export default function ProductionBoard() {
           onDragEnd={handleDragEnd}
           onDragCancel={() => setActiveId(null)}
         >
-          <div className="flex gap-3 overflow-x-auto pb-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 scroll-slim">
             {columns.map((col) => (
               <Column
                 key={col.key}
@@ -215,20 +260,15 @@ export default function ProductionBoard() {
 
           <DragOverlay dropAnimation={null}>
             {activeOrder ? (
-              <Card order={activeOrder} dragging overlay onClick={() => {}} />
+              <Card
+                order={activeOrder}
+                dragging
+                overlay
+                onClick={() => {}}
+              />
             ) : null}
           </DragOverlay>
         </DndContext>
-      )}
-
-      {/* Legend / empty hint */}
-      {!isLoading && (orders || []).length === 0 && (
-        <div className="mt-8 border border-[#E7E5E4] rounded-sm bg-white p-10 text-center">
-          <AlertCircle className="w-6 h-6 text-stone-300 mx-auto mb-3" />
-          <p className="text-sm text-stone-500">
-            No orders yet. Create one to populate the board.
-          </p>
-        </div>
       )}
     </div>
   );
@@ -236,13 +276,15 @@ export default function ProductionBoard() {
 
 /* ---------- Column ---------- */
 
+type CardOrder = Order & { paid?: number };
+
 function Column({
   col,
   cards,
   onOpen,
 }: {
   col: ColumnDef;
-  cards: (Order & { paid: number })[];
+  cards: CardOrder[];
   onOpen: (id: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: col.key });
@@ -250,26 +292,26 @@ function Column({
     <div
       ref={setNodeRef}
       className={cn(
-        "w-72 shrink-0 bg-[#FBF9F7] border rounded-sm flex flex-col",
+        "w-80 shrink-0 rounded-xl border bg-[#faf8f5]/60 elevate-sm flex flex-col transition-colors",
         isOver
           ? "border-[#800020]/50 ring-2 ring-[#800020]/15"
           : "border-[#E7E5E4]"
       )}
     >
       {/* Header */}
-      <div className="px-3 py-2.5 border-b border-[#E7E5E4] flex items-center justify-between">
-        <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+      <div className="px-4 py-3 border-b border-[#E7E5E4]/70 flex items-center justify-between">
+        <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-500">
           {col.title}
         </h3>
-        <span className="text-[11px] font-semibold text-stone-400 tabular-nums">
+        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-semibold text-[#1C1917] tabular-nums bg-white border border-[#E7E5E4] rounded-full">
           {cards.length}
         </span>
       </div>
 
       {/* Cards */}
-      <div className="max-h-[70vh] overflow-y-auto scroll-slim space-y-2 p-2">
+      <div className="max-h-[72vh] overflow-y-auto scroll-slim space-y-2.5 p-2.5">
         {cards.length === 0 ? (
-          <div className="text-[11px] text-stone-300 text-center py-6 italic">
+          <div className="text-[11px] text-stone-300 text-center py-8 italic">
             Drop orders here
           </div>
         ) : (
@@ -283,8 +325,6 @@ function Column({
 }
 
 /* ---------- Card ---------- */
-
-type CardOrder = Order & { paid?: number };
 
 function Card({
   order,
@@ -306,9 +346,7 @@ function Card({
   } = useDraggable({ id: order.id });
 
   const style: React.CSSProperties = {
-    transform: transform
-      ? CSS.Translate.toString(transform)
-      : undefined,
+    transform: transform ? CSS.Translate.toString(transform) : undefined,
     opacity: isDragging && !overlay ? 0.4 : 1,
     zIndex: overlay ? 50 : isDragging ? 30 : undefined,
   };
@@ -318,8 +356,14 @@ function Card({
     order.paid ??
     order.payments?.reduce((s, p) => s + (Number(p.amount) || 0), 0) ??
     0;
-  const outstanding = Math.max(0, Number(order.sellingPrice) - paid);
-  const paidFull = paid > 0 && outstanding <= 0;
+  const paidPct =
+    order.sellingPrice > 0
+      ? Math.min(100, Math.round((paid / order.sellingPrice) * 100))
+      : 0;
+  const grad =
+    AVATAR_GRADIENTS[
+      hashIndex(order.customer?.id || order.id, AVATAR_GRADIENTS.length)
+    ];
 
   return (
     <div
@@ -329,57 +373,89 @@ function Card({
       {...attributes}
       onClick={onClick}
       className={cn(
-        "bg-white border border-[#E7E5E4] rounded-sm p-3 hover:border-[#800020]/40 cursor-pointer transition-colors",
+        "rounded-lg bg-white border border-[#E7E5E4] p-3.5 elevate-sm lift cursor-grab active:cursor-grabbing",
         (dragging || overlay) && "shadow-lg border-[#800020]/40",
         overlay && "rotate-1"
       )}
     >
       {/* Top row: customer + drag handle */}
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <div
+            className={cn(
+              "w-5 h-5 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-semibold shrink-0",
+              grad
+            )}
+          >
+            {initials(order.customer?.name || "?")}
+          </div>
           <div className="text-[11px] text-stone-500 truncate font-medium">
             {order.customer?.name || "—"}
           </div>
-          <div className="text-[13px] text-[#1C1917] font-medium leading-snug line-clamp-2 mt-0.5">
-            {order.garmentDesign}
-          </div>
         </div>
         <GripVertical className="w-3.5 h-3.5 text-stone-300 shrink-0 mt-0.5" />
+      </div>
+
+      {/* Garment */}
+      <div className="text-[13px] text-[#1C1917] font-medium leading-snug line-clamp-2 mt-1.5">
+        {order.garmentDesign}
       </div>
 
       {/* Status + priority */}
       <div className="flex items-center gap-1.5 flex-wrap mt-2">
         <StatusBadge status={order.status} />
         {order.priority === "High" && (
-          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#800020] font-semibold">
+          <span
+            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#800020] font-semibold"
+            title="High priority"
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
             High
           </span>
         )}
       </div>
 
-      {/* Footer: delivery + paid */}
-      <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-[#E7E5E4]">
+      {/* Paid progress bar */}
+      {order.sellingPrice > 0 && (
+        <div className="mt-2.5">
+          <div className="flex justify-between text-[9px] uppercase tracking-wide text-stone-400 mb-0.5">
+            <span>Paid</span>
+            <span className="tabular-nums">{paidPct}%</span>
+          </div>
+          <div className="h-1 w-full bg-[#E7E5E4] rounded-full overflow-hidden">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all",
+                paidPct >= 100 ? "bg-emerald-500" : "bg-[#800020]"
+              )}
+              style={{ width: `${paidPct}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Footer: delivery */}
+      <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-[#E7E5E4]/70">
         <span
           className={cn(
-            "text-[11px] flex items-center gap-1",
+            "text-[11px] flex items-center gap-1 tabular-nums",
             overdue ? "text-amber-700 font-semibold" : "text-stone-500"
           )}
         >
-          {overdue && <AlertCircle className="w-3 h-3" />}
+          {overdue && <AlertCircle className="w-3 h-3 shrink-0" />}
           {order.deliveryDate ? shortDate(order.deliveryDate) : "No due date"}
         </span>
         <span
           className={cn(
-            "text-[11px] tabular-nums",
-            paidFull ? "text-emerald-700 font-semibold" : "text-stone-400"
+            "text-[10px] tabular-nums",
+            paidPct >= 100 && order.sellingPrice > 0
+              ? "text-emerald-700 font-semibold"
+              : "text-stone-400"
           )}
         >
-          {paidFull
-            ? "Paid"
-            : outstanding > 0
-              ? `Due ${formatCurrency(outstanding)}`
-              : ""}
+          {paidPct >= 100 && order.sellingPrice > 0
+            ? "Paid in full"
+            : `${formatCurrency(paid)}`}
         </span>
       </div>
     </div>

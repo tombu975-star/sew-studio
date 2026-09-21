@@ -2,7 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { UserPlus, Search, Phone, Mail } from "lucide-react";
+import {
+  UserPlus,
+  Search,
+  Phone,
+  Mail,
+  MapPin,
+  Users,
+  Crown,
+  Heart,
+  Sparkles,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { apiGet, apiPost } from "@/lib/api";
@@ -14,7 +25,6 @@ import {
 } from "@/lib/format";
 import { useNav } from "@/stores/nav";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +43,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import { PageHeader } from "@/components/atelier/PageHeader";
+import { SectionCard } from "@/components/atelier/SectionCard";
+import { PremiumMetric } from "@/components/atelier/PremiumMetric";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
+import {
+  EmptyState,
+  SkeletonList,
+} from "@/components/atelier/EmptyState";
 
 interface CustomerWithCount extends Customer {
   _orderCount?: number;
@@ -66,10 +85,14 @@ const EMPTY_FORM: CustomerForm = {
   notes: "",
 };
 
+const ALL_STYLES = "All Styles";
+
 export default function Customers() {
   const { go } = useNav();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [addOpen, setAddOpen] = useState(false);
 
   const { data: customers = [], isLoading } = useQuery<CustomerWithCount[]>({
@@ -77,12 +100,11 @@ export default function Customers() {
     queryFn: () => apiGet<CustomerWithCount[]>("/api/customers"),
   });
 
-  // Safe fallback: also fetch orders so we can compute counts client-side if the
-  // collection endpoint doesn't include `_orderCount`.
+  // Fallback for client-side order counts when the collection endpoint
+  // doesn't include `_orderCount`.
   const { data: orders = [] } = useQuery<Order[]>({
     queryKey: ["orders"],
     queryFn: () => apiGet<Order[]>("/api/orders"),
-    // Don't propagate errors here — it's just a fallback.
     retry: false,
   });
 
@@ -105,14 +127,19 @@ export default function Customers() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return enriched;
-    return enriched.filter(
-      (c) =>
+    return enriched.filter((c) => {
+      const matchesSearch =
+        !q ||
         (c.name || "").toLowerCase().includes(q) ||
         (c.phone || "").toLowerCase().includes(q) ||
-        (c.email || "").toLowerCase().includes(q)
-    );
-  }, [enriched, search]);
+        (c.email || "").toLowerCase().includes(q);
+      const matchesSource =
+        sourceFilter === "all" || (c.entrySource || "Other") === sourceFilter;
+      const matchesType =
+        typeFilter === "all" || (c.customerType || "") === typeFilter;
+      return matchesSearch && matchesSource && matchesType;
+    });
+  }, [enriched, search, sourceFilter, typeFilter]);
 
   const sourceBreakdown = useMemo(() => {
     const map = new Map<string, number>();
@@ -123,140 +150,235 @@ export default function Customers() {
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [enriched]);
 
+  const stats = useMemo(() => {
+    const total = enriched.length;
+    const vips = enriched.filter(
+      (c) => (c.customerType || "").toLowerCase().includes("vip")
+    ).length;
+    const bridal = enriched.filter(
+      (c) => (c.customerType || "").toLowerCase().includes("bridal")
+    ).length;
+    const now = new Date();
+    const newThisMonth = enriched.filter((c) => {
+      const d = new Date(c.createdAt);
+      return (
+        d.getMonth() === now.getMonth() &&
+        d.getFullYear() === now.getFullYear()
+      );
+    }).length;
+    return { total, vips, bridal, newThisMonth };
+  }, [enriched]);
+
   const handleCreated = () => {
     qc.invalidateQueries({ queryKey: ["customers"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
     setAddOpen(false);
-    toast.success("Customer added");
+    toast.success("Customer added to your roster");
   };
 
   return (
-    <div className="p-5 md:p-8 max-w-[1100px] mx-auto w-full">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-        <div>
-          <h1
-            className="font-display font-semibold text-[#1C1917]"
-            style={{ fontSize: "clamp(28px, 4vw, 36px)" }}
+    <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+      <PageHeader
+        eyebrow="Client roster"
+        eyebrowIcon={Users}
+        title="Customers"
+        subtitle="Everyone who's sat in your chair."
+        actions={
+          <PremiumButton
+            variant="primary"
+            size="md"
+            onClick={() => setAddOpen(true)}
           >
-            Customers
-          </h1>
-          <p className="text-stone-500 text-sm mt-1">
-            {isLoading
-              ? "Loading…"
-              : `${enriched.length} ${
-                  enriched.length === 1 ? "customer" : "customers"
-                } in your atelier`}
-          </p>
+            <UserPlus className="w-4 h-4" /> Add Customer
+          </PremiumButton>
+        }
+      />
+
+      {/* Premium stat strip */}
+      {!isLoading && enriched.length > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-fade-in-up">
+          <PremiumMetric
+            label="Total Clients"
+            value={stats.total}
+            icon={Users}
+            accent
+          />
+          <PremiumMetric
+            label="VIPs"
+            value={stats.vips}
+            icon={Crown}
+          />
+          <PremiumMetric
+            label="Bridal"
+            value={stats.bridal}
+            icon={Heart}
+          />
+          <PremiumMetric
+            label="New This Month"
+            value={stats.newThisMonth}
+            icon={Sparkles}
+          />
         </div>
-        <Button
-          onClick={() => setAddOpen(true)}
-          className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
-        >
-          <UserPlus className="w-4 h-4" /> Add Customer
-        </Button>
-      </div>
+      )}
 
-      {/* Search */}
-      <div className="relative mb-5">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
-        <Input
-          placeholder="Search by name or phone…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 bg-white border-[#E7E5E4] rounded-sm"
-          aria-label="Search customers"
-        />
-      </div>
-
-      {/* Source breakdown */}
-      {enriched.length > 0 && (
-        <div className="mb-5">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-2">
-            Client Sources
+      {/* Search + filter bar */}
+      <SectionCard bodyClassName="p-4" className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="relative md:col-span-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+            <Input
+              placeholder="Search by name, phone, or email…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-11 bg-white border-[#E7E5E4] rounded-md"
+              aria-label="Search customers"
+            />
           </div>
+          <Select value={sourceFilter} onValueChange={setSourceFilter}>
+            <SelectTrigger className="h-11 bg-white border-[#E7E5E4] rounded-md">
+              <SelectValue placeholder="Entry source" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sources</SelectItem>
+              {ENTRY_SOURCES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="h-11 bg-white border-[#E7E5E4] rounded-md">
+              <SelectValue placeholder="Client type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+              {CUSTOMER_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </SectionCard>
+
+      {/* Client sources breakdown */}
+      {sourceBreakdown.length > 0 && (
+        <SectionCard title="Client Sources" className="mb-6" bodyClassName="p-4">
           <div className="flex flex-wrap gap-2">
             {sourceBreakdown.map(([src, count]) => (
-              <div
+              <button
                 key={src}
-                className="border border-[#E7E5E4] rounded-sm px-3 py-2 bg-white flex items-center gap-2"
+                onClick={() =>
+                  setSourceFilter((cur) => (cur === src ? "all" : src))
+                }
+                className={
+                  "rounded-lg border px-3 py-2 text-xs flex items-center gap-2 transition-all lift " +
+                  (sourceFilter === src
+                    ? "border-[#800020]/40 bg-[#800020]/5"
+                    : "border-[#E7E5E4] bg-white hover:border-[#800020]/30")
+                }
               >
-                <span className="text-xs text-stone-500">{src}</span>
-                <span className="text-sm font-semibold text-[#1C1917]">
+                <span className="text-stone-500">{src}</span>
+                <span className="font-semibold text-[#1C1917] tabular-nums">
                   {count}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
-        </div>
+        </SectionCard>
       )}
 
-      {/* List */}
+      {/* Customer list */}
       {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="border border-[#E7E5E4] rounded-sm bg-white p-4 h-16 animate-pulse"
-            />
-          ))}
-        </div>
+        <SectionCard bodyClassName="p-0">
+          <SkeletonList rows={4} />
+        </SectionCard>
       ) : filtered.length === 0 ? (
-        <div className="border border-[#E7E5E4] rounded-sm bg-white p-10 text-center">
-          <p className="text-stone-500 text-sm">
-            {search
-              ? "No customers match your search."
-              : "No customers yet. Add your first customer to get started."}
-          </p>
-        </div>
+        <SectionCard bodyClassName="p-0">
+          <EmptyState
+            icon={Users}
+            title={
+              search || sourceFilter !== "all" || typeFilter !== "all"
+                ? "No customers match your filters"
+                : "No customers found"
+            }
+            description={
+              search || sourceFilter !== "all" || typeFilter !== "all"
+                ? "Try clearing your search or filters."
+                : "Add your first customer to start building the roster."
+            }
+            action={
+              !search && sourceFilter === "all" && typeFilter === "all" ? (
+                <PremiumButton
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setAddOpen(true)}
+                >
+                  <UserPlus className="w-4 h-4" /> Add Customer
+                </PremiumButton>
+              ) : undefined
+            }
+          />
+        </SectionCard>
       ) : (
-        <div className="border border-[#E7E5E4] rounded-sm bg-white divide-y divide-[#E7E5E4] overflow-hidden">
-          {filtered.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => go("customer", { id: c.id })}
-              className="w-full flex items-center gap-4 p-4 text-left hover:bg-[#FBF9F7] transition-colors focus:outline-none focus-visible:bg-[#FBF9F7]"
-            >
-              <div
-                className="w-10 h-10 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center text-[#800020] font-display font-semibold shrink-0"
-                aria-hidden
+        <SectionCard bodyClassName="p-0">
+          <div className="divide-y divide-[#E7E5E4]/70">
+            {filtered.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => go("customer", { id: c.id })}
+                className="group w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[#faf8f5] transition-all focus:outline-none focus-visible:bg-[#faf8f5]"
               >
-                {(c.name || "?").charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-[#1C1917] truncate">
-                  {c.name}
+                <div
+                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  aria-hidden
+                >
+                  {(c.name || "?").charAt(0).toUpperCase()}
                 </div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-0.5">
-                  {c.phone && (
-                    <span className="inline-flex items-center gap-1">
-                      <Phone className="w-3 h-3" /> {c.phone}
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-[#1C1917] truncate">
+                    {c.name}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
+                    {c.phone && (
+                      <span className="inline-flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> {c.phone}
+                      </span>
+                    )}
+                    {c.email && (
+                      <span className="inline-flex items-center gap-1 truncate max-w-[200px]">
+                        <Mail className="w-3 h-3 shrink-0" /> {c.email}
+                      </span>
+                    )}
+                    {c.city && (
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> {c.city}
+                      </span>
+                    )}
+                    {!c.phone && !c.email && !c.city && (
+                      <span className="italic">No contact info</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] px-2.5 py-1 text-[11px] text-stone-600">
+                    <span className="font-semibold tabular-nums text-[#1C1917]">
+                      {c._orderCount}
                     </span>
-                  )}
-                  {c.email && (
-                    <span className="inline-flex items-center gap-1 truncate">
-                      <Mail className="w-3 h-3 shrink-0" /> {c.email}
+                    <span className="text-stone-400">
+                      {c._orderCount === 1 ? "order" : "orders"}
                     </span>
-                  )}
-                  {!c.phone && !c.email && (
-                    <span className="italic">No contact info</span>
-                  )}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors" />
                 </div>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="text-sm font-semibold text-[#1C1917]">
-                  {c._orderCount}
-                </div>
-                <div className="text-[10px] uppercase tracking-wider text-stone-400">
-                  {c._orderCount === 1 ? "order" : "orders"}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        </SectionCard>
       )}
 
-      {/* Add Dialog */}
       <AddCustomerDialog
         open={addOpen}
         onOpenChange={setAddOpen}
@@ -265,6 +387,8 @@ export default function Customers() {
     </div>
   );
 }
+
+/* ---------------- Add Customer Dialog ---------------- */
 
 function AddCustomerDialog({
   open,
@@ -287,6 +411,22 @@ function AddCustomerDialog({
     if (!v) reset();
     onOpenChange(v);
   };
+
+  const toggleStyle = (style: string) => {
+    const current = form.preferredStyles
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const next = current.includes(style)
+      ? current.filter((s) => s !== style)
+      : [...current, style];
+    set("preferredStyles", next.join(", "));
+  };
+
+  const selectedStyles = form.preferredStyles
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -324,9 +464,9 @@ function AddCustomerDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto scroll-slim rounded-sm">
+      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">
+          <DialogTitle className="font-display text-xl text-[#1C1917]">
             Add New Customer
           </DialogTitle>
           <DialogDescription className="text-stone-500">
@@ -335,7 +475,7 @@ function AddCustomerDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="c-name">
+            <Label htmlFor="c-name" className="text-xs text-stone-600">
               Name <span className="text-[#800020]">*</span>
             </Label>
             <Input
@@ -344,40 +484,44 @@ function AddCustomerDialog({
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               placeholder="e.g. Ama Mensah"
-              className="rounded-sm"
+              className="h-10 rounded-md"
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="c-phone">Phone</Label>
+              <Label htmlFor="c-phone" className="text-xs text-stone-600">
+                Phone
+              </Label>
               <Input
                 id="c-phone"
                 value={form.phone}
                 onChange={(e) => set("phone", e.target.value)}
                 placeholder="+233…"
-                className="rounded-sm"
+                className="h-10 rounded-md"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="c-email">Email</Label>
+              <Label htmlFor="c-email" className="text-xs text-stone-600">
+                Email
+              </Label>
               <Input
                 id="c-email"
                 type="email"
                 value={form.email}
                 onChange={(e) => set("email", e.target.value)}
                 placeholder="name@email.com"
-                className="rounded-sm"
+                className="h-10 rounded-md"
               />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Gender</Label>
+              <Label className="text-xs text-stone-600">Gender</Label>
               <Select
                 value={form.gender || undefined}
                 onValueChange={(v) => set("gender", v)}
               >
-                <SelectTrigger className="w-full rounded-sm">
+                <SelectTrigger className="h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -390,24 +534,26 @@ function AddCustomerDialog({
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="c-city">City</Label>
+              <Label htmlFor="c-city" className="text-xs text-stone-600">
+                City
+              </Label>
               <Input
                 id="c-city"
                 value={form.city}
                 onChange={(e) => set("city", e.target.value)}
                 placeholder="Accra"
-                className="rounded-sm"
+                className="h-10 rounded-md"
               />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Entry Source</Label>
+              <Label className="text-xs text-stone-600">Entry Source</Label>
               <Select
                 value={form.entrySource || undefined}
                 onValueChange={(v) => set("entrySource", v)}
               >
-                <SelectTrigger className="w-full rounded-sm">
+                <SelectTrigger className="h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -420,12 +566,12 @@ function AddCustomerDialog({
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Customer Type</Label>
+              <Label className="text-xs text-stone-600">Customer Type</Label>
               <Select
                 value={form.customerType || undefined}
                 onValueChange={(v) => set("customerType", v)}
               >
-                <SelectTrigger className="w-full rounded-sm">
+                <SelectTrigger className="h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -439,58 +585,80 @@ function AddCustomerDialog({
             </div>
           </div>
           {form.entrySource === "Referral" && (
-            <div className="grid gap-2">
-              <Label htmlFor="c-referred">Referred By</Label>
+            <div className="grid gap-2 animate-fade-in">
+              <Label htmlFor="c-referred" className="text-xs text-stone-600">
+                Referred By
+              </Label>
               <Input
                 id="c-referred"
                 value={form.referredBy}
                 onChange={(e) => set("referredBy", e.target.value)}
                 placeholder="Referrer name"
-                className="rounded-sm"
+                className="h-10 rounded-md"
               />
             </div>
           )}
           <div className="grid gap-2">
-            <Label htmlFor="c-styles">Preferred Styles</Label>
+            <Label className="text-xs text-stone-600">Preferred Styles</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {PREFERRED_STYLES.map((style) => {
+                const active = selectedStyles.includes(style);
+                return (
+                  <button
+                    key={style}
+                    type="button"
+                    onClick={() => toggleStyle(style)}
+                    className={
+                      "text-[11px] px-2.5 py-1 rounded-md border transition-all " +
+                      (active
+                        ? "bg-[#800020]/10 border-[#800020]/40 text-[#800020]"
+                        : "bg-white border-[#E7E5E4] text-stone-600 hover:border-[#800020]/30")
+                    }
+                  >
+                    {style}
+                  </button>
+                );
+              })}
+            </div>
             <Input
-              id="c-styles"
               value={form.preferredStyles}
               onChange={(e) => set("preferredStyles", e.target.value)}
-              placeholder="e.g. Classic, Elegant"
-              className="rounded-sm"
+              placeholder="Or type comma-separated styles"
+              className="h-10 rounded-md mt-1"
+              aria-label={ALL_STYLES}
             />
-            <p className="text-xs text-stone-400">
-              Comma-separated. Suggestions: {PREFERRED_STYLES.join(", ")}
-            </p>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="c-notes">Notes</Label>
+            <Label htmlFor="c-notes" className="text-xs text-stone-600">
+              Notes
+            </Label>
             <Textarea
               id="c-notes"
               value={form.notes}
               onChange={(e) => set("notes", e.target.value)}
               placeholder="Any extra context…"
               rows={3}
-              className="rounded-sm"
+              className="rounded-md"
             />
           </div>
-          <DialogFooter>
-            <Button
+          <DialogFooter className="gap-2">
+            <PremiumButton
               type="button"
               variant="outline"
+              size="md"
               onClick={() => handleOpenChange(false)}
               disabled={saving}
-              className="rounded-sm border-[#E7E5E4]"
             >
               Cancel
-            </Button>
-            <Button
+            </PremiumButton>
+            <PremiumButton
               type="submit"
-              disabled={saving}
-              className="bg-[#800020] hover:bg-[#6b0018] text-white border-0 rounded-sm"
+              variant="primary"
+              size="md"
+              loading={saving}
             >
-              {saving ? "Saving…" : "Save Customer"}
-            </Button>
+              Save Customer
+            </PremiumButton>
           </DialogFooter>
         </form>
       </DialogContent>
