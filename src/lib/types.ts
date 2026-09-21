@@ -165,3 +165,49 @@ export interface Settings {
   selfPayout: number;
   currency: string;
 }
+
+export interface Freelancer {
+  id: string;
+  name: string;
+  specialty?: string | null;
+  skills?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  rate?: number | null;
+  status: string; // Available | Busy | Unavailable
+  notes?: string | null;
+  createdAt: string;
+}
+
+export type CommunityPostType =
+  | "update"
+  | "question"
+  | "inspiration"
+  | "announcement"
+  | "showcase";
+
+export interface CommunityComment {
+  id: string;
+  postId: string;
+  authorName: string;
+  authorId?: string | null;
+  body: string;
+  createdAt: string;
+}
+
+export interface CommunityPost {
+  id: string;
+  authorId?: string | null;
+  authorName: string;
+  authorRole?: string | null;
+  type: CommunityPostType;
+  title?: string | null;
+  body: string;
+  imageUrl?: string | null;
+  pinned: boolean;
+  createdAt: string;
+  comments: CommunityComment[];
+  _count?: { likes: number };
+  likedByMe?: boolean;
+}
+

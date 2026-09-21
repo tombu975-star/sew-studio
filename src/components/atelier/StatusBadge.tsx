@@ -29,6 +29,9 @@ const STATUS_STYLES: Record<string, string> = {
   Approved: "bg-emerald-100 text-emerald-800 border-emerald-200",
   Rejected: "bg-orange-100 text-orange-800 border-orange-200",
   Converted: "bg-[#15803D]/12 text-[#15803D] border-[#15803d]/25",
+  Available: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  Busy: "bg-amber-100 text-amber-800 border-amber-200",
+  Unavailable: "bg-stone-100 text-stone-700 border-stone-200",
 };
 
 const DOT_COLOR: Record<string, string> = {
@@ -54,6 +57,9 @@ const DOT_COLOR: Record<string, string> = {
   Approved: "bg-emerald-600",
   Rejected: "bg-orange-600",
   Converted: "bg-[#15803D]",
+  Available: "bg-emerald-600",
+  Busy: "bg-amber-600",
+  Unavailable: "bg-stone-500",
 };
 
 export function StatusBadge({

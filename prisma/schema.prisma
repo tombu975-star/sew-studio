@@ -194,3 +194,55 @@ model Settings {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model Freelancer {
+  id        String   @id @default(cuid())
+  name      String
+  specialty String?  // Beader | Embroiderer | Cutter | Tailor | Designer | Photographer...
+  skills    String?  // comma-separated
+  phone     String?
+  email     String?
+  rate      Float?   // typical per-piece or per-day rate (GHS)
+  status    String   @default("Available") // Available | Busy | Unavailable
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CommunityPost {
+  id        String   @id @default(cuid())
+  authorId  String?  // User id (nullable for system posts)
+  authorName String
+  authorRole String? // madam | staff | trainer | trainee
+  type      String   @default("update") // update | question | inspiration | announcement | showcase
+  title     String?
+  body      String
+  imageUrl  String?
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments  CommunityComment[]
+  likes     CommunityLike[]
+}
+
+model CommunityComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorName String
+  authorId  String?
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model CommunityLike {
+  id        String   @id @default(cuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String?
+  createdAt DateTime @default(now())
+
+  @@unique([postId, authorId])
+}
+

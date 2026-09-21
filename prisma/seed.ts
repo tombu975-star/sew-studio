@@ -44,6 +44,10 @@ async function main() {
   console.log("Seeding Madam Studio...");
 
   // Wipe
+  await db.communityLike.deleteMany();
+  await db.communityComment.deleteMany();
+  await db.communityPost.deleteMany();
+  await db.freelancer.deleteMany();
   await db.customerFeedback.deleteMany();
   await db.styleConcept.deleteMany();
   await db.measurementSet.deleteMany();
@@ -237,7 +241,38 @@ async function main() {
   await db.customerFeedback.create({ data: { customerId: customers[1].id, rating: 4, type: "Fitting", feedback: "Trousers slightly long, otherwise great." } });
   await db.customerFeedback.create({ data: { customerId: customers[4].id, rating: 5, type: "Delivery", feedback: "On time and beautifully finished." } });
 
-  console.log(`Seeded ${users.length} staff, ${customers.length} customers, ${orders.length} orders.`);
+  // Freelancers — trusted specialists the studio commissions per-piece
+  const FREELANCERS = [
+    { name: "Mama Esi Beadworks", specialty: "Beader", skills: "Hand-beading, crystal work, pearl setting", phone: "+233 24 111 2233", email: "esi.beads@gmail.com", rate: 400, status: "Available", notes: "Fast turnaround on bodice beading. Did Abena's mermaid gown." },
+    { name: "Kweku Laceworks", specialty: "Embroiderer", skills: "Lace appliqué, thread painting", phone: "+233 20 445 7788", rate: 300, status: "Busy", notes: "Currently on a 2-week bridal commission." },
+    { name: "Adwoa Cutter", specialty: "Cutter", skills: "Pattern cutting, toile, fitting", phone: "+233 27 902 1145", rate: 250, status: "Available", notes: "Excellent with structured tailoring." },
+    { name: "Studio Lume", specialty: "Photographer", skills: "Lookbook, editorial, product", phone: "+233 55 700 3322", email: "hello@studiolume.com", rate: 600, status: "Available", notes: "Shoots our portfolio pieces. Books 1 week ahead." },
+    { name: "Nana Tailoring", specialty: "Tailor", skills: "Suits, agbada, menswear", phone: "+233 24 668 9900", rate: 350, status: "Unavailable", notes: "Travelling until next month." },
+  ];
+  for (const f of FREELANCERS) {
+    await db.freelancer.create({ data: f });
+  }
+
+  // Community feed — the studio's internal wall
+  const COMMUNITY = [
+    { authorId: madam.id, authorName: madam.fullName, authorRole: "madam", type: "announcement", title: "Welcome to the studio wall", body: "This is our space for updates, questions, inspiration and showcases. Post freely — what you're working on, a fabric you love, or a question for the team.", pinned: true, createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 5) },
+    { authorId: staff[0].id, authorName: staff[0].fullName, authorRole: "staff", type: "showcase", title: "Finished Abena's mermaid gown today", body: "The beaded bodice came out stunning. Mama Esi outdid herself. Fitting is perfect — client collects Friday.", createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2) },
+    { authorId: staff[1].id, authorName: staff[1].fullName, authorRole: "staff", type: "question", title: "Best source for Italian lace?", body: "I have a bridal client who wants genuine Italian lace for her bodice. Anyone worked with a reliable supplier recently?", createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24) },
+    { authorId: staff[2].id, authorName: staff[2].fullName, authorRole: "staff", type: "inspiration", body: "Saw the most beautiful coral-and-gold kente combo at a wedding this weekend. Going to try a modern slit-and-kaba interpretation for the portfolio. ✨", createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 8) },
+    { authorId: madam.id, authorName: madam.fullName, authorRole: "madam", type: "update", title: "New commission guidelines", body: "From next week: all custom orders over GHS 2,000 need a 50% deposit before we cut fabric. Let's protect the studio's cash flow. Questions, come find me.", createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 3) },
+  ];
+  const posts = [];
+  for (const p of COMMUNITY) {
+    posts.push(await db.communityPost.create({ data: p }));
+  }
+  // a couple of comments + likes
+  await db.communityComment.create({ data: { postId: posts[1].id, authorName: madam.fullName, authorId: madam.id, body: "Beautiful work. Let's get a photo for the portfolio." } });
+  await db.communityComment.create({ data: { postId: posts[2].id, authorName: staff[2].fullName, authorId: staff[2].id, body: "There's a supplier on Oxford Street — I'll share his contact." } });
+  await db.communityLike.create({ data: { postId: posts[1].id, authorId: madam.id } });
+  await db.communityLike.create({ data: { postId: posts[1].id, authorId: staff[1].id } });
+  await db.communityLike.create({ data: { postId: posts[3].id, authorId: staff[0].id } });
+
+  console.log(`Seeded ${users.length} staff, ${customers.length} customers, ${orders.length} orders, ${FREELANCERS.length} freelancers, ${COMMUNITY.length} community posts.`);
 }
 
 main()

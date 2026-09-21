@@ -21,6 +21,8 @@ const Fittings = dynamic(() => import("@/views/Fittings").then((m) => m.default)
 const Tasks = dynamic(() => import("@/views/Tasks").then((m) => m.default), { ssr: false });
 const StyleAssist = dynamic(() => import("@/views/StyleAssist").then((m) => m.default), { ssr: false });
 const QuickQuote = dynamic(() => import("@/views/QuickQuote").then((m) => m.default), { ssr: false });
+const Team = dynamic(() => import("@/views/Team").then((m) => m.default), { ssr: false });
+const Community = dynamic(() => import("@/views/Community").then((m) => m.default), { ssr: false });
 
 function CurrentView() {
   const { view } = useNav();
@@ -47,6 +49,10 @@ function CurrentView() {
       return <StyleAssist />;
     case "quote":
       return <QuickQuote />;
+    case "team":
+      return <Team />;
+    case "community":
+      return <Community />;
     default:
       return <Dashboard />;
   }

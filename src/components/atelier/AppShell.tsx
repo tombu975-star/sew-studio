@@ -11,6 +11,8 @@ import {
   Zap,
   Sparkles,
   LogOut,
+  UsersRound,
+  MessageSquare,
 } from "lucide-react";
 import { useRole } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
@@ -34,6 +36,8 @@ const NAV: NavItem[] = [
   { to: "quote", label: "Quotes", icon: Zap, staff: false },
   { to: "tasks", label: "Tasks", icon: CheckSquare, staff: true },
   { to: "style-assist", label: "Style Assist", icon: Sparkles, staff: false },
+  { to: "team", label: "Team", icon: UsersRound, staff: false },
+  { to: "community", label: "Community", icon: MessageSquare, staff: true },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

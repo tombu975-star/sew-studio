@@ -13,7 +13,9 @@ export type ViewKey =
   | "fittings"
   | "tasks"
   | "style-assist"
-  | "quote";
+  | "quote"
+  | "team"
+  | "community";
 
 interface NavState {
   view: ViewKey;
