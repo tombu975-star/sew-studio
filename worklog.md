@@ -1593,3 +1593,19 @@ Stage Summary — MULTI-TENANT + DEPLOYMENT COMPLETE:
 - DEPLOYMENT: Vercel + Supabase + GitHub. vercel.json + .env.example + DEPLOYMENT.md with full guide. One provider-line change (sqlite→postgresql) switches the DB to Supabase Postgres. `prisma db push` provisions all tables.
 - Each shop is fully isolated: its own clients, orders, staff, trainees, community, portfolio, certificates. New shop owners sign up via the "Create a shop" flow and get a fresh empty atelier.
 - Lint clean, no runtime errors. Ready to push to GitHub + deploy.
+
+---
+Task ID: 41 (shared login page)
+Agent: main
+Task: All shops use the same login page — remove the prominent SIGN IN / NEW SHOP toggle.
+
+Work Log:
+- Removed the prominent "SIGN IN / NEW SHOP" tab toggle from the top of the login form in src/components/atelier/LoginPage.tsx.
+- The login page is now a clean, shared sign-in: "Welcome back" heading + email/password form + Sign in button. This is THE login page all shops (owners, staff, trainees from any tenant) use — email resolves to the user's shop automatically via the session cookie (userId:shopId).
+- "Create a new shop" registration kept as a subtle secondary text link below the form ("Opening a new atelier? Create a shop →"). Clicking it switches to the registration form (still fully functional), with a "Back to sign in" link to return.
+- Removed the now-unused `cn` import.
+- Verified in browser: login page shows clean sign-in (no toggle); "Create a shop" link switches to register form; "Back to sign in" returns; logging in as madam@studio.com lands on the dashboard. No errors.
+- Lint clean.
+
+Stage Summary:
+- One shared login page for ALL shops. Email + password → auto-routed to the user's tenant. No per-shop login pages, no prominent signup tab competing with sign-in. New shop registration remains accessible via a subtle link.

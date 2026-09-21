@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/stores/auth";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import {
   Select,
@@ -172,36 +171,6 @@ export function LoginPage() {
       {/* Form section — mobile-first, centered */}
       <div className="flex-1 flex items-start justify-center px-6 pt-2 pb-10 -mt-6 relative z-10">
         <div className="w-full max-w-md animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
-          {/* Mode toggle */}
-          <div className="mb-6 grid grid-cols-2 gap-1 p-1 bg-white border border-[#E7E5E4] rounded-xl elevate-sm">
-            <button
-              type="button"
-              onClick={() => switchMode("login")}
-              className={cn(
-                "h-9 rounded-lg text-[11px] font-semibold uppercase tracking-[0.16em] transition-all flex items-center justify-center gap-1.5",
-                mode === "login"
-                  ? "bg-[#800020] text-white elevate-burgundy"
-                  : "text-stone-500 hover:text-[#1C1917] hover:bg-[#faf8f5]"
-              )}
-            >
-              <Lock className="w-3.5 h-3.5" />
-              Sign in
-            </button>
-            <button
-              type="button"
-              onClick={() => switchMode("register")}
-              className={cn(
-                "h-9 rounded-lg text-[11px] font-semibold uppercase tracking-[0.16em] transition-all flex items-center justify-center gap-1.5",
-                mode === "register"
-                  ? "bg-[#800020] text-white elevate-burgundy"
-                  : "text-stone-500 hover:text-[#1C1917] hover:bg-[#faf8f5]"
-              )}
-            >
-              <Store className="w-3.5 h-3.5" />
-              New shop
-            </button>
-          </div>
-
           {mode === "login" ? (
             <div key="login" className="animate-fade-in-up">
               {/* Welcome card */}
@@ -298,7 +267,7 @@ export function LoginPage() {
                 </PremiumButton>
               </form>
 
-              {/* Switch to register */}
+              {/* Subtle secondary link to create a new shop */}
               <button
                 type="button"
                 onClick={() => switchMode("register")}
