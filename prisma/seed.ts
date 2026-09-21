@@ -16,6 +16,9 @@ const STAFF = [
   { email: "akos@studio.com", fullName: "Akos Mansa", role: "staff", gender: "Female", phone: "+233 24 000 0002", password: "atelier2025" },
   { email: "yaw@studio.com", fullName: "Yaw Kofi", role: "staff", gender: "Male", phone: "+233 24 000 0003", password: "atelier2025" },
   { email: "esi@studio.com", fullName: "Esi Boatema", role: "staff", gender: "Female", phone: "+233 24 000 0004", password: "atelier2025" },
+  { email: "trainer@studio.com", fullName: "Coach Afia", role: "trainer", gender: "Female", phone: "+233 24 000 0005", password: "atelier2025" },
+  { email: "ama@studio.com", fullName: "Ama Trainee", role: "trainee", gender: "Female", phone: "+233 24 000 0006", password: "atelier2025" },
+  { email: "kojo@studio.com", fullName: "Kojo Trainee", role: "trainee", gender: "Male", phone: "+233 24 000 0007", password: "atelier2025" },
 ];
 
 const GARMENTS = [
@@ -44,6 +47,7 @@ async function main() {
   console.log("Seeding Madam Studio...");
 
   // Wipe
+  await db.trainingLog.deleteMany();
   await db.communityLike.deleteMany();
   await db.communityComment.deleteMany();
   await db.communityPost.deleteMany();
@@ -65,7 +69,9 @@ async function main() {
     users.push(await db.user.create({ data: s }));
   }
   const madam = users[0];
-  const staff = users.slice(1);
+  const staff = users.filter((u) => u.role === "staff");
+  const trainer = users.find((u) => u.role === "trainer");
+  const trainees = users.filter((u) => u.role === "trainee");
 
   // Settings
   await db.settings.create({
@@ -272,7 +278,21 @@ async function main() {
   await db.communityLike.create({ data: { postId: posts[1].id, authorId: staff[1].id } });
   await db.communityLike.create({ data: { postId: posts[3].id, authorId: staff[0].id } });
 
-  console.log(`Seeded ${users.length} staff, ${customers.length} customers, ${orders.length} orders, ${FREELANCERS.length} freelancers, ${COMMUNITY.length} community posts.`);
+  // Training logs — trainee skill progression, mentored by the trainer
+  if (trainer && trainees.length > 0) {
+    const LOGS = [
+      { traineeId: trainees[0].id, mentorId: trainer.id, skill: "Pattern drafting", title: "Drew a basic bodice block", note: "Grasped dart manipulation. Needs practice on armhole ease.", status: "Practicing", date: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 6) },
+      { traineeId: trainees[0].id, mentorId: trainer.id, skill: "Flat-felled seams", title: "Practiced flat-felled seams on sample", note: "Clean finish on cotton. Will retry on silk next week.", status: "Proficient", date: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3) },
+      { traineeId: trainees[0].id, mentorId: madam.id, skill: "Bodice boning", title: "First boned bodice attempt", note: "Boning channels slightly uneven. Shadowing Akos on the next bridal commission.", status: "Learning", date: new Date(now.getTime() - 1000 * 60 * 60 * 24) },
+      { traineeId: trainees[1].id, mentorId: trainer.id, skill: "Measurements", title: "Took first solo client measurements", note: "Bust, waist, hip recorded accurately. Needs to refine shoulder measurement.", status: "Practicing", date: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2) },
+      { traineeId: trainees[1].id, mentorId: trainer.id, skill: "Kente cutting", title: "Learned to cut kente on the grain", note: "Understands pattern matching. Ready for a small commission.", status: "Proficient", date: new Date(now.getTime() - 1000 * 60 * 60 * 12) },
+    ];
+    for (const l of LOGS) {
+      await db.trainingLog.create({ data: l });
+    }
+  }
+
+  console.log(`Seeded ${users.length} people (${staff.length} staff, ${trainees.length} trainees), ${customers.length} customers, ${orders.length} orders, ${FREELANCERS.length} freelancers, ${COMMUNITY.length} community posts.`);
 }
 
 main()

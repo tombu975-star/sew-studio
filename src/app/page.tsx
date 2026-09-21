@@ -23,6 +23,7 @@ const StyleAssist = dynamic(() => import("@/views/StyleAssist").then((m) => m.de
 const QuickQuote = dynamic(() => import("@/views/QuickQuote").then((m) => m.default), { ssr: false });
 const Team = dynamic(() => import("@/views/Team").then((m) => m.default), { ssr: false });
 const Community = dynamic(() => import("@/views/Community").then((m) => m.default), { ssr: false });
+const Progress = dynamic(() => import("@/views/Progress").then((m) => m.default), { ssr: false });
 
 function CurrentView() {
   const { view } = useNav();
@@ -53,6 +54,8 @@ function CurrentView() {
       return <Team />;
     case "community":
       return <Community />;
+    case "progress":
+      return <Progress />;
     default:
       return <Dashboard />;
   }

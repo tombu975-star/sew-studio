@@ -13,6 +13,7 @@ import {
   LogOut,
   UsersRound,
   MessageSquare,
+  GraduationCap,
 } from "lucide-react";
 import { useRole } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
@@ -23,30 +24,37 @@ type NavItem = {
   to: ViewKey;
   label: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  /** visible to staff users (non-owners). Owners see everything. */
+  /** visible to staff users (non-owners, non-trainees). */
   staff: boolean;
+  /** visible to trainees. */
+  trainee: boolean;
 };
 
 const NAV: NavItem[] = [
-  { to: "dashboard", label: "Dashboard", icon: LayoutDashboard, staff: true },
-  { to: "customers", label: "Customers", icon: Users, staff: false },
-  { to: "orders", label: "Orders", icon: ShoppingBag, staff: true },
-  { to: "board", label: "Board", icon: LayoutGrid, staff: true },
-  { to: "fittings", label: "Fittings", icon: CalendarDays, staff: true },
-  { to: "quote", label: "Quotes", icon: Zap, staff: false },
-  { to: "tasks", label: "Tasks", icon: CheckSquare, staff: true },
-  { to: "style-assist", label: "Style Assist", icon: Sparkles, staff: false },
-  { to: "team", label: "Team", icon: UsersRound, staff: false },
-  { to: "community", label: "Community", icon: MessageSquare, staff: true },
+  { to: "dashboard", label: "Dashboard", icon: LayoutDashboard, staff: true, trainee: true },
+  { to: "customers", label: "Customers", icon: Users, staff: false, trainee: false },
+  { to: "orders", label: "Orders", icon: ShoppingBag, staff: true, trainee: true },
+  { to: "board", label: "Board", icon: LayoutGrid, staff: true, trainee: true },
+  { to: "fittings", label: "Fittings", icon: CalendarDays, staff: true, trainee: false },
+  { to: "quote", label: "Quotes", icon: Zap, staff: false, trainee: false },
+  { to: "tasks", label: "Tasks", icon: CheckSquare, staff: true, trainee: true },
+  { to: "style-assist", label: "Style Assist", icon: Sparkles, staff: false, trainee: false },
+  { to: "progress", label: "Progress", icon: GraduationCap, staff: false, trainee: true },
+  { to: "team", label: "Team", icon: UsersRound, staff: false, trainee: false },
+  { to: "community", label: "Community", icon: MessageSquare, staff: true, trainee: true },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { studioName, isStaff } = useRole();
+  const { studioName, isStaff, isTrainee } = useRole();
   const { view, go } = useNav();
   const { user, logout } = useAuth();
 
-  // Scope: owners (madam) see the full app; staff see their workbench subset.
-  const items = NAV.filter((n) => !isStaff() || n.staff);
+  // Scope: owners see everything; staff see their workbench subset; trainees see a focused learning subset.
+  const items = NAV.filter((n) => {
+    if (isTrainee()) return n.trainee;
+    if (isStaff()) return n.staff;
+    return true; // owner
+  });
 
   const isActive = (to: ViewKey) => {
     if (to === "dashboard") return view === "dashboard";

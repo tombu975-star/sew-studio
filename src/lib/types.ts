@@ -211,3 +211,20 @@ export interface CommunityPost {
   likedByMe?: boolean;
 }
 
+export type TrainingStatus = "Learning" | "Practicing" | "Proficient";
+
+export interface TrainingLog {
+  id: string;
+  traineeId: string;
+  trainee?: { id: string; fullName: string; role: string };
+  mentorId?: string | null;
+  mentor?: { id: string; fullName: string } | null;
+  skill?: string | null;
+  title: string;
+  note?: string | null;
+  status: TrainingStatus;
+  date: string;
+  createdAt: string;
+}
+
+

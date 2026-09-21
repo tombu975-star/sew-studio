@@ -15,7 +15,8 @@ export type ViewKey =
   | "style-assist"
   | "quote"
   | "team"
-  | "community";
+  | "community"
+  | "progress";
 
 interface NavState {
   view: ViewKey;

@@ -32,6 +32,12 @@ const STATUS_STYLES: Record<string, string> = {
   Available: "bg-emerald-100 text-emerald-800 border-emerald-200",
   Busy: "bg-amber-100 text-amber-800 border-amber-200",
   Unavailable: "bg-stone-100 text-stone-700 border-stone-200",
+  // Training log statuses
+  Learning: "bg-amber-100 text-amber-800 border-amber-200",
+  Practicing: "bg-sky-100 text-sky-800 border-sky-200",
+  Proficient: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  // Role chip — trainee
+  Trainee: "bg-[#800020]/8 text-[#800020] border-[#800020]/15",
 };
 
 const DOT_COLOR: Record<string, string> = {
@@ -60,6 +66,12 @@ const DOT_COLOR: Record<string, string> = {
   Available: "bg-emerald-600",
   Busy: "bg-amber-600",
   Unavailable: "bg-stone-500",
+  // Training log statuses
+  Learning: "bg-amber-600",
+  Practicing: "bg-sky-600",
+  Proficient: "bg-emerald-600",
+  // Role chip — trainee
+  Trainee: "bg-[#800020]",
 };
 
 export function StatusBadge({

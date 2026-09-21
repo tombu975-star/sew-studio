@@ -19,6 +19,7 @@ import {
   Briefcase,
   GraduationCap,
   Crown,
+  ArrowRight,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
@@ -61,8 +62,9 @@ import {
 
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
-import type { Freelancer, User } from "@/lib/types";
+import type { Freelancer, TrainingLog, User } from "@/lib/types";
 import { useAuth } from "@/stores/auth";
+import { useNav } from "@/stores/nav";
 
 /* ----------------------------- constants ----------------------------- */
 
@@ -113,9 +115,11 @@ function initialOf(name: string): string {
 
 export default function Team() {
   const { user: owner } = useAuth();
+  const { go } = useNav();
   const qc = useQueryClient();
   const [tab, setTab] = useState("staff");
   const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [addTraineeOpen, setAddTraineeOpen] = useState(false);
   const [addFreelancerOpen, setAddFreelancerOpen] = useState(false);
 
   const usersQ = useQuery<User[]>({
@@ -126,18 +130,31 @@ export default function Team() {
     queryKey: ["freelancers"],
     queryFn: () => apiGet<Freelancer[]>("/api/freelancers"),
   });
+  const trainingLogsQ = useQuery<TrainingLog[]>({
+    queryKey: ["training-logs"],
+    queryFn: () => apiGet<TrainingLog[]>("/api/training-logs"),
+  });
 
   const users = usersQ.data ?? [];
   const freelancers = freelancersQ.data ?? [];
+  const trainingLogs = trainingLogsQ.data ?? [];
 
   const stats = useMemo(
     () => ({
       staff: users.filter((u) => u.role === "staff").length,
       trainers: users.filter((u) => u.role === "trainer").length,
+      trainees: users.filter((u) => u.role === "trainee").length,
       freelancers: freelancers.length,
-      available: freelancers.filter((f) => f.status === "Available").length,
     }),
     [users, freelancers]
+  );
+
+  const mentors = useMemo(
+    () =>
+      users
+        .filter((u) => u.role === "trainer" || u.role === "madam")
+        .sort((a, b) => a.fullName.localeCompare(b.fullName)),
+    [users]
   );
 
   return (
@@ -180,14 +197,14 @@ export default function Team() {
           icon={GraduationCap}
         />
         <PremiumMetric
+          label="Trainees"
+          value={<AnimatedNumber value={stats.trainees} />}
+          icon={GraduationCap}
+        />
+        <PremiumMetric
           label="Freelancers"
           value={<AnimatedNumber value={stats.freelancers} />}
           icon={Briefcase}
-        />
-        <PremiumMetric
-          label="Available"
-          value={<AnimatedNumber value={stats.available} />}
-          icon={Sparkles}
         />
       </div>
 
@@ -198,6 +215,12 @@ export default function Team() {
             className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Staff &amp; Trainers
+          </TabsTrigger>
+          <TabsTrigger
+            value="trainees"
+            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+          >
+            Trainees
           </TabsTrigger>
           <TabsTrigger
             value="freelancers"
@@ -216,6 +239,16 @@ export default function Team() {
           />
         </TabsContent>
 
+        <TabsContent value="trainees" className="mt-5">
+          <TraineesCard
+            users={users}
+            logs={trainingLogs}
+            isLoading={usersQ.isLoading || trainingLogsQ.isLoading}
+            onAdd={() => setAddTraineeOpen(true)}
+            onView={(id) => go("progress", { id })}
+          />
+        </TabsContent>
+
         <TabsContent value="freelancers" className="mt-5">
           <FreelancersCard
             freelancers={freelancers}
@@ -229,6 +262,15 @@ export default function Team() {
         open={addMemberOpen}
         onOpenChange={setAddMemberOpen}
         onDone={() => qc.invalidateQueries({ queryKey: ["users"] })}
+      />
+      <AddTraineeDialog
+        open={addTraineeOpen}
+        onOpenChange={setAddTraineeOpen}
+        onDone={() => {
+          qc.invalidateQueries({ queryKey: ["users"] });
+          qc.invalidateQueries({ queryKey: ["training-logs"] });
+        }}
+        mentors={mentors}
       />
       <AddFreelancerDialog
         open={addFreelancerOpen}
@@ -539,6 +581,189 @@ function FreelancersCard({
   );
 }
 
+/* ========================== Trainees card =========================== */
+
+interface TraineeStats {
+  total: number;
+  proficient: number;
+  practicing: number;
+  learning: number;
+  mentor?: string;
+}
+
+function TraineesCard({
+  users,
+  logs,
+  isLoading,
+  onAdd,
+  onView,
+}: {
+  users: User[];
+  logs: TrainingLog[];
+  isLoading: boolean;
+  onAdd: () => void;
+  onView: (id: string) => void;
+}) {
+  const trainees = useMemo(
+    () =>
+      users
+        .filter((u) => u.role === "trainee")
+        .sort((a, b) => a.fullName.localeCompare(b.fullName)),
+    [users]
+  );
+
+  const statsByTrainee = useMemo(() => {
+    const map = new Map<string, TraineeStats>();
+    for (const log of logs) {
+      const s =
+        map.get(log.traineeId) ?? {
+          total: 0,
+          proficient: 0,
+          practicing: 0,
+          learning: 0,
+        };
+      s.total += 1;
+      if (log.status === "Proficient") s.proficient += 1;
+      else if (log.status === "Practicing") s.practicing += 1;
+      else s.learning += 1;
+      if (!s.mentor && log.mentor?.fullName) s.mentor = log.mentor.fullName;
+      map.set(log.traineeId, s);
+    }
+    return map;
+  }, [logs]);
+
+  return (
+    <SectionCard
+      title={`Apprentices · ${trainees.length}`}
+      bodyClassName="p-0"
+      action={
+        <PremiumButton size="sm" onClick={onAdd}>
+          <GraduationCap className="w-4 h-4" /> Add Trainee
+        </PremiumButton>
+      }
+    >
+      {isLoading ? (
+        <SkeletonList rows={3} />
+      ) : trainees.length === 0 ? (
+        <EmptyState
+          icon={GraduationCap}
+          title="No trainees yet"
+          description="Add your first apprentice — start tracking their skill journey from the Progress view."
+          action={
+            <PremiumButton size="sm" onClick={onAdd}>
+              <GraduationCap className="w-4 h-4" /> Add Trainee
+            </PremiumButton>
+          }
+        />
+      ) : (
+        <div className="divide-y divide-[#E7E5E4]/70">
+          {trainees.map((t) => {
+            const s = statsByTrainee.get(t.id);
+            return (
+              <div
+                key={t.id}
+                className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
+              >
+                <div
+                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  aria-hidden
+                >
+                  {initialOf(t.fullName)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-[#1C1917] truncate">
+                      {t.fullName}
+                    </span>
+                    <StatusBadge status="Trainee" />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
+                    {t.email && (
+                      <span className="inline-flex items-center gap-1 truncate max-w-[220px]">
+                        <Mail className="w-3 h-3 shrink-0" /> {t.email}
+                      </span>
+                    )}
+                    {t.phone && (
+                      <span className="inline-flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> {t.phone}
+                      </span>
+                    )}
+                    {!t.email && !t.phone && (
+                      <span className="italic text-stone-400">
+                        No contact details
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 flex items-center gap-x-2.5 gap-y-1 text-[11px] flex-wrap">
+                    {s && s.total > 0 ? (
+                      <>
+                        <span className="inline-flex items-center gap-1 text-stone-500">
+                          <span className="font-semibold text-stone-700 tabular-nums">
+                            {s.total}
+                          </span>
+                          <span className="uppercase tracking-[0.14em]">
+                            {s.total === 1 ? "log" : "logs"}
+                          </span>
+                        </span>
+                        <span className="text-stone-300" aria-hidden>
+                          ·
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <span className="font-semibold text-emerald-700 tabular-nums">
+                            {s.proficient}
+                          </span>
+                          <span className="text-emerald-700/80">Proficient</span>
+                        </span>
+                        <span className="text-stone-300" aria-hidden>
+                          ·
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <span className="font-semibold text-sky-700 tabular-nums">
+                            {s.practicing}
+                          </span>
+                          <span className="text-sky-700/80">Practicing</span>
+                        </span>
+                        <span className="text-stone-300" aria-hidden>
+                          ·
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <span className="font-semibold text-amber-700 tabular-nums">
+                            {s.learning}
+                          </span>
+                          <span className="text-amber-700/80">Learning</span>
+                        </span>
+                      </>
+                    ) : (
+                      <span className="italic text-stone-400">No logs yet</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pl-14 sm:pl-0">
+                  {s?.mentor && (
+                    <span className="hidden md:inline text-[10px] uppercase tracking-[0.16em] text-stone-400 truncate max-w-[160px]">
+                      Mentor · {s.mentor}
+                    </span>
+                  )}
+                  <PremiumButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onView(t.id)}
+                    aria-label={`View progress for ${t.fullName}`}
+                  >
+                    <GraduationCap className="w-3.5 h-3.5" />
+                    View progress
+                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </PremiumButton>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
 /* ========================= Add Member Dialog ======================== */
 
 interface MemberForm {
@@ -724,6 +949,216 @@ function AddMemberDialog({
               disabled={!valid}
             >
               <UserPlus className="w-4 h-4" /> Add member
+            </PremiumButton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ======================== Add Trainee Dialog ======================== */
+
+interface TraineeForm {
+  fullName: string;
+  email: string;
+  mentorId: string; // informational only — not persisted on the user
+  gender: string;
+  phone: string;
+  password: string;
+}
+
+const EMPTY_TRAINEE: TraineeForm = {
+  fullName: "",
+  email: "",
+  mentorId: "",
+  gender: "",
+  phone: "",
+  password: "atelier2025",
+};
+
+function AddTraineeDialog({
+  open,
+  onOpenChange,
+  onDone,
+  mentors,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onDone: () => void;
+  mentors: User[];
+}) {
+  const [form, setForm] = useState<TraineeForm>(EMPTY_TRAINEE);
+
+  const createMutation = useMutation({
+    mutationFn: (body: TraineeForm) =>
+      apiPost<User>("/api/users", {
+        fullName: body.fullName,
+        email: body.email,
+        role: "trainee",
+        gender: body.gender || undefined,
+        phone: body.phone || undefined,
+        password: body.password || "atelier2025",
+      }),
+    onSuccess: (u) => {
+      toast.success(`${u.fullName} added as a trainee.`, {
+        description: `Default password: ${form.password || "atelier2025"}.`,
+      });
+      onDone();
+      setForm(EMPTY_TRAINEE);
+      onOpenChange(false);
+    },
+    onError: (err: Error) => {
+      const msg = err.message || "";
+      if (msg.includes("409")) {
+        toast.error("That email is already in use.", {
+          description: "Try a different email address.",
+        });
+      } else {
+        toast.error("Could not add trainee.", { description: msg });
+      }
+    },
+  });
+
+  const set = <K extends keyof TraineeForm>(k: K, v: TraineeForm[K]) =>
+    setForm((f) => ({ ...f, [k]: v }));
+
+  const valid = form.fullName.trim().length > 0 && form.email.trim().length > 0;
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!valid) return;
+    createMutation.mutate(form);
+  }
+
+  function handleOpenChange(v: boolean) {
+    if (!v && !createMutation.isPending) setForm(EMPTY_TRAINEE);
+    onOpenChange(v);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add trainee</DialogTitle>
+          <DialogDescription>
+            Create an apprenticeship sign-in. Log their skill progress from the
+            Progress view.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Full Name" required>
+              <Input
+                value={form.fullName}
+                onChange={(e) => set("fullName", e.target.value)}
+                placeholder="e.g. Ama Mensah"
+                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+                required
+                autoFocus
+              />
+            </Field>
+            <Field label="Email" required>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => set("email", e.target.value)}
+                placeholder="name@studio.com"
+                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+                required
+              />
+            </Field>
+          </div>
+
+          <Field label="Mentor (optional)">
+            <Select
+              value={form.mentorId}
+              onValueChange={(v) => set("mentorId", v)}
+            >
+              <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+                <SelectValue placeholder="For your reference only" />
+              </SelectTrigger>
+              <SelectContent>
+                {mentors.length === 0 ? (
+                  <SelectItem value="__none" disabled>
+                    No trainers or madam available
+                  </SelectItem>
+                ) : (
+                  mentors.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.fullName} · {roleLabel(m.role)}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </Field>
+          <p className="text-[11px] text-stone-400 -mt-2">
+            Mentor is informational only — you&rsquo;ll assign training logs to a
+            mentor from the Progress view.
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Gender">
+              <Select
+                value={form.gender}
+                onValueChange={(v) => set("gender", v)}
+              >
+                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDER_OPTIONS.map((g) => (
+                    <SelectItem key={g} value={g}>
+                      {g}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Phone">
+              <Input
+                value={form.phone}
+                onChange={(e) => set("phone", e.target.value)}
+                placeholder="+233 …"
+                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+              />
+            </Field>
+          </div>
+
+          <Field label="Password">
+            <Input
+              value={form.password}
+              onChange={(e) => set("password", e.target.value)}
+              placeholder="atelier2025"
+              className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
+            />
+          </Field>
+          <p className="text-[11px] text-stone-400 -mt-1">
+            Default password is{" "}
+            <span className="font-medium text-stone-500">atelier2025</span>. The
+            trainee can sign in and you can change it later.
+          </p>
+
+          <DialogFooter>
+            <PremiumButton
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => handleOpenChange(false)}
+              disabled={createMutation.isPending}
+            >
+              Cancel
+            </PremiumButton>
+            <PremiumButton
+              type="submit"
+              variant="primary"
+              size="md"
+              loading={createMutation.isPending}
+              disabled={!valid}
+            >
+              <GraduationCap className="w-4 h-4" /> Add trainee
             </PremiumButton>
           </DialogFooter>
         </form>

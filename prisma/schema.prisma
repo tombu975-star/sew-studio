@@ -24,6 +24,8 @@ model User {
   ordersAssigned Order[]   @relation("OrderStaff")
   tasks          Task[]
   measurements   MeasurementSet[]
+  trainingAsTrainee TrainingLog[] @relation("TraineeLogs")
+  trainingAsMentor  TrainingLog[] @relation("MentorLogs")
 }
 
 model Customer {
@@ -244,5 +246,20 @@ model CommunityLike {
   createdAt DateTime @default(now())
 
   @@unique([postId, authorId])
+}
+
+model TrainingLog {
+  id          String   @id @default(cuid())
+  traineeId   String   // User id (role trainee)
+  trainee     User     @relation("TraineeLogs", fields: [traineeId], references: [id], onDelete: Cascade)
+  mentorId    String?  // User id (trainer or madam supervising)
+  mentor      User?    @relation("MentorLogs", fields: [mentorId], references: [id])
+  skill       String?  // e.g. "Flat-felled seams", "Bodice boning", "Pattern drafting"
+  title       String
+  note        String?
+  status      String   @default("Learning") // Learning | Practicing | Proficient
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 

@@ -1,0 +1,901 @@
+970 /home/z/my-project/tool-results/bash_1790001007301_f739db882881.txt
+    72→  "Beader",
+    73→  "Embroiderer",
+    74→  "Cutter",
+    75→  "Tailor",
+    76→  "Designer",
+    77→  "Photographer",
+    78→  "Other",
+    79→] as const;
+    80→const FREELANCER_STATUSES = ["Available", "Busy", "Unavailable"] as const;
+    81→
+    82→const SPECIALTY_ICON: Record<
+    83→  string,
+    84→  React.ComponentType<{ className?: string }>
+    85→> = {
+    86→  Beader: Sparkles,
+    87→  Embroiderer: Flower2,
+    88→  Cutter: Scissors,
+    89→  Tailor: Shirt,
+    90→  Designer: PenTool,
+    91→  Photographer: Camera,
+    92→  Other: Briefcase,
+    93→};
+    94→
+    95→const ROLE_ORDER: Record<string, number> = {
+    96→  madam: 0,
+    97→  staff: 1,
+    98→  trainer: 2,
+    99→  trainee: 3,
+   100→};
+   101→
+   102→function roleLabel(role: string): string {
+   103→  if (role === "madam") return "Madam";
+   104→  if (!role) return "Staff";
+   105→  return role.charAt(0).toUpperCase() + role.slice(1);
+   106→}
+   107→
+   108→function initialOf(name: string): string {
+   109→  return (name || "?").trim().charAt(0).toUpperCase() || "?";
+   110→}
+   111→
+   112→/* =============================== Team =============================== */
+   113→
+   114→export default function Team() {
+   115→  const { user: owner } = useAuth();
+   116→  const qc = useQueryClient();
+   117→  const [tab, setTab] = useState("staff");
+   118→  const [addMemberOpen, setAddMemberOpen] = useState(false);
+   119→  const [addFreelancerOpen, setAddFreelancerOpen] = useState(false);
+   120→
+   121→  const usersQ = useQuery<User[]>({
+   122→    queryKey: ["users"],
+   123→    queryFn: () => apiGet<User[]>("/api/users"),
+   124→  });
+   125→  const freelancersQ = useQuery<Freelancer[]>({
+   126→    queryKey: ["freelancers"],
+   127→    queryFn: () => apiGet<Freelancer[]>("/api/freelancers"),
+   128→  });
+   129→
+   130→  const users = usersQ.data ?? [];
+   131→  const freelancers = freelancersQ.data ?? [];
+   132→
+   133→  const stats = useMemo(
+   134→    () => ({
+   135→      staff: users.filter((u) => u.role === "staff").length,
+   136→      trainers: users.filter((u) => u.role === "trainer").length,
+   137→      freelancers: freelancers.length,
+   138→      available: freelancers.filter((f) => f.status === "Available").length,
+   139→    }),
+   140→    [users, freelancers]
+   141→  );
+   142→
+   143→  return (
+   144→    <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+   145→      <PageHeader
+   146→        eyebrow="Atelier people"
+   147→        eyebrowIcon={UsersRound}
+   148→        title="Team"
+   149→        subtitle="Manage staff, trainers and the freelancers you commission."
+   150→        actions={
+   151→          owner ? (
+   152→            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E7E5E4] bg-white pl-2 pr-3 py-1.5 elevate-sm">
+   153→              <span className="w-6 h-6 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white text-[11px] font-display font-semibold">
+   154→                {initialOf(owner.fullName)}
+   155→              </span>
+   156→              <div className="leading-tight">
+   157→                <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+   158→                  Owner
+   159→                </div>
+   160→                <div className="text-xs font-medium text-[#1C1917]">
+   161→                  {owner.fullName}
+   162→                </div>
+   163→              </div>
+   164→            </div>
+   165→          ) : undefined
+   166→        }
+   167→      />
+   168→
+   169→      {/* Premium stat strip */}
+   170→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+   171→        <PremiumMetric
+   172→          label="Staff"
+   173→          value={<AnimatedNumber value={stats.staff} />}
+   174→          icon={UsersRound}
+   175→          accent
+   176→        />
+   177→        <PremiumMetric
+   178→          label="Trainers"
+   179→          value={<AnimatedNumber value={stats.trainers} />}
+   180→          icon={GraduationCap}
+   181→        />
+   182→        <PremiumMetric
+   183→          label="Freelancers"
+   184→          value={<AnimatedNumber value={stats.freelancers} />}
+   185→          icon={Briefcase}
+   186→        />
+   187→        <PremiumMetric
+   188→          label="Available"
+   189→          value={<AnimatedNumber value={stats.available} />}
+   190→          icon={Sparkles}
+   191→        />
+   192→      </div>
+   193→
+   194→      <Tabs value={tab} onValueChange={setTab} className="w-full">
+   195→        <TabsList className="bg-white border border-[#E7E5E4] rounded-lg h-auto p-1 overflow-x-auto max-w-full inline-flex w-auto gap-0.5">
+   196→          <TabsTrigger
+   197→            value="staff"
+   198→            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+   199→          >
+   200→            Staff &amp; Trainers
+   201→          </TabsTrigger>
+   202→          <TabsTrigger
+   203→            value="freelancers"
+   204→            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+   205→          >
+   206→            Freelancers
+   207→          </TabsTrigger>
+   208→        </TabsList>
+   209→
+   210→        <TabsContent value="staff" className="mt-5">
+   211→          <StaffTrainersCard
+   212→            users={users}
+   213→            isLoading={usersQ.isLoading}
+   214→            ownerId={owner?.id}
+   215→            onAdd={() => setAddMemberOpen(true)}
+   216→          />
+   217→        </TabsContent>
+   218→
+   219→        <TabsContent value="freelancers" className="mt-5">
+   220→          <FreelancersCard
+   221→            freelancers={freelancers}
+   222→            isLoading={freelancersQ.isLoading}
+   223→            onAdd={() => setAddFreelancerOpen(true)}
+   224→          />
+   225→        </TabsContent>
+   226→      </Tabs>
+   227→
+   228→      <AddMemberDialog
+   229→        open={addMemberOpen}
+   230→        onOpenChange={setAddMemberOpen}
+   231→        onDone={() => qc.invalidateQueries({ queryKey: ["users"] })}
+   232→      />
+   233→      <AddFreelancerDialog
+   234→        open={addFreelancerOpen}
+   235→        onOpenChange={setAddFreelancerOpen}
+   236→        onDone={() => qc.invalidateQueries({ queryKey: ["freelancers"] })}
+   237→      />
+   238→    </div>
+   239→  );
+   240→}
+   241→
+   242→/* ======================= Staff & Trainers card ======================= */
+   243→
+   244→function StaffTrainersCard({
+   245→  users,
+   246→  isLoading,
+   247→  ownerId,
+   248→  onAdd,
+   249→}: {
+   250→  users: User[];
+   251→  isLoading: boolean;
+   252→  ownerId?: string;
+   253→  onAdd: () => void;
+   254→}) {
+   255→  const sorted = useMemo(() => {
+   256→    return [...users].sort((a, b) => {
+   257→      const ao = ROLE_ORDER[a.role] ?? 9;
+   258→      const bo = ROLE_ORDER[b.role] ?? 9;
+   259→      if (ao !== bo) return ao - bo;
+   260→      return a.fullName.localeCompare(b.fullName);
+   261→    });
+   262→  }, [users]);
+   263→
+   264→  return (
+   265→    <SectionCard
+   266→      title={`Atelier Roster · ${users.length}`}
+   267→      bodyClassName="p-0"
+   268→      action={
+   269→        <PremiumButton size="sm" onClick={onAdd}>
+   270→          <UserPlus className="w-4 h-4" /> Add Member
+   271→        </PremiumButton>
+   272→      }
+   273→    >
+   274→      {isLoading ? (
+   275→        <SkeletonList rows={4} />
+   276→      ) : sorted.length === 0 ? (
+   277→        <EmptyState
+   278→          icon={UsersRound}
+   279→          title="No members yet"
+   280→          description="Add your first staff member or trainer to start building the atelier roster."
+   281→          action={
+   282→            <PremiumButton size="sm" onClick={onAdd}>
+   283→              <UserPlus className="w-4 h-4" /> Add Member
+   284→            </PremiumButton>
+   285→          }
+   286→        />
+   287→      ) : (
+   288→        <div className="divide-y divide-[#E7E5E4]/70">
+   289→          {sorted.map((u) => {
+   290→            const isOwner = u.role === "madam";
+   291→            const isMe = ownerId === u.id;
+   292→            return (
+   293→              <div
+   294→                key={u.id}
+   295→                className="group flex items-center gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
+   296→              >
+   297→                <div
+   298→                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+   299→                  aria-hidden
+   300→                >
+   301→                  {initialOf(u.fullName)}
+   302→                </div>
+   303→                <div className="flex-1 min-w-0">
+   304→                  <div className="flex items-center gap-2 flex-wrap">
+   305→                    <span className="font-medium text-[#1C1917] truncate">
+   306→                      {u.fullName}
+   307→                    </span>
+   308→                    {isOwner && (
+   309→                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#800020] bg-[#800020]/8 border border-[#800020]/15 px-1.5 py-0.5 rounded-md">
+   310→                        <Crown className="w-3 h-3" /> Owner
+   311→                      </span>
+   312→                    )}
+   313→                    {isMe && !isOwner && (
+   314→                      <span className="inline-flex items-center text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded-md">
+   315→                        You
+   316→                      </span>
+   317→                    )}
+   318→                  </div>
+   319→                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
+   320→                    {u.email && (
+   321→                      <span className="inline-flex items-center gap-1 truncate max-w-[220px]">
+   322→                        <Mail className="w-3 h-3 shrink-0" /> {u.email}
+   323→                      </span>
+   324→                    )}
+   325→                    {u.phone && (
+   326→                      <span className="inline-flex items-center gap-1">
+   327→                        <Phone className="w-3 h-3" /> {u.phone}
+   328→                      </span>
+   329→                    )}
+   330→                    {u.gender && (
+   331→                      <span className="inline-flex items-center rounded-md bg-[#FBF9F7] border border-[#E7E5E4] px-1.5 py-0.5 text-[10px] uppercase tracking-[0.14em] text-stone-500">
+   332→                        {u.gender}
+   333→                      </span>
+   334→                    )}
+   335→                    {!u.email && !u.phone && !u.gender && (
+   336→                      <span className="italic text-stone-400">
+   337→                        No contact details
+   338→                      </span>
+   339→                    )}
+   340→                  </div>
+   341→                </div>
+   342→                <div className="flex items-center gap-2 shrink-0">
+   343→                  <StatusBadge status={roleLabel(u.role)} />
+   344→                  {isOwner && (
+   345→                    <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-stone-300">
+   346→                      Permanent
+   347→                    </span>
+   348→                  )}
+   349→                </div>
+   350→              </div>
+   351→            );
+   352→          })}
+   353→        </div>
+   354→      )}
+   355→    </SectionCard>
+   356→  );
+   357→}
+   358→
+   359→/* ========================== Freelancers card ========================= */
+   360→
+   361→function FreelancersCard({
+   362→  freelancers,
+   363→  isLoading,
+   364→  onAdd,
+   365→}: {
+   366→  freelancers: Freelancer[];
+   367→  isLoading: boolean;
+   368→  onAdd: () => void;
+   369→}) {
+   370→  const qc = useQueryClient();
+   371→  const [deleteId, setDeleteId] = useState<string | null>(null);
+   372→
+   373→  const statusMutation = useMutation({
+   374→    mutationFn: ({ id, status }: { id: string; status: string }) =>
+   375→      apiPatch<Freelancer>(`/api/freelancers/${id}`, { status }),
+   376→    onSuccess: (f) => {
+   377→      qc.invalidateQueries({ queryKey: ["freelancers"] });
+   378→      toast.success(`${f.name} is now ${f.status}`);
+   379→    },
+   380→    onError: () => toast.error("Could not update status."),
+   381→  });
+   382→
+   383→  const deleteMutation = useMutation({
+   384→    mutationFn: (id: string) => apiDelete(`/api/freelancers/${id}`),
+   385→    onSuccess: () => {
+   386→      qc.invalidateQueries({ queryKey: ["freelancers"] });
+   387→      toast.success("Freelancer removed from roster.");
+   388→      setDeleteId(null);
+   389→    },
+   390→    onError: () => toast.error("Could not remove freelancer."),
+   391→  });
+   392→
+   393→  const target = freelancers.find((f) => f.id === deleteId) || null;
+   394→
+   395→  return (
+   396→    <SectionCard
+   397→      title={`Commissioned Talent · ${freelancers.length}`}
+   398→      bodyClassName="p-0"
+   399→      action={
+   400→        <PremiumButton size="sm" onClick={onAdd}>
+   401→          <Plus className="w-4 h-4" /> Add Freelancer
+   402→        </PremiumButton>
+   403→      }
+   404→    >
+   405→      {isLoading ? (
+   406→        <SkeletonList rows={4} />
+   407→      ) : freelancers.length === 0 ? (
+   408→        <EmptyState
+   409→          icon={UsersRound}
+   410→          title="No freelancers yet"
+   411→          description="Add the beaders, embroiderers, cutters and tailors you commission for bespoke work."
+   412→          action={
+   413→            <PremiumButton size="sm" onClick={onAdd}>
+   414→              <Plus className="w-4 h-4" /> Add Freelancer
+   415→            </PremiumButton>
+   416→          }
+   417→        />
+   418→      ) : (
+   419→        <div className="divide-y divide-[#E7E5E4]/70">
+   420→          {freelancers.map((f) => {
+   421→            const SpecialtyIcon =
+   422→              SPECIALTY_ICON[f.specialty || "Other"] || Briefcase;
+   423→            return (
+   424→              <div
+   425→                key={f.id}
+   426→                className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
+   427→              >
+   428→                <div
+   429→                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white shrink-0 shadow-sm"
+   430→                  aria-hidden
+   431→                >
+   432→                  <SpecialtyIcon className="w-5 h-5" />
+   433→                </div>
+   434→                <div className="flex-1 min-w-0">
+   435→                  <div className="flex items-center gap-2 flex-wrap">
+   436→                    <span className="font-medium text-[#1C1917] truncate">
+   437→                      {f.name}
+   438→                    </span>
+   439→                    {f.specialty && (
+   440→                      <span className="inline-flex items-center rounded-md bg-[#800020]/8 text-[#800020] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] border border-[#800020]/15">
+   441→                        {f.specialty}
+   442→                      </span>
+   443→                    )}
+   444→                  </div>
+   445→                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
+   446→                    {f.skills && (
+   447→                      <span className="italic text-stone-400 truncate max-w-[280px]">
+   448→                        {f.skills}
+   449→                      </span>
+   450→                    )}
+   451→                    {f.phone && (
+   452→                      <span className="inline-flex items-center gap-1">
+   453→                        <Phone className="w-3 h-3" /> {f.phone}
+   454→                      </span>
+   455→                    )}
+   456→                    {f.email && (
+   457→                      <span className="inline-flex items-center gap-1 truncate max-w-[200px]">
+   458→                        <Mail className="w-3 h-3 shrink-0" /> {f.email}
+   459→                      </span>
+   460→                    )}
+   461→                    {!f.skills && !f.phone && !f.email && (
+   462→                      <span className="italic text-stone-400">
+   463→                        No contact details
+   464→                      </span>
+   465→                    )}
+   466→                  </div>
+   467→                </div>
+   468→                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pl-14 sm:pl-0">
+   469→                  <div className="text-right">
+   470→                    <div className="font-display font-semibold text-[#1C1917] tabular-nums text-sm leading-none">
+   471→                      {f.rate ? formatCurrency(f.rate) : "—"}
+   472→                    </div>
+   473→                    <div className="text-[10px] uppercase tracking-[0.14em] text-stone-400 mt-1">
+   474→                      per piece
+   475→                    </div>
+   476→                  </div>
+   477→                  <StatusBadge status={f.status} />
+   478→                  <Select
+   479→                    value={f.status}
+   480→                    onValueChange={(v) =>
+   481→                      statusMutation.mutate({ id: f.id, status: v })
+   482→                    }
+   483→                  >
+   484→                    <SelectTrigger
+   485→                      size="sm"
+   486→                      className="w-[130px] bg-white border-[#E7E5E4] rounded-md h-9"
+   487→                      disabled={statusMutation.isPending}
+   488→                      aria-label={`Change status for ${f.name}`}
+   489→                    >
+   490→                      <SelectValue />
+   491→                    </SelectTrigger>
+   492→                    <SelectContent>
+   493→                      {FREELANCER_STATUSES.map((s) => (
+   494→                        <SelectItem key={s} value={s}>
+   495→                          {s}
+   496→                        </SelectItem>
+   497→                      ))}
+   498→                    </SelectContent>
+   499→                  </Select>
+   500→                  <PremiumButton
+   501→                    variant="ghost"
+   502→                    size="icon"
+   503→                    onClick={() => setDeleteId(f.id)}
+   504→                    aria-label={`Remove ${f.name}`}
+   505→                    className="text-stone-400 hover:text-[#b91c1c] hover:bg-[#b91c1c]/8"
+   506→                  >
+   507→                    <Trash2 className="w-4 h-4" />
+   508→                  </PremiumButton>
+   509→                </div>
+   510→              </div>
+   511→            );
+   512→          })}
+   513→        </div>
+   514→      )}
+   515→
+   516→      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+   517→        <AlertDialogContent>
+   518→          <AlertDialogHeader>
+   519→            <AlertDialogTitle>Remove freelancer?</AlertDialogTitle>
+   520→            <AlertDialogDescription>
+   521→              {target
+   522→                ? `This will permanently remove ${target.name} from your roster. This action cannot be undone.`
+   523→                : "This will permanently remove the freelancer from your roster. This action cannot be undone."}
+   524→            </AlertDialogDescription>
+   525→          </AlertDialogHeader>
+   526→          <AlertDialogFooter>
+   527→            <AlertDialogCancel>Cancel</AlertDialogCancel>
+   528→            <AlertDialogAction
+   529→              className="bg-[#b91c1c] hover:bg-[#991b1b] text-white border-[#b91c1c]"
+   530→              disabled={deleteMutation.isPending}
+   531→              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+   532→            >
+   533→              {deleteMutation.isPending ? "Removing…" : "Remove"}
+   534→            </AlertDialogAction>
+   535→          </AlertDialogFooter>
+   536→        </AlertDialogContent>
+   537→      </AlertDialog>
+   538→    </SectionCard>
+   539→  );
+   540→}
+   541→
+   542→/* ========================= Add Member Dialog ======================== */
+   543→
+   544→interface MemberForm {
+   545→  fullName: string;
+   546→  email: string;
+   547→  role: string;
+   548→  gender: string;
+   549→  phone: string;
+   550→  password: string;
+   551→}
+   552→
+   553→const EMPTY_MEMBER: MemberForm = {
+   554→  fullName: "",
+   555→  email: "",
+   556→  role: "staff",
+   557→  gender: "",
+   558→  phone: "",
+   559→  password: "atelier2025",
+   560→};
+   561→
+   562→function AddMemberDialog({
+   563→  open,
+   564→  onOpenChange,
+   565→  onDone,
+   566→}: {
+   567→  open: boolean;
+   568→  onOpenChange: (v: boolean) => void;
+   569→  onDone: () => void;
+   570→}) {
+   571→  const [form, setForm] = useState<MemberForm>(EMPTY_MEMBER);
+   572→
+   573→  const createMutation = useMutation({
+   574→    mutationFn: (body: MemberForm) => apiPost<User>("/api/users", body),
+   575→    onSuccess: (u) => {
+   576→      toast.success(`${u.fullName} added to the atelier.`, {
+   577→        description: `Signed in as ${u.role}. Default password: ${form.password || "atelier2025"}.`,
+   578→      });
+   579→      onDone();
+   580→      setForm(EMPTY_MEMBER);
+   581→      onOpenChange(false);
+   582→    },
+   583→    onError: (err: Error) => {
+   584→      const msg = err.message || "";
+   585→      if (msg.includes("409")) {
+   586→        toast.error("That email is already in use.", {
+   587→          description: "Try a different email address.",
+   588→        });
+   589→      } else {
+   590→        toast.error("Could not add member.", { description: msg });
+   591→      }
+   592→    },
+   593→  });
+   594→
+   595→  const set = <K extends keyof MemberForm>(k: K, v: MemberForm[K]) =>
+   596→    setForm((f) => ({ ...f, [k]: v }));
+   597→
+   598→  const valid = form.fullName.trim().length > 0 && form.email.trim().length > 0;
+   599→
+   600→  function handleSubmit(e: React.FormEvent) {
+   601→    e.preventDefault();
+   602→    if (!valid) return;
+   603→    createMutation.mutate(form);
+   604→  }
+   605→
+   606→  function handleOpenChange(v: boolean) {
+   607→    if (!v) {
+   608→      // reset on close if not submitting
+   609→      if (!createMutation.isPending) setForm(EMPTY_MEMBER);
+   610→    }
+   611→    onOpenChange(v);
+   612→  }
+   613→
+   614→  return (
+   615→    <Dialog open={open} onOpenChange={handleOpenChange}>
+   616→      <DialogContent className="sm:max-w-lg">
+   617→        <DialogHeader>
+   618→          <DialogTitle>Add atelier member</DialogTitle>
+   619→          <DialogDescription>
+   620→            Create a sign-in for a staff member, trainer, or trainee.
+   621→          </DialogDescription>
+   622→        </DialogHeader>
+   623→
+   624→        <form onSubmit={handleSubmit} className="space-y-4">
+   625→          <div className="grid sm:grid-cols-2 gap-3">
+   626→            <Field label="Full Name" required>
+   627→              <Input
+   628→                value={form.fullName}
+   629→                onChange={(e) => set("fullName", e.target.value)}
+   630→                placeholder="e.g. Akosua Mensah"
+   631→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   632→                required
+   633→                autoFocus
+   634→              />
+   635→            </Field>
+   636→            <Field label="Email" required>
+   637→              <Input
+   638→                type="email"
+   639→                value={form.email}
+   640→                onChange={(e) => set("email", e.target.value)}
+   641→                placeholder="name@studio.com"
+   642→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   643→                required
+   644→              />
+   645→            </Field>
+   646→          </div>
+   647→
+   648→          <div className="grid sm:grid-cols-2 gap-3">
+   649→            <Field label="Role">
+   650→              <Select
+   651→                value={form.role}
+   652→                onValueChange={(v) => set("role", v)}
+   653→              >
+   654→                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+   655→                  <SelectValue />
+   656→                </SelectTrigger>
+   657→                <SelectContent>
+   658→                  {ROLE_OPTIONS.map((r) => (
+   659→                    <SelectItem key={r} value={r}>
+   660→                      {roleLabel(r)}
+   661→                    </SelectItem>
+   662→                  ))}
+   663→                </SelectContent>
+   664→              </Select>
+   665→            </Field>
+   666→            <Field label="Gender">
+   667→              <Select
+   668→                value={form.gender}
+   669→                onValueChange={(v) => set("gender", v)}
+   670→              >
+   671→                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+   672→                  <SelectValue placeholder="Select gender" />
+   673→                </SelectTrigger>
+   674→                <SelectContent>
+   675→                  {GENDER_OPTIONS.map((g) => (
+   676→                    <SelectItem key={g} value={g}>
+   677→                      {g}
+   678→                    </SelectItem>
+   679→                  ))}
+   680→                </SelectContent>
+   681→              </Select>
+   682→            </Field>
+   683→          </div>
+   684→
+   685→          <div className="grid sm:grid-cols-2 gap-3">
+   686→            <Field label="Phone">
+   687→              <Input
+   688→                value={form.phone}
+   689→                onChange={(e) => set("phone", e.target.value)}
+   690→                placeholder="+233 …"
+   691→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   692→              />
+   693→            </Field>
+   694→            <Field label="Password">
+   695→              <Input
+   696→                value={form.password}
+   697→                onChange={(e) => set("password", e.target.value)}
+   698→                placeholder="atelier2025"
+   699→                className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
+   700→              />
+   701→            </Field>
+   702→          </div>
+   703→          <p className="text-[11px] text-stone-400 -mt-1">
+   704→            Default password is{" "}
+   705→            <span className="font-medium text-stone-500">atelier2025</span>. The
+   706→            member can sign in and you can change it later from the database.
+   707→          </p>
+   708→
+   709→          <DialogFooter>
+   710→            <PremiumButton
+   711→              type="button"
+   712→              variant="outline"
+   713→              size="md"
+   714→              onClick={() => handleOpenChange(false)}
+   715→              disabled={createMutation.isPending}
+   716→            >
+   717→              Cancel
+   718→            </PremiumButton>
+   719→            <PremiumButton
+   720→              type="submit"
+   721→              variant="primary"
+   722→              size="md"
+   723→              loading={createMutation.isPending}
+   724→              disabled={!valid}
+   725→            >
+   726→              <UserPlus className="w-4 h-4" /> Add member
+   727→            </PremiumButton>
+   728→          </DialogFooter>
+   729→        </form>
+   730→      </DialogContent>
+   731→    </Dialog>
+   732→  );
+   733→}
+   734→
+   735→/* ======================= Add Freelancer Dialog ====================== */
+   736→
+   737→interface FreelancerForm {
+   738→  name: string;
+   739→  specialty: string;
+   740→  skills: string;
+   741→  phone: string;
+   742→  email: string;
+   743→  rate: string;
+   744→  status: string;
+   745→  notes: string;
+   746→}
+   747→
+   748→const EMPTY_FREELANCER: FreelancerForm = {
+   749→  name: "",
+   750→  specialty: "Beader",
+   751→  skills: "",
+   752→  phone: "",
+   753→  email: "",
+   754→  rate: "",
+   755→  status: "Available",
+   756→  notes: "",
+   757→};
+   758→
+   759→function AddFreelancerDialog({
+   760→  open,
+   761→  onOpenChange,
+   762→  onDone,
+   763→}: {
+   764→  open: boolean;
+   765→  onOpenChange: (v: boolean) => void;
+   766→  onDone: () => void;
+   767→}) {
+   768→  const [form, setForm] = useState<FreelancerForm>(EMPTY_FREELANCER);
+   769→
+   770→  const createMutation = useMutation({
+   771→    mutationFn: (body: FreelancerForm) =>
+   772→      apiPost<Freelancer>("/api/freelancers", {
+   773→        name: body.name,
+   774→        specialty: body.specialty,
+   775→        skills: body.skills || null,
+   776→        phone: body.phone || null,
+   777→        email: body.email || null,
+   778→        rate: body.rate ? Number(body.rate) : null,
+   779→        status: body.status,
+   780→        notes: body.notes || null,
+   781→      }),
+   782→    onSuccess: (f) => {
+   783→      toast.success(`${f.name} added to your freelancer roster.`, {
+   784→        description: f.specialty ? `${f.specialty} · ${f.status}` : f.status,
+   785→      });
+   786→      onDone();
+   787→      setForm(EMPTY_FREELANCER);
+   788→      onOpenChange(false);
+   789→    },
+   790→    onError: (err: Error) => {
+   791→      toast.error("Could not add freelancer.", {
+   792→        description: err.message,
+   793→      });
+   794→    },
+   795→  });
+   796→
+   797→  const set = <K extends keyof FreelancerForm>(k: K, v: FreelancerForm[K]) =>
+   798→    setForm((f) => ({ ...f, [k]: v }));
+   799→
+   800→  const valid = form.name.trim().length > 0;
+   801→
+   802→  function handleSubmit(e: React.FormEvent) {
+   803→    e.preventDefault();
+   804→    if (!valid) return;
+   805→    createMutation.mutate(form);
+   806→  }
+   807→
+   808→  function handleOpenChange(v: boolean) {
+   809→    if (!v && !createMutation.isPending) setForm(EMPTY_FREELANCER);
+   810→    onOpenChange(v);
+   811→  }
+   812→
+   813→  return (
+   814→    <Dialog open={open} onOpenChange={handleOpenChange}>
+   815→      <DialogContent className="sm:max-w-lg">
+   816→        <DialogHeader>
+   817→          <DialogTitle>Add freelancer</DialogTitle>
+   818→          <DialogDescription>
+   819→            Commission a beader, embroiderer, cutter, tailor or other
+   820→            specialist for bespoke work.
+   821→          </DialogDescription>
+   822→        </DialogHeader>
+   823→
+   824→        <form onSubmit={handleSubmit} className="space-y-4">
+   825→          <div className="grid sm:grid-cols-2 gap-3">
+   826→            <Field label="Name" required>
+   827→              <Input
+   828→                value={form.name}
+   829→                onChange={(e) => set("name", e.target.value)}
+   830→                placeholder="e.g. Adwoa Beads"
+   831→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   832→                required
+   833→                autoFocus
+   834→              />
+   835→            </Field>
+   836→            <Field label="Specialty">
+   837→              <Select
+   838→                value={form.specialty}
+   839→                onValueChange={(v) => set("specialty", v)}
+   840→              >
+   841→                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+   842→                  <SelectValue />
+   843→                </SelectTrigger>
+   844→                <SelectContent>
+   845→                  {SPECIALTIES.map((s) => (
+   846→                    <SelectItem key={s} value={s}>
+   847→                      {s}
+   848→                    </SelectItem>
+   849→                  ))}
+   850→                </SelectContent>
+   851→              </Select>
+   852→            </Field>
+   853→          </div>
+   854→
+   855→          <Field label="Skills">
+   856→            <Input
+   857→              value={form.skills}
+   858→              onChange={(e) => set("skills", e.target.value)}
+   859→              placeholder="Comma-separated, e.g. pearl threading, bead embroidery"
+   860→              className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   861→            />
+   862→          </Field>
+   863→
+   864→          <div className="grid sm:grid-cols-2 gap-3">
+   865→            <Field label="Phone">
+   866→              <Input
+   867→                value={form.phone}
+   868→                onChange={(e) => set("phone", e.target.value)}
+   869→                placeholder="+233 …"
+   870→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   871→              />
+   872→            </Field>
+   873→            <Field label="Email">
+   874→              <Input
+   875→                type="email"
+   876→                value={form.email}
+   877→                onChange={(e) => set("email", e.target.value)}
+   878→                placeholder="name@example.com"
+   879→                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+   880→              />
+   881→            </Field>
+   882→          </div>
+   883→
+   884→          <div className="grid sm:grid-cols-2 gap-3">
+   885→            <Field label="Rate (GHS)">
+   886→              <Input
+   887→                type="number"
+   888→                min="0"
+   889→                step="1"
+   890→                value={form.rate}
+   891→                onChange={(e) => set("rate", e.target.value)}
+   892→                placeholder="e.g. 150"
+   893→                className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
+   894→              />
+   895→            </Field>
+   896→            <Field label="Status">
+   897→              <Select
+   898→                value={form.status}
+   899→                onValueChange={(v) => set("status", v)}
+   900→              >
+   901→                <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+   902→                  <SelectValue />
+   903→                </SelectTrigger>
+   904→                <SelectContent>
+   905→                  {FREELANCER_STATUSES.map((s) => (
+   906→                    <SelectItem key={s} value={s}>
+   907→                      {s}
+   908→                    </SelectItem>
+   909→                  ))}
+   910→                </SelectContent>
+   911→              </Select>
+   912→            </Field>
+   913→          </div>
+   914→
+   915→          <Field label="Notes">
+   916→            <Textarea
+   917→              value={form.notes}
+   918→              onChange={(e) => set("notes", e.target.value)}
+   919→              placeholder="Lead time, preferred fabrics, payment terms…"
+   920→              className="bg-white border-[#E7E5E4] rounded-md min-h-[80px] resize-y"
+   921→            />
+   922→          </Field>
+   923→
+   924→          <DialogFooter>
+   925→            <PremiumButton
+   926→              type="button"
+   927→              variant="outline"
+   928→              size="md"
+   929→              onClick={() => handleOpenChange(false)}
+   930→              disabled={createMutation.isPending}
+   931→            >
+   932→              Cancel
+   933→            </PremiumButton>
+   934→            <PremiumButton
+   935→              type="submit"
+   936→              variant="primary"
+   937→              size="md"
+   938→              loading={createMutation.isPending}
+   939→              disabled={!valid}
+   940→            >
+   941→              <Plus className="w-4 h-4" /> Add freelancer
+   942→            </PremiumButton>
+   943→          </DialogFooter>
+   944→        </form>
+   945→      </DialogContent>
+   946→    </Dialog>
+   947→  );
+   948→}
+   949→
+   950→/* ------------------------------ Field ------------------------------ */
+   951→
+   952→function Field({
+   953→  label,
+   954→  required,
+   955→  children,
+   956→}: {
+   957→  label: string;
+   958→  required?: boolean;
+   959→  children: React.ReactNode;
+   960→}) {
+   961→  return (
+   962→    <div className="space-y-1.5">
+   963→      <Label className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500 flex items-center gap-1">
+   964→        {label}
+   965→        {required && <span className="text-[#800020]">*</span>}
+   966→      </Label>
+   967→      {children}
+   968→    </div>
+   969→  );
+   970→}
+   971→
