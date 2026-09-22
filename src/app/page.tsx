@@ -8,6 +8,7 @@ import { LoginPage } from "@/components/atelier/LoginPage";
 import { useAuth } from "@/stores/auth";
 import { useNav } from "@/stores/nav";
 import { setOnSessionExpired } from "@/lib/api";
+import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { Scissors, Lock } from "lucide-react";
 
 // Load all views lazily so each is a separate client bundle.
@@ -138,6 +139,8 @@ function FullScreenLoader() {
 
 function AuthGate() {
   const { status, hydrate, user } = useAuth();
+
+  useIdleLogout(status === "authenticated");
 
   useEffect(() => {
     if (status === "loading") hydrate();

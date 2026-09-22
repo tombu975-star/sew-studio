@@ -10,7 +10,12 @@ export async function GET(req: Request) {
     }
 
     const url = new URL(req.url);
-    const traineeId = url.searchParams.get("traineeId");
+    const requestedTraineeId = url.searchParams.get("traineeId");
+    // A trainee can only ever see their own logs, no matter what the query
+    // string asks for. Trainer/madam may filter by any traineeId, or omit
+    // it to see the whole shop.
+    const traineeId =
+      ctx.role === "trainee" ? ctx.userId : requestedTraineeId;
     const where = tenantWhere(ctx.shopId, traineeId ? { traineeId } : {});
     const logs = await db.trainingLog.findMany({
       where,

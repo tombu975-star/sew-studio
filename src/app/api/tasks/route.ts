@@ -1,6 +1,13 @@
 import { db } from "@/lib/db";
 import { getTenant, tenantWhere } from "@/lib/tenant";
 
+// GET /api/tasks — list tasks with relations
+//
+// Scoped by role, not just by tenant: owner and trainers oversee the whole
+// shop, so they see every task. Staff and trainees only work their own
+// assignments, so this only returns tasks assigned to them. Enforced here
+// (not just filtered in the UI) since the client's claimed role can't be
+// trusted — mirrors the same pattern in /api/orders.
 export async function GET(req: Request) {
   try {
     const ctx = await getTenant(req);
@@ -8,8 +15,13 @@ export async function GET(req: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
+    const where = canSeeAll
+      ? tenantWhere(ctx.shopId)
+      : tenantWhere(ctx.shopId, { staffId: ctx.userId });
+
     const tasks = await db.task.findMany({
-      where: tenantWhere(ctx.shopId),
+      where,
       include: {
         order: { include: { customer: true } },
         staff: true,

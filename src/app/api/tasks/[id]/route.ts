@@ -18,11 +18,21 @@ export async function PATCH(
       where: { id, shopId: ctx.shopId },
       select: {
         id: true,
+        staffId: true,
         staff: { select: { role: true, mentorId: true } },
       },
     });
     if (!existing) {
       return Response.json({ error: "Task not found" }, { status: 404 });
+    }
+    // Staff/trainees may only edit tasks assigned to them. Trainer/madam
+    // oversee the whole shop and can edit any task.
+    const isPrivileged = ctx.role === "trainer" || ctx.role === "madam";
+    if (!isPrivileged && existing.staffId !== ctx.userId) {
+      return Response.json(
+        { error: "You can only update tasks assigned to you." },
+        { status: 403 },
+      );
     }
     const data: Record<string, unknown> = {};
     if ("title" in body && body.title) data.title = String(body.title);

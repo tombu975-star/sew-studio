@@ -10,7 +10,11 @@ export async function GET(req: Request) {
     }
 
     const url = new URL(req.url);
-    const traineeId = url.searchParams.get("traineeId");
+    const requestedTraineeId = url.searchParams.get("traineeId");
+    // Same rule as /api/training-logs: a trainee can't ask for anyone
+    // else's certificates by passing a different traineeId.
+    const traineeId =
+      ctx.role === "trainee" ? ctx.userId : requestedTraineeId;
     const where = tenantWhere(ctx.shopId, traineeId ? { traineeId } : {});
     const certs = await db.certificate.findMany({
       where,
