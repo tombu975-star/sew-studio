@@ -161,6 +161,7 @@ export default function Tasks() {
   const isOwner = useRole((s) => s.isOwner);
 
   const traineeMode = isTrainee();
+  const trainerOnlyMode = isTrainer();
   const graderMode = isTrainer() || isOwner();
   // Staff (non-trainee) keeps existing behaviour — their own tasks, can change status.
   const staffMode = isStaff() && !traineeMode;
@@ -184,6 +185,23 @@ export default function Tasks() {
     queryFn: () => apiGet<Order[]>("/api/orders"),
   });
 
+  // Assignable studio members for the "assign to" field on new tasks —
+  // only trainers/owners create tasks for others, so only fetch when relevant.
+  const { data: allUsers = [] } = useQuery<User[]>({
+    queryKey: ["users"],
+    queryFn: () => apiGet<User[]>("/api/users"),
+    enabled: canCreate,
+  });
+
+  // A trainer may only hand out work to trainees they personally mentor;
+  // everyone else who can create tasks (owner, staff) sees the full roster.
+  const assignableMembers = useMemo(() => {
+    if (!trainerOnlyMode) return allUsers;
+    return allUsers.filter(
+      (u) => u.role === "trainee" && u.mentorId === user?.id
+    );
+  }, [allUsers, trainerOnlyMode, user?.id]);
+
   // Role-based scoping — what tasks this viewer should see.
   const scopedTasks = useMemo(() => {
     if (traineeMode) {
@@ -191,12 +209,21 @@ export default function Tasks() {
       return tasks.filter((t) => t.staffId === user?.id);
     }
     if (graderMode) {
-      // Trainer/Owner: ALL tasks assigned to trainees (filter staff?.role === 'trainee').
-      return tasks.filter((t) => t.staff?.role === "trainee");
+      // Owner: ALL tasks assigned to any trainee, studio-wide.
+      // Trainer: only tasks assigned to trainees they personally mentor.
+      return tasks.filter(
+        (t) =>
+          t.staff?.role === "trainee" &&
+          (!trainerOnlyMode || t.staff?.mentorId === user?.id)
+      );
     }
-    // Staff (non-trainee): keep existing — their own tasks.
+    if (staffMode) {
+      // Staff: ALL tasks assigned to staff (their own team's workload, not just their own).
+      return tasks.filter((t) => t.staff?.role === "staff");
+    }
+    // Any other role (e.g. freelancer): their own tasks only.
     return tasks.filter((t) => t.staffId === user?.id);
-  }, [tasks, traineeMode, graderMode, user?.id]);
+  }, [tasks, traineeMode, graderMode, trainerOnlyMode, staffMode, user?.id]);
 
   const staffOptions = useMemo(() => {
     const map = new Map<string, User>();
@@ -265,6 +292,7 @@ export default function Tasks() {
       dueDate?: string;
       orderId?: string;
       notes?: string;
+      staffId?: string;
     }) => apiPost<Task>("/api/tasks", payload),
     onSuccess: () => {
       toast.success("Task created");
@@ -316,8 +344,12 @@ export default function Tasks() {
 
   const subtitle = traineeMode
     ? "Your practice assignments and graded work from the atelier."
+    : trainerOnlyMode
+    ? "Assignments for the trainees you mentor. Grade completed work to track progress."
     : graderMode
     ? "Trainee assignments across the studio. Grade completed work to track progress."
+    : staffMode
+    ? "Tasks assigned across the staff team."
     : "Everything the atelier needs to do.";
 
   return (
@@ -602,6 +634,7 @@ export default function Tasks() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           orders={orders}
+          members={assignableMembers}
           onSubmit={(payload) => createMutation.mutate(payload)}
           submitting={createMutation.isPending}
         />
@@ -811,18 +844,21 @@ interface NewTaskPayload {
   dueDate?: string;
   orderId?: string;
   notes?: string;
+  staffId?: string;
 }
 
 function NewTaskDialog({
   open,
   onOpenChange,
   orders,
+  members,
   onSubmit,
   submitting,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   orders: Order[];
+  members: User[];
   onSubmit: (payload: NewTaskPayload) => void;
   submitting: boolean;
 }) {
@@ -830,6 +866,7 @@ function NewTaskDialog({
   const [priority, setPriority] = useState<string>("Medium");
   const [dueDate, setDueDate] = useState<string>("");
   const [orderId, setOrderId] = useState<string>("none");
+  const [staffId, setStaffId] = useState<string>("none");
   const [notes, setNotes] = useState<string>("");
 
   const reset = () => {
@@ -837,6 +874,7 @@ function NewTaskDialog({
     setPriority("Medium");
     setDueDate("");
     setOrderId("none");
+    setStaffId("none");
     setNotes("");
   };
 
@@ -852,6 +890,7 @@ function NewTaskDialog({
     };
     if (dueDate) payload.dueDate = dueDate;
     if (orderId && orderId !== "none") payload.orderId = orderId;
+    if (staffId && staffId !== "none") payload.staffId = staffId;
     if (notes.trim()) payload.notes = notes.trim();
     onSubmit(payload);
   };
@@ -928,6 +967,24 @@ function NewTaskDialog({
                   <SelectItem key={o.id} value={o.id}>
                     {o.garmentDesign}
                     {o.customer?.name ? ` · ${o.customer.name}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="task-staff">Assign to</Label>
+            <Select value={staffId} onValueChange={setStaffId}>
+              <SelectTrigger id="task-staff" className="w-full bg-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="none">Unassigned</SelectItem>
+                {members.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.fullName}
+                    {m.role ? ` · ${m.role}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -3,11 +3,12 @@ import { db } from "@/lib/db";
 export interface TenantContext {
   userId: string;
   shopId: string;
+  role: string;
 }
 
 /**
  * Read the session cookie from a Request and return the tenant context
- * (userId + shopId). Returns null if not authenticated.
+ * (userId + shopId + role). Returns null if not authenticated.
  *
  * The session cookie is `base64(userId:shopId)` — set on login.
  */
@@ -21,14 +22,16 @@ export async function getTenant(req: Request): Promise<TenantContext | null> {
     const [userId, shopId] = decoded.split(":");
     if (!userId || !shopId) return null;
 
-    // Verify the user still exists + belongs to this shop.
+    // Verify the user still exists + belongs to this shop, and pick up
+    // their current role (so callers can authorize sensitive actions —
+    // role is looked up fresh per-request, never trusted from the client).
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true, shopId: true },
+      select: { id: true, shopId: true, role: true },
     });
     if (!user || user.shopId !== shopId) return null;
 
-    return { userId, shopId };
+    return { userId, shopId, role: user.role };
   } catch {
     return null;
   }

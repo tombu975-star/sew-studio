@@ -22,6 +22,7 @@ import {
   ChevronRight,
   X,
   MoreHorizontal,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import { useRole, type Role } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
@@ -83,6 +84,10 @@ const SECTIONS: Record<Role, NavSection[]> = {
         { to: "portfolio", label: "Portfolio", icon: ImageIcon },
         { to: "certificate", label: "Certificates", icon: Award },
       ],
+    },
+    {
+      label: "Admin",
+      items: [{ to: "settings", label: "Settings", icon: SettingsIcon }],
     },
   ],
   // TRAINER — manages trainees, sees production

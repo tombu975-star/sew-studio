@@ -11,6 +11,23 @@ export async function GET(req: Request) {
     const users = await db.user.findMany({
       where: tenantWhere(ctx.shopId),
       orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        gender: true,
+        phone: true,
+        shopId: true,
+        mentorId: true,
+        trainingDurationWeeks: true,
+        trainingStartedAt: true,
+        canAccessOrders: true,
+        canAccessBoard: true,
+        createdAt: true,
+        updatedAt: true,
+        // password intentionally excluded — never send it to the client
+      },
     });
     return Response.json(users);
   } catch (err) {

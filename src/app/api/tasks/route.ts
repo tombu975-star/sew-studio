@@ -53,9 +53,15 @@ export async function POST(req: Request) {
       // Verify staff belongs to tenant.
       const staff = await db.user.findFirst({
         where: { id: String(body.staffId), shopId: ctx.shopId },
-        select: { id: true },
+        select: { id: true, role: true, mentorId: true },
       });
-      if (staff) data.staffId = String(body.staffId);
+      if (staff) {
+        // A trainer may only hand out work to trainees they personally mentor.
+        const allowed =
+          ctx.role !== "trainer" ||
+          (staff.role === "trainee" && staff.mentorId === ctx.userId);
+        if (allowed) data.staffId = String(body.staffId);
+      }
     }
     if (body.dueDate) data.dueDate = new Date(body.dueDate);
     if (body.notes) data.notes = String(body.notes);

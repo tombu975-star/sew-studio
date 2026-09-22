@@ -16,7 +16,10 @@ export async function PATCH(
     // Verify ownership.
     const existing = await db.task.findFirst({
       where: { id, shopId: ctx.shopId },
-      select: { id: true },
+      select: {
+        id: true,
+        staff: { select: { role: true, mentorId: true } },
+      },
     });
     if (!existing) {
       return Response.json({ error: "Task not found" }, { status: 404 });
@@ -42,9 +45,13 @@ export async function PATCH(
       if (body.staffId) {
         const staff = await db.user.findFirst({
           where: { id: String(body.staffId), shopId: ctx.shopId },
-          select: { id: true },
+          select: { id: true, role: true, mentorId: true },
         });
-        data.staffId = staff ? String(body.staffId) : null;
+        const allowed =
+          !!staff &&
+          (ctx.role !== "trainer" ||
+            (staff.role === "trainee" && staff.mentorId === ctx.userId));
+        data.staffId = allowed ? String(body.staffId) : null;
       } else {
         data.staffId = null;
       }
@@ -52,7 +59,31 @@ export async function PATCH(
     if ("dueDate" in body) {
       data.dueDate = body.dueDate ? new Date(body.dueDate) : null;
     }
-    // Grading (school-portal style)
+    // Grading (school-portal style) — only trainers/owners may set these,
+    // enforced here (not just hidden in the UI), since this is graded work
+    // that determines a trainee's record.
+    const isGradingAttempt =
+      "maxScore" in body ||
+      "score" in body ||
+      "feedback" in body ||
+      "gradedById" in body;
+    if (isGradingAttempt && ctx.role !== "trainer" && ctx.role !== "madam") {
+      return Response.json(
+        { error: "Only trainers or the studio owner can grade assignments." },
+        { status: 403 }
+      );
+    }
+    if (isGradingAttempt && ctx.role === "trainer") {
+      const isOwnMentee =
+        existing.staff?.role === "trainee" &&
+        existing.staff?.mentorId === ctx.userId;
+      if (!isOwnMentee) {
+        return Response.json(
+          { error: "You can only grade trainees you mentor." },
+          { status: 403 }
+        );
+      }
+    }
     if ("maxScore" in body)
       data.maxScore = body.maxScore != null ? Number(body.maxScore) : null;
     if ("score" in body)
@@ -60,8 +91,9 @@ export async function PATCH(
     if ("feedback" in body)
       data.feedback = body.feedback ? String(body.feedback) : null;
     if ("gradedById" in body) {
-      data.gradedById = body.gradedById ? String(body.gradedById) : null;
-      data.gradedAt = body.gradedById ? new Date() : null;
+      // Always grade as the actual caller, never a spoofed id from the client.
+      data.gradedById = ctx.userId;
+      data.gradedAt = new Date();
     }
     const task = await db.task.update({
       where: { id },

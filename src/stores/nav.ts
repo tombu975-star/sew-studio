@@ -20,7 +20,8 @@ export type ViewKey =
   | "portfolio"
   | "certificate"
   | "messages"
-  | "my-jobs";
+  | "my-jobs"
+  | "settings";
 
 interface NavState {
   view: ViewKey;
