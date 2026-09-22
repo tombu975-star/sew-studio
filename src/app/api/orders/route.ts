@@ -3,14 +3,28 @@ import { db } from "@/lib/db";
 import { getTenant, tenantWhere } from "@/lib/tenant";
 
 // GET /api/orders — list orders with relations
+//
+// Scoped by role, not just by tenant: the owner and trainers oversee the
+// whole shop, so they see every order. Staff and trainees only work their
+// own assignments, so the Production Board (and any other view built on
+// this endpoint) should only ever return orders assigned to them, plus
+// unassigned orders that are still up for grabs. This is enforced here,
+// not just hidden in the UI, since the client's role can't be trusted.
 export async function GET(req: NextRequest) {
   const ctx = await getTenant(req);
   if (!ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
+  const where = canSeeAll
+    ? tenantWhere(ctx.shopId)
+    : tenantWhere(ctx.shopId, {
+        OR: [{ assignedStaffId: ctx.userId }, { assignedStaffId: null }],
+      });
+
   const orders = await db.order.findMany({
-    where: tenantWhere(ctx.shopId),
+    where,
     include: {
       customer: true,
       assignedStaff: true,

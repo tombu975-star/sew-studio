@@ -14,8 +14,15 @@ export async function GET(
   }
 
   const { id } = await params;
+  const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
   const order = await db.order.findFirst({
-    where: { id, shopId: ctx.shopId },
+    where: canSeeAll
+      ? { id, shopId: ctx.shopId }
+      : {
+          id,
+          shopId: ctx.shopId,
+          OR: [{ assignedStaffId: ctx.userId }, { assignedStaffId: null }],
+        },
     include: {
       customer: true,
       assignedStaff: true,

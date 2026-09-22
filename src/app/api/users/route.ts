@@ -45,7 +45,8 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { fullName, email, role, gender, phone, password } = body || {};
+    const { fullName, email, role, gender, phone, password, mentorId } =
+      body || {};
     if (!fullName || !email) {
       return Response.json(
         { error: "Name and email are required." },
@@ -65,6 +66,23 @@ export async function POST(req: Request) {
       );
     }
 
+    // A mentor can only be assigned when creating a trainee, and must be a
+    // trainer/madam in the same shop — otherwise grading permission checks
+    // (which require trainee.mentorId === grading trainer's id) can never
+    // be satisfied for members added this way.
+    let finalMentorId: string | null = null;
+    if (finalRole === "trainee" && mentorId) {
+      const mentor = await db.user.findFirst({
+        where: {
+          id: String(mentorId),
+          shopId: ctx.shopId,
+          role: { in: ["trainer", "madam"] },
+        },
+        select: { id: true },
+      });
+      finalMentorId = mentor ? String(mentorId) : null;
+    }
+
     const user = await db.user.create({
       data: {
         shopId: ctx.shopId,
@@ -74,6 +92,7 @@ export async function POST(req: Request) {
         gender: gender || null,
         phone: phone || null,
         password: password || "atelier2025",
+        mentorId: finalMentorId,
       },
     });
     return Response.json(user);

@@ -1166,7 +1166,7 @@ function AddMemberDialog({
 interface TraineeForm {
   fullName: string;
   email: string;
-  mentorId: string; // informational only — not persisted on the user
+  mentorId: string; // assigns the mentor who can grade this trainee's work
   gender: string;
   phone: string;
   password: string;
@@ -1203,6 +1203,7 @@ function AddTraineeDialog({
         gender: body.gender || undefined,
         phone: body.phone || undefined,
         password: body.password || "atelier2025",
+        mentorId: body.mentorId || undefined,
       }),
     onSuccess: (u) => {
       toast.success(`${u.fullName} added as a trainee.`, {
@@ -1275,13 +1276,13 @@ function AddTraineeDialog({
             </Field>
           </div>
 
-          <Field label="Mentor (optional)">
+          <Field label="Mentor">
             <Select
               value={form.mentorId}
               onValueChange={(v) => set("mentorId", v)}
             >
               <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
-                <SelectValue placeholder="For your reference only" />
+                <SelectValue placeholder="Assign a mentor" />
               </SelectTrigger>
               <SelectContent>
                 {mentors.length === 0 ? (
@@ -1299,8 +1300,9 @@ function AddTraineeDialog({
             </Select>
           </Field>
           <p className="text-[11px] text-stone-400 -mt-2">
-            Mentor is informational only — you&rsquo;ll assign training logs to a
-            mentor from the Progress view.
+            The assigned mentor is the only trainer who can grade this
+            trainee&rsquo;s tasks. You can change this later from Team →
+            Edit trainee profile.
           </p>
 
           <div className="grid sm:grid-cols-2 gap-3">

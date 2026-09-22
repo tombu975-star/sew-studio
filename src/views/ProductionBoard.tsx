@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -21,6 +21,8 @@ import { LayoutGrid, AlertCircle, GripVertical } from "lucide-react";
 
 import { apiGet, apiPatch } from "@/lib/api";
 import { useNav } from "@/stores/nav";
+import { useAuth } from "@/stores/auth";
+import { useRole } from "@/stores/role";
 import { formatCurrency, shortDate, isOverdue } from "@/lib/format";
 import type { Order, User } from "@/lib/types";
 
@@ -77,8 +79,20 @@ function hashIndex(s: string, mod: number) {
 export default function ProductionBoard() {
   const { go } = useNav();
   const qc = useQueryClient();
+  const { user } = useAuth();
+  const { canSeeBusiness } = useRole();
+  // Owner + trainer oversee the whole shop and can filter by staff member.
+  // Everyone else only ever gets their own (+ unassigned) orders back from
+  // the API, so there's nothing to filter — default straight to "mine".
+  const canFilterByStaff = canSeeBusiness();
   const [staffFilter, setStaffFilter] = useState("all");
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // user.id isn't known on first render (auth hydrates async), so lock the
+  // filter to "mine" as soon as it is — for roles that can't see everyone.
+  useEffect(() => {
+    if (!canFilterByStaff && user?.id) setStaffFilter(user.id);
+  }, [canFilterByStaff, user?.id]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -188,23 +202,29 @@ export default function ProductionBoard() {
         eyebrow="Live workflow"
         eyebrowIcon={LayoutGrid}
         title="Production Board"
-        subtitle="Every order by stage — drag to move."
+        subtitle={
+          canFilterByStaff
+            ? "Every order by stage — drag to move."
+            : "Your assigned orders by stage — drag to move."
+        }
         actions={
-          <div className="w-full md:w-56">
-            <Select value={staffFilter} onValueChange={setStaffFilter}>
-              <SelectTrigger className="rounded-md w-full bg-white">
-                <SelectValue placeholder="All staff" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All staff</SelectItem>
-                {(users || []).map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.fullName || u.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          canFilterByStaff ? (
+            <div className="w-full md:w-56">
+              <Select value={staffFilter} onValueChange={setStaffFilter}>
+                <SelectTrigger className="rounded-md w-full bg-white">
+                  <SelectValue placeholder="All staff" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All staff</SelectItem>
+                  {(users || []).map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.fullName || u.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : undefined
         }
       />
 
