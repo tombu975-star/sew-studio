@@ -69,8 +69,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
-import { formatCurrency, formatDate } from "@/lib/format";
-import type { Freelancer, TrainingLog, User } from "@/lib/types";
+import { formatDate } from "@/lib/format";
+import type { Freelancer, FreelanceJob, TrainingLog, TrainingProgram, User } from "@/lib/types";
 import { useAuth } from "@/stores/auth";
 import { useNav } from "@/stores/nav";
 import { useRole } from "@/stores/role";
@@ -143,6 +143,7 @@ function toDateInput(iso: string | null | undefined): string {
 
 /** Sentinel value used by the mentor Select to mean "Unassigned". */
 const UNASSIGNED_MENTOR = "__none";
+const NO_PROGRAM = "__no_program";
 
 /* =============================== Team =============================== */
 
@@ -286,12 +287,13 @@ export default function Team() {
           />
         </TabsContent>
 
-        <TabsContent value="freelancers" className="mt-5">
+        <TabsContent value="freelancers" className="mt-5 space-y-5">
           <FreelancersCard
             freelancers={freelancers}
             isLoading={freelancersQ.isLoading}
             onAdd={() => setAddFreelancerOpen(true)}
           />
+          <FreelanceJobsSection freelancers={freelancers} />
         </TabsContent>
       </Tabs>
 
@@ -450,8 +452,8 @@ function FreelancersCard({
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      apiPatch<Freelancer>(`/api/freelancers/${id}`, { status }),
+    mutationFn: ({ linkId, status }: { linkId: string; status: string }) =>
+      apiPatch<Freelancer>(`/api/freelancers/${linkId}`, { status }),
     onSuccess: (f) => {
       qc.invalidateQueries({ queryKey: ["freelancers"] });
       toast.success(`${f.name} is now ${f.status}`);
@@ -460,7 +462,7 @@ function FreelancersCard({
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiDelete(`/api/freelancers/${id}`),
+    mutationFn: (linkId: string) => apiDelete(`/api/freelancers/${linkId}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["freelancers"] });
       toast.success("Freelancer removed from roster.");
@@ -469,7 +471,7 @@ function FreelancersCard({
     onError: () => toast.error("Could not remove freelancer."),
   });
 
-  const target = freelancers.find((f) => f.id === deleteId) || null;
+  const target = freelancers.find((f) => f.linkId === deleteId) || null;
 
   return (
     <SectionCard
@@ -501,7 +503,7 @@ function FreelancersCard({
               SPECIALTY_ICON[f.specialty || "Other"] || Briefcase;
             return (
               <div
-                key={f.id}
+                key={f.linkId}
                 className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
               >
                 <div
@@ -545,19 +547,19 @@ function FreelancersCard({
                   </div>
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pl-14 sm:pl-0">
-                  <div className="text-right">
-                    <div className="font-display font-semibold text-[#1C1917] tabular-nums text-sm leading-none">
-                      {f.rate ? formatCurrency(f.rate) : "—"}
+                  {f.rateNotes && (
+                    <div
+                      className="hidden lg:block text-xs text-stone-500 italic max-w-[180px] truncate"
+                      title={f.rateNotes}
+                    >
+                      {f.rateNotes}
                     </div>
-                    <div className="text-[10px] uppercase tracking-[0.14em] text-stone-400 mt-1">
-                      per piece
-                    </div>
-                  </div>
+                  )}
                   <StatusBadge status={f.status} />
                   <Select
                     value={f.status}
                     onValueChange={(v) =>
-                      statusMutation.mutate({ id: f.id, status: v })
+                      statusMutation.mutate({ linkId: f.linkId, status: v })
                     }
                   >
                     <SelectTrigger
@@ -579,7 +581,7 @@ function FreelancersCard({
                   <PremiumButton
                     variant="ghost"
                     size="icon"
-                    onClick={() => setDeleteId(f.id)}
+                    onClick={() => setDeleteId(f.linkId)}
                     aria-label={`Remove ${f.name}`}
                     className="text-stone-400 hover:text-[#b91c1c] hover:bg-[#b91c1c]/8"
                   >
@@ -1381,9 +1383,9 @@ interface FreelancerForm {
   skills: string;
   phone: string;
   email: string;
-  rate: string;
+  rateNotes: string;
   status: string;
-  notes: string;
+  password: string;
 }
 
 const EMPTY_FREELANCER: FreelancerForm = {
@@ -1392,10 +1394,260 @@ const EMPTY_FREELANCER: FreelancerForm = {
   skills: "",
   phone: "",
   email: "",
-  rate: "",
+  rateNotes: "",
   status: "Available",
-  notes: "",
+  password: "",
 };
+
+const JOB_STATUSES = ["Commissioned", "In Progress", "Delivered", "Paid"] as const;
+
+function FreelanceJobsSection({ freelancers }: { freelancers: Freelancer[] }) {
+  const qc = useQueryClient();
+  const [assignOpen, setAssignOpen] = useState(false);
+
+  const jobsQ = useQuery<FreelanceJob[]>({
+    queryKey: ["freelance-jobs"],
+    queryFn: () => apiGet<FreelanceJob[]>("/api/freelance-jobs"),
+  });
+  const jobs = jobsQ.data ?? [];
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiPatch<FreelanceJob>(`/api/freelance-jobs/${id}`, { status }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["freelance-jobs"] });
+    },
+    onError: () => toast.error("Could not update job status."),
+  });
+
+  return (
+    <SectionCard
+      title={`Freelance Jobs · ${jobs.length}`}
+      bodyClassName="p-0"
+      action={
+        <PremiumButton
+          size="sm"
+          onClick={() => setAssignOpen(true)}
+          disabled={freelancers.length === 0}
+        >
+          <Plus className="w-4 h-4" /> Assign Job
+        </PremiumButton>
+      }
+    >
+      {jobsQ.isLoading ? (
+        <SkeletonList rows={3} />
+      ) : jobs.length === 0 ? (
+        <EmptyState
+          icon={Briefcase}
+          title="No freelance jobs yet"
+          description={
+            freelancers.length === 0
+              ? "Add a freelancer first, then assign them work."
+              : "Assign a piece of work to one of your freelancers."
+          }
+          action={
+            <PremiumButton
+              size="sm"
+              onClick={() => setAssignOpen(true)}
+              disabled={freelancers.length === 0}
+            >
+              <Plus className="w-4 h-4" /> Assign Job
+            </PremiumButton>
+          }
+        />
+      ) : (
+        <div className="divide-y divide-[#E7E5E4]/70">
+          {jobs.map((j) => (
+            <div
+              key={j.id}
+              className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-5 py-3.5 hover:bg-[#faf8f5] transition-colors"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-[#1C1917] text-sm truncate">
+                  {j.taskDescription}
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-500 mt-0.5">
+                  {j.freelancer && <span>{j.freelancer.fullName}</span>}
+                  {j.dueDate && <span>Due {formatDate(j.dueDate)}</span>}
+                  {j.cost != null && (
+                    <span className="tabular-nums">GHS {j.cost}</span>
+                  )}
+                </div>
+              </div>
+              <Select
+                value={j.status}
+                onValueChange={(v) =>
+                  statusMutation.mutate({ id: j.id, status: v })
+                }
+              >
+                <SelectTrigger
+                  size="sm"
+                  className="w-[140px] bg-white border-[#E7E5E4] rounded-md h-9 shrink-0"
+                  disabled={statusMutation.isPending}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {JOB_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <AssignJobDialog
+        open={assignOpen}
+        onOpenChange={setAssignOpen}
+        freelancers={freelancers}
+        onDone={() => qc.invalidateQueries({ queryKey: ["freelance-jobs"] })}
+      />
+    </SectionCard>
+  );
+}
+
+function AssignJobDialog({
+  open,
+  onOpenChange,
+  freelancers,
+  onDone,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  freelancers: Freelancer[];
+  onDone: () => void;
+}) {
+  const [freelancerId, setFreelancerId] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [cost, setCost] = useState("");
+  const [dueDate, setDueDate] = useState("");
+
+  const reset = () => {
+    setFreelancerId("");
+    setTaskDescription("");
+    setCost("");
+    setDueDate("");
+  };
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      apiPost<FreelanceJob>("/api/freelance-jobs", {
+        freelancerId,
+        taskDescription: taskDescription.trim(),
+        cost: cost ? Number(cost) : undefined,
+        dueDate: dueDate || undefined,
+      }),
+    onSuccess: () => {
+      toast.success("Job assigned.");
+      onDone();
+      reset();
+      onOpenChange(false);
+    },
+    onError: (err: Error) =>
+      toast.error("Could not assign job.", { description: err.message }),
+  });
+
+  const valid = freelancerId && taskDescription.trim().length > 0;
+
+  function handleOpenChange(v: boolean) {
+    if (!v && !createMutation.isPending) reset();
+    onOpenChange(v);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Assign a job</DialogTitle>
+          <DialogDescription>
+            This is exactly what the freelancer will see when they log in —
+            nothing about your shop, customers, or staff.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (valid) createMutation.mutate();
+          }}
+          className="space-y-4"
+        >
+          <Field label="Freelancer" required>
+            <Select value={freelancerId} onValueChange={setFreelancerId}>
+              <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+                <SelectValue placeholder="Choose a freelancer" />
+              </SelectTrigger>
+              <SelectContent>
+                {freelancers.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field label="Task / garment" required>
+            <Textarea
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
+              placeholder="e.g. Bead the bodice for order SW-1042 — floral pattern"
+              className="bg-white border-[#E7E5E4] rounded-md min-h-[70px] resize-y"
+              required
+            />
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Cost (GHS)">
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                placeholder="e.g. 150"
+                className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
+              />
+            </Field>
+            <Field label="Due date">
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="h-10 bg-white border-[#E7E5E4] rounded-md"
+              />
+            </Field>
+          </div>
+
+          <DialogFooter>
+            <PremiumButton
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => handleOpenChange(false)}
+              disabled={createMutation.isPending}
+            >
+              Cancel
+            </PremiumButton>
+            <PremiumButton
+              type="submit"
+              variant="primary"
+              size="md"
+              loading={createMutation.isPending}
+              disabled={!valid}
+            >
+              Assign job
+            </PremiumButton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function AddFreelancerDialog({
   open,
@@ -1411,14 +1663,14 @@ function AddFreelancerDialog({
   const createMutation = useMutation({
     mutationFn: (body: FreelancerForm) =>
       apiPost<Freelancer>("/api/freelancers", {
-        name: body.name,
+        fullName: body.name,
         specialty: body.specialty,
         skills: body.skills || null,
         phone: body.phone || null,
-        email: body.email || null,
-        rate: body.rate ? Number(body.rate) : null,
+        email: body.email,
+        rateNotes: body.rateNotes || null,
         status: body.status,
-        notes: body.notes || null,
+        password: body.password || undefined,
       }),
     onSuccess: (f) => {
       toast.success(`${f.name} added to your freelancer roster.`, {
@@ -1438,7 +1690,7 @@ function AddFreelancerDialog({
   const set = <K extends keyof FreelancerForm>(k: K, v: FreelancerForm[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const valid = form.name.trim().length > 0;
+  const valid = form.name.trim().length > 0 && form.email.trim().length > 0;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -1458,7 +1710,11 @@ function AddFreelancerDialog({
           <DialogTitle>Add freelancer</DialogTitle>
           <DialogDescription>
             Commission a beader, embroiderer, cutter, tailor or other
-            specialist for bespoke work.
+            specialist for bespoke work. They get their own separate login —
+            they&apos;ll only ever see the jobs you assign them, never your
+            customers, staff, or orders. If this email already has a
+            freelancer account (from another shop), you&apos;ll just be
+            linking to it, not creating a duplicate.
           </DialogDescription>
         </DialogHeader>
 
@@ -1511,29 +1767,35 @@ function AddFreelancerDialog({
                 className="h-10 bg-white border-[#E7E5E4] rounded-md"
               />
             </Field>
-            <Field label="Email">
+            <Field label="Email" required>
               <Input
                 type="email"
                 value={form.email}
                 onChange={(e) => set("email", e.target.value)}
-                placeholder="name@example.com"
+                placeholder="name@example.com — used for their login"
                 className="h-10 bg-white border-[#E7E5E4] rounded-md"
+                required
               />
             </Field>
           </div>
 
+          <Field label="Password (optional)">
+            <Input
+              type="password"
+              value={form.password}
+              onChange={(e) => set("password", e.target.value)}
+              placeholder="Leave blank to use the default starter password"
+              className="h-10 bg-white border-[#E7E5E4] rounded-md"
+              autoComplete="new-password"
+            />
+            <p className="text-xs text-stone-400 mt-1">
+              Only used if this is a brand-new freelancer. If they already
+              have an account with another shop, their existing password
+              stays as-is.
+            </p>
+          </Field>
+
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Rate (GHS)">
-              <Input
-                type="number"
-                min="0"
-                step="1"
-                value={form.rate}
-                onChange={(e) => set("rate", e.target.value)}
-                placeholder="e.g. 150"
-                className="h-10 bg-white border-[#E7E5E4] rounded-md tabular-nums"
-              />
-            </Field>
             <Field label="Status">
               <Select
                 value={form.status}
@@ -1553,11 +1815,11 @@ function AddFreelancerDialog({
             </Field>
           </div>
 
-          <Field label="Notes">
+          <Field label="Rate & notes">
             <Textarea
-              value={form.notes}
-              onChange={(e) => set("notes", e.target.value)}
-              placeholder="Lead time, preferred fabrics, payment terms…"
+              value={form.rateNotes}
+              onChange={(e) => set("rateNotes", e.target.value)}
+              placeholder="What you pay them, lead time, preferred fabrics, payment terms…"
               className="bg-white border-[#E7E5E4] rounded-md min-h-[80px] resize-y"
             />
           </Field>
@@ -1592,6 +1854,7 @@ function AddFreelancerDialog({
 
 interface EditTraineeForm {
   mentorId: string;
+  programId: string;
   trainingDurationWeeks: string;
   trainingStartedAt: string;
   canAccessOrders: boolean;
@@ -1610,11 +1873,16 @@ function EditTraineeDialog({
   mentors: User[];
 }) {
   const qc = useQueryClient();
+  const programsQ = useQuery<TrainingProgram[]>({
+    queryKey: ["training-programs"],
+    queryFn: () => apiGet<TrainingProgram[]>("/api/training-programs"),
+  });
   // Initialise from the trainee prop on mount. The parent passes a `key`
   // based on `editTrainee?.id` so the dialog remounts (and this runs again)
   // whenever a different trainee is opened.
   const [form, setForm] = useState<EditTraineeForm>(() => ({
     mentorId: trainee?.mentorId ?? UNASSIGNED_MENTOR,
+    programId: trainee?.programId ?? NO_PROGRAM,
     trainingDurationWeeks:
       trainee?.trainingDurationWeeks != null
         ? String(trainee.trainingDurationWeeks)
@@ -1627,6 +1895,7 @@ function EditTraineeDialog({
   const saveMutation = useMutation({
     mutationFn: (body: {
       mentorId: string | null;
+      programId: string | null;
       trainingDurationWeeks: number | null;
       trainingStartedAt: string | null;
       canAccessOrders: boolean;
@@ -1656,6 +1925,10 @@ function EditTraineeDialog({
       mentorId:
         form.mentorId && form.mentorId !== UNASSIGNED_MENTOR
           ? form.mentorId
+          : null,
+      programId:
+        form.programId && form.programId !== NO_PROGRAM
+          ? form.programId
           : null,
       trainingDurationWeeks:
         !isNaN(durationNum) && durationNum > 0 ? durationNum : null,
@@ -1703,6 +1976,35 @@ function EditTraineeDialog({
           </Field>
           <p className="text-[11px] text-stone-400 -mt-2">
             Mentors must be a trainer or the Madam.
+          </p>
+
+          <Field label="Training program (curriculum)">
+            <Select
+              value={form.programId || NO_PROGRAM}
+              onValueChange={(v) => set("programId", v)}
+            >
+              <SelectTrigger className="h-10 bg-white border-[#E7E5E4] rounded-md w-full">
+                <SelectValue placeholder="Not enrolled" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_PROGRAM}>Not enrolled</SelectItem>
+                {(programsQ.data ?? []).length === 0 ? (
+                  <SelectItem value="__no_programs" disabled>
+                    No training programs yet — create one under Curriculum
+                  </SelectItem>
+                ) : (
+                  (programsQ.data ?? []).map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} · {p.level}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </Field>
+          <p className="text-[11px] text-stone-400 -mt-2">
+            Enrolling in a program lets this trainee see its curriculum in
+            their Progress view and shows on their downloadable portfolio.
           </p>
 
           <div className="grid sm:grid-cols-2 gap-3">

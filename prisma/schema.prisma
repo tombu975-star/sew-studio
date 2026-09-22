@@ -31,11 +31,14 @@ model Shop {
   styleConcepts   StyleConcept[]
   feedback        CustomerFeedback[]
   settings        Settings[]
-  freelancers     Freelancer[]
+  freelancerLinks FreelancerShopLink[]
+  freelanceJobs   FreelanceJob[]
   communityPosts  CommunityPost[]
   trainingLogs    TrainingLog[]
   certificates    Certificate[]
   customerNotifications CustomerNotification[]
+  trainingPrograms TrainingProgram[]
+  competencyUnits  CompetencyUnit[]
 }
 
 // ─── People ────────────────────────────────────────────────────────
@@ -56,6 +59,11 @@ model User {
   trainees           User[]   @relation("TraineeMentor")
   trainingDurationWeeks Int?
   trainingStartedAt  DateTime?
+  // Curriculum enrollment — which training program (and therefore which
+  // level, duration and competency units) this trainee is working through.
+  // Set by their trainer/owner via /api/users/[id].
+  programId          String?
+  program            TrainingProgram? @relation(fields: [programId], references: [id], onDelete: SetNull)
   // Trainee access permissions — granted by the trainer/owner
   canAccessOrders    Boolean  @default(false)
   canAccessBoard     Boolean  @default(false)
@@ -70,22 +78,65 @@ model User {
   certificatesAsTrainee Certificate[] @relation("TraineeCerts")
   certificatesAsIssuer Certificate[] @relation("IssuerCerts")
   gradedTasks   Task[]   @relation("TaskGrader")
+  programsCreated TrainingProgram[] @relation("ProgramCreator")
 }
 
-model Freelancer {
+// ─── Freelancers ───────────────────────────────────────────────────
+// Freelancers are NOT shop tenants. One freelancer has a single global
+// identity (their own login) and can be linked + given jobs by any
+// number of different shops. They must never get shop-tenant access —
+// no customers, no staff, no orders, nothing beyond the jobs assigned
+// to them. That boundary is structural: FreelanceJob is its own model,
+// never linked into Order/Customer in any freelancer-facing query.
+
+model FreelancerAccount {
   id        String   @id @default(cuid())
-  shopId    String
-  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  name      String
+  email     String   @unique
+  password  String
+  fullName  String
+  phone     String?
   specialty String?
   skills    String?
-  phone     String?
-  email     String?
-  rate      Float?
-  status    String   @default("Available")
-  notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  shopLinks FreelancerShopLink[]
+  jobs      FreelanceJob[]
+}
+
+// A shop's own relationship to a freelancer — rate/status/notes are
+// per-shop (the same freelancer may charge different shops differently).
+model FreelancerShopLink {
+  id           String   @id @default(cuid())
+  shopId       String
+  shop         Shop              @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  freelancerId String
+  freelancer   FreelancerAccount @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  rateNotes    String?
+  status       String   @default("Available") // Available | Busy | Unavailable
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([shopId, freelancerId])
+}
+
+// A specific piece of work a shop hands to a freelancer. orderId is an
+// optional internal reference for the SHOP's own bookkeeping only — the
+// freelancer-facing API never selects or includes the order/customer
+// relation, only the fields below.
+model FreelanceJob {
+  id              String    @id @default(cuid())
+  shopId          String
+  shop            Shop              @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  freelancerId    String
+  freelancer      FreelancerAccount @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  orderId         String?   // internal reference only — never exposed to the freelancer
+  taskDescription String
+  cost            Float?
+  dueDate         DateTime?
+  status          String    @default("Commissioned") // Commissioned | In Progress | Delivered | Paid
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // ─── Clients ───────────────────────────────────────────────────────
@@ -231,11 +282,65 @@ model Task {
   gradedBy  User?    @relation("TaskGrader", fields: [gradedById], references: [id])
   gradedAt  DateTime?
   feedback  String?
+  // Which competency unit (curriculum module) this assignment demonstrates,
+  // if it's part of a trainee's structured training program.
+  competencyUnitId String?
+  competencyUnit   CompetencyUnit? @relation(fields: [competencyUnitId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// ─── Style assist ──────────────────────────────────────────────────
+// ─── Curriculum (competency-based training) ────────────────────────
+// Modeled after CBT/CBET-style TVET documentation (e.g. Ghana's CTVET/
+// GTQF, and equivalent international competency-based frameworks): a
+// training program has a level and a duration, and is made up of Units
+// of Competency, each with its own learning outcomes, assessment
+// criteria and nominal (expected) training hours. Trainees are enrolled
+// into a program; their assigned tasks can be mapped to a specific unit
+// so trainers can track coverage against the curriculum, not just a
+// generic to-do list.
+model TrainingProgram {
+  id            String   @id @default(cuid())
+  shopId        String
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  name          String   // e.g. "Bespoke Tailoring Apprenticeship"
+  // Free text so the trainer can use whatever framework applies locally —
+  // e.g. "Beginner", "NVTI Grade II", "GTQF Level 3", "Advanced".
+  level         String
+  durationWeeks Int
+  description   String?
+  createdById   String
+  createdBy     User     @relation("ProgramCreator", fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  units    CompetencyUnit[]
+  trainees User[]
+}
+
+model CompetencyUnit {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  programId String
+  program   TrainingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  // Optional formal unit code, if the trainer is aligning to a published
+  // standard (e.g. a national competency unit code).
+  code               String?
+  title              String   // e.g. "Pattern Drafting Fundamentals"
+  // Newline-separated lists, kept as plain text to match the rest of this
+  // schema's conventions (see Task.notes, Certificate.skillsAchieved).
+  learningOutcomes   String
+  assessmentCriteria String
+  nominalHours       Int?
+  order              Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tasks Task[]
+}
+
+
 model StyleConcept {
   id            String   @id @default(cuid())
   shopId        String

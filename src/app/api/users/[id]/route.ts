@@ -43,6 +43,7 @@ export async function PATCH(
       mentorId,
       trainingDurationWeeks,
       trainingStartedAt,
+      programId,
       fullName,
       phone,
       gender,
@@ -71,6 +72,18 @@ export async function PATCH(
       data.trainingStartedAt = trainingStartedAt
         ? new Date(trainingStartedAt)
         : null;
+    if (programId !== undefined) {
+      if (programId) {
+        // Verify the program belongs to the same tenant.
+        const program = await db.trainingProgram.findFirst({
+          where: { id: String(programId), shopId: ctx.shopId },
+          select: { id: true },
+        });
+        data.programId = program ? String(programId) : null;
+      } else {
+        data.programId = null;
+      }
+    }
     if (fullName !== undefined) data.fullName = fullName;
     if (phone !== undefined) data.phone = phone || null;
     if (gender !== undefined) data.gender = gender || null;

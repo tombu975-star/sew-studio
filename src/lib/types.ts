@@ -24,8 +24,32 @@ export interface User {
   mentor?: { id: string; fullName: string } | null;
   trainingDurationWeeks?: number | null;
   trainingStartedAt?: string | null;
+  programId?: string | null;
+  program?: { id: string; name: string; level: string } | null;
   canAccessOrders?: boolean;
   canAccessBoard?: boolean;
+}
+
+export interface CompetencyUnit {
+  id: string;
+  programId: string;
+  code?: string | null;
+  title: string;
+  learningOutcomes: string;
+  assessmentCriteria: string;
+  nominalHours?: number | null;
+  order: number;
+}
+
+export interface TrainingProgram {
+  id: string;
+  name: string;
+  level: string;
+  durationWeeks: number;
+  description?: string | null;
+  createdBy?: { id: string; fullName: string } | null;
+  units: CompetencyUnit[];
+  _count?: { trainees: number };
 }
 
 export interface Customer {
@@ -180,16 +204,27 @@ export interface Settings {
 }
 
 export interface Freelancer {
-  id: string;
+  linkId: string; // this shop's link id — use for PATCH/DELETE on /api/freelancers
+  id: string; // the freelancer's shared global account id
   name: string;
   specialty?: string | null;
   skills?: string | null;
   phone?: string | null;
   email?: string | null;
-  rate?: number | null;
+  rateNotes?: string | null;
   status: string; // Available | Busy | Unavailable
-  notes?: string | null;
   createdAt: string;
+}
+
+export interface FreelanceJob {
+  id: string;
+  taskDescription: string;
+  cost?: number | null;
+  dueDate?: string | null;
+  status: string; // Commissioned | In Progress | Delivered | Paid
+  createdAt: string;
+  freelancer?: { id: string; fullName: string };
+  shop?: { name: string }; // present on the freelancer-facing API only
 }
 
 export type CommunityPostType =

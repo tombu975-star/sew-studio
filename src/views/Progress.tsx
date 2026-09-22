@@ -20,6 +20,7 @@ import {
   Clock,
   User as UserIcon,
   TrendingUp,
+  Download,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
@@ -601,6 +602,17 @@ function ProgressBody({
           avgPctValue={avgPctValue}
           gradedCount={gradedCount}
         />
+      </div>
+
+      {/* Download portfolio */}
+      <div className="mb-6 flex justify-end animate-fade-in-up">
+        <a
+          href={`/api/portfolio/${traineeId}/pdf`}
+          className="inline-flex items-center gap-2 rounded-lg border border-[#800020]/30 bg-[#800020]/5 px-4 py-2 text-sm font-medium text-[#800020] hover:bg-[#800020]/10 transition"
+        >
+          <Download className="w-4 h-4" />
+          Download Portfolio (PDF)
+        </a>
       </div>
 
       {/* Assignments & grades table (prominent) */}

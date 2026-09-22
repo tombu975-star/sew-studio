@@ -17,6 +17,7 @@ export type ViewKey =
   | "team"
   | "community"
   | "progress"
+  | "curriculum"
   | "portfolio"
   | "certificate"
   | "messages"

@@ -23,6 +23,7 @@ import {
   X,
   MoreHorizontal,
   Settings as SettingsIcon,
+  BookOpen,
 } from "lucide-react";
 import { useRole, type Role } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
@@ -80,6 +81,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
     {
       label: "Learning",
       items: [
+        { to: "curriculum", label: "Curriculum", icon: BookOpen },
         { to: "progress", label: "Progress", icon: GraduationCap },
         { to: "portfolio", label: "Portfolio", icon: ImageIcon },
         { to: "certificate", label: "Certificates", icon: Award },
@@ -111,6 +113,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
     {
       label: "Learning",
       items: [
+        { to: "curriculum", label: "Curriculum", icon: BookOpen },
         { to: "progress", label: "Trainee Progress", icon: GraduationCap },
         { to: "portfolio", label: "Portfolio", icon: ImageIcon },
       ],
@@ -157,6 +160,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
     {
       label: "My Journey",
       items: [
+        { to: "curriculum", label: "My Curriculum", icon: BookOpen },
         { to: "progress", label: "My Progress", icon: GraduationCap },
         { to: "portfolio", label: "Portfolio", icon: ImageIcon },
         { to: "certificate", label: "Certificate", icon: Award },
