@@ -131,7 +131,7 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#faf8f5]">
       {/* Top hero band — app-style header */}
-      <div className="relative h-[42vh] min-h-[300px] overflow-hidden bg-[#800020] shrink-0">
+      <div className="relative h-[26vh] min-h-[180px] sm:h-[42vh] sm:min-h-[300px] overflow-hidden bg-[#800020] shrink-0">
         <img
           src="/atelier-login.jpg"
           alt="Atelier studio interior"
