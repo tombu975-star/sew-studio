@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getTenant } from "@/lib/tenant";
-import ZAI from "z-ai-web-dev-sdk";
+import ZAI from "@/lib/ai-client";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
