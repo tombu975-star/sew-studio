@@ -11,16 +11,31 @@ export async function PATCH(
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (ctx.role !== "madam" && ctx.role !== "trainer") {
+      return Response.json(
+        { error: "Only the studio owner or a trainer can edit member profiles." },
+        { status: 403 }
+      );
+    }
 
     const { id } = await params;
 
     // Verify the user belongs to this tenant.
     const existing = await db.user.findFirst({
       where: { id, shopId: ctx.shopId },
-      select: { id: true },
+      select: { id: true, role: true, mentorId: true },
     });
     if (!existing) {
       return Response.json({ error: "User not found" }, { status: 404 });
+    }
+    if (
+      ctx.role === "trainer" &&
+      !(existing.role === "trainee" && existing.mentorId === ctx.userId)
+    ) {
+      return Response.json(
+        { error: "You can only edit trainees you mentor." },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

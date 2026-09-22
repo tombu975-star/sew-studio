@@ -43,6 +43,12 @@ export async function POST(req: Request) {
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (ctx.role !== "madam" && ctx.role !== "trainer") {
+      return Response.json(
+        { error: "Only the studio owner or a trainer can add members." },
+        { status: 403 }
+      );
+    }
 
     const body = await req.json();
     const { fullName, email, role, gender, phone, password, mentorId } =
@@ -54,7 +60,11 @@ export async function POST(req: Request) {
       );
     }
     const validRoles = ["madam", "staff", "trainer", "trainee"];
-    const finalRole = validRoles.includes(role) ? role : "staff";
+    let finalRole = validRoles.includes(role) ? role : "staff";
+    if (ctx.role === "trainer") {
+      // Trainers may only add trainees — not staff, trainers, or owners.
+      finalRole = "trainee";
+    }
 
     const existing = await db.user.findUnique({
       where: { email: String(email).toLowerCase().trim() },

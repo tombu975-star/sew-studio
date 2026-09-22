@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -21,7 +21,6 @@ import { LayoutGrid, AlertCircle, GripVertical } from "lucide-react";
 
 import { apiGet, apiPatch } from "@/lib/api";
 import { useNav } from "@/stores/nav";
-import { useAuth } from "@/stores/auth";
 import { useRole } from "@/stores/role";
 import { formatCurrency, shortDate, isOverdue } from "@/lib/format";
 import type { Order, User } from "@/lib/types";
@@ -79,20 +78,14 @@ function hashIndex(s: string, mod: number) {
 export default function ProductionBoard() {
   const { go } = useNav();
   const qc = useQueryClient();
-  const { user } = useAuth();
   const { canSeeBusiness } = useRole();
   // Owner + trainer oversee the whole shop and can filter by staff member.
   // Everyone else only ever gets their own (+ unassigned) orders back from
-  // the API, so there's nothing to filter — default straight to "mine".
+  // the API — that's enforced server-side, so there's nothing to filter
+  // client-side, and nothing here needs to wait on auth to hydrate.
   const canFilterByStaff = canSeeBusiness();
   const [staffFilter, setStaffFilter] = useState("all");
   const [activeId, setActiveId] = useState<string | null>(null);
-
-  // user.id isn't known on first render (auth hydrates async), so lock the
-  // filter to "mine" as soon as it is — for roles that can't see everyone.
-  useEffect(() => {
-    if (!canFilterByStaff && user?.id) setStaffFilter(user.id);
-  }, [canFilterByStaff, user?.id]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

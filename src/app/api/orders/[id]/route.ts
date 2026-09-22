@@ -52,9 +52,18 @@ export async function PATCH(
 
   const { id } = await params;
 
-  // Verify ownership + fetch current state for notification diffing.
+  // Same scope as GET: owner/trainer can touch any order in the shop;
+  // everyone else only their own assignment (or an unassigned one they're
+  // picking up) — checked here, not just filtered out of list views.
+  const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
   const existing = await db.order.findFirst({
-    where: { id, shopId: ctx.shopId },
+    where: canSeeAll
+      ? { id, shopId: ctx.shopId }
+      : {
+          id,
+          shopId: ctx.shopId,
+          OR: [{ assignedStaffId: ctx.userId }, { assignedStaffId: null }],
+        },
     select: { id: true, status: true, customerId: true, garmentDesign: true },
   });
   if (!existing) {
