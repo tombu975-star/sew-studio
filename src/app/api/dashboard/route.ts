@@ -20,10 +20,7 @@ export async function GET(req: Request) {
       db.order.findMany({
         where: { shopId: ctx.shopId },
         include: {
-          customer: true,
-          assignedStaff: true,
-          payments: { orderBy: { date: "asc" } },
-          fittings: { orderBy: { date: "asc" } },
+          customer: { select: { id: true, name: true } },
         },
         orderBy: { createdAt: "desc" },
       }),
