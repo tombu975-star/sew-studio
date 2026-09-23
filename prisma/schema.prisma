@@ -8,8 +8,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:../db/custom.db"
+  // Deployed against Supabase Postgres (madam-studio project). Use "sqlite" only for local dev without Supabase.
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ─── Tenant ────────────────────────────────────────────────────────
