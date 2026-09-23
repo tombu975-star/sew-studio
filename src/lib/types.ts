@@ -138,6 +138,8 @@ export interface Task {
   gradedBy?: { id: string; fullName: string } | null;
   gradedAt?: string | null;
   feedback?: string | null;
+  competencyUnitId?: string | null;
+  competencyUnit?: { id: string; title: string; programId: string } | null;
   createdAt: string;
 }
 

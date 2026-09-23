@@ -74,6 +74,7 @@ import type {
   Task,
   TrainingLog,
   TrainingStatus,
+  TrainingProgram,
   User,
 } from "@/lib/types";
 import { useAuth } from "@/stores/auth";
@@ -622,6 +623,7 @@ function ProgressBody({
           isLoading={tasksQ.isLoading}
           canGrade={viewerRole === "owner"}
           graderId={mentorId}
+          programId={traineeUser?.programId ?? null}
         />
       </div>
 
@@ -1449,11 +1451,13 @@ function AssignmentsGradesCard({
   isLoading,
   canGrade,
   graderId,
+  programId,
 }: {
   tasks: Task[];
   isLoading: boolean;
   canGrade: boolean;
   graderId?: string;
+  programId: string | null;
 }) {
   const [gradeTask, setGradeTask] = useState<Task | null>(null);
 
@@ -1514,6 +1518,7 @@ function AssignmentsGradesCard({
       <GradeDialog
         task={gradeTask}
         graderId={graderId}
+        programId={programId}
         open={!!gradeTask}
         onOpenChange={(v) => !v && setGradeTask(null)}
       />
@@ -1628,11 +1633,13 @@ function AssignmentRow({
 function GradeDialog({
   task,
   graderId,
+  programId,
   open,
   onOpenChange,
 }: {
   task: Task | null;
   graderId?: string;
+  programId: string | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
@@ -1644,6 +1651,7 @@ function GradeDialog({
             key={`grade-${task.id}`}
             task={task}
             graderId={graderId}
+            programId={programId}
             onDone={() => onOpenChange(false)}
             onCancel={() => onOpenChange(false)}
           />
@@ -1656,11 +1664,13 @@ function GradeDialog({
 function GradeForm({
   task,
   graderId,
+  programId,
   onDone,
   onCancel,
 }: {
   task: Task;
   graderId?: string;
+  programId: string | null;
   onDone: () => void;
   onCancel: () => void;
 }) {
@@ -1668,6 +1678,16 @@ function GradeForm({
   const [maxScore, setMaxScore] = useState("20");
   const [score, setScore] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [competencyUnitId, setCompetencyUnitId] = useState(
+    task.competencyUnitId || "__none"
+  );
+
+  const programQ = useQuery<TrainingProgram>({
+    queryKey: ["training-program", programId],
+    queryFn: () => apiGet<TrainingProgram>(`/api/training-programs/${programId}`),
+    enabled: !!programId,
+  });
+  const units = programQ.data?.units || [];
 
   const gradeMut = useMutation({
     mutationFn: () =>
@@ -1676,6 +1696,8 @@ function GradeForm({
         score: Number(score),
         feedback: feedback.trim() || null,
         gradedById: graderId,
+        competencyUnitId:
+          competencyUnitId === "__none" ? null : competencyUnitId,
       }),
     onSuccess: () => {
       toast.success("Grade submitted.");
@@ -1754,6 +1776,30 @@ function GradeForm({
             </span>
           </div>
         )}
+
+        <div className="grid gap-1.5">
+          <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+            Competency unit (evidence)
+          </Label>
+          <Select value={competencyUnitId} onValueChange={setCompetencyUnitId}>
+            <SelectTrigger className="bg-white">
+              <SelectValue placeholder="Not tagged to a unit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">Not tagged to a unit</SelectItem>
+              {units.map((u) => (
+                <SelectItem key={u.id} value={u.id}>
+                  {u.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-[11px] text-stone-400">
+            {programId
+              ? "Optional — tag this grade as evidence toward a competency unit in the trainee's program, for their portfolio."
+              : "This trainee isn't enrolled in a training program yet, so there's nothing to tag this grade against."}
+          </p>
+        </div>
 
         <div className="grid gap-1.5">
           <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">

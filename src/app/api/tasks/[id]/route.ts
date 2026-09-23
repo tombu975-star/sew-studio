@@ -76,7 +76,8 @@ export async function PATCH(
       "maxScore" in body ||
       "score" in body ||
       "feedback" in body ||
-      "gradedById" in body;
+      "gradedById" in body ||
+      "competencyUnitId" in body;
     if (isGradingAttempt && ctx.role !== "trainer" && ctx.role !== "madam") {
       return Response.json(
         { error: "Only trainers or the studio owner can grade assignments." },
@@ -100,6 +101,19 @@ export async function PATCH(
       data.score = body.score != null ? Number(body.score) : null;
     if ("feedback" in body)
       data.feedback = body.feedback ? String(body.feedback) : null;
+    if ("competencyUnitId" in body) {
+      if (body.competencyUnitId) {
+        // Verify the unit's program belongs to this tenant — same pattern
+        // as the orderId/staffId checks above.
+        const unit = await db.competencyUnit.findFirst({
+          where: { id: String(body.competencyUnitId), shopId: ctx.shopId },
+          select: { id: true },
+        });
+        data.competencyUnitId = unit ? String(body.competencyUnitId) : null;
+      } else {
+        data.competencyUnitId = null;
+      }
+    }
     if ("gradedById" in body) {
       // Always grade as the actual caller, never a spoofed id from the client.
       data.gradedById = ctx.userId;
@@ -112,6 +126,7 @@ export async function PATCH(
         order: { include: { customer: true } },
         staff: true,
         gradedBy: { select: { id: true, fullName: true } },
+        competencyUnit: { select: { id: true, title: true, programId: true } },
       },
     });
     return Response.json(task);
