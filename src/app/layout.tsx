@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { SupabaseHealthChecker } from "@/components/SupabaseHealthChecker";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-body",
@@ -51,6 +52,7 @@ export default function RootLayout({
         className={`${jakarta.variable} ${cormorant.variable} antialiased font-body`}
       >
         {children}
+        <SupabaseHealthChecker />
         <Toaster />
         <SonnerToaster position="top-right" richColors closeButton />
       </body>

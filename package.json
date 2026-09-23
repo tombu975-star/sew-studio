@@ -12,7 +12,8 @@
     "db:generate": "node scripts/ensure-prisma-schema.js && prisma generate",
     "db:migrate": "node scripts/ensure-prisma-schema.js && prisma migrate dev",
     "db:reset": "node scripts/ensure-prisma-schema.js && prisma migrate reset",
-    "db:seed": "node scripts/ensure-prisma-schema.js && npx tsx prisma/seed.ts"
+    "db:seed": "node scripts/ensure-prisma-schema.js && npx tsx prisma/seed.ts",
+    "db:init-essential": "node scripts/ensure-prisma-schema.js && npx tsx scripts/init-supabase-essential.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
