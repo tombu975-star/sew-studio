@@ -33,6 +33,11 @@ export const metadata: Metadata = {
   icons: {
     icon: "/logo.svg",
   },
+  openGraph: {
+    title: "Madam Studio — Atelier Management",
+    description:
+      "An elegant atelier management system for custom tailoring studios — clients, orders, fittings, production and AI style assist.",
+  },
 };
 
 export default function RootLayout({
