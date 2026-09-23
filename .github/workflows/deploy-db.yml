@@ -22,4 +22,4 @@ jobs:
       - name: Apply schema to Supabase (db push)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: bunx prisma db push --accept-data-loss=false
+        run: bunx prisma db push --accept-data-loss
