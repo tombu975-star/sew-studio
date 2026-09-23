@@ -49,6 +49,7 @@ export async function PATCH(
       gender,
       canAccessOrders,
       canAccessBoard,
+      canManageFreelancers,
     } = body || {};
 
     const data: Record<string, unknown> = {};
@@ -92,6 +93,17 @@ export async function PATCH(
       data.canAccessOrders = Boolean(canAccessOrders);
     if (canAccessBoard !== undefined)
       data.canAccessBoard = Boolean(canAccessBoard);
+    // Freelancer management is a financial/business-relationship
+    // permission — only the owner grants it, even for fields a trainer
+    // is otherwise allowed to edit on their own mentee.
+    if (canManageFreelancers !== undefined && ctx.role !== "madam") {
+      return Response.json(
+        { error: "Only the studio owner can grant freelancer access." },
+        { status: 403 }
+      );
+    }
+    if (canManageFreelancers !== undefined)
+      data.canManageFreelancers = Boolean(canManageFreelancers);
 
     const updated = await db.user.update({ where: { id }, data });
     return Response.json(updated);

@@ -28,6 +28,7 @@ export interface User {
   program?: { id: string; name: string; level: string } | null;
   canAccessOrders?: boolean;
   canAccessBoard?: boolean;
+  canManageFreelancers?: boolean;
 }
 
 export interface CompetencyUnit {

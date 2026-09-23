@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { getTenant, tenantWhere } from "@/lib/tenant";
+import { getTenant, tenantWhere, canManageFreelancers } from "@/lib/tenant";
 
 const SAFE_FREELANCER_SELECT = {
   id: true,
@@ -58,9 +58,12 @@ export async function POST(req: Request) {
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (ctx.role === "trainee") {
+    if (!canManageFreelancers(ctx)) {
       return Response.json(
-        { error: "Trainees can't manage freelancers." },
+        {
+          error:
+            "Only the studio owner, or someone granted freelancer access, can manage freelancers.",
+        },
         { status: 403 }
       );
     }

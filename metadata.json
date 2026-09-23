@@ -1,0 +1,5 @@
+{
+  "name": "Madam Studio",
+  "description": "An elegant atelier management system for custom tailoring studios — clients, orders, fittings, production and AI style assist.",
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

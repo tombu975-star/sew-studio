@@ -8,9 +8,8 @@ generator client {
 }
 
 datasource db {
-  // Deployed against Supabase Postgres (madam-studio project). Use "sqlite" only for local dev without Supabase.
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:../db/custom.db"
 }
 
 // ─── Tenant ────────────────────────────────────────────────────────
@@ -67,6 +66,7 @@ model User {
   // Trainee access permissions — granted by the trainer/owner
   canAccessOrders    Boolean  @default(false)
   canAccessBoard     Boolean  @default(false)
+  canManageFreelancers Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

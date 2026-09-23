@@ -1,5 +1,10 @@
 import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant, canManageFreelancers } from "@/lib/tenant";
+
+const PERMISSION_ERROR = {
+  error:
+    "Only the studio owner, or someone granted freelancer access, can manage this.",
+};
 
 export async function PATCH(
   req: Request,
@@ -10,11 +15,8 @@ export async function PATCH(
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (ctx.role === "trainee") {
-      return Response.json(
-        { error: "Trainees can't manage freelance jobs." },
-        { status: 403 }
-      );
+    if (!canManageFreelancers(ctx)) {
+      return Response.json(PERMISSION_ERROR, { status: 403 });
     }
 
     const { id } = await params;
@@ -56,11 +58,8 @@ export async function DELETE(
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (ctx.role === "trainee") {
-      return Response.json(
-        { error: "Trainees can't manage freelance jobs." },
-        { status: 403 }
-      );
+    if (!canManageFreelancers(ctx)) {
+      return Response.json(PERMISSION_ERROR, { status: 403 });
     }
 
     const { id } = await params;

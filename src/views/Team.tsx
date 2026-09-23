@@ -171,6 +171,20 @@ export default function Team() {
     queryFn: () => apiGet<TrainingLog[]>("/api/training-logs"),
   });
 
+  const permissionMutation = useMutation({
+    mutationFn: ({ id, canManageFreelancers }: { id: string; canManageFreelancers: boolean }) =>
+      apiPatch<User>(`/api/users/${id}`, { canManageFreelancers }),
+    onSuccess: (u) => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      toast.success(
+        u.canManageFreelancers
+          ? `${u.fullName} can now manage freelancers.`
+          : `${u.fullName}'s freelancer access was revoked.`
+      );
+    },
+    onError: () => toast.error("Could not update permission."),
+  });
+
   const users = usersQ.data ?? [];
   const freelancers = freelancersQ.data ?? [];
   const trainingLogs = trainingLogsQ.data ?? [];
@@ -272,6 +286,15 @@ export default function Team() {
             isLoading={usersQ.isLoading}
             ownerId={owner?.id}
             onAdd={() => setAddMemberOpen(true)}
+            isOwnerViewer={role.isOwner()}
+            onToggleFreelancerAccess={(id, v) =>
+              permissionMutation.mutate({ id, canManageFreelancers: v })
+            }
+            togglingId={
+              permissionMutation.isPending
+                ? permissionMutation.variables?.id
+                : null
+            }
           />
         </TabsContent>
 
@@ -281,6 +304,7 @@ export default function Team() {
             logs={trainingLogs}
             mentors={mentors}
             canEdit={canEditTrainees}
+            isOwnerViewer={role.isOwner()}
             isLoading={usersQ.isLoading || trainingLogsQ.isLoading}
             onAdd={() => setAddTraineeOpen(true)}
             onView={(id) => go("progress", { id })}
@@ -327,11 +351,17 @@ function StaffTrainersCard({
   isLoading,
   ownerId,
   onAdd,
+  isOwnerViewer,
+  onToggleFreelancerAccess,
+  togglingId,
 }: {
   users: User[];
   isLoading: boolean;
   ownerId?: string;
   onAdd: () => void;
+  isOwnerViewer: boolean;
+  onToggleFreelancerAccess: (id: string, value: boolean) => void;
+  togglingId?: string | null;
 }) {
   const sorted = useMemo(() => {
     return [...users].sort((a, b) => {
@@ -420,7 +450,20 @@ function StaffTrainersCard({
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
+                  {!isOwner && isOwnerViewer && (
+                    <label className="hidden md:flex items-center gap-2 text-xs text-stone-500 cursor-pointer">
+                      <Switch
+                        checked={!!u.canManageFreelancers}
+                        onCheckedChange={(v) =>
+                          onToggleFreelancerAccess(u.id, v)
+                        }
+                        disabled={togglingId === u.id}
+                        aria-label={`Freelancer access for ${u.fullName}`}
+                      />
+                      Freelancers
+                    </label>
+                  )}
                   <StatusBadge status={roleLabel(u.role)} />
                   {isOwner && (
                     <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-stone-300">
@@ -636,6 +679,7 @@ function TraineesCard({
   mentors,
   isLoading,
   canEdit,
+  isOwnerViewer,
   onAdd,
   onView,
 }: {
@@ -644,6 +688,7 @@ function TraineesCard({
   mentors: User[];
   isLoading: boolean;
   canEdit: boolean;
+  isOwnerViewer: boolean;
   onAdd: () => void;
   onView: (id: string) => void;
 }) {
@@ -965,6 +1010,7 @@ function TraineesCard({
         onOpenChange={(o) => !o && setEditTrainee(null)}
         trainee={editTrainee}
         mentors={mentors}
+        isOwnerViewer={isOwnerViewer}
       />
     </>
   );
@@ -1859,6 +1905,7 @@ interface EditTraineeForm {
   trainingStartedAt: string;
   canAccessOrders: boolean;
   canAccessBoard: boolean;
+  canManageFreelancers: boolean;
 }
 
 function EditTraineeDialog({
@@ -1866,11 +1913,13 @@ function EditTraineeDialog({
   onOpenChange,
   trainee,
   mentors,
+  isOwnerViewer,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   trainee: User | null;
   mentors: User[];
+  isOwnerViewer: boolean;
 }) {
   const qc = useQueryClient();
   const programsQ = useQuery<TrainingProgram[]>({
@@ -1890,6 +1939,7 @@ function EditTraineeDialog({
     trainingStartedAt: toDateInput(trainee?.trainingStartedAt),
     canAccessOrders: (trainee as any)?.canAccessOrders ?? false,
     canAccessBoard: (trainee as any)?.canAccessBoard ?? false,
+    canManageFreelancers: (trainee as any)?.canManageFreelancers ?? false,
   }));
 
   const saveMutation = useMutation({
@@ -1900,6 +1950,7 @@ function EditTraineeDialog({
       trainingStartedAt: string | null;
       canAccessOrders: boolean;
       canAccessBoard: boolean;
+      canManageFreelancers?: boolean;
     }) => apiPatch<User>(`/api/users/${trainee?.id}`, body),
     onSuccess: (u) => {
       qc.invalidateQueries({ queryKey: ["users"] });
@@ -1935,6 +1986,9 @@ function EditTraineeDialog({
       trainingStartedAt: form.trainingStartedAt || null,
       canAccessOrders: form.canAccessOrders,
       canAccessBoard: form.canAccessBoard,
+      ...(isOwnerViewer && {
+        canManageFreelancers: form.canManageFreelancers,
+      }),
     });
   }
 
@@ -2076,6 +2130,23 @@ function EditTraineeDialog({
                 onCheckedChange={(v) => set("canAccessBoard", v)}
               />
             </label>
+            {isOwnerViewer && (
+              <label className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[#1C1917] flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-stone-400" />
+                    Freelancer management
+                  </p>
+                  <p className="text-[11px] text-stone-400 mt-0.5">
+                    Let this trainee commission freelancers and assign jobs.
+                  </p>
+                </div>
+                <Switch
+                  checked={form.canManageFreelancers}
+                  onCheckedChange={(v) => set("canManageFreelancers", v)}
+                />
+              </label>
+            )}
           </div>
           <p className="text-[11px] text-stone-400 -mt-2 flex items-center gap-1.5">
             <Lock className="w-3 h-3" />
