@@ -3,14 +3,12 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 
-// Load environment variables from .env file if available
+// Load environment variables from .env file if available, prioritizing .env
 const envPath = path.join(__dirname, '..', '.env');
 if (fs.existsSync(envPath)) {
   const envConfig = dotenv.parse(fs.readFileSync(envPath));
   for (const k in envConfig) {
-    if (!process.env[k]) {
-      process.env[k] = envConfig[k];
-    }
+    process.env[k] = envConfig[k];
   }
 }
 

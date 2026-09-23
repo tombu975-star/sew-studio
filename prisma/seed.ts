@@ -48,12 +48,15 @@ async function main() {
   console.log("Seeding Madam Studio...");
 
   // Wipe
+  await db.customerNotification.deleteMany();
   await db.certificate.deleteMany();
   await db.trainingLog.deleteMany();
   await db.communityLike.deleteMany();
   await db.communityComment.deleteMany();
   await db.communityPost.deleteMany();
-  await db.freelancer.deleteMany();
+  await db.freelanceJob.deleteMany();
+  await db.freelancerShopLink.deleteMany();
+  await db.freelancerAccount.deleteMany();
   await db.customerFeedback.deleteMany();
   await db.styleConcept.deleteMany();
   await db.measurementSet.deleteMany();
@@ -62,6 +65,8 @@ async function main() {
   await db.payment.deleteMany();
   await db.order.deleteMany();
   await db.customer.deleteMany();
+  await db.competencyUnit.deleteMany();
+  await db.trainingProgram.deleteMany();
   await db.user.deleteMany();
   await db.settings.deleteMany();
   await db.shop.deleteMany();
@@ -283,14 +288,31 @@ async function main() {
 
   // Freelancers — trusted specialists the studio commissions per-piece
   const FREELANCERS = [
-    { name: "Mama Esi Beadworks", specialty: "Beader", skills: "Hand-beading, crystal work, pearl setting", phone: "+233 24 111 2233", email: "esi.beads@gmail.com", rate: 400, status: "Available", notes: "Fast turnaround on bodice beading. Did Abena's mermaid gown." },
-    { name: "Kweku Laceworks", specialty: "Embroiderer", skills: "Lace appliqué, thread painting", phone: "+233 20 445 7788", rate: 300, status: "Busy", notes: "Currently on a 2-week bridal commission." },
-    { name: "Adwoa Cutter", specialty: "Cutter", skills: "Pattern cutting, toile, fitting", phone: "+233 27 902 1145", rate: 250, status: "Available", notes: "Excellent with structured tailoring." },
-    { name: "Studio Lume", specialty: "Photographer", skills: "Lookbook, editorial, product", phone: "+233 55 700 3322", email: "hello@studiolume.com", rate: 600, status: "Available", notes: "Shoots our portfolio pieces. Books 1 week ahead." },
-    { name: "Nana Tailoring", specialty: "Tailor", skills: "Suits, agbada, menswear", phone: "+233 24 668 9900", rate: 350, status: "Unavailable", notes: "Travelling until next month." },
+    { fullName: "Mama Esi Beadworks", specialty: "Beader", skills: "Hand-beading, crystal work, pearl setting", phone: "+233 24 111 2233", email: "esi.beads@gmail.com", rateNotes: "GHS 400 - Fast turnaround on bodice beading. Did Abena's mermaid gown.", status: "Available" },
+    { fullName: "Kweku Laceworks", specialty: "Embroiderer", skills: "Lace appliqué, thread painting", phone: "+233 20 445 7788", email: "kweku.lace@gmail.com", rateNotes: "GHS 300 - Currently on a 2-week bridal commission.", status: "Busy" },
+    { fullName: "Adwoa Cutter", specialty: "Cutter", skills: "Pattern cutting, toile, fitting", phone: "+233 27 902 1145", email: "adwoa.cutter@gmail.com", rateNotes: "GHS 250 - Excellent with structured tailoring.", status: "Available" },
+    { fullName: "Studio Lume", specialty: "Photographer", skills: "Lookbook, editorial, product", phone: "+233 55 700 3322", email: "hello@studiolume.com", rateNotes: "GHS 600 - Shoots our portfolio pieces. Books 1 week ahead.", status: "Available" },
+    { fullName: "Nana Tailoring", specialty: "Tailor", skills: "Suits, agbada, menswear", phone: "+233 24 668 9900", email: "nana.tailor@gmail.com", rateNotes: "GHS 350 - Travelling until next month.", status: "Unavailable" },
   ];
   for (const f of FREELANCERS) {
-    await db.freelancer.create({ data: { ...f, shopId } });
+    const acc = await db.freelancerAccount.create({
+      data: {
+        fullName: f.fullName,
+        email: f.email,
+        phone: f.phone,
+        specialty: f.specialty,
+        skills: f.skills,
+        password: "atelier2025",
+      },
+    });
+    await db.freelancerShopLink.create({
+      data: {
+        shopId,
+        freelancerId: acc.id,
+        rateNotes: f.rateNotes,
+        status: f.status,
+      },
+    });
   }
 
   // Community feed — the studio's internal wall
