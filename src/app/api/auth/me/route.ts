@@ -1,34 +1,32 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getTenant } from "@/lib/supabase/session";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const cookieHeader = req.headers.get("cookie") || "";
-    const match = cookieHeader.match(/ms_session=([^;]+)/);
-    if (!match) return NextResponse.json({ user: null }, { status: 200 });
+    const ctx = await getTenant();
+    if (!ctx) return NextResponse.json({ user: null }, { status: 200 });
 
-    const decoded = Buffer.from(match[1], "base64").toString("utf-8");
-    const [id] = decoded.split(":");
-    if (!id) return NextResponse.json({ user: null }, { status: 200 });
-
-    const user = await db.user.findUnique({
-      where: { id },
-      include: { shop: { select: { id: true, name: true, slug: true, currency: true } } },
-    });
-    if (!user) return NextResponse.json({ user: null }, { status: 200 });
+    const { data: profile } = await ctx.supabase
+      .from("profiles")
+      .select(
+        "id, email, full_name, role, gender, phone, shop_id, can_access_orders, can_access_board, shop:shops(id, name, slug, currency)"
+      )
+      .eq("id", ctx.userId)
+      .maybeSingle();
+    if (!profile) return NextResponse.json({ user: null }, { status: 200 });
 
     return NextResponse.json({
       user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-        gender: user.gender,
-        phone: user.phone,
-        shopId: user.shopId,
-        shop: user.shop,
-        canAccessOrders: user.canAccessOrders,
-        canAccessBoard: user.canAccessBoard,
+        id: profile.id,
+        email: profile.email,
+        fullName: profile.full_name,
+        role: profile.role,
+        gender: profile.gender,
+        phone: profile.phone,
+        shopId: profile.shop_id,
+        shop: profile.shop,
+        canAccessOrders: profile.can_access_orders,
+        canAccessBoard: profile.can_access_board,
       },
     });
   } catch {

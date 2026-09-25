@@ -1,26 +1,26 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { getFreelancerAuth } from "@/lib/freelancerAuth";
+import { getFreelancerSession } from "@/lib/supabase/session";
 
-export async function GET(req: Request) {
-  const ctx = await getFreelancerAuth(req);
+export async function GET() {
+  const ctx = await getFreelancerSession();
   if (!ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const freelancer = await db.freelancerAccount.findUnique({
-    where: { id: ctx.freelancerId },
-    select: {
-      id: true,
-      email: true,
-      fullName: true,
-      phone: true,
-      specialty: true,
-      skills: true,
-    },
-  });
+  const { data: freelancer } = await ctx.supabase
+    .from("freelancer_profiles")
+    .select("id, email, full_name, phone, specialty, skills")
+    .eq("id", ctx.freelancerId)
+    .maybeSingle();
   if (!freelancer) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  return NextResponse.json(freelancer);
+  return NextResponse.json({
+    id: freelancer.id,
+    email: freelancer.email,
+    fullName: freelancer.full_name,
+    phone: freelancer.phone,
+    specialty: freelancer.specialty,
+    skills: freelancer.skills,
+  });
 }

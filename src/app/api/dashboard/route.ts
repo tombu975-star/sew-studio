@@ -1,79 +1,104 @@
-import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
+import {
+  serializeOrder,
+  serializePayment,
+  serializeFitting,
+  serializeTask,
+  serializeUser,
+  serializeCustomer,
+  serializeStyleConcept,
+  serializeSettings,
+} from "@/lib/supabase/serializers";
 
-export async function GET(req: Request) {
+const ORDER_SELECT =
+  "*, customer:customers(*), assigned_staff:profiles!orders_assigned_staff_id_fkey(*), payments(*), fittings(*)";
+
+function sortByDate<T extends { date: string }>(rows: T[] | null | undefined) {
+  return [...(rows ?? [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+export async function GET() {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const [
-      orders,
-      payments,
-      fittings,
-      tasks,
-      users,
-      customers,
-      styleConcepts,
+      ordersRes,
+      paymentsRes,
+      fittingsRes,
+      tasksRes,
+      usersRes,
+      customersRes,
+      styleConceptsRes,
+      settingsRes,
     ] = await Promise.all([
-      db.order.findMany({
-        where: { shopId: ctx.shopId },
-        include: {
-          customer: true,
-          assignedStaff: true,
-          payments: { orderBy: { date: "asc" } },
-          fittings: { orderBy: { date: "asc" } },
-        },
-        orderBy: { createdAt: "desc" },
-      }),
-      db.payment.findMany({
-        where: { order: { shopId: ctx.shopId } },
-        orderBy: { date: "desc" },
-      }),
-      db.fitting.findMany({
-        where: { order: { shopId: ctx.shopId } },
-        include: { order: { include: { customer: true } } },
-        orderBy: { date: "asc" },
-      }),
-      db.task.findMany({
-        where: { shopId: ctx.shopId },
-        include: { order: { include: { customer: true } }, staff: true },
-        orderBy: { createdAt: "desc" },
-      }),
-      db.user.findMany({
-        where: { shopId: ctx.shopId },
-        orderBy: { createdAt: "asc" },
-      }),
-      db.customer.findMany({
-        where: { shopId: ctx.shopId },
-        orderBy: { createdAt: "desc" },
-      }),
-      db.styleConcept.findMany({
-        where: { shopId: ctx.shopId },
-        include: { customer: true },
-        orderBy: { createdAt: "desc" },
-      }),
+      ctx.supabase
+        .from("orders")
+        .select(ORDER_SELECT)
+        .eq("shop_id", ctx.shopId)
+        .order("created_at", { ascending: false }),
+      ctx.supabase
+        .from("payments")
+        .select("*, order:orders!inner(shop_id)")
+        .eq("order.shop_id", ctx.shopId)
+        .order("date", { ascending: false }),
+      ctx.supabase
+        .from("fittings")
+        .select("*, order:orders!inner(*, customer:customers(*))")
+        .eq("order.shop_id", ctx.shopId)
+        .order("date", { ascending: true }),
+      ctx.supabase
+        .from("tasks")
+        .select("*, order:orders(*, customer:customers(*)), staff:profiles!tasks_staff_id_fkey(*)")
+        .eq("shop_id", ctx.shopId)
+        .order("created_at", { ascending: false }),
+      ctx.supabase
+        .from("profiles")
+        .select("*")
+        .eq("shop_id", ctx.shopId)
+        .order("created_at", { ascending: true }),
+      ctx.supabase
+        .from("customers")
+        .select("*")
+        .eq("shop_id", ctx.shopId)
+        .order("created_at", { ascending: false }),
+      ctx.supabase
+        .from("style_concepts")
+        .select("*, customer:customers(*)")
+        .eq("shop_id", ctx.shopId)
+        .order("created_at", { ascending: false }),
+      ctx.supabase.from("settings").select("*").eq("shop_id", ctx.shopId).maybeSingle(),
     ]);
 
-    let settings = await db.settings.findUnique({
-      where: { shopId: ctx.shopId },
-    });
+    for (const res of [ordersRes, paymentsRes, fittingsRes, tasksRes, usersRes, customersRes, styleConceptsRes]) {
+      if (res.error) throw res.error;
+    }
+
+    let settings = settingsRes.data;
     if (!settings) {
-      settings = await db.settings.create({
-        data: { shopId: ctx.shopId, ownerGender: "Madam", studioName: "Madam Studio" },
-      });
+      const { data: created, error } = await ctx.supabase
+        .from("settings")
+        .insert({ shop_id: ctx.shopId, owner_gender: "Madam", studio_name: "Madam Studio" })
+        .select("*")
+        .single();
+      if (error) throw error;
+      settings = created;
     }
 
     return Response.json({
-      orders,
-      payments,
-      fittings,
-      tasks,
-      users,
-      customers,
-      settings,
-      styleConcepts,
+      orders: (ordersRes.data ?? []).map((o) =>
+        serializeOrder({ ...o, payments: sortByDate(o.payments), fittings: sortByDate(o.fittings) })
+      ),
+      payments: (paymentsRes.data ?? []).map(serializePayment),
+      fittings: (fittingsRes.data ?? []).map((f) => ({
+        ...serializeFitting(f),
+        order: f.order ? serializeOrder(f.order) : null,
+      })),
+      tasks: (tasksRes.data ?? []).map(serializeTask),
+      users: (usersRes.data ?? []).map(serializeUser),
+      customers: (customersRes.data ?? []).map(serializeCustomer),
+      settings: serializeSettings(settings),
+      styleConcepts: (styleConceptsRes.data ?? []).map(serializeStyleConcept),
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

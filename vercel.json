@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "node scripts/ensure-prisma-schema.js && prisma generate && next build",
-  "installCommand": "bun install",
+  "buildCommand": "next build",
+  "installCommand": "npm install",
   "regions": ["iad1"],
   "env": {
     "NEXT_PUBLIC_APP_NAME": "Madam Studio"

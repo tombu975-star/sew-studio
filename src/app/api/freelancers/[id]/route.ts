@@ -1,12 +1,10 @@
-import { db } from "@/lib/db";
-import { getTenant, canManageFreelancers } from "@/lib/tenant";
+import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
 
 const PERMISSION_ERROR = {
-  error:
-    "Only the studio owner, or someone granted freelancer access, can manage this.",
+  error: "Only the studio owner, or someone granted freelancer access, can manage this.",
 };
 
-// Note: :id here is the FreelancerShopLink id (this shop's own link to
+// Note: :id here is the freelancer_shop_links id (this shop's own link to
 // the freelancer), NOT the freelancer's global account id — that's what
 // keeps ownership checks correctly scoped to "this shop's relationship
 // with them" rather than the shared identity itself.
@@ -16,7 +14,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await getTenant(req);
+    const ctx = await getTenant();
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -25,45 +23,39 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const existing = await db.freelancerShopLink.findFirst({
-      where: { id, shopId: ctx.shopId },
-      select: { id: true },
-    });
+    const { data: existing } = await ctx.supabase
+      .from("freelancer_shop_links")
+      .select("id")
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
     if (!existing) {
       return Response.json({ error: "Freelancer not found" }, { status: 404 });
     }
 
     const body = await req.json();
     const { rateNotes, status } = body || {};
-    const updated = await db.freelancerShopLink.update({
-      where: { id },
-      data: {
-        ...(rateNotes !== undefined && { rateNotes }),
-        ...(status !== undefined && { status }),
-      },
-      include: {
-        freelancer: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            phone: true,
-            specialty: true,
-            skills: true,
-          },
-        },
-      },
-    });
+    const data: Record<string, unknown> = {};
+    if (rateNotes !== undefined) data.rate_notes = rateNotes;
+    if (status !== undefined) data.status = status;
+
+    const { data: updated, error } = await ctx.supabase
+      .from("freelancer_shop_links")
+      .update(data)
+      .eq("id", id)
+      .select("*, freelancer:freelancer_profiles(id, full_name, email, phone, specialty, skills)")
+      .single();
+    if (error) throw error;
 
     return Response.json({
       linkId: updated.id,
-      id: updated.freelancer.id,
-      name: updated.freelancer.fullName,
-      email: updated.freelancer.email,
-      phone: updated.freelancer.phone,
-      specialty: updated.freelancer.specialty,
-      skills: updated.freelancer.skills,
-      rateNotes: updated.rateNotes,
+      id: updated.freelancer?.id,
+      name: updated.freelancer?.full_name,
+      email: updated.freelancer?.email,
+      phone: updated.freelancer?.phone,
+      specialty: updated.freelancer?.specialty,
+      skills: updated.freelancer?.skills,
+      rateNotes: updated.rate_notes,
       status: updated.status,
     });
   } catch (err) {
@@ -80,7 +72,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await getTenant(req);
+    const ctx = await getTenant();
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -89,14 +81,16 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const existing = await db.freelancerShopLink.findFirst({
-      where: { id, shopId: ctx.shopId },
-      select: { id: true },
-    });
+    const { data: existing } = await ctx.supabase
+      .from("freelancer_shop_links")
+      .select("id")
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
     if (!existing) {
       return Response.json({ error: "Freelancer not found" }, { status: 404 });
     }
-    await db.freelancerShopLink.delete({ where: { id } });
+    await ctx.supabase.from("freelancer_shop_links").delete().eq("id", id);
     return Response.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

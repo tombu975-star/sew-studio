@@ -1,22 +1,24 @@
-import { db } from "@/lib/db";
-import { getTenant, tenantWhere } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
+import { serializeStyleConcept } from "@/lib/supabase/serializers";
 
 export async function GET(req: Request) {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const url = new URL(req.url);
     const customerId = url.searchParams.get("customerId");
-    const where = tenantWhere(ctx.shopId, customerId ? { customerId } : {});
-    const concepts = await db.styleConcept.findMany({
-      where,
-      include: { customer: true },
-      orderBy: { createdAt: "desc" },
-    });
-    return Response.json(concepts);
+
+    let query = ctx.supabase
+      .from("style_concepts")
+      .select("*, customer:customers(*)")
+      .eq("shop_id", ctx.shopId);
+    if (customerId) query = query.eq("customer_id", customerId);
+
+    const { data: concepts, error } = await query.order("created_at", { ascending: false });
+    if (error) throw error;
+
+    return Response.json(concepts.map(serializeStyleConcept));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
@@ -25,57 +27,56 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    // Verify the parent customer belongs to the tenant.
-    const customer = await db.customer.findFirst({
-      where: { id: String(body.customerId), shopId: ctx.shopId },
-      select: { id: true },
-    });
+    const { data: customer } = await ctx.supabase
+      .from("customers")
+      .select("id")
+      .eq("id", String(body.customerId))
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
     if (!customer) {
-      return Response.json(
-        { error: "Customer not found in this shop" },
-        { status: 404 }
-      );
+      return Response.json({ error: "Customer not found in this shop" }, { status: 404 });
     }
 
     const data: Record<string, unknown> = {
-      shopId: ctx.shopId,
-      customerId: String(body.customerId),
-      garmentType: String(body.garmentDesign ?? body.garmentType ?? "").trim(),
-      conceptName: String(body.conceptName ?? "").trim(),
+      shop_id: ctx.shopId,
+      customer_id: String(body.customerId),
+      garment_type: String(body.garmentDesign ?? body.garmentType ?? "").trim(),
+      concept_name: String(body.conceptName ?? "").trim(),
       status: body.status ? String(body.status) : "Suggested",
     };
     if (body.occasion) data.occasion = String(body.occasion);
-    if (body.desiredLook) data.desiredLook = String(body.desiredLook);
+    if (body.desiredLook) data.desired_look = String(body.desiredLook);
     if (body.season) data.season = String(body.season);
     if (body.budget != null) data.budget = Number(body.budget) || null;
-    if (body.colourPreference) data.colourPreference = String(body.colourPreference);
+    if (body.colourPreference) data.colour_preference = String(body.colourPreference);
     if (body.silhouette) data.silhouette = String(body.silhouette);
     if (body.neckline) data.neckline = String(body.neckline);
-    if (body.sleeveStyle) data.sleeveStyle = String(body.sleeveStyle);
+    if (body.sleeveStyle) data.sleeve_style = String(body.sleeveStyle);
     if (body.length) data.length = String(body.length);
     if (body.fabric) data.fabric = String(body.fabric);
     if (body.colour) data.colour = String(body.colour);
     if (body.detailing) data.detailing = String(body.detailing);
     if (body.embellishment) data.embellishment = String(body.embellishment);
-    if (body.whyThisMayWork) data.whyThisMayWork = String(body.whyThisMayWork);
-    if (body.fitConsiderations) data.fitConsiderations = String(body.fitConsiderations);
-    if (body.matchPercent != null) data.matchPercent = Number(body.matchPercent) || null;
-    if (body.designDirection) data.designDirection = String(body.designDirection);
-    if (body.imageUrl) data.imageUrl = String(body.imageUrl);
-    if (body.rejectionReason) data.rejectionReason = String(body.rejectionReason);
-    if (body.dataConfidence) data.dataConfidence = String(body.dataConfidence);
+    if (body.whyThisMayWork) data.why_this_may_work = String(body.whyThisMayWork);
+    if (body.fitConsiderations) data.fit_considerations = String(body.fitConsiderations);
+    if (body.matchPercent != null) data.match_percent = Number(body.matchPercent) || null;
+    if (body.designDirection) data.design_direction = String(body.designDirection);
+    if (body.imageUrl) data.image_url = String(body.imageUrl);
+    if (body.rejectionReason) data.rejection_reason = String(body.rejectionReason);
+    if (body.dataConfidence) data.data_confidence = String(body.dataConfidence);
 
-    const concept = await db.styleConcept.create({
-      data: data as Parameters<typeof db.styleConcept.create>[0]["data"],
-      include: { customer: true },
-    });
-    return Response.json(concept, { status: 201 });
+    const { data: concept, error } = await ctx.supabase
+      .from("style_concepts")
+      .insert(data)
+      .select("*, customer:customers(*)")
+      .single();
+    if (error) throw error;
+
+    return Response.json(serializeStyleConcept(concept), { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });

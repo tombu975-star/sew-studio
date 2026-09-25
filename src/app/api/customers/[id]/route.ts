@@ -1,133 +1,133 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
-import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
+import {
+  serializeCustomer,
+  serializeOrder,
+  serializeMeasurementSet,
+  serializeCustomerFeedback,
+  serializeStyleConcept,
+} from "@/lib/supabase/serializers";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 // GET /api/customers/[id] → { customer, orders, measurements, feedback, styleConcepts }
 export async function GET(req: NextRequest, { params }: Ctx) {
-  const ctx = await getTenant(req);
-  if (!ctx) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await getTenant();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
 
-  const customer = await db.customer.findFirst({
-    where: { id, shopId: ctx.shopId },
-  });
-  if (!customer) {
-    return NextResponse.json({ error: "Customer not found" }, { status: 404 });
-  }
+  const { data: customer } = await ctx.supabase
+    .from("customers")
+    .select("*")
+    .eq("id", id)
+    .eq("shop_id", ctx.shopId)
+    .maybeSingle();
+  if (!customer) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
 
-  const [orders, measurements, feedback, styleConcepts] = await Promise.all([
-    db.order.findMany({
-      where: { customerId: id, shopId: ctx.shopId },
-      orderBy: { orderDate: "desc" },
-      include: { assignedStaff: true },
-    }),
-    db.measurementSet.findMany({
-      where: { customerId: id, shopId: ctx.shopId },
-      orderBy: { dateTaken: "desc" },
-    }),
-    db.customerFeedback.findMany({
-      where: { customerId: id, shopId: ctx.shopId },
-      orderBy: { date: "desc" },
-    }),
-    db.styleConcept.findMany({
-      where: { customerId: id, shopId: ctx.shopId },
-      orderBy: { createdAt: "desc" },
-    }),
+  const [ordersRes, measurementsRes, feedbackRes, styleConceptsRes] = await Promise.all([
+    ctx.supabase
+      .from("orders")
+      .select("*, assigned_staff:profiles!orders_assigned_staff_id_fkey(*)")
+      .eq("customer_id", id)
+      .eq("shop_id", ctx.shopId)
+      .order("order_date", { ascending: false }),
+    ctx.supabase
+      .from("measurement_sets")
+      .select("*")
+      .eq("customer_id", id)
+      .eq("shop_id", ctx.shopId)
+      .order("date_taken", { ascending: false }),
+    ctx.supabase
+      .from("customer_feedback")
+      .select("*")
+      .eq("customer_id", id)
+      .eq("shop_id", ctx.shopId)
+      .order("date", { ascending: false }),
+    ctx.supabase
+      .from("style_concepts")
+      .select("*")
+      .eq("customer_id", id)
+      .eq("shop_id", ctx.shopId)
+      .order("created_at", { ascending: false }),
   ]);
 
   return NextResponse.json({
-    customer,
-    orders,
-    measurements,
-    feedback,
-    styleConcepts,
+    customer: serializeCustomer(customer),
+    orders: (ordersRes.data ?? []).map((o) => serializeOrder({ ...o, assigned_staff: o.assigned_staff })),
+    measurements: (measurementsRes.data ?? []).map(serializeMeasurementSet),
+    feedback: (feedbackRes.data ?? []).map(serializeCustomerFeedback),
+    styleConcepts: (styleConceptsRes.data ?? []).map(serializeStyleConcept),
   });
 }
 
 // PATCH /api/customers/[id] → Customer
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const ctx = await getTenant(req);
-  if (!ctx) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await getTenant();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const body: Record<string, unknown> = await req.json().catch(() => ({}));
 
-  // Verify the customer exists AND belongs to the tenant.
-  const existing = await db.customer.findFirst({
-    where: { id, shopId: ctx.shopId },
-  });
-  if (!existing) {
-    return NextResponse.json({ error: "Customer not found" }, { status: 404 });
-  }
+  const { data: existing } = await ctx.supabase
+    .from("customers")
+    .select("id")
+    .eq("id", id)
+    .eq("shop_id", ctx.shopId)
+    .maybeSingle();
+  if (!existing) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
 
-  const data: Prisma.CustomerUncheckedUpdateInput = {};
-  const strData = data as unknown as Record<string, string | null>;
-
-  const stringFields = [
-    "name",
-    "phone",
-    "email",
-    "whatsapp",
-    "gender",
-    "occupation",
-    "city",
-    "country",
-    "entrySource",
-    "referredBy",
-    "customerType",
-    "preferredStyles",
-    "favouriteColours",
-    "coloursToAvoid",
-    "favouriteFabrics",
-    "preferredFit",
-    "designPreferences",
-    "styleNotes",
-    "skinTone",
-    "notes",
-    "status",
-  ] as const;
-
-  for (const key of stringFields) {
+  const data: Record<string, unknown> = {};
+  const fieldMap: Record<string, string> = {
+    name: "name",
+    phone: "phone",
+    email: "email",
+    whatsapp: "whatsapp",
+    gender: "gender",
+    occupation: "occupation",
+    city: "city",
+    country: "country",
+    entrySource: "entry_source",
+    referredBy: "referred_by",
+    customerType: "customer_type",
+    preferredStyles: "preferred_styles",
+    favouriteColours: "favourite_colours",
+    coloursToAvoid: "colours_to_avoid",
+    favouriteFabrics: "favourite_fabrics",
+    preferredFit: "preferred_fit",
+    designPreferences: "design_preferences",
+    styleNotes: "style_notes",
+    skinTone: "skin_tone",
+    notes: "notes",
+    status: "status",
+  };
+  for (const [key, column] of Object.entries(fieldMap)) {
     if (key in body) {
       const v = body[key];
-      strData[key] = v === undefined || v === null ? null : String(v);
+      data[column] = v === undefined || v === null ? null : String(v);
     }
   }
 
-  // Numeric fields
   if ("height" in body) {
     const v = body.height;
-    if (v === null || v === "" || v === undefined) data.height = null;
-    else {
-      const n = Number(v);
-      if (!Number.isNaN(n)) data.height = n;
-    }
+    data.height = v === null || v === "" || v === undefined ? null : Number(v);
   }
   if ("weight" in body) {
     const v = body.weight;
-    if (v === null || v === "" || v === undefined) data.weight = null;
-    else {
-      const n = Number(v);
-      if (!Number.isNaN(n)) data.weight = n;
-    }
+    data.weight = v === null || v === "" || v === undefined ? null : Number(v);
   }
   if ("loyaltyPoints" in body) {
     const v = body.loyaltyPoints;
-    if (v === null || v === "" || v === undefined) data.loyaltyPoints = 0;
-    else {
-      const n = Number(v);
-      if (!Number.isNaN(n)) data.loyaltyPoints = n;
-    }
+    data.loyalty_points = v === null || v === "" || v === undefined ? 0 : Number(v);
   }
 
-  const updated = await db.customer.update({ where: { id }, data });
-  return NextResponse.json(updated);
+  const { data: updated, error } = await ctx.supabase
+    .from("customers")
+    .update(data)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json(serializeCustomer(updated));
 }

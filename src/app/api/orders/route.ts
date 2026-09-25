@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { getTenant, tenantWhere } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
+import { serializeOrder } from "@/lib/supabase/serializers";
+
+const ORDER_SELECT =
+  "*, customer:customers(*), assigned_staff:profiles!orders_assigned_staff_id_fkey(*), payments(*), fittings(*)";
 
 // GET /api/orders — list orders with relations
 //
@@ -8,88 +11,86 @@ import { getTenant, tenantWhere } from "@/lib/tenant";
 // whole shop, so they see every order. Staff and trainees only work their
 // own assignments, so the Production Board (and any other view built on
 // this endpoint) should only ever return orders assigned to them, plus
-// unassigned orders that are still up for grabs. This is enforced here,
-// not just hidden in the UI, since the client's role can't be trusted.
+// unassigned orders that are still up for grabs. RLS already guarantees
+// tenant scoping; this role-based narrowing is an app-level rule on top.
 export async function GET(req: NextRequest) {
-  const ctx = await getTenant(req);
-  if (!ctx) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await getTenant();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
-  const where = canSeeAll
-    ? tenantWhere(ctx.shopId)
-    : tenantWhere(ctx.shopId, {
-        OR: [{ assignedStaffId: ctx.userId }, { assignedStaffId: null }],
-      });
+  let query = ctx.supabase
+    .from("orders")
+    .select(ORDER_SELECT)
+    .eq("shop_id", ctx.shopId);
+  if (!canSeeAll) {
+    query = query.or(`assigned_staff_id.eq.${ctx.userId},assigned_staff_id.is.null`);
+  }
+  const { data: orders, error } = await query.order("created_at", { ascending: false });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const orders = await db.order.findMany({
-    where,
-    include: {
-      customer: true,
-      assignedStaff: true,
-      payments: { orderBy: { date: "asc" } },
-      fittings: { orderBy: { date: "asc" } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-  return NextResponse.json(orders);
+  // .order() on nested payments/fittings isn't available via the top-level
+  // query builder for embedded resources, so sort them client-side.
+  const result = orders.map((o) =>
+    serializeOrder({
+      ...o,
+      payments: [...(o.payments ?? [])].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      ),
+      fittings: [...(o.fittings ?? [])].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      ),
+    })
+  );
+  return NextResponse.json(result);
 }
 
 // POST /api/orders — create a new order
 export async function POST(req: NextRequest) {
-  const ctx = await getTenant(req);
-  if (!ctx) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await getTenant();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
 
-  // Verify the customer belongs to this tenant.
-  const customer = await db.customer.findFirst({
-    where: { id: body.customerId, shopId: ctx.shopId },
-    select: { id: true },
-  });
+  const { data: customer } = await ctx.supabase
+    .from("customers")
+    .select("id")
+    .eq("id", body.customerId)
+    .eq("shop_id", ctx.shopId)
+    .maybeSingle();
   if (!customer) {
-    return NextResponse.json(
-      { error: "Customer not found in this shop" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Customer not found in this shop" }, { status: 404 });
   }
 
-  const data: any = {
-    shopId: ctx.shopId,
-    customer: { connect: { id: body.customerId } },
-    garmentDesign: body.garmentDesign,
-    orderDate: body.orderDate ? new Date(body.orderDate) : new Date(),
-    deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
+  const data: Record<string, unknown> = {
+    shop_id: ctx.shopId,
+    customer_id: body.customerId,
+    garment_design: body.garmentDesign,
+    order_date: body.orderDate ? new Date(body.orderDate).toISOString() : new Date().toISOString(),
+    delivery_date: body.deliveryDate ? new Date(body.deliveryDate).toISOString() : null,
     status: body.status || "Enquiry",
-    sellingPrice: Number(body.sellingPrice) || 0,
-    fabricCost: Number(body.fabricCost) || 0,
-    labourCost: Number(body.labourCost) || 0,
+    selling_price: Number(body.sellingPrice) || 0,
+    fabric_cost: Number(body.fabricCost) || 0,
+    labour_cost: Number(body.labourCost) || 0,
     notes: body.notes || null,
     priority: body.priority || "Medium",
   };
 
   if (body.assignedStaffId) {
-    // Verify the assigned staff belongs to this tenant.
-    const staff = await db.user.findFirst({
-      where: { id: body.assignedStaffId, shopId: ctx.shopId },
-      select: { id: true },
-    });
-    if (staff) {
-      data.assignedStaff = { connect: { id: body.assignedStaffId } };
-    }
+    const { data: staff } = await ctx.supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", body.assignedStaffId)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+    if (staff) data.assigned_staff_id = body.assignedStaffId;
   }
 
-  const created = await db.order.create({
-    data,
-    include: {
-      customer: true,
-      assignedStaff: true,
-      payments: true,
-      fittings: true,
-    },
-  });
-  return NextResponse.json(created, { status: 201 });
+  const { data: created, error } = await ctx.supabase
+    .from("orders")
+    .insert(data)
+    .select(ORDER_SELECT)
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json(serializeOrder(created), { status: 201 });
 }

@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
 
-// Demo-only auth (matches the rest of this app): plaintext password
-// compare. Sets its own cookie (fs_session = base64(freelancerId)) —
-// deliberately never touches ms_session or any shop/tenant data.
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
@@ -14,34 +11,39 @@ export async function POST(req: Request) {
       );
     }
 
-    const freelancer = await db.freelancerAccount.findUnique({
-      where: { email: String(email).toLowerCase().trim() },
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: String(email).toLowerCase().trim(),
+      password: String(password),
     });
-    if (!freelancer || freelancer.password !== password) {
+    if (error || !data.user) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    }
+
+    const { data: freelancer } = await supabase
+      .from("freelancer_profiles")
+      .select("id, email, full_name, phone, specialty, skills")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    if (!freelancer) {
+      await supabase.auth.signOut();
       return NextResponse.json(
-        { error: "Invalid email or password." },
+        { error: "No freelancer account found for that email." },
         { status: 401 }
       );
     }
 
-    const safeFreelancer = {
-      id: freelancer.id,
-      email: freelancer.email,
-      fullName: freelancer.fullName,
-      phone: freelancer.phone,
-      specialty: freelancer.specialty,
-      skills: freelancer.skills,
-    };
-
-    const token = Buffer.from(freelancer.id).toString("base64");
-    const res = NextResponse.json({ freelancer: safeFreelancer });
-    res.cookies.set("fs_session", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+    return NextResponse.json({
+      freelancer: {
+        id: freelancer.id,
+        email: freelancer.email,
+        fullName: freelancer.full_name,
+        phone: freelancer.phone,
+        specialty: freelancer.specialty,
+        skills: freelancer.skills,
+      },
     });
-    return res;
   } catch (error) {
     console.error("[freelancer-auth/login]", error);
     return NextResponse.json(

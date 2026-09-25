@@ -1,31 +1,29 @@
-import { db } from "@/lib/db";
-import { getTenant, tenantWhere } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
+import { serializeTrainingLog } from "@/lib/supabase/serializers";
 
-// GET /api/training-logs?traineeId=ID  — logs for a trainee (or all if no filter)
+const LOG_SELECT =
+  "*, trainee:profiles!training_logs_trainee_id_fkey(id, full_name, role), mentor:profiles!training_logs_mentor_id_fkey(id, full_name)";
+
+// GET /api/training-logs?traineeId=ID — logs for a trainee (or all if no filter)
 export async function GET(req: Request) {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const url = new URL(req.url);
     const requestedTraineeId = url.searchParams.get("traineeId");
     // A trainee can only ever see their own logs, no matter what the query
     // string asks for. Trainer/madam may filter by any traineeId, or omit
     // it to see the whole shop.
-    const traineeId =
-      ctx.role === "trainee" ? ctx.userId : requestedTraineeId;
-    const where = tenantWhere(ctx.shopId, traineeId ? { traineeId } : {});
-    const logs = await db.trainingLog.findMany({
-      where,
-      orderBy: { date: "desc" },
-      include: {
-        trainee: { select: { id: true, fullName: true, role: true } },
-        mentor: { select: { id: true, fullName: true } },
-      },
-    });
-    return Response.json(logs);
+    const traineeId = ctx.role === "trainee" ? ctx.userId : requestedTraineeId;
+
+    let query = ctx.supabase.from("training_logs").select(LOG_SELECT).eq("shop_id", ctx.shopId);
+    if (traineeId) query = query.eq("trainee_id", traineeId);
+
+    const { data: logs, error } = await query.order("date", { ascending: false });
+    if (error) throw error;
+
+    return Response.json(logs.map(serializeTrainingLog));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
@@ -35,60 +33,55 @@ export async function GET(req: Request) {
 // POST — create a training log entry
 export async function POST(req: Request) {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { traineeId, mentorId, skill, title, note, status, date } =
-      body || {};
+    const { traineeId, mentorId, skill, title, note, status, date } = body || {};
     if (!traineeId || !title) {
-      return Response.json(
-        { error: "Trainee and title are required." },
-        { status: 400 }
-      );
+      return Response.json({ error: "Trainee and title are required." }, { status: 400 });
     }
-    // Verify the trainee belongs to the tenant.
-    const trainee = await db.user.findFirst({
-      where: { id: String(traineeId), shopId: ctx.shopId },
-      select: { id: true },
-    });
-    if (!trainee) {
-      return Response.json({ error: "Trainee not found" }, { status: 404 });
-    }
-    // Verify the mentor (if provided) belongs to the tenant.
+
+    const { data: trainee } = await ctx.supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", String(traineeId))
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+    if (!trainee) return Response.json({ error: "Trainee not found" }, { status: 404 });
+
     let finalMentorId: string | null = null;
     if (mentorId) {
-      const mentor = await db.user.findFirst({
-        where: { id: String(mentorId), shopId: ctx.shopId },
-        select: { id: true },
-      });
+      const { data: mentor } = await ctx.supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", String(mentorId))
+        .eq("shop_id", ctx.shopId)
+        .maybeSingle();
       finalMentorId = mentor ? String(mentorId) : null;
     }
 
-    const validStatus = ["Learning", "Practicing", "Proficient"].includes(
-      status
-    )
+    const validStatus = ["Learning", "Practicing", "Proficient"].includes(status)
       ? status
       : "Learning";
-    const log = await db.trainingLog.create({
-      data: {
-        shopId: ctx.shopId,
-        traineeId,
-        mentorId: finalMentorId,
+
+    const { data: log, error } = await ctx.supabase
+      .from("training_logs")
+      .insert({
+        shop_id: ctx.shopId,
+        trainee_id: traineeId,
+        mentor_id: finalMentorId,
         skill: skill || null,
         title: String(title),
         note: note || null,
         status: validStatus,
-        date: date ? new Date(date) : new Date(),
-      },
-      include: {
-        trainee: { select: { id: true, fullName: true, role: true } },
-        mentor: { select: { id: true, fullName: true } },
-      },
-    });
-    return Response.json(log);
+        date: date ? new Date(date).toISOString() : new Date().toISOString(),
+      })
+      .select(LOG_SELECT)
+      .single();
+    if (error) throw error;
+
+    return Response.json(serializeTrainingLog(log));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });

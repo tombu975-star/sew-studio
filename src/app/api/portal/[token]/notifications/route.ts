@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 
 // GET /api/portal/[token]/notifications — customer's alert timeline (public).
 export async function GET(
@@ -7,22 +7,45 @@ export async function GET(
 ) {
   try {
     const { token } = await params;
-    const customer = await db.customer.findUnique({
-      where: { portalToken: token },
-      select: { id: true },
-    });
+    const admin = createAdminSupabaseClient();
+
+    const { data: customer } = await admin
+      .from("customers")
+      .select("id")
+      .eq("portal_token", token)
+      .maybeSingle();
     if (!customer) {
       return Response.json({ error: "Invalid or expired link" }, { status: 404 });
     }
-    const notifications = await db.customerNotification.findMany({
-      where: { customerId: customer.id },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-      include: {
-        order: { select: { id: true, garmentDesign: true } },
-      },
-    });
-    return Response.json(notifications);
+
+    const { data: notifications, error } = await admin
+      .from("customer_notifications")
+      .select("*, order:orders(id, garment_design)")
+      .eq("customer_id", customer.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+
+    return Response.json(
+      notifications.map((n) => ({
+        id: n.id,
+        shopId: n.shop_id,
+        customerId: n.customer_id,
+        orderId: n.order_id,
+        order: n.order ? { id: n.order.id, garmentDesign: n.order.garment_design } : null,
+        type: n.type,
+        title: n.title,
+        body: n.body,
+        statusFrom: n.status_from,
+        statusTo: n.status_to,
+        readAt: n.read_at,
+        direction: n.direction,
+        channel: n.channel,
+        deliveryStatus: n.delivery_status,
+        sentAt: n.sent_at,
+        createdAt: n.created_at,
+      }))
+    );
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
@@ -36,17 +59,23 @@ export async function PATCH(
 ) {
   try {
     const { token } = await params;
-    const customer = await db.customer.findUnique({
-      where: { portalToken: token },
-      select: { id: true },
-    });
+    const admin = createAdminSupabaseClient();
+
+    const { data: customer } = await admin
+      .from("customers")
+      .select("id")
+      .eq("portal_token", token)
+      .maybeSingle();
     if (!customer) {
       return Response.json({ error: "Invalid or expired link" }, { status: 404 });
     }
-    await db.customerNotification.updateMany({
-      where: { customerId: customer.id, readAt: null },
-      data: { readAt: new Date() },
-    });
+
+    await admin
+      .from("customer_notifications")
+      .update({ read_at: new Date().toISOString() })
+      .eq("customer_id", customer.id)
+      .is("read_at", null);
+
     return Response.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

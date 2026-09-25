@@ -1,39 +1,37 @@
-import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
 
-// Toggle like on a post for the given author (idempotent).
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    // Verify the parent post belongs to the tenant.
-    const post = await db.communityPost.findFirst({
-      where: { id, shopId: ctx.shopId },
-      select: { id: true },
-    });
-    if (!post) {
-      return Response.json({ error: "Post not found" }, { status: 404 });
-    }
+    const { data: post } = await ctx.supabase
+      .from("community_posts")
+      .select("id")
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+    if (!post) return Response.json({ error: "Post not found" }, { status: 404 });
 
     const { authorId } = await req.json().catch(() => ({}));
-    if (!authorId) {
-      return Response.json({ error: "authorId is required." }, { status: 400 });
-    }
-    const existing = await db.communityLike.findUnique({
-      where: { postId_authorId: { postId: id, authorId } },
-    });
+    if (!authorId) return Response.json({ error: "authorId is required." }, { status: 400 });
+
+    const { data: existing } = await ctx.supabase
+      .from("community_likes")
+      .select("id")
+      .eq("post_id", id)
+      .eq("author_id", authorId)
+      .maybeSingle();
+
     if (existing) {
-      await db.communityLike.delete({ where: { id: existing.id } });
+      await ctx.supabase.from("community_likes").delete().eq("id", existing.id);
       return Response.json({ liked: false });
     }
-    await db.communityLike.create({ data: { postId: id, authorId } });
+    await ctx.supabase.from("community_likes").insert({ post_id: id, author_id: authorId });
     return Response.json({ liked: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

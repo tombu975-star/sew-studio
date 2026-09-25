@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
 import ZAI from "@/lib/ai-client";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +45,7 @@ function stripJsonFences(text: string): string {
 export async function POST(req: Request) {
   try {
     // Tenant guard — only authenticated users of a shop can call this route.
-    const ctx = await getTenant(req);
+    const ctx = await getTenant();
     if (!ctx) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

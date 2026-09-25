@@ -1,4 +1,7 @@
-import { db } from "@/lib/db";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/database.types";
+
+type Client = SupabaseClient<Database>;
 
 interface CustomerContact {
   id: string;
@@ -27,36 +30,42 @@ export function detectChannel(customer: CustomerContact): {
  *
  * In production, wire this to Twilio (SMS/WhatsApp) + an email provider.
  * Here the send is logged with deliveryStatus="sent".
+ *
+ * Pass `ctx.supabase` from a shop-session route, or the admin client from a
+ * token-authenticated portal route (the customer has no session of their own).
  */
-export async function notifyCustomer(opts: {
-  shopId: string;
-  customerId: string;
-  orderId?: string;
-  type:
-    | "status_change"
-    | "payment_received"
-    | "fitting_scheduled"
-    | "fitting_completed"
-    | "message"
-    | "ready_for_collection"
-    | "delivered";
-  title: string;
-  body: string;
-  statusFrom?: string;
-  statusTo?: string;
-  direction?: "auto" | "manual";
-  channel?: "whatsapp" | "sms" | "email" | "in_app";
-}) {
+export async function notifyCustomer(
+  supabase: Client,
+  opts: {
+    shopId: string;
+    customerId: string;
+    orderId?: string;
+    type:
+      | "status_change"
+      | "payment_received"
+      | "fitting_scheduled"
+      | "fitting_completed"
+      | "message"
+      | "ready_for_collection"
+      | "delivered";
+    title: string;
+    body: string;
+    statusFrom?: string;
+    statusTo?: string;
+    direction?: "auto" | "manual";
+    channel?: "whatsapp" | "sms" | "email" | "in_app";
+  }
+) {
   try {
-    // Fetch the customer to detect the channel (unless explicitly provided).
-    const customer = await db.customer.findUnique({
-      where: { id: opts.customerId },
-      select: { id: true, whatsapp: true, phone: true, email: true },
-    });
+    const { data: customer } = await supabase
+      .from("customers")
+      .select("id, whatsapp, phone, email")
+      .eq("id", opts.customerId)
+      .maybeSingle();
+
     const detected = opts.channel
       ? { channel: opts.channel, recipient: "" }
       : detectChannel(customer || { id: opts.customerId });
-    // Resolve recipient for explicit channel.
     let recipient = detected.recipient;
     if (opts.channel && customer) {
       if (opts.channel === "whatsapp") recipient = customer.whatsapp || "";
@@ -64,22 +73,20 @@ export async function notifyCustomer(opts: {
       else if (opts.channel === "email") recipient = customer.email || "";
     }
 
-    await db.customerNotification.create({
-      data: {
-        shopId: opts.shopId,
-        customerId: opts.customerId,
-        orderId: opts.orderId || null,
-        type: opts.type,
-        title: opts.title,
-        body: opts.body,
-        statusFrom: opts.statusFrom || null,
-        statusTo: opts.statusTo || null,
-        direction: opts.direction || "auto",
-        channel: detected.channel,
-        recipient: recipient || null,
-        deliveryStatus: "sent",
-        sentAt: new Date(),
-      },
+    await supabase.from("customer_notifications").insert({
+      shop_id: opts.shopId,
+      customer_id: opts.customerId,
+      order_id: opts.orderId || null,
+      type: opts.type,
+      title: opts.title,
+      body: opts.body,
+      status_from: opts.statusFrom || null,
+      status_to: opts.statusTo || null,
+      direction: opts.direction || "auto",
+      channel: detected.channel,
+      recipient: recipient || null,
+      delivery_status: "sent",
+      sent_at: new Date().toISOString(),
     });
   } catch (err) {
     // Notifications are best-effort — never block the parent operation.
@@ -87,22 +94,18 @@ export async function notifyCustomer(opts: {
   }
 }
 
-/**
- * Generate (or regenerate) a portal token for a customer.
- */
-export async function ensurePortalToken(customerId: string): Promise<string> {
-  const existing = await db.customer.findUnique({
-    where: { id: customerId },
-    select: { portalToken: true },
-  });
-  if (existing?.portalToken) return existing.portalToken;
+/** Generate (or return the existing) portal token for a customer. */
+export async function ensurePortalToken(supabase: Client, customerId: string): Promise<string> {
+  const { data: existing } = await supabase
+    .from("customers")
+    .select("portal_token")
+    .eq("id", customerId)
+    .maybeSingle();
+  if (existing?.portal_token) return existing.portal_token;
+
   const token =
-    Math.random().toString(36).slice(2, 10) +
-    Math.random().toString(36).slice(2, 10);
-  await db.customer.update({
-    where: { id: customerId },
-    data: { portalToken: token },
-  });
+    Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+  await supabase.from("customers").update({ portal_token: token }).eq("id", customerId);
   return token;
 }
 

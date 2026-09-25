@@ -1,39 +1,35 @@
-import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
+import { serializeTask } from "@/lib/supabase/serializers";
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
     const body = await req.json();
-    // Verify ownership.
-    const existing = await db.task.findFirst({
-      where: { id, shopId: ctx.shopId },
-      select: {
-        id: true,
-        staffId: true,
-        staff: { select: { role: true, mentorId: true } },
-      },
-    });
-    if (!existing) {
-      return Response.json({ error: "Task not found" }, { status: 404 });
-    }
+
+    const { data: existing } = await ctx.supabase
+      .from("tasks")
+      .select("id, staff_id, staff:profiles!tasks_staff_id_fkey(role, mentor_id)")
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+    if (!existing) return Response.json({ error: "Task not found" }, { status: 404 });
+
     // Staff/trainees may only edit tasks assigned to them. Trainer/madam
     // oversee the whole shop and can edit any task.
     const isPrivileged = ctx.role === "trainer" || ctx.role === "madam";
-    if (!isPrivileged && existing.staffId !== ctx.userId) {
+    if (!isPrivileged && existing.staff_id !== ctx.userId) {
       return Response.json(
         { error: "You can only update tasks assigned to you." },
-        { status: 403 },
+        { status: 403 }
       );
     }
+
     const data: Record<string, unknown> = {};
     if ("title" in body && body.title) data.title = String(body.title);
     if ("status" in body && body.status) data.status = String(body.status);
@@ -41,34 +37,38 @@ export async function PATCH(
     if ("notes" in body) data.notes = body.notes ? String(body.notes) : null;
     if ("orderId" in body) {
       if (body.orderId) {
-        // Verify parent order belongs to tenant.
-        const order = await db.order.findFirst({
-          where: { id: String(body.orderId), shopId: ctx.shopId },
-          select: { id: true },
-        });
-        data.orderId = order ? String(body.orderId) : null;
+        const { data: order } = await ctx.supabase
+          .from("orders")
+          .select("id")
+          .eq("id", String(body.orderId))
+          .eq("shop_id", ctx.shopId)
+          .maybeSingle();
+        data.order_id = order ? String(body.orderId) : null;
       } else {
-        data.orderId = null;
+        data.order_id = null;
       }
     }
     if ("staffId" in body) {
       if (body.staffId) {
-        const staff = await db.user.findFirst({
-          where: { id: String(body.staffId), shopId: ctx.shopId },
-          select: { id: true, role: true, mentorId: true },
-        });
+        const { data: staff } = await ctx.supabase
+          .from("profiles")
+          .select("id, role, mentor_id")
+          .eq("id", String(body.staffId))
+          .eq("shop_id", ctx.shopId)
+          .maybeSingle();
         const allowed =
           !!staff &&
           (ctx.role !== "trainer" ||
-            (staff.role === "trainee" && staff.mentorId === ctx.userId));
-        data.staffId = allowed ? String(body.staffId) : null;
+            (staff.role === "trainee" && staff.mentor_id === ctx.userId));
+        data.staff_id = allowed ? String(body.staffId) : null;
       } else {
-        data.staffId = null;
+        data.staff_id = null;
       }
     }
     if ("dueDate" in body) {
-      data.dueDate = body.dueDate ? new Date(body.dueDate) : null;
+      data.due_date = body.dueDate ? new Date(body.dueDate).toISOString() : null;
     }
+
     // Grading (school-portal style) — only trainers/owners may set these,
     // enforced here (not just hidden in the UI), since this is graded work
     // that determines a trainee's record.
@@ -85,9 +85,8 @@ export async function PATCH(
       );
     }
     if (isGradingAttempt && ctx.role === "trainer") {
-      const isOwnMentee =
-        existing.staff?.role === "trainee" &&
-        existing.staff?.mentorId === ctx.userId;
+      const staffInfo = Array.isArray(existing.staff) ? existing.staff[0] : existing.staff;
+      const isOwnMentee = staffInfo?.role === "trainee" && staffInfo?.mentor_id === ctx.userId;
       if (!isOwnMentee) {
         return Response.json(
           { error: "You can only grade trainees you mentor." },
@@ -95,41 +94,39 @@ export async function PATCH(
         );
       }
     }
-    if ("maxScore" in body)
-      data.maxScore = body.maxScore != null ? Number(body.maxScore) : null;
-    if ("score" in body)
-      data.score = body.score != null ? Number(body.score) : null;
-    if ("feedback" in body)
-      data.feedback = body.feedback ? String(body.feedback) : null;
+    if ("maxScore" in body) data.max_score = body.maxScore != null ? Number(body.maxScore) : null;
+    if ("score" in body) data.score = body.score != null ? Number(body.score) : null;
+    if ("feedback" in body) data.feedback = body.feedback ? String(body.feedback) : null;
     if ("competencyUnitId" in body) {
       if (body.competencyUnitId) {
-        // Verify the unit's program belongs to this tenant — same pattern
-        // as the orderId/staffId checks above.
-        const unit = await db.competencyUnit.findFirst({
-          where: { id: String(body.competencyUnitId), shopId: ctx.shopId },
-          select: { id: true },
-        });
-        data.competencyUnitId = unit ? String(body.competencyUnitId) : null;
+        const { data: unit } = await ctx.supabase
+          .from("competency_units")
+          .select("id")
+          .eq("id", String(body.competencyUnitId))
+          .eq("shop_id", ctx.shopId)
+          .maybeSingle();
+        data.competency_unit_id = unit ? String(body.competencyUnitId) : null;
       } else {
-        data.competencyUnitId = null;
+        data.competency_unit_id = null;
       }
     }
     if ("gradedById" in body) {
       // Always grade as the actual caller, never a spoofed id from the client.
-      data.gradedById = ctx.userId;
-      data.gradedAt = new Date();
+      data.graded_by_id = ctx.userId;
+      data.graded_at = new Date().toISOString();
     }
-    const task = await db.task.update({
-      where: { id },
-      data: data as Parameters<typeof db.task.update>[0]["data"],
-      include: {
-        order: { include: { customer: true } },
-        staff: true,
-        gradedBy: { select: { id: true, fullName: true } },
-        competencyUnit: { select: { id: true, title: true, programId: true } },
-      },
-    });
-    return Response.json(task);
+
+    const { data: task, error } = await ctx.supabase
+      .from("tasks")
+      .update(data)
+      .eq("id", id)
+      .select(
+        "*, order:orders(*, customer:customers(*)), staff:profiles!tasks_staff_id_fkey(*), graded_by:profiles!tasks_graded_by_id_fkey(id, full_name), module:competency_units(id, title, program_id)"
+      )
+      .single();
+    if (error) throw error;
+
+    return Response.json(serializeTask(task));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });

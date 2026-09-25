@@ -1,22 +1,27 @@
-import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
+import { serializeSettings } from "@/lib/supabase/serializers";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    let settings = await db.settings.findUnique({
-      where: { shopId: ctx.shopId },
-    });
+    let { data: settings } = await ctx.supabase
+      .from("settings")
+      .select("*")
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+
     if (!settings) {
-      settings = await db.settings.create({
-        data: { shopId: ctx.shopId, ownerGender: "Madam", studioName: "Madam Studio" },
-      });
+      const { data: created, error } = await ctx.supabase
+        .from("settings")
+        .insert({ shop_id: ctx.shopId, owner_gender: "Madam", studio_name: "Madam Studio" })
+        .select("*")
+        .single();
+      if (error) throw error;
+      settings = created;
     }
-    return Response.json(settings);
+    return Response.json(serializeSettings(settings));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
@@ -25,32 +30,52 @@ export async function GET(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    let settings = await db.settings.findUnique({
-      where: { shopId: ctx.shopId },
-    });
+
+    let { data: settings } = await ctx.supabase
+      .from("settings")
+      .select("id")
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
     if (!settings) {
-      settings = await db.settings.create({
-        data: { shopId: ctx.shopId, ownerGender: "Madam", studioName: "Madam Studio" },
-      });
+      const { data: created, error } = await ctx.supabase
+        .from("settings")
+        .insert({ shop_id: ctx.shopId, owner_gender: "Madam", studio_name: "Madam Studio" })
+        .select("id")
+        .single();
+      if (error) throw error;
+      settings = created;
     }
+
     const data: Record<string, unknown> = {};
-    for (const k of ["ownerGender", "studioName", "currency"] as const) {
-      if (k in body && body[k] != null) data[k] = String(body[k]);
+    const fieldMap: Record<string, string> = {
+      ownerGender: "owner_gender",
+      studioName: "studio_name",
+      currency: "currency",
+    };
+    for (const [key, column] of Object.entries(fieldMap)) {
+      if (key in body && body[key] != null) data[column] = String(body[key]);
     }
-    for (const k of ["overheadAmount", "selfPayout"] as const) {
-      if (k in body) data[k] = Number(body[k]) || 0;
+    const numericFieldMap: Record<string, string> = {
+      overheadAmount: "overhead_amount",
+      selfPayout: "self_payout",
+    };
+    for (const [key, column] of Object.entries(numericFieldMap)) {
+      if (key in body) data[column] = Number(body[key]) || 0;
     }
-    const updated = await db.settings.update({
-      where: { id: settings.id },
-      data: data as Parameters<typeof db.settings.update>[0]["data"],
-    });
-    return Response.json(updated);
+
+    const { data: updated, error } = await ctx.supabase
+      .from("settings")
+      .update(data)
+      .eq("id", settings.id)
+      .select("*")
+      .single();
+    if (error) throw error;
+
+    return Response.json(serializeSettings(updated));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });

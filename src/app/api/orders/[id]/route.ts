@@ -1,43 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
 import { notifyCustomer, statusChangeMessage } from "@/lib/notify";
+import { serializeOrder, serializeTask } from "@/lib/supabase/serializers";
+
+const ORDER_SELECT =
+  "*, customer:customers(*), assigned_staff:profiles!orders_assigned_staff_id_fkey(*), payments(*), fittings(*), tasks(*, staff:profiles(*), order:orders(*, customer:customers(*)))";
+
+function sortByDate<T extends { date: string }>(rows: T[] | null | undefined) {
+  return [...(rows ?? [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+function serializeFullOrder(o: Record<string, any>) {
+  return {
+    ...serializeOrder({
+      ...o,
+      payments: sortByDate(o.payments),
+      fittings: sortByDate(o.fittings),
+    }),
+    tasks: [...(o.tasks ?? [])]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .map(serializeTask),
+  };
+}
 
 // GET /api/orders/[id] — single order with full relations
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const ctx = await getTenant(req);
-  if (!ctx) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await getTenant();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
-  const order = await db.order.findFirst({
-    where: canSeeAll
-      ? { id, shopId: ctx.shopId }
-      : {
-          id,
-          shopId: ctx.shopId,
-          OR: [{ assignedStaffId: ctx.userId }, { assignedStaffId: null }],
-        },
-    include: {
-      customer: true,
-      assignedStaff: true,
-      payments: { orderBy: { date: "asc" } },
-      fittings: { orderBy: { date: "asc" } },
-      tasks: {
-        include: { staff: true, order: { include: { customer: true } } },
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
-  if (!order) {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  let query = ctx.supabase.from("orders").select(ORDER_SELECT).eq("id", id).eq("shop_id", ctx.shopId);
+  if (!canSeeAll) {
+    query = query.or(`assigned_staff_id.eq.${ctx.userId},assigned_staff_id.is.null`);
   }
-  return NextResponse.json(order);
+  const { data: order } = await query.maybeSingle();
+  if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+
+  return NextResponse.json(serializeFullOrder(order));
 }
 
 // PATCH /api/orders/[id] — partial update (esp. status)
@@ -45,106 +48,81 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const ctx = await getTenant(req);
-  if (!ctx) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await getTenant();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-
-  // Same scope as GET: owner/trainer can touch any order in the shop;
-  // everyone else only their own assignment (or an unassigned one they're
-  // picking up) — checked here, not just filtered out of list views.
   const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
-  const existing = await db.order.findFirst({
-    where: canSeeAll
-      ? { id, shopId: ctx.shopId }
-      : {
-          id,
-          shopId: ctx.shopId,
-          OR: [{ assignedStaffId: ctx.userId }, { assignedStaffId: null }],
-        },
-    select: { id: true, status: true, customerId: true, garmentDesign: true },
-  });
-  if (!existing) {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  let existingQuery = ctx.supabase
+    .from("orders")
+    .select("id, status, customer_id, garment_design")
+    .eq("id", id)
+    .eq("shop_id", ctx.shopId);
+  if (!canSeeAll) {
+    existingQuery = existingQuery.or(
+      `assigned_staff_id.eq.${ctx.userId},assigned_staff_id.is.null`
+    );
   }
+  const { data: existing } = await existingQuery.maybeSingle();
+  if (!existing) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
   const body = await req.json();
+  const statusChanged = body.status !== undefined && body.status !== existing.status;
 
-  // Track status change for customer notification.
-  const statusChanged =
-    body.status !== undefined && body.status !== existing.status;
-
-  const data: any = {};
-  if (body.garmentDesign !== undefined) data.garmentDesign = body.garmentDesign;
+  const data: Record<string, unknown> = {};
+  if (body.garmentDesign !== undefined) data.garment_design = body.garmentDesign;
   if (body.orderDate !== undefined)
-    data.orderDate = body.orderDate ? new Date(body.orderDate) : new Date();
+    data.order_date = body.orderDate ? new Date(body.orderDate).toISOString() : new Date().toISOString();
   if (body.deliveryDate !== undefined)
-    data.deliveryDate = body.deliveryDate ? new Date(body.deliveryDate) : null;
+    data.delivery_date = body.deliveryDate ? new Date(body.deliveryDate).toISOString() : null;
   if (body.status !== undefined) data.status = body.status;
-  if (body.sellingPrice !== undefined)
-    data.sellingPrice = Number(body.sellingPrice) || 0;
-  if (body.fabricCost !== undefined)
-    data.fabricCost = Number(body.fabricCost) || 0;
-  if (body.labourCost !== undefined)
-    data.labourCost = Number(body.labourCost) || 0;
+  if (body.sellingPrice !== undefined) data.selling_price = Number(body.sellingPrice) || 0;
+  if (body.fabricCost !== undefined) data.fabric_cost = Number(body.fabricCost) || 0;
+  if (body.labourCost !== undefined) data.labour_cost = Number(body.labourCost) || 0;
   if (body.notes !== undefined) data.notes = body.notes;
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.assignedStaffId !== undefined) {
     if (body.assignedStaffId) {
-      // Verify staff belongs to tenant.
-      const staff = await db.user.findFirst({
-        where: { id: body.assignedStaffId, shopId: ctx.shopId },
-        select: { id: true },
-      });
-      data.assignedStaffId = staff ? body.assignedStaffId : null;
+      const { data: staff } = await ctx.supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", body.assignedStaffId)
+        .eq("shop_id", ctx.shopId)
+        .maybeSingle();
+      data.assigned_staff_id = staff ? body.assignedStaffId : null;
     } else {
-      data.assignedStaffId = null;
+      data.assigned_staff_id = null;
     }
   }
   if (body.customerId !== undefined) {
-    // Verify customer belongs to tenant.
-    const customer = await db.customer.findFirst({
-      where: { id: body.customerId, shopId: ctx.shopId },
-      select: { id: true },
-    });
-    if (customer) {
-      data.customer = { connect: { id: body.customerId } };
-    }
+    const { data: customer } = await ctx.supabase
+      .from("customers")
+      .select("id")
+      .eq("id", body.customerId)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+    if (customer) data.customer_id = body.customerId;
   }
 
-  const updated = await db.order.update({
-    where: { id },
-    data,
-    include: {
-      customer: true,
-      assignedStaff: true,
-      payments: { orderBy: { date: "asc" } },
-      fittings: { orderBy: { date: "asc" } },
-      tasks: {
-        include: { staff: true, order: { include: { customer: true } } },
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
+  const { data: updated, error } = await ctx.supabase
+    .from("orders")
+    .update(data)
+    .eq("id", id)
+    .select(ORDER_SELECT)
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Notify the customer about the status change.
   if (statusChanged) {
-    const msg = statusChangeMessage(
-      existing.garmentDesign,
-      existing.status,
-      updated.status
-    );
+    const msg = statusChangeMessage(existing.garment_design, existing.status, updated.status);
     const type =
       updated.status === "Ready"
         ? "ready_for_collection"
         : updated.status === "Collected/Delivered" || updated.status === "Completed"
           ? "delivered"
           : "status_change";
-    await notifyCustomer({
+    await notifyCustomer(ctx.supabase, {
       shopId: ctx.shopId,
-      customerId: existing.customerId,
+      customerId: existing.customer_id,
       orderId: id,
       type,
       title: msg.title,
@@ -154,5 +132,5 @@ export async function PATCH(
     });
   }
 
-  return NextResponse.json(updated);
+  return NextResponse.json(serializeFullOrder(updated));
 }

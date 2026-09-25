@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
 import ZAI from "@/lib/ai-client";
 
 export const dynamic = "force-dynamic";
@@ -82,7 +81,7 @@ function buildUserPrompt(profile: unknown, request: DesignRequest): string {
 export async function POST(req: Request) {
   try {
     // Authenticate the caller (tenant guard).
-    const ctx = await getTenant(req);
+    const ctx = await getTenant();
     if (!ctx) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -106,9 +105,12 @@ export async function POST(req: Request) {
     }
 
     // Verify the customer belongs to the tenant before building the profile.
-    const customer = await db.customer.findFirst({
-      where: { id: customerId, shopId: ctx.shopId },
-    });
+    const { data: customer } = await ctx.supabase
+      .from("customers")
+      .select("*")
+      .eq("id", customerId)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
     if (!customer) {
       return NextResponse.json(
         { error: "Customer not found" },
@@ -116,39 +118,52 @@ export async function POST(req: Request) {
       );
     }
 
-    const [measurementSets, orders, feedback, styleConcepts] =
+    const [measurementSetsRes, ordersRes, feedbackRes, styleConceptsRes] =
       await Promise.all([
-        db.measurementSet.findMany({
-          where: { customerId, shopId: ctx.shopId },
-          orderBy: { dateTaken: "desc" },
-          take: 1,
-        }),
-        db.order.findMany({
-          where: { customerId, shopId: ctx.shopId },
-          orderBy: { orderDate: "desc" },
-          take: 10,
-          select: { garmentDesign: true, status: true },
-        }),
-        db.customerFeedback.findMany({
-          where: { customerId, shopId: ctx.shopId },
-          orderBy: { date: "desc" },
-          take: 10,
-          select: { rating: true, feedback: true, type: true },
-        }),
-        db.styleConcept.findMany({
-          where: { customerId, shopId: ctx.shopId },
-          orderBy: { createdAt: "desc" },
-          take: 20,
-          select: {
-            conceptName: true,
-            silhouette: true,
-            fabric: true,
-            colour: true,
-            status: true,
-            rejectionReason: true,
-          },
-        }),
+        ctx.supabase
+          .from("measurement_sets")
+          .select("*")
+          .eq("customer_id", customerId)
+          .eq("shop_id", ctx.shopId)
+          .order("date_taken", { ascending: false })
+          .limit(1),
+        ctx.supabase
+          .from("orders")
+          .select("garment_design, status")
+          .eq("customer_id", customerId)
+          .eq("shop_id", ctx.shopId)
+          .order("order_date", { ascending: false })
+          .limit(10),
+        ctx.supabase
+          .from("customer_feedback")
+          .select("rating, feedback, type")
+          .eq("customer_id", customerId)
+          .eq("shop_id", ctx.shopId)
+          .order("date", { ascending: false })
+          .limit(10),
+        ctx.supabase
+          .from("style_concepts")
+          .select("concept_name, silhouette, fabric, colour, status, rejection_reason")
+          .eq("customer_id", customerId)
+          .eq("shop_id", ctx.shopId)
+          .order("created_at", { ascending: false })
+          .limit(20),
       ]);
+
+    const measurementSets = measurementSetsRes.data ?? [];
+    const orders = (ordersRes.data ?? []).map((o) => ({
+      garmentDesign: o.garment_design,
+      status: o.status,
+    }));
+    const feedback = feedbackRes.data ?? [];
+    const styleConcepts = (styleConceptsRes.data ?? []).map((c) => ({
+      conceptName: c.concept_name,
+      silhouette: c.silhouette,
+      fabric: c.fabric,
+      colour: c.colour,
+      status: c.status,
+      rejectionReason: c.rejection_reason,
+    }));
 
     const latestMeasurement = measurementSets[0] ?? null;
 
@@ -156,20 +171,20 @@ export async function POST(req: Request) {
       name: customer.name,
       gender: customer.gender,
       occupation: customer.occupation,
-      customerType: customer.customerType,
-      preferredStyles: customer.preferredStyles,
-      favouriteColours: customer.favouriteColours,
-      coloursToAvoid: customer.coloursToAvoid,
-      favouriteFabrics: customer.favouriteFabrics,
-      preferredFit: customer.preferredFit,
-      designPreferences: customer.designPreferences,
-      styleNotes: customer.styleNotes,
-      skinTone: customer.skinTone,
+      customerType: customer.customer_type,
+      preferredStyles: customer.preferred_styles,
+      favouriteColours: customer.favourite_colours,
+      coloursToAvoid: customer.colours_to_avoid,
+      favouriteFabrics: customer.favourite_fabrics,
+      preferredFit: customer.preferred_fit,
+      designPreferences: customer.design_preferences,
+      styleNotes: customer.style_notes,
+      skinTone: customer.skin_tone,
       height: customer.height,
       weight: customer.weight,
       measurements: latestMeasurement
         ? {
-            dateTaken: latestMeasurement.dateTaken,
+            dateTaken: latestMeasurement.date_taken,
             unit: latestMeasurement.unit,
             bust: latestMeasurement.bust,
             waist: latestMeasurement.waist,

@@ -1,21 +1,23 @@
-import { db } from "@/lib/db";
-import { getTenant, tenantWhere, canManageFreelancers } from "@/lib/tenant";
+import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
+import { serializeFreelanceJob } from "@/lib/supabase/serializers";
 
 // GET /api/freelance-jobs — this shop's freelance jobs (its own
 // bookkeeping view — includes orderId, unlike the freelancer-facing API).
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const ctx = await getTenant(req);
+    const ctx = await getTenant();
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const jobs = await db.freelanceJob.findMany({
-      where: tenantWhere(ctx.shopId),
-      orderBy: { createdAt: "desc" },
-      include: { freelancer: { select: { id: true, fullName: true } } },
-    });
-    return Response.json(jobs);
+    const { data: jobs, error } = await ctx.supabase
+      .from("freelance_jobs")
+      .select("*, freelancer:freelancer_profiles(id, full_name)")
+      .eq("shop_id", ctx.shopId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    return Response.json(jobs.map(serializeFreelanceJob));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
@@ -27,7 +29,7 @@ export async function GET(req: Request) {
 // haven't commissioned).
 export async function POST(req: Request) {
   try {
-    const ctx = await getTenant(req);
+    const ctx = await getTenant();
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -42,8 +44,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { freelancerId, taskDescription, cost, dueDate, orderId, status } =
-      body || {};
+    const { freelancerId, taskDescription, cost, dueDate, orderId, status } = body || {};
     if (!freelancerId || !taskDescription) {
       return Response.json(
         { error: "A freelancer and task description are required." },
@@ -52,11 +53,12 @@ export async function POST(req: Request) {
     }
 
     // Must be a freelancer this shop has actually linked.
-    const link = await db.freelancerShopLink.findUnique({
-      where: {
-        shopId_freelancerId: { shopId: ctx.shopId, freelancerId: String(freelancerId) },
-      },
-    });
+    const { data: link } = await ctx.supabase
+      .from("freelancer_shop_links")
+      .select("id")
+      .eq("shop_id", ctx.shopId)
+      .eq("freelancer_id", String(freelancerId))
+      .maybeSingle();
     if (!link) {
       return Response.json(
         { error: "That freelancer isn't linked to your shop yet." },
@@ -67,26 +69,31 @@ export async function POST(req: Request) {
     // orderId, if given, must belong to this shop too.
     let finalOrderId: string | null = null;
     if (orderId) {
-      const order = await db.order.findFirst({
-        where: { id: String(orderId), shopId: ctx.shopId },
-        select: { id: true },
-      });
+      const { data: order } = await ctx.supabase
+        .from("orders")
+        .select("id")
+        .eq("id", String(orderId))
+        .eq("shop_id", ctx.shopId)
+        .maybeSingle();
       if (order) finalOrderId = order.id;
     }
 
-    const job = await db.freelanceJob.create({
-      data: {
-        shopId: ctx.shopId,
-        freelancerId: String(freelancerId),
-        taskDescription: String(taskDescription).trim(),
+    const { data: job, error } = await ctx.supabase
+      .from("freelance_jobs")
+      .insert({
+        shop_id: ctx.shopId,
+        freelancer_id: String(freelancerId),
+        task_description: String(taskDescription).trim(),
         cost: cost != null ? Number(cost) : null,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        orderId: finalOrderId,
+        due_date: dueDate ? new Date(dueDate).toISOString() : null,
+        order_id: finalOrderId,
         status: status || "Commissioned",
-      },
-      include: { freelancer: { select: { id: true, fullName: true } } },
-    });
-    return Response.json(job);
+      })
+      .select("*, freelancer:freelancer_profiles(id, full_name)")
+      .single();
+    if (error) throw error;
+
+    return Response.json(serializeFreelanceJob(job));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });

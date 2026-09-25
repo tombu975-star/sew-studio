@@ -1,43 +1,36 @@
-import { db } from "@/lib/db";
-import { getTenant, tenantWhere, canManageFreelancers } from "@/lib/tenant";
-
-const SAFE_FREELANCER_SELECT = {
-  id: true,
-  fullName: true,
-  email: true,
-  phone: true,
-  specialty: true,
-  skills: true,
-};
+import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
+import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 
 // GET /api/freelancers — this shop's linked freelancers (their own
 // rate notes/status here, plus the freelancer's shared identity fields).
 // A shop only ever sees freelancers IT has linked — never another
-// shop's roster, and never the freelancer's password.
-export async function GET(req: Request) {
+// shop's roster, and never the freelancer's password (Supabase Auth
+// manages that entirely separately now).
+export async function GET() {
   try {
-    const ctx = await getTenant(req);
+    const ctx = await getTenant();
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const links = await db.freelancerShopLink.findMany({
-      where: tenantWhere(ctx.shopId),
-      orderBy: { createdAt: "desc" },
-      include: { freelancer: { select: SAFE_FREELANCER_SELECT } },
-    });
+    const { data: links, error } = await ctx.supabase
+      .from("freelancer_shop_links")
+      .select("*, freelancer:freelancer_profiles(id, full_name, email, phone, specialty, skills)")
+      .eq("shop_id", ctx.shopId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
 
     const freelancers = links.map((l) => ({
       linkId: l.id,
-      id: l.freelancer.id,
-      name: l.freelancer.fullName,
-      email: l.freelancer.email,
-      phone: l.freelancer.phone,
-      specialty: l.freelancer.specialty,
-      skills: l.freelancer.skills,
-      rateNotes: l.rateNotes,
+      id: l.freelancer?.id,
+      name: l.freelancer?.full_name,
+      email: l.freelancer?.email,
+      phone: l.freelancer?.phone,
+      specialty: l.freelancer?.specialty,
+      skills: l.freelancer?.skills,
+      rateNotes: l.rate_notes,
       status: l.status,
-      createdAt: l.createdAt,
+      createdAt: l.created_at,
     }));
     return Response.json(freelancers);
   } catch (err) {
@@ -49,12 +42,19 @@ export async function GET(req: Request) {
 // POST /api/freelancers — commission a freelancer. If a freelancer
 // account with this email already exists (they may already work with
 // other shops), this just links them to this shop — it never creates a
-// duplicate identity and never lets this shop see the existing
-// account's password or other shops' data. Only a brand-new email
-// creates a brand-new login.
+// duplicate identity. Only a brand-new email creates a brand-new login.
+//
+// Uses the admin client throughout (after the permission check): finding
+// or creating a freelancer_profiles row and its Supabase Auth user, and
+// reading it back, all need to happen outside this shop's RLS — a shop
+// legitimately has no read access to a freelancer's profile until AFTER
+// it links them (see supabase/schema/0003_rls.sql).
 export async function POST(req: Request) {
+  const admin = createAdminSupabaseClient();
+  let createdAuthUserId: string | null = null;
+
   try {
-    const ctx = await getTenant(req);
+    const ctx = await getTenant();
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -69,46 +69,49 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const {
-      fullName,
-      email,
-      phone,
-      specialty,
-      skills,
-      rateNotes,
-      status,
-      password,
-    } = body || {};
+    const { fullName, email, phone, specialty, skills, rateNotes, status, password } = body || {};
     if (!fullName || !email) {
-      return Response.json(
-        { error: "Name and email are required." },
-        { status: 400 }
-      );
+      return Response.json({ error: "Name and email are required." }, { status: 400 });
     }
     const normalizedEmail = String(email).toLowerCase().trim();
 
-    let freelancer = await db.freelancerAccount.findUnique({
-      where: { email: normalizedEmail },
-    });
+    let { data: freelancer } = await admin
+      .from("freelancer_profiles")
+      .select("*")
+      .eq("email", normalizedEmail)
+      .maybeSingle();
 
     if (!freelancer) {
-      freelancer = await db.freelancerAccount.create({
-        data: {
+      const { data: authData, error: authError } = await admin.auth.admin.createUser({
+        email: normalizedEmail,
+        password: String(password || "freelancer2025"),
+        email_confirm: true,
+      });
+      if (authError || !authData.user) throw authError ?? new Error("Could not create freelancer account.");
+      createdAuthUserId = authData.user.id;
+
+      const { data: created, error: createError } = await admin
+        .from("freelancer_profiles")
+        .insert({
+          id: createdAuthUserId,
           email: normalizedEmail,
-          fullName: String(fullName).trim(),
+          full_name: String(fullName).trim(),
           phone: phone || null,
           specialty: specialty || null,
           skills: skills || null,
-          password: password || "freelancer2025",
-        },
-      });
+        })
+        .select("*")
+        .single();
+      if (createError) throw createError;
+      freelancer = created;
     }
 
-    const existingLink = await db.freelancerShopLink.findUnique({
-      where: {
-        shopId_freelancerId: { shopId: ctx.shopId, freelancerId: freelancer.id },
-      },
-    });
+    const { data: existingLink } = await admin
+      .from("freelancer_shop_links")
+      .select("id")
+      .eq("shop_id", ctx.shopId)
+      .eq("freelancer_id", freelancer.id)
+      .maybeSingle();
     if (existingLink) {
       return Response.json(
         { error: "This freelancer is already linked to your shop." },
@@ -116,28 +119,34 @@ export async function POST(req: Request) {
       );
     }
 
-    const link = await db.freelancerShopLink.create({
-      data: {
-        shopId: ctx.shopId,
-        freelancerId: freelancer.id,
-        rateNotes: rateNotes || null,
+    const { data: link, error: linkError } = await admin
+      .from("freelancer_shop_links")
+      .insert({
+        shop_id: ctx.shopId,
+        freelancer_id: freelancer.id,
+        rate_notes: rateNotes || null,
         status: status || "Available",
-      },
-    });
+      })
+      .select("*")
+      .single();
+    if (linkError) throw linkError;
 
     return Response.json({
       linkId: link.id,
       id: freelancer.id,
-      name: freelancer.fullName,
+      name: freelancer.full_name,
       email: freelancer.email,
       phone: freelancer.phone,
       specialty: freelancer.specialty,
       skills: freelancer.skills,
-      rateNotes: link.rateNotes,
+      rateNotes: link.rate_notes,
       status: link.status,
-      createdAt: link.createdAt,
+      createdAt: link.created_at,
     });
   } catch (err) {
+    if (createdAuthUserId) {
+      await admin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
+    }
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
   }

@@ -1,49 +1,50 @@
-import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
 import { notifyCustomer } from "@/lib/notify";
+import { serializePayment } from "@/lib/supabase/serializers";
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
     const body = await req.json();
-    // Verify the parent order belongs to the tenant.
-    const order = await db.order.findFirst({
-      where: { id, shopId: ctx.shopId },
-      select: { id: true, customerId: true, garmentDesign: true },
-    });
-    if (!order) {
-      return Response.json({ error: "Order not found" }, { status: 404 });
-    }
+
+    const { data: order } = await ctx.supabase
+      .from("orders")
+      .select("id, customer_id, garment_design")
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+    if (!order) return Response.json({ error: "Order not found" }, { status: 404 });
+
     const amount = Number(body.amount) || 0;
-    const payment = await db.payment.create({
-      data: {
-        orderId: id,
+    const { data: payment, error } = await ctx.supabase
+      .from("payments")
+      .insert({
+        order_id: id,
         amount,
         method: body.method ? String(body.method) : null,
         note: body.note ? String(body.note) : null,
-        date: body.date ? new Date(body.date) : new Date(),
-      },
-    });
+        date: body.date ? new Date(body.date).toISOString() : new Date().toISOString(),
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
 
-    // Notify the customer that a payment was received.
-    await notifyCustomer({
+    await notifyCustomer(ctx.supabase, {
       shopId: ctx.shopId,
-      customerId: order.customerId,
+      customerId: order.customer_id,
       orderId: id,
       type: "payment_received",
       title: "Payment received",
-      body: `We've received a payment of GHS ${amount.toLocaleString("en-GB")} for your order (${order.garmentDesign}). Thank you!`,
+      body: `We've received a payment of GHS ${amount.toLocaleString("en-GB")} for your order (${order.garment_design}). Thank you!`,
     });
 
-    return Response.json(payment, { status: 201 });
+    return Response.json(serializePayment(payment), { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });

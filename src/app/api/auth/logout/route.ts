@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
+import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
 
 export async function POST() {
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set("ms_session", "", {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
-  return res;
+  const supabase = await createServerSupabaseClient();
+  await supabase.auth.signOut();
+  return NextResponse.json({ ok: true });
 }

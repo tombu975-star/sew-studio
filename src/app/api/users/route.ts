@@ -1,48 +1,57 @@
-import { db } from "@/lib/db";
-import { getTenant, tenantWhere } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
+import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const users = await db.user.findMany({
-      where: tenantWhere(ctx.shopId),
-      orderBy: { createdAt: "asc" },
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        role: true,
-        gender: true,
-        phone: true,
-        shopId: true,
-        mentorId: true,
-        trainingDurationWeeks: true,
-        trainingStartedAt: true,
-        canAccessOrders: true,
-        canAccessBoard: true,
-        createdAt: true,
-        updatedAt: true,
-        // password intentionally excluded — never send it to the client
-      },
-    });
-    return Response.json(users);
+    // RLS already scopes this to ctx.shopId — the explicit .eq is defense
+    // in depth, matching the app's existing convention of never relying on
+    // a single layer for tenant isolation.
+    const { data: users, error } = await ctx.supabase
+      .from("profiles")
+      .select(
+        "id, email, full_name, role, gender, phone, shop_id, mentor_id, training_duration_weeks, training_started_at, can_access_orders, can_access_board, created_at, updated_at"
+      )
+      .eq("shop_id", ctx.shopId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+
+    return Response.json(
+      users.map((u) => ({
+        id: u.id,
+        email: u.email,
+        fullName: u.full_name,
+        role: u.role,
+        gender: u.gender,
+        phone: u.phone,
+        shopId: u.shop_id,
+        mentorId: u.mentor_id,
+        trainingDurationWeeks: u.training_duration_weeks,
+        trainingStartedAt: u.training_started_at,
+        canAccessOrders: u.can_access_orders,
+        canAccessBoard: u.can_access_board,
+        createdAt: u.created_at,
+        updatedAt: u.updated_at,
+      }))
+    );
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
   }
 }
 
-// Create a new studio member (staff / trainer / trainee / madam).
+// Invite a new studio member (staff / trainer / trainee / madam). Creates
+// their Supabase Auth user (admin API — this is an admin action on someone
+// else's behalf, not a self-signup) then their profile.
 export async function POST(req: Request) {
+  const admin = createAdminSupabaseClient();
+  let createdAuthUserId: string | null = null;
+
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
     if (ctx.role !== "madam" && ctx.role !== "trainer") {
       return Response.json(
         { error: "Only the studio owner or a trainer can add members." },
@@ -51,13 +60,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { fullName, email, role, gender, phone, password, mentorId } =
-      body || {};
+    const { fullName, email, role, gender, phone, password, mentorId } = body || {};
     if (!fullName || !email) {
-      return Response.json(
-        { error: "Name and email are required." },
-        { status: 400 }
-      );
+      return Response.json({ error: "Name and email are required." }, { status: 400 });
     }
     const validRoles = ["madam", "staff", "trainer", "trainee"];
     let finalRole = validRoles.includes(role) ? role : "staff";
@@ -65,48 +70,73 @@ export async function POST(req: Request) {
       // Trainers may only add trainees — not staff, trainers, or owners.
       finalRole = "trainee";
     }
-
-    const existing = await db.user.findUnique({
-      where: { email: String(email).toLowerCase().trim() },
-    });
-    if (existing) {
-      return Response.json(
-        { error: "A member with that email already exists." },
-        { status: 409 }
-      );
-    }
+    const emailNorm = String(email).toLowerCase().trim();
 
     // A mentor can only be assigned when creating a trainee, and must be a
-    // trainer/madam in the same shop — otherwise grading permission checks
-    // (which require trainee.mentorId === grading trainer's id) can never
-    // be satisfied for members added this way.
+    // trainer/madam in the same shop.
     let finalMentorId: string | null = null;
     if (finalRole === "trainee" && mentorId) {
-      const mentor = await db.user.findFirst({
-        where: {
-          id: String(mentorId),
-          shopId: ctx.shopId,
-          role: { in: ["trainer", "madam"] },
-        },
-        select: { id: true },
-      });
+      const { data: mentor } = await ctx.supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", String(mentorId))
+        .eq("shop_id", ctx.shopId)
+        .in("role", ["trainer", "madam"])
+        .maybeSingle();
       finalMentorId = mentor ? String(mentorId) : null;
     }
 
-    const user = await db.user.create({
-      data: {
-        shopId: ctx.shopId,
-        fullName: String(fullName).trim(),
-        email: String(email).toLowerCase().trim(),
+    const { data: authData, error: authError } = await admin.auth.admin.createUser({
+      email: emailNorm,
+      password: String(password || "atelier2025"),
+      email_confirm: true,
+    });
+    if (authError || !authData.user) {
+      const message = authError?.message ?? "";
+      if (message.toLowerCase().includes("already")) {
+        return Response.json(
+          { error: "A member with that email already exists." },
+          { status: 409 }
+        );
+      }
+      throw authError ?? new Error("Could not create the member's account.");
+    }
+    createdAuthUserId = authData.user.id;
+
+    const { data: profile, error: profileError } = await admin
+      .from("profiles")
+      .insert({
+        id: createdAuthUserId,
+        shop_id: ctx.shopId,
+        full_name: String(fullName).trim(),
+        email: emailNorm,
         role: finalRole,
         gender: gender || null,
         phone: phone || null,
-        password: password || "atelier2025",
-        mentorId: finalMentorId,
-      },
+        mentor_id: finalMentorId,
+      })
+      .select(
+        "id, email, full_name, role, gender, phone, shop_id, mentor_id, created_at, updated_at"
+      )
+      .single();
+    if (profileError || !profile) throw profileError ?? new Error("Could not create the profile.");
+
+    return Response.json({
+      id: profile.id,
+      email: profile.email,
+      fullName: profile.full_name,
+      role: profile.role,
+      gender: profile.gender,
+      phone: profile.phone,
+      shopId: profile.shop_id,
+      mentorId: profile.mentor_id,
+      createdAt: profile.created_at,
+      updatedAt: profile.updated_at,
     });
-    return Response.json(user);
   } catch (err) {
+    if (createdAuthUserId) {
+      await admin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
+    }
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
   }

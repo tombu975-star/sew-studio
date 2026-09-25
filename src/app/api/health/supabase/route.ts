@@ -1,60 +1,53 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const startTime = Date.now();
   try {
-    // Run a query on Supabase Postgres: test connection & count tables
-    const [shopCount, userCount, orderCount, pgVersion] = await Promise.all([
-      db.shop.count(),
-      db.user.count(),
-      db.order.count(),
-      // Raw query to check PostgreSQL engine version and database name
-      db.$queryRawUnsafe<Array<{ current_database: string; version: string }>>(
-        "SELECT current_database(), version();"
-      ).catch(() => [{ current_database: "unknown", version: "unknown" }]),
+    const admin = createAdminSupabaseClient();
+
+    const [shopsRes, usersRes, ordersRes] = await Promise.all([
+      admin.from("shops").select("id", { count: "exact", head: true }),
+      admin.from("profiles").select("id", { count: "exact", head: true }),
+      admin.from("orders").select("id", { count: "exact", head: true }),
     ]);
+    for (const res of [shopsRes, usersRes, ordersRes]) {
+      if (res.error) throw res.error;
+    }
 
     const latencyMs = Date.now() - startTime;
-    const isSupabase =
-      (process.env.DATABASE_URL || "").includes("supabase.co") ||
-      (process.env.DATABASE_URL || "").includes("pooler.supabase.com");
-
-    const host = (process.env.DATABASE_URL || "")
-      .replace(/:\/\/.*@/, "://***@")
-      .split("?")[0];
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const hostSanitized = url.replace(/^https?:\/\//, "");
 
     return NextResponse.json({
       status: "connected",
-      databaseType: "PostgreSQL",
-      provider: isSupabase ? "Supabase" : "PostgreSQL",
-      hostSanitized: host,
-      databaseName: pgVersion[0]?.current_database || "postgres",
-      pgVersionPreview: pgVersion[0]?.version?.split(" ")[0] || "PostgreSQL",
+      databaseType: "PostgreSQL (via Supabase PostgREST)",
+      provider: "Supabase",
+      hostSanitized,
       latencyMs,
       timestamp: new Date().toISOString(),
       counts: {
-        shops: shopCount,
-        users: userCount,
-        orders: orderCount,
+        shops: shopsRes.count ?? 0,
+        users: usersRes.count ?? 0,
+        orders: ordersRes.count ?? 0,
       },
-      message: "Successfully connected to Supabase PostgreSQL instance.",
+      message: "Successfully connected to the Supabase project.",
     });
   } catch (error) {
     const latencyMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("[HealthCheck] Supabase Postgres connectivity failed:", error);
+    console.error("[HealthCheck] Supabase connectivity failed:", error);
 
     return NextResponse.json(
       {
         status: "error",
-        databaseType: "PostgreSQL",
+        databaseType: "PostgreSQL (via Supabase PostgREST)",
         latencyMs,
         timestamp: new Date().toISOString(),
         error: errorMessage,
-        message: "Failed to connect to Supabase PostgreSQL instance.",
+        message: "Failed to connect to the Supabase project.",
       },
       { status: 500 }
     );

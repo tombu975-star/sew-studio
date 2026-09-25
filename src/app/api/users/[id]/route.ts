@@ -1,5 +1,4 @@
-import { db } from "@/lib/db";
-import { getTenant } from "@/lib/tenant";
+import { getTenant } from "@/lib/supabase/session";
 
 // PATCH — update a user (used by trainer/owner to set mentor + training duration on trainees)
 export async function PATCH(
@@ -7,10 +6,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ctx = await getTenant(req);
-    if (!ctx) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
     if (ctx.role !== "madam" && ctx.role !== "trainer") {
       return Response.json(
         { error: "Only the studio owner or a trainer can edit member profiles." },
@@ -20,17 +17,16 @@ export async function PATCH(
 
     const { id } = await params;
 
-    // Verify the user belongs to this tenant.
-    const existing = await db.user.findFirst({
-      where: { id, shopId: ctx.shopId },
-      select: { id: true, role: true, mentorId: true },
-    });
-    if (!existing) {
-      return Response.json({ error: "User not found" }, { status: 404 });
-    }
+    const { data: existing } = await ctx.supabase
+      .from("profiles")
+      .select("id, role, mentor_id")
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+    if (!existing) return Response.json({ error: "User not found" }, { status: 404 });
     if (
       ctx.role === "trainer" &&
-      !(existing.role === "trainee" && existing.mentorId === ctx.userId)
+      !(existing.role === "trainee" && existing.mentor_id === ctx.userId)
     ) {
       return Response.json(
         { error: "You can only edit trainees you mentor." },
@@ -55,47 +51,42 @@ export async function PATCH(
     const data: Record<string, unknown> = {};
     if (mentorId !== undefined) {
       if (mentorId) {
-        // Verify mentor belongs to the same tenant.
-        const mentor = await db.user.findFirst({
-          where: { id: String(mentorId), shopId: ctx.shopId },
-          select: { id: true },
-        });
-        data.mentorId = mentor ? String(mentorId) : null;
+        const { data: mentor } = await ctx.supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", String(mentorId))
+          .eq("shop_id", ctx.shopId)
+          .maybeSingle();
+        data.mentor_id = mentor ? String(mentorId) : null;
       } else {
-        data.mentorId = null;
+        data.mentor_id = null;
       }
     }
     if (trainingDurationWeeks !== undefined)
-      data.trainingDurationWeeks = trainingDurationWeeks
-        ? Number(trainingDurationWeeks)
-        : null;
+      data.training_duration_weeks = trainingDurationWeeks ? Number(trainingDurationWeeks) : null;
     if (trainingStartedAt !== undefined)
-      data.trainingStartedAt = trainingStartedAt
-        ? new Date(trainingStartedAt)
-        : null;
+      data.training_started_at = trainingStartedAt ? new Date(trainingStartedAt).toISOString() : null;
     if (programId !== undefined) {
       if (programId) {
-        // Verify the program belongs to the same tenant.
-        const program = await db.trainingProgram.findFirst({
-          where: { id: String(programId), shopId: ctx.shopId },
-          select: { id: true },
-        });
-        data.programId = program ? String(programId) : null;
+        const { data: program } = await ctx.supabase
+          .from("training_programs")
+          .select("id")
+          .eq("id", String(programId))
+          .eq("shop_id", ctx.shopId)
+          .maybeSingle();
+        data.program_id = program ? String(programId) : null;
       } else {
-        data.programId = null;
+        data.program_id = null;
       }
     }
-    if (fullName !== undefined) data.fullName = fullName;
+    if (fullName !== undefined) data.full_name = fullName;
     if (phone !== undefined) data.phone = phone || null;
     if (gender !== undefined) data.gender = gender || null;
-    // Trainee access permissions (trainer/owner grants these)
-    if (canAccessOrders !== undefined)
-      data.canAccessOrders = Boolean(canAccessOrders);
-    if (canAccessBoard !== undefined)
-      data.canAccessBoard = Boolean(canAccessBoard);
-    // Freelancer management is a financial/business-relationship
-    // permission — only the owner grants it, even for fields a trainer
-    // is otherwise allowed to edit on their own mentee.
+    if (canAccessOrders !== undefined) data.can_access_orders = Boolean(canAccessOrders);
+    if (canAccessBoard !== undefined) data.can_access_board = Boolean(canAccessBoard);
+    // Freelancer management is a financial/business-relationship permission
+    // — only the owner grants it, even for fields a trainer can otherwise
+    // edit on their own mentee.
     if (canManageFreelancers !== undefined && ctx.role !== "madam") {
       return Response.json(
         { error: "Only the studio owner can grant freelancer access." },
@@ -103,10 +94,36 @@ export async function PATCH(
       );
     }
     if (canManageFreelancers !== undefined)
-      data.canManageFreelancers = Boolean(canManageFreelancers);
+      data.can_manage_freelancers = Boolean(canManageFreelancers);
 
-    const updated = await db.user.update({ where: { id }, data });
-    return Response.json(updated);
+    const { data: updated, error } = await ctx.supabase
+      .from("profiles")
+      .update(data)
+      .eq("id", id)
+      .select(
+        "id, email, full_name, role, gender, phone, shop_id, mentor_id, training_duration_weeks, training_started_at, program_id, can_access_orders, can_access_board, can_manage_freelancers, created_at, updated_at"
+      )
+      .single();
+    if (error) throw error;
+
+    return Response.json({
+      id: updated.id,
+      email: updated.email,
+      fullName: updated.full_name,
+      role: updated.role,
+      gender: updated.gender,
+      phone: updated.phone,
+      shopId: updated.shop_id,
+      mentorId: updated.mentor_id,
+      trainingDurationWeeks: updated.training_duration_weeks,
+      trainingStartedAt: updated.training_started_at,
+      programId: updated.program_id,
+      canAccessOrders: updated.can_access_orders,
+      canAccessBoard: updated.can_access_board,
+      canManageFreelancers: updated.can_manage_freelancers,
+      createdAt: updated.created_at,
+      updatedAt: updated.updated_at,
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
