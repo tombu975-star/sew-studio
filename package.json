@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
-    "start": "NODE_ENV=production node .next/standalone/server.js",
+    "start": "next start",
     "lint": "eslint .",
     "db:init-essential": "npx tsx scripts/init-supabase-essential.ts"
   },
