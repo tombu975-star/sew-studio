@@ -29,7 +29,7 @@ export function PremiumMetric({
   return (
     <div
       className={cn(
-        "relative surface-premium border border-[#E7E5E4] rounded-lg p-5 elevate-sm lift overflow-hidden group",
+        "relative surface-premium border border-[#E7E5E4] rounded-xl p-5 elevate-sm elevate-hover-md overflow-hidden group",
         accent && "border-[#800020]/20",
         className
       )}
@@ -39,7 +39,7 @@ export function PremiumMetric({
         <div className="absolute inset-0 bg-gradient-to-br from-[#800020]/[0.03] to-transparent pointer-events-none" />
       )}
       <div className="relative flex items-start justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+        <span className="text-[10px] font-semibold tracking-[0.16em] text-stone-500">
           {label}
         </span>
         {Icon && (

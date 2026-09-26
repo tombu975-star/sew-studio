@@ -18,11 +18,11 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "bg-white border border-[#E7E5E4] rounded-sm p-5 flex flex-col justify-between",
+        "surface-premium border border-[#E7E5E4] rounded-xl elevate-sm p-5 flex flex-col justify-between",
         className
       )}
     >
-      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+      <span className="text-[10px] font-semibold tracking-[0.16em] text-stone-500">
         {label}
       </span>
       <div className="mt-3">

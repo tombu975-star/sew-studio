@@ -24,14 +24,14 @@ export function SectionCard({
   return (
     <div
       className={cn(
-        "surface-premium border border-[#E7E5E4] rounded-lg elevate-sm lift",
+        "surface-premium border border-[#E7E5E4] rounded-xl elevate-sm",
         accent && "border-l-2 border-l-[#800020]",
         className
       )}
     >
       {title && (
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-[#E7E5E4]/70">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+          <h3 className="text-[11px] font-semibold tracking-[0.14em] text-stone-500">
             {title}
           </h3>
           {action}

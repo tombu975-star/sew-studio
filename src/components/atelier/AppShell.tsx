@@ -266,7 +266,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => go("dashboard")}
             className="flex items-center gap-3 group w-full"
           >
-            <div className="w-10 h-10 rounded-full border border-[#800020] flex items-center justify-center group-hover:bg-[#800020] group-hover:text-white text-[#800020] transition-all duration-300 elevate-sm shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[linear-gradient(155deg,#8c0224_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center text-white transition-transform duration-300 group-hover:scale-105 elevate-burgundy shrink-0">
               <Scissors className="w-4 h-4" />
             </div>
             <div className="min-w-0 text-left">
@@ -352,8 +352,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => go("dashboard")}
             className="flex items-center gap-2 min-w-0 flex-1"
           >
-            <div className="w-7 h-7 rounded-full border border-[#800020] flex items-center justify-center shrink-0">
-              <Scissors className="w-3.5 h-3.5 text-[#800020]" />
+            <div className="w-7 h-7 rounded-full bg-[linear-gradient(155deg,#8c0224_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center shrink-0">
+              <Scissors className="w-3.5 h-3.5 text-white" />
             </div>
             <span
               className="font-display text-base font-semibold text-[#1C1917] truncate min-w-0"
