@@ -47,7 +47,7 @@ export function FreelancerPortalClient() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf8f5]">
+      <div className="min-h-dvh flex items-center justify-center bg-[#faf8f5]">
         <Loader2 className="w-6 h-6 animate-spin text-[#800020]" />
       </div>
     );
@@ -90,7 +90,7 @@ function FreelancerLogin({
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf8f5] px-6">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#faf8f5] px-6">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white shadow-sm mb-4">
@@ -191,7 +191,7 @@ function FreelancerDashboard({
   }
 
   return (
-    <div className="min-h-screen bg-[#faf8f5]">
+    <div className="min-h-dvh bg-[#faf8f5]">
       <div className="max-w-2xl mx-auto px-5 py-8 sm:py-12">
         <div className="flex items-start justify-between gap-4 mb-2">
           <PageHeader

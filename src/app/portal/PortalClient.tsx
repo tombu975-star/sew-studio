@@ -135,7 +135,7 @@ export function PortalClient() {
   // ─── No token: show the entry screen ───────────────────────────
   if (!token && !loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#faf8f5]">
+      <div className="min-h-dvh flex flex-col bg-[#faf8f5]">
         <div className="relative h-[38vh] min-h-[260px] overflow-hidden bg-[#800020]">
           <img src="/atelier-login.jpg" alt="Atelier" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-br from-[#800020]/85 via-[#6b0018]/65 to-[#1C1917]/80" />
@@ -198,7 +198,7 @@ export function PortalClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf8f5] gap-4">
+      <div className="min-h-dvh flex flex-col items-center justify-center bg-[#faf8f5] gap-4">
         <div className="w-12 h-12 rounded-full border border-[#800020] flex items-center justify-center">
           <Scissors className="w-5 h-5 text-[#800020]" />
         </div>
@@ -210,7 +210,7 @@ export function PortalClient() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf8f5] gap-4 px-6 text-center">
+      <div className="min-h-dvh flex flex-col items-center justify-center bg-[#faf8f5] gap-4 px-6 text-center">
         <div className="w-14 h-14 rounded-full bg-[#800020]/8 flex items-center justify-center">
           <AlertCircle className="w-6 h-6 text-[#800020]" />
         </div>
@@ -226,7 +226,7 @@ export function PortalClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf8f5]">
+    <div className="min-h-dvh bg-[#faf8f5]">
       {/* Header band */}
       <div className="relative overflow-hidden bg-[#800020]">
         <img src="/atelier-login.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />

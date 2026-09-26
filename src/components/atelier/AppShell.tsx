@@ -257,7 +257,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-dvh flex flex-col md:flex-row">
       {/* ─── Desktop sidebar (w-60, sectioned) ───────────────────── */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col border-r border-[#E7E5E4] bg-white z-30">
         {/* Brand */}
@@ -346,78 +346,82 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ─── Mobile top bar ──────────────────────────────────────── */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-2.5 border-b border-[#E7E5E4] bg-white/95 backdrop-blur-md">
-        <button
-          onClick={() => go("dashboard")}
-          className="flex items-center gap-2 min-w-0"
-        >
-          <div className="w-7 h-7 rounded-full border border-[#800020] flex items-center justify-center shrink-0">
-            <Scissors className="w-3.5 h-3.5 text-[#800020]" />
-          </div>
-          <span
-            className="font-display text-base font-semibold text-[#1C1917] truncate max-w-[160px]"
-            title={shopDisplayName}
+      <header className="md:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#E7E5E4] bg-white/95 backdrop-blur-md">
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+          <button
+            onClick={() => go("dashboard")}
+            className="flex items-center gap-2 min-w-0 flex-1"
           >
-            {shopDisplayName}
-          </span>
-          <span className="text-[9px] uppercase tracking-wider text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
-            {ROLE_LABELS[role]}
-          </span>
-        </button>
-        <button
-          onClick={() => logout()}
-          className="w-8 h-8 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold shrink-0"
-          title={`${user?.fullName} · Sign out`}
-        >
-          {(user?.fullName || "?").charAt(0).toUpperCase()}
-        </button>
+            <div className="w-7 h-7 rounded-full border border-[#800020] flex items-center justify-center shrink-0">
+              <Scissors className="w-3.5 h-3.5 text-[#800020]" />
+            </div>
+            <span
+              className="font-display text-base font-semibold text-[#1C1917] truncate min-w-0"
+              title={shopDisplayName}
+            >
+              {shopDisplayName}
+            </span>
+            <span className="hidden sm:inline-block shrink-0 text-[9px] uppercase tracking-wider text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+              {ROLE_LABELS[role]}
+            </span>
+          </button>
+          <button
+            onClick={() => logout()}
+            className="w-8 h-8 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold shrink-0"
+            title={`${user?.fullName} · Sign out`}
+          >
+            {(user?.fullName || "?").charAt(0).toUpperCase()}
+          </button>
+        </div>
       </header>
 
       {/* ─── Main ────────────────────────────────────────────────── */}
-      <main className="flex-1 md:pl-60 pb-16 md:pb-0 flex flex-col min-w-0">
+      <main className="flex-1 md:pl-60 pb-mobile-nav md:pb-0 flex flex-col min-w-0">
         {children}
       </main>
 
       {/* ─── Mobile bottom nav (5 priority + More) ───────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 flex items-center justify-around h-14 border-t border-[#E7E5E4] bg-white/95 backdrop-blur-md">
-        {mobileItems.map(({ to, label, icon: Icon }) => {
-          const active = isActive(to);
-          return (
-            <button
-              key={to}
-              onClick={() => go(to)}
-              className="flex flex-col items-center gap-0.5 px-2 py-1.5 shrink-0 relative min-w-0 flex-1 max-w-[64px]"
-            >
-              {active && (
-                <span className="absolute top-0 w-8 h-0.5 bg-[#800020] rounded-full" />
-              )}
-              <Icon
-                className={cn("w-5 h-5 transition-colors", active ? "text-[#800020]" : "text-stone-400")}
-                strokeWidth={active ? 2 : 1.5}
-              />
-              <span
-                className={cn(
-                  "text-[9px] transition-colors truncate w-full text-center",
-                  active ? "text-[#800020] font-semibold" : "text-stone-400"
-                )}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#E7E5E4] bg-white/95 backdrop-blur-md">
+        <div className="flex items-center justify-around h-14">
+          {mobileItems.map(({ to, label, icon: Icon }) => {
+            const active = isActive(to);
+            return (
+              <button
+                key={to}
+                onClick={() => go(to)}
+                className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 relative min-w-0 flex-1 max-w-[72px]"
               >
-                {label}
-              </span>
+                {active && (
+                  <span className="absolute top-0 w-8 h-0.5 bg-[#800020] rounded-full" />
+                )}
+                <Icon
+                  className={cn("w-5 h-5 transition-colors shrink-0", active ? "text-[#800020]" : "text-stone-400")}
+                  strokeWidth={active ? 2 : 1.5}
+                />
+                <span
+                  className={cn(
+                    "text-[9px] leading-tight transition-colors truncate w-full text-center",
+                    active ? "text-[#800020] font-semibold" : "text-stone-400"
+                  )}
+                >
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+          {moreItems.length > 0 && (
+            <button
+              onClick={() => setMoreOpen(true)}
+              className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 min-w-0 flex-1 max-w-[72px]"
+            >
+              <MoreHorizontal
+                className={cn("w-5 h-5 shrink-0", moreOpen ? "text-[#800020]" : "text-stone-400")}
+                strokeWidth={1.5}
+              />
+              <span className="text-[9px] leading-tight text-stone-400">More</span>
             </button>
-          );
-        })}
-        {moreItems.length > 0 && (
-          <button
-            onClick={() => setMoreOpen(true)}
-            className="flex flex-col items-center gap-0.5 px-2 py-1.5 shrink-0 min-w-0 flex-1 max-w-[64px]"
-          >
-            <MoreHorizontal
-              className={cn("w-5 h-5", moreOpen ? "text-[#800020]" : "text-stone-400")}
-              strokeWidth={1.5}
-            />
-            <span className="text-[9px] text-stone-400">More</span>
-          </button>
-        )}
+          )}
+        </div>
       </nav>
 
       {/* ─── Mobile "More" sheet ─────────────────────────────────── */}
@@ -427,7 +431,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onClick={() => setMoreOpen(false)}
         >
           <div
-            className="absolute bottom-0 inset-x-0 bg-white rounded-t-2xl border-t border-[#E7E5E4] max-h-[70vh] overflow-y-auto scroll-slim animate-fade-in-up"
+            className="absolute bottom-0 inset-x-0 pb-safe bg-white rounded-t-2xl border-t border-[#E7E5E4] max-h-[80dvh] overflow-y-auto scroll-slim animate-fade-in-up"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white flex items-center justify-between px-5 py-4 border-b border-[#E7E5E4]">
@@ -441,7 +445,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="px-3 py-3">
+            <div className="px-3 py-3 pb-1">
               {sections.map((section) => {
                 const sectionMore = section.items.filter(
                   (i) => !priorityKeys.includes(i.to)

@@ -128,7 +128,7 @@ function GuardView({
 
 function FullScreenLoader() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FBF9F7] gap-4">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FBF9F7] gap-4">
       <div className="w-12 h-12 rounded-full border border-[#800020] flex items-center justify-center">
         <Scissors className="w-5 h-5 text-[#800020]" />
       </div>

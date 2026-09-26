@@ -129,9 +129,9 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8f5]">
+    <div className="min-h-dvh flex flex-col bg-[#faf8f5] pl-safe pr-safe">
       {/* Top hero band — app-style header */}
-      <div className="relative h-[42vh] min-h-[300px] overflow-hidden bg-[#800020] shrink-0">
+      <div className="relative h-[38vh] sm:h-[42vh] min-h-[220px] max-h-[340px] overflow-hidden bg-[#800020] shrink-0 pt-safe">
         <img
           src="/atelier-login.jpg"
           alt="Atelier studio interior"
@@ -150,17 +150,17 @@ export function LoginPage() {
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#faf8f5]" />
 
         <div className="relative h-full flex flex-col items-center justify-center text-white px-6 text-center">
-          <div className="w-14 h-14 rounded-full border border-white/40 flex items-center justify-center backdrop-blur-sm bg-white/5 animate-fade-in-up">
-            <Scissors className="w-6 h-6" />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border border-white/40 flex items-center justify-center backdrop-blur-sm bg-white/5 animate-fade-in-up shrink-0">
+            <Scissors className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <h1
-            className="font-display font-semibold mt-4 animate-fade-in-up"
-            style={{ fontSize: "clamp(30px, 7vw, 40px)", animationDelay: "0.05s" }}
+            className="font-display font-semibold mt-3 sm:mt-4 animate-fade-in-up"
+            style={{ fontSize: "clamp(28px, 7vw, 40px)", animationDelay: "0.05s" }}
           >
             Madam Studio
           </h1>
           <p
-            className="text-[10px] uppercase tracking-[0.3em] text-white/60 mt-2.5 animate-fade-in-up"
+            className="text-[10px] uppercase tracking-[0.3em] text-white/60 mt-2 sm:mt-2.5 animate-fade-in-up"
             style={{ animationDelay: "0.1s" }}
           >
             Bespoke Atelier · Accra
@@ -169,7 +169,7 @@ export function LoginPage() {
       </div>
 
       {/* Form section — mobile-first, centered */}
-      <div className="flex-1 flex items-start justify-center px-6 pt-2 pb-10 -mt-6 relative z-10">
+      <div className="flex-1 flex items-start justify-center px-5 sm:px-6 pt-2 pb-safe pb-10 -mt-6 relative z-10">
         <div className="w-full max-w-md animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
           {mode === "login" ? (
             <div key="login" className="animate-fade-in-up">

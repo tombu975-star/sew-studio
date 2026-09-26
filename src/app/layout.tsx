@@ -1,9 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
-import { SupabaseHealthChecker } from "@/components/SupabaseHealthChecker";
 
 // Self-hosted font files (see src/fonts) instead of next/font/google.
 // This removes the build-time dependency on fetching fonts.googleapis.com,
@@ -56,6 +55,16 @@ export const metadata: Metadata = {
   },
 };
 
+// viewport-fit=cover lets fixed headers/nav bars extend under the notch /
+// home-indicator on iOS while we pad them back out with env(safe-area-inset-*).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#800020",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -67,7 +76,6 @@ export default function RootLayout({
         className={`${jakarta.variable} ${cormorant.variable} antialiased font-body`}
       >
         {children}
-        <SupabaseHealthChecker />
         <Toaster />
         <SonnerToaster position="top-right" richColors closeButton />
       </body>
