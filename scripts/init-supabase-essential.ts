@@ -19,7 +19,8 @@
  * "atelier2025" too) unless already set otherwise.
  *
  * Usage: npx tsx scripts/init-supabase-essential.ts
- * Requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env
+ * Requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in
+ * .env.local (Next.js's own convention for local secrets) or .env
  * (or the shell environment).
  */
 
@@ -28,19 +29,25 @@ import * as path from "path";
 import * as dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 
-const envPath = path.join(__dirname, "..", ".env");
-if (fs.existsSync(envPath)) {
-  const envConfig = dotenv.parse(fs.readFileSync(envPath));
-  for (const k in envConfig) {
-    if (!process.env[k]) process.env[k] = envConfig[k];
+// Load .env then .env.local, same precedence Next.js itself uses:
+// shell env > .env.local > .env. Both are optional; whichever exist
+// are merged, with .env.local's values taking priority over .env's.
+const fileValues: Record<string, string> = {};
+for (const file of [".env", ".env.local"]) {
+  const envPath = path.join(__dirname, "..", file);
+  if (fs.existsSync(envPath)) {
+    Object.assign(fileValues, dotenv.parse(fs.readFileSync(envPath)));
   }
+}
+for (const k in fileValues) {
+  if (!process.env[k]) process.env[k] = fileValues[k];
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error(
-    "❌ Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY (check your .env)."
+    "❌ Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY (check your .env.local or .env)."
   );
   process.exit(1);
 }
