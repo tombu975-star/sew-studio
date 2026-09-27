@@ -303,6 +303,17 @@ create table public.settings (
   overhead_amount numeric(12, 2) not null default 0,
   self_payout     numeric(12, 2) not null default 0,
   currency        text not null default 'GHS',
+  -- Business policies — the studio's own rules, shown read-only on the
+  -- client portal so customers always see the same terms the owner set.
+  deposit_percent            numeric(5, 2) not null default 50,
+  rush_fee_percent           numeric(5, 2) not null default 25,
+  quote_valid_days           integer not null default 14,
+  full_balance_before_pickup boolean not null default true,
+  fittings_included          integer not null default 2,
+  alterations_window_days    integer not null default 14,
+  deposit_policy_text        text not null default '',
+  alterations_policy_text    text not null default '',
+  cancellation_policy_text   text not null default '',
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
 );

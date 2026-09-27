@@ -322,5 +322,31 @@ export function serializeSettings(s: Record<string, any>) {
     overheadAmount: s.overhead_amount,
     selfPayout: s.self_payout,
     currency: s.currency,
+    depositPercent: s.deposit_percent,
+    rushFeePercent: s.rush_fee_percent,
+    quoteValidDays: s.quote_valid_days,
+    fullBalanceBeforePickup: s.full_balance_before_pickup,
+    fittingsIncluded: s.fittings_included,
+    alterationsWindowDays: s.alterations_window_days,
+    depositPolicyText: s.deposit_policy_text,
+    alterationsPolicyText: s.alterations_policy_text,
+    cancellationPolicyText: s.cancellation_policy_text,
+  };
+}
+
+/** The subset of settings that's safe and useful to show customers on the
+ *  public portal — never the financial fields (overhead, payout, etc.). */
+export function serializeShopPolicies(s: Record<string, any> | null | undefined) {
+  if (!s) return null;
+  return {
+    depositPercent: s.deposit_percent,
+    rushFeePercent: s.rush_fee_percent,
+    quoteValidDays: s.quote_valid_days,
+    fullBalanceBeforePickup: s.full_balance_before_pickup,
+    fittingsIncluded: s.fittings_included,
+    alterationsWindowDays: s.alterations_window_days,
+    depositPolicyText: s.deposit_policy_text || "",
+    alterationsPolicyText: s.alterations_policy_text || "",
+    cancellationPolicyText: s.cancellation_policy_text || "",
   };
 }

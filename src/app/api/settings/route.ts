@@ -67,6 +67,37 @@ export async function PATCH(req: Request) {
       if (key in body) data[column] = Number(body[key]) || 0;
     }
 
+    // Business policies — clamped to sane ranges so a stray keystroke
+    // can't quietly save a nonsensical term (e.g. a 400% deposit).
+    const percentFieldMap: Record<string, string> = {
+      depositPercent: "deposit_percent",
+      rushFeePercent: "rush_fee_percent",
+    };
+    for (const [key, column] of Object.entries(percentFieldMap)) {
+      if (key in body) data[column] = Math.min(100, Math.max(0, Number(body[key]) || 0));
+    }
+    const dayFieldMap: Record<string, string> = {
+      quoteValidDays: "quote_valid_days",
+      alterationsWindowDays: "alterations_window_days",
+    };
+    for (const [key, column] of Object.entries(dayFieldMap)) {
+      if (key in body) data[column] = Math.max(0, Math.round(Number(body[key]) || 0));
+    }
+    if ("fittingsIncluded" in body) {
+      data.fittings_included = Math.max(0, Math.round(Number(body.fittingsIncluded) || 0));
+    }
+    if ("fullBalanceBeforePickup" in body) {
+      data.full_balance_before_pickup = Boolean(body.fullBalanceBeforePickup);
+    }
+    const policyTextFieldMap: Record<string, string> = {
+      depositPolicyText: "deposit_policy_text",
+      alterationsPolicyText: "alterations_policy_text",
+      cancellationPolicyText: "cancellation_policy_text",
+    };
+    for (const [key, column] of Object.entries(policyTextFieldMap)) {
+      if (key in body) data[column] = typeof body[key] === "string" ? body[key].slice(0, 2000) : "";
+    }
+
     const { data: updated, error } = await ctx.supabase
       .from("settings")
       .update(data)

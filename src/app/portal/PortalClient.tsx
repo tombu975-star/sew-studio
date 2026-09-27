@@ -16,6 +16,10 @@ import {
   Loader2,
   AlertCircle,
   Bell,
+  ShieldCheck,
+  Percent,
+  Scissors as ScissorsIcon,
+  Wallet,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
@@ -24,9 +28,21 @@ import { PageHeader, SectionCard } from "@/components/atelier/_portal";
 import { formatCurrency, formatDate, shortDate, ORDER_STATUSES } from "@/lib/format";
 import type { Order } from "@/lib/types";
 
+interface ShopPolicies {
+  depositPercent: number;
+  rushFeePercent: number;
+  quoteValidDays: number;
+  fullBalanceBeforePickup: boolean;
+  fittingsIncluded: number;
+  alterationsWindowDays: number;
+  depositPolicyText: string;
+  alterationsPolicyText: string;
+  cancellationPolicyText: string;
+}
+
 interface PortalData {
   customer: { id: string; name: string; phone?: string | null; email?: string | null };
-  shop: { id: string; name: string; currency: string };
+  shop: { id: string; name: string; currency: string; policies?: ShopPolicies | null };
   orders: Order[];
 }
 interface PortalNotification {
@@ -424,6 +440,80 @@ export function PortalClient() {
             Save this page — it's your personal order tracker. Bookmark it to check back anytime.
           </p>
         </SectionCard>
+
+        {/* Business policies — the studio's own rules, shown exactly as set in Settings */}
+        {data.shop.policies && (
+          <SectionCard title="Studio policies">
+            <div className="grid sm:grid-cols-3 gap-4 mb-5">
+              <div className="rounded-lg border border-[#E7E5E4] bg-[#faf8f5] p-3.5">
+                <div className="flex items-center gap-1.5 text-stone-400 mb-1.5">
+                  <Percent className="w-3.5 h-3.5" />
+                  <span className="text-[10px] uppercase tracking-[0.16em]">Deposit</span>
+                </div>
+                <p className="text-lg font-semibold text-[#1C1917] font-display">
+                  {data.shop.policies.depositPercent}%
+                </p>
+                <p className="text-[11px] text-stone-400 mt-0.5">
+                  {data.shop.policies.fullBalanceBeforePickup
+                    ? "Balance due before pickup"
+                    : "Remainder due on delivery"}
+                </p>
+              </div>
+              <div className="rounded-lg border border-[#E7E5E4] bg-[#faf8f5] p-3.5">
+                <div className="flex items-center gap-1.5 text-stone-400 mb-1.5">
+                  <ScissorsIcon className="w-3.5 h-3.5" />
+                  <span className="text-[10px] uppercase tracking-[0.16em]">Fittings</span>
+                </div>
+                <p className="text-lg font-semibold text-[#1C1917] font-display">
+                  {data.shop.policies.fittingsIncluded} included
+                </p>
+                <p className="text-[11px] text-stone-400 mt-0.5">
+                  {data.shop.policies.alterationsWindowDays}-day alterations window
+                </p>
+              </div>
+              <div className="rounded-lg border border-[#E7E5E4] bg-[#faf8f5] p-3.5">
+                <div className="flex items-center gap-1.5 text-stone-400 mb-1.5">
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span className="text-[10px] uppercase tracking-[0.16em]">Quotes</span>
+                </div>
+                <p className="text-lg font-semibold text-[#1C1917] font-display">
+                  {data.shop.policies.quoteValidDays} days
+                </p>
+                <p className="text-[11px] text-stone-400 mt-0.5">Rush fee {data.shop.policies.rushFeePercent}%</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {data.shop.policies.depositPolicyText && (
+                <div className="flex gap-3">
+                  <ShieldCheck className="w-4 h-4 text-[#800020] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-medium text-[#1C1917] mb-0.5">Deposit policy</p>
+                    <p className="text-xs text-stone-500 leading-relaxed">{data.shop.policies.depositPolicyText}</p>
+                  </div>
+                </div>
+              )}
+              {data.shop.policies.alterationsPolicyText && (
+                <div className="flex gap-3">
+                  <ScissorsIcon className="w-4 h-4 text-[#800020] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-medium text-[#1C1917] mb-0.5">Alterations policy</p>
+                    <p className="text-xs text-stone-500 leading-relaxed">{data.shop.policies.alterationsPolicyText}</p>
+                  </div>
+                </div>
+              )}
+              {data.shop.policies.cancellationPolicyText && (
+                <div className="flex gap-3">
+                  <AlertCircle className="w-4 h-4 text-[#800020] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-medium text-[#1C1917] mb-0.5">Cancellation policy</p>
+                    <p className="text-xs text-stone-500 leading-relaxed">{data.shop.policies.cancellationPolicyText}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </SectionCard>
+        )}
 
         <p className="text-center text-[11px] text-stone-400 pt-2 pb-6">
           {data.shop.name} · Client Portal

@@ -362,6 +362,15 @@ export interface Database {
           overhead_amount: number;
           self_payout: number;
           currency: string;
+          deposit_percent: number;
+          rush_fee_percent: number;
+          quote_valid_days: number;
+          full_balance_before_pickup: boolean;
+          fittings_included: number;
+          alterations_window_days: number;
+          deposit_policy_text: string;
+          alterations_policy_text: string;
+          cancellation_policy_text: string;
           created_at: string;
           updated_at: string;
         };

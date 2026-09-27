@@ -1,5 +1,5 @@
 import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
-import { serializePayment, serializeFitting } from "@/lib/supabase/serializers";
+import { serializePayment, serializeFitting, serializeShopPolicies } from "@/lib/supabase/serializers";
 
 // GET /api/portal/[token] — public customer portal.
 // Returns the customer + their orders + the shop's contact info.
@@ -29,6 +29,21 @@ export async function GET(
       (a, b) => new Date(b.order_date).getTime() - new Date(a.order_date).getTime()
     );
 
+    // Business policies live on `settings`, one row per shop — fetched
+    // separately since the customer→shop embed above doesn't carry it.
+    const shopId = (customer.shop as { id?: string } | null)?.id;
+    let policies = null;
+    if (shopId) {
+      const { data: settings } = await admin
+        .from("settings")
+        .select(
+          "deposit_percent, rush_fee_percent, quote_valid_days, full_balance_before_pickup, fittings_included, alterations_window_days, deposit_policy_text, alterations_policy_text, cancellation_policy_text"
+        )
+        .eq("shop_id", shopId)
+        .maybeSingle();
+      policies = serializeShopPolicies(settings);
+    }
+
     return Response.json({
       customer: {
         id: customer.id,
@@ -36,7 +51,7 @@ export async function GET(
         phone: customer.phone,
         email: customer.email,
       },
-      shop: customer.shop,
+      shop: { ...customer.shop, policies },
       orders: orders.map((o) => ({
         id: o.id,
         garmentDesign: o.garment_design,

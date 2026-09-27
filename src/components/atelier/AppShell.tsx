@@ -24,6 +24,7 @@ import {
   MoreHorizontal,
   Settings as SettingsIcon,
   BookOpen,
+  UserRound,
 } from "lucide-react";
 import { useRole, type Role } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
@@ -336,30 +337,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* User */}
         {user && (
           <div className="px-3 py-3 border-t border-sidebar-border shrink-0">
-            <button
-              onClick={() => logout()}
-              className="group w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/[0.05] transition-colors"
-              title={`${user.fullName} · Sign out`}
-            >
-              <div className="relative shrink-0">
-                <div
-                  className="w-9 h-9 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold ring-2"
-                  style={{ ["--tw-ring-color" as string]: roleAccent }}
-                >
-                  {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
+            <div className="group w-full flex items-center gap-2 rounded-lg hover:bg-white/[0.05] transition-colors">
+              <button
+                onClick={() => go("profile")}
+                className="flex flex-1 min-w-0 items-center gap-3 px-2 py-2 rounded-lg text-left"
+                title={`${user.fullName} · My profile`}
+              >
+                <div className="relative shrink-0">
+                  <div
+                    className="w-9 h-9 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold ring-2"
+                    style={{ ["--tw-ring-color" as string]: roleAccent }}
+                  >
+                    {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#15803D] border-2 border-sidebar" />
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#15803D] border-2 border-sidebar" />
-              </div>
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-xs font-medium text-sidebar-foreground truncate">
-                  {user.fullName}
-                </p>
-                <p className="text-[10px] text-sidebar-foreground/45 flex items-center gap-1 mt-0.5 group-hover:text-sidebar-primary transition-colors">
-                  <LogOut className="w-2.5 h-2.5" />
-                  Sign out
-                </p>
-              </div>
-            </button>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-sidebar-foreground truncate">
+                    {user.fullName}
+                  </p>
+                  <p className="text-[10px] text-sidebar-foreground/45 flex items-center gap-1 mt-0.5 group-hover:text-sidebar-primary transition-colors">
+                    <UserRound className="w-2.5 h-2.5" />
+                    My profile
+                  </p>
+                </div>
+              </button>
+              <button
+                onClick={() => logout()}
+                className="shrink-0 w-8 h-8 mr-1 rounded-lg flex items-center justify-center text-sidebar-foreground/40 hover:text-sidebar-primary hover:bg-white/[0.06] transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </aside>
@@ -388,10 +398,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </button>
           <button
-            onClick={() => logout()}
+            onClick={() => go("profile")}
             className="w-8 h-8 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold shrink-0 ring-2"
             style={{ ["--tw-ring-color" as string]: roleAccent }}
-            title={`${user?.fullName} · Sign out`}
+            title={`${user?.fullName} · My profile`}
           >
             {(user?.fullName || "?").charAt(0).toUpperCase()}
           </button>
@@ -469,6 +479,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
             </div>
             <div className="px-3 py-3 pb-1">
+              {/* Always-available profile link — the mobile equivalent of
+                  the desktop sidebar's profile button. */}
+              <div className="mb-4">
+                <button
+                  onClick={() => {
+                    go("profile");
+                    setMoreOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                    view === "profile"
+                      ? "bg-[#800020]/8 text-[#800020] font-medium"
+                      : "text-stone-600 hover:bg-[#faf8f5]"
+                  )}
+                >
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
+                    {(user?.fullName || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <span className="flex-1 text-left truncate">{user?.fullName || "My profile"}</span>
+                  <ChevronRight className="w-4 h-4 text-stone-300" />
+                </button>
+              </div>
+
               {sections.map((section) => {
                 const sectionMore = section.items.filter(
                   (i) => !priorityKeys.includes(i.to)
@@ -506,6 +539,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </div>
                 );
               })}
+
+              <div className="mb-3 pt-1 border-t border-[#E7E5E4]">
+                <button
+                  onClick={() => {
+                    setMoreOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-lg text-sm text-stone-500 hover:bg-[#faf8f5] hover:text-[#800020] transition-colors"
+                >
+                  <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                  <span className="flex-1 text-left">Sign out</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
