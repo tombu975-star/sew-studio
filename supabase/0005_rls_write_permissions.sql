@@ -1,5 +1,33 @@
 -- Tighten write policies so shop members can create and edit records, but
--- only madam/trainers can delete them. Keep freelancer self-service access.
+-- only madam/trainers can delete them. Keep freelancer self-service access
+-- and protect profile roles and tenant ownership at the database boundary.
+
+drop policy if exists "users can update their own profile"
+  on public.profiles;
+
+drop policy if exists "madam or trainer can update any trainee in their shop"
+  on public.profiles;
+
+create policy "managers can update eligible profiles in their shop"
+  on public.profiles for update
+  using (
+    shop_id = public.current_shop_id()
+    and (
+      public.current_role() = 'madam'
+      or (
+        public.current_role() = 'trainer'
+        and role = 'trainee'
+        and mentor_id = auth.uid()
+      )
+    )
+  )
+  with check (
+    shop_id = public.current_shop_id()
+    and (
+      public.current_role() = 'madam'
+      or (public.current_role() = 'trainer' and role = 'trainee')
+    )
+  );
 
 drop policy if exists "shop members can manage payments on their orders"
   on public.payments;

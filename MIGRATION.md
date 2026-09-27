@@ -27,7 +27,8 @@ editor — see `DEPLOYMENT.md`):
   unconditional backstop, not a replacement for it.
 - `0004_triggers.sql` — `updated_at` auto-touch on every table that has it.
 - `0005_rls_write_permissions.sql` — makes destructive-write permissions
-  consistent with the manager-only delete rule.
+  consistent with the manager-only delete rule and protects profile roles and
+  tenant ownership from direct client updates.
 
 **Supabase client layer** (`src/lib/supabase/`):
 - `browserClient.ts` — for client components that need Supabase directly.

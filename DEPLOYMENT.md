@@ -47,7 +47,7 @@ next):
 2. `0002_functions.sql` — RLS helper functions
 3. `0003_rls.sql` — Row Level Security policies
 4. `0004_triggers.sql` — `updated_at` auto-touch triggers
-5. `0005_rls_write_permissions.sql` — limits destructive writes to shop managers
+5. `0005_rls_write_permissions.sql` — enforces manager-only deletes and protects profile roles/tenant ownership
 
 Files `0001` through `0004` are the one-time baseline and are not safe to
 re-run on an already-provisioned database. File `0005` is a forward-only
