@@ -10,6 +10,8 @@
     "db:init-essential": "npx tsx scripts/init-supabase-essential.ts"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.6",
+    "@fontsource/poppins": "^5.2.6",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",

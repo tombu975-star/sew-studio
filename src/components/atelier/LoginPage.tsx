@@ -129,48 +129,32 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col bg-[#faf8f5] pl-safe pr-safe">
-      {/* Top hero band — app-style header */}
-      <div className="relative h-[38vh] sm:h-[42vh] min-h-[220px] max-h-[340px] overflow-hidden bg-[#800020] shrink-0 pt-safe">
-        <img
-          src="/atelier-login.jpg"
-          alt="Atelier studio interior"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#800020]/85 via-[#6b0018]/65 to-[#1C1917]/80" />
-        {/* subtle grain */}
-        <div
-          className="absolute inset-0 opacity-[0.07] mix-blend-overlay pointer-events-none"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-          }}
-        />
-        {/* fade into the form below */}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#faf8f5]" />
-
-        <div className="relative h-full flex flex-col items-center justify-center text-white px-6 text-center">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border border-white/40 flex items-center justify-center backdrop-blur-sm bg-white/5 animate-fade-in-up shrink-0">
-            <Scissors className="w-5 h-5 sm:w-6 sm:h-6" />
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#faf8f5] px-5 sm:px-6 py-10 pt-safe pb-safe">
+      <div className="w-full max-w-md animate-fade-in-up">
+        {/* Monogram + wordmark */}
+        <div className="flex flex-col items-center text-center mb-7">
+          <div className="w-14 h-14 rounded-2xl bg-[linear-gradient(155deg,#c2415e_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center shadow-[0_10px_28px_-8px_rgba(128,0,32,0.5)] animate-fade-in-up">
+            <Scissors className="w-6 h-6 text-[#1C1917]" strokeWidth={2.25} />
           </div>
           <h1
-            className="font-display font-semibold mt-3 sm:mt-4 animate-fade-in-up"
-            style={{ fontSize: "clamp(28px, 7vw, 40px)", animationDelay: "0.05s" }}
+            className="font-display font-semibold text-[#1C1917] mt-3 animate-fade-in-up"
+            style={{ fontSize: "clamp(22px, 5vw, 26px)", animationDelay: "0.05s" }}
           >
             Madam Studio
           </h1>
           <p
-            className="text-[10px] uppercase tracking-[0.3em] text-white/60 mt-2 sm:mt-2.5 animate-fade-in-up"
+            className="text-[10px] uppercase tracking-[0.26em] text-stone-400 mt-1.5 animate-fade-in-up"
             style={{ animationDelay: "0.1s" }}
           >
             Bespoke Atelier · Accra
           </p>
         </div>
-      </div>
 
-      {/* Form section — mobile-first, centered */}
-      <div className="flex-1 flex items-start justify-center px-5 sm:px-6 pt-2 pb-safe pb-10 -mt-6 relative z-10">
-        <div className="w-full max-w-md animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
+        {/* Card */}
+        <div
+          className="bg-white border border-[#E7E5E4] rounded-2xl elevate-lg p-6 sm:p-8 animate-fade-in-up"
+          style={{ animationDelay: "0.12s" }}
+        >
           {mode === "login" ? (
             <div key="login" className="animate-fade-in-up">
               {/* Welcome card */}
@@ -475,12 +459,12 @@ export function LoginPage() {
               </button>
             </div>
           )}
-
-          {/* Subtle footer */}
-          <p className="text-center text-[11px] text-stone-400 mt-8 leading-relaxed">
-            Madam Studio — where every stitch tells a story.
-          </p>
         </div>
+
+        {/* Subtle footer */}
+        <p className="text-center text-[11px] text-stone-400 mt-6 leading-relaxed">
+          Madam Studio — where every stitch tells a story.
+        </p>
       </div>
     </div>
   );

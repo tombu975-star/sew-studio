@@ -1,41 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/poppins/500.css";
+import "@fontsource/poppins/600.css";
+import "@fontsource/poppins/700.css";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 
-// Self-hosted font files (see src/fonts) instead of next/font/google.
-// This removes the build-time dependency on fetching fonts.googleapis.com,
-// which was failing with a 403 during the Vercel build.
-const jakarta = localFont({
-  variable: "--font-body",
-  display: "swap",
-  src: [
-    { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-200-normal.woff2", weight: "200", style: "normal" },
-    { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-300-normal.woff2", weight: "300", style: "normal" },
-    { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
-    { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
-    { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-700-normal.woff2", weight: "700", style: "normal" },
-    { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-800-normal.woff2", weight: "800", style: "normal" },
-  ],
-});
-
-const cormorant = localFont({
-  variable: "--font-display",
-  display: "swap",
-  src: [
-    { path: "../fonts/cormorant-garamond/cormorant-garamond-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "../fonts/cormorant-garamond/cormorant-garamond-latin-500-normal.woff2", weight: "500", style: "normal" },
-    { path: "../fonts/cormorant-garamond/cormorant-garamond-latin-600-normal.woff2", weight: "600", style: "normal" },
-    { path: "../fonts/cormorant-garamond/cormorant-garamond-latin-700-normal.woff2", weight: "700", style: "normal" },
-  ],
-});
+// Poppins (display/headings) + Inter (body) via self-hosted @fontsource
+// packages — same reasoning as the previous local-font setup: this avoids
+// a build-time fetch to fonts.googleapis.com, which has previously failed
+// during Vercel builds. Font stacks themselves are set in globals.css.
 
 export const metadata: Metadata = {
   title: "Madam Studio — Atelier Management",
   description:
-    "An elegant atelier management system for custom tailoring studios — clients, orders, fittings, production and AI style assist.",
+    "One system, every role — a smarter atelier for custom tailoring studios: clients, orders, production, training and AI style assist, all in one place.",
   keywords: [
     "atelier",
     "tailoring",
@@ -51,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Madam Studio — Atelier Management",
     description:
-      "An elegant atelier management system for custom tailoring studios — clients, orders, fittings, production and AI style assist.",
+      "One system, every role — a smarter atelier for custom tailoring studios: clients, orders, production, training and AI style assist, all in one place.",
   },
 };
 
@@ -72,9 +54,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${jakarta.variable} ${cormorant.variable} antialiased font-body`}
-      >
+      <body className="antialiased font-body">
         {children}
         <Toaster />
         <SonnerToaster position="top-right" richColors closeButton />

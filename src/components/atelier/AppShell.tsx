@@ -209,6 +209,18 @@ const ROLE_LABELS: Record<Role, string> = {
   freelancer: "Freelancer",
 };
 
+// Role accent — a distinct hue per role (mirrors the product's role legend)
+// used sparingly for the role chip + avatar ring, so at a glance you can
+// tell whose seat you're sitting in without it fighting the gold brand
+// accent used for every interactive/active state.
+const ROLE_ACCENT: Record<Role, string> = {
+  madam: "#c2415e", // house burgundy (bright, dark-bg-safe) — full access
+  staff: "#0E7490", // teal — operations
+  trainer: "#C2415E", // rose — training & assessment
+  trainee: "#3D5166", // navy-slate — learning & portfolio
+  freelancer: "#7A4568", // plum — assigned jobs
+};
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { role, studioName } = useRole();
   const { view, go } = useNav();
@@ -216,6 +228,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
 
   const shopDisplayName = user?.shop?.name || studioName;
+  const roleAccent = ROLE_ACCENT[role] || ROLE_ACCENT.staff;
 
   // Trainee access to Orders + Board is gated by trainer-granted permissions.
   // Default trainee sees only Tasks in the Studio section; permitted trainees see the granted items.
@@ -259,23 +272,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh flex flex-col md:flex-row">
       {/* ─── Desktop sidebar (w-60, sectioned) ───────────────────── */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col border-r border-[#E7E5E4] bg-white z-30">
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col border-r border-sidebar-border bg-sidebar z-30">
         {/* Brand */}
-        <div className="px-5 py-5 border-b border-[#E7E5E4] shrink-0">
+        <div className="px-5 py-5 border-b border-sidebar-border shrink-0">
           <button
             onClick={() => go("dashboard")}
             className="flex items-center gap-3 group w-full"
           >
-            <div className="w-10 h-10 rounded-full bg-[linear-gradient(155deg,#8c0224_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center text-white transition-transform duration-300 group-hover:scale-105 elevate-burgundy shrink-0">
-              <Scissors className="w-4 h-4" />
+            <div className="w-10 h-10 rounded-xl bg-[linear-gradient(155deg,#c2415e_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center text-[#1C1917] transition-transform duration-300 group-hover:scale-105 shadow-[0_6px_16px_-4px_rgba(128,0,32,0.45)] shrink-0">
+              <Scissors className="w-4 h-4" strokeWidth={2.25} />
             </div>
             <div className="min-w-0 text-left">
-              <p className="font-display text-base font-semibold text-[#1C1917] truncate leading-tight">
+              <p className="font-display text-base font-semibold text-sidebar-foreground truncate leading-tight">
                 {shopDisplayName}
               </p>
-              <p className="text-[9px] uppercase tracking-[0.16em] text-stone-400 mt-0.5">
+              <span
+                className="inline-flex items-center gap-1 text-[9px] font-medium tracking-[0.14em] mt-1 px-1.5 py-0.5 rounded"
+                style={{ backgroundColor: `${roleAccent}26`, color: roleAccent }}
+              >
                 {ROLE_LABELS[role]} portal
-              </p>
+              </span>
             </div>
           </button>
         </div>
@@ -284,7 +300,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 overflow-y-auto scroll-slim px-3 py-3">
           {sections.map((section, si) => (
             <div key={section.label} className={cn(si > 0 && "mt-5")}>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-stone-400 px-3 mb-1.5">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/40 px-3 mb-1.5">
                 {section.label}
               </p>
               <div className="space-y-0.5">
@@ -297,12 +313,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       className={cn(
                         "group relative w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
                         active
-                          ? "bg-[#800020]/8 text-[#800020] font-medium"
-                          : "text-stone-500 hover:text-[#1C1917] hover:bg-[#faf8f5]"
+                          ? "bg-white/[0.07] text-sidebar-primary font-medium"
+                          : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-white/[0.04]"
                       )}
                     >
                       {active && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#800020] rounded-r-full" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-sidebar-primary rounded-r-full" />
                       )}
                       <Icon
                         className="w-[18px] h-[18px] shrink-0"
@@ -319,23 +335,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* User */}
         {user && (
-          <div className="px-3 py-3 border-t border-[#E7E5E4] shrink-0">
+          <div className="px-3 py-3 border-t border-sidebar-border shrink-0">
             <button
               onClick={() => logout()}
-              className="group w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[#faf8f5] transition-colors"
+              className="group w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/[0.05] transition-colors"
               title={`${user.fullName} · Sign out`}
             >
               <div className="relative shrink-0">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold elevate-sm">
+                <div
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold ring-2"
+                  style={{ ["--tw-ring-color" as string]: roleAccent }}
+                >
                   {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#15803D] border-2 border-white" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#15803D] border-2 border-sidebar" />
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-xs font-medium text-[#1C1917] truncate">
+                <p className="text-xs font-medium text-sidebar-foreground truncate">
                   {user.fullName}
                 </p>
-                <p className="text-[10px] text-stone-400 flex items-center gap-1 mt-0.5 group-hover:text-[#800020] transition-colors">
+                <p className="text-[10px] text-sidebar-foreground/45 flex items-center gap-1 mt-0.5 group-hover:text-sidebar-primary transition-colors">
                   <LogOut className="w-2.5 h-2.5" />
                   Sign out
                 </p>
@@ -352,8 +371,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => go("dashboard")}
             className="flex items-center gap-2 min-w-0 flex-1"
           >
-            <div className="w-7 h-7 rounded-full bg-[linear-gradient(155deg,#8c0224_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center shrink-0">
-              <Scissors className="w-3.5 h-3.5 text-white" />
+            <div className="w-7 h-7 rounded-lg bg-[linear-gradient(155deg,#c2415e_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center shrink-0">
+              <Scissors className="w-3.5 h-3.5 text-[#1C1917]" strokeWidth={2.25} />
             </div>
             <span
               className="font-display text-base font-semibold text-[#1C1917] truncate min-w-0"
@@ -361,13 +380,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               {shopDisplayName}
             </span>
-            <span className="hidden sm:inline-block shrink-0 text-[9px] uppercase tracking-wider text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+            <span
+              className="hidden sm:inline-block shrink-0 text-[9px] font-medium tracking-wider px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: `${roleAccent}1A`, color: roleAccent }}
+            >
               {ROLE_LABELS[role]}
             </span>
           </button>
           <button
             onClick={() => logout()}
-            className="w-8 h-8 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold shrink-0"
+            className="w-8 h-8 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold shrink-0 ring-2"
+            style={{ ["--tw-ring-color" as string]: roleAccent }}
             title={`${user?.fullName} · Sign out`}
           >
             {(user?.fullName || "?").charAt(0).toUpperCase()}
