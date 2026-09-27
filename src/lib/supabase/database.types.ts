@@ -1,4 +1,4 @@
-// Hand-written to match supabase/schema/*.sql. Once the Supabase project is
+// Hand-written to match supabase/000*.sql. Once the Supabase project is
 // live, prefer regenerating this with:
 //   npx supabase gen types typescript --project-id <ref> > src/lib/supabase/database.types.ts
 // which will be exactly correct; this file is a faithful-effort stand-in so

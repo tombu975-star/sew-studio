@@ -39,23 +39,21 @@ GitHub repo ──push──▶ Vercel (Next.js 16 app) ──▶ Supabase (Post
 
 ## Step 2 — Run the schema
 
-In the Supabase dashboard, open **SQL Editor** and run the four files in
-`supabase/schema/` **in order** (paste each one's contents, run, then move
-to the next):
+In the Supabase dashboard, open **SQL Editor** and run the five files in
+`supabase/` **in order** (paste each one's contents, run, then move to the
+next):
 
 1. `0001_tables.sql` — every table
 2. `0002_functions.sql` — RLS helper functions
 3. `0003_rls.sql` — Row Level Security policies
 4. `0004_triggers.sql` — `updated_at` auto-touch triggers
+5. `0005_rls_write_permissions.sql` — limits destructive writes to shop managers
 
-This is a one-time step, not something to wire into CI: these files use
-plain `create table`/`create policy`, not `if not exists` guards, so
-re-running them as-is on an already-provisioned database will error on
-duplicate objects. If you need repeatable, versioned schema changes going
-forward, the natural next step is converting `supabase/schema/*.sql` into
-proper [Supabase CLI migrations](https://supabase.com/docs/guides/deployment/database-migrations)
-(`supabase migration new <name>`, then `supabase db push`), which track
-what's already been applied — this repo doesn't set that up yet.
+Files `0001` through `0004` are the one-time baseline and are not safe to
+re-run on an already-provisioned database. File `0005` is a forward-only
+policy update: run it once after the baseline on existing installations.
+These SQL files are currently applied manually; they are not yet configured
+as Supabase CLI migrations, so `supabase db push` does not apply this set.
 
 ## Step 3 — Get your API keys
 
