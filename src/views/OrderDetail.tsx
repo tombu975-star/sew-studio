@@ -32,8 +32,9 @@ import {
   isOverdue,
   ORDER_STATUSES,
   PRIORITY_LEVELS,
+  overheadPerOrder,
 } from "@/lib/format";
-import type { Order } from "@/lib/types";
+import type { Order, Settings } from "@/lib/types";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -97,6 +98,13 @@ export default function OrderDetail() {
     enabled: !!selectedId,
   });
 
+  const { data: settings } = useQuery<Settings>({
+    queryKey: ["settings"],
+    queryFn: () => apiGet<Settings>("/api/settings"),
+  });
+
+  const overhead = useMemo(() => overheadPerOrder(settings), [settings]);
+
   const paid = useMemo(
     () =>
       order?.payments?.reduce(
@@ -109,12 +117,15 @@ export default function OrderDetail() {
     const selling = Number(order?.sellingPrice) || 0;
     return Math.max(0, selling - paid);
   }, [order, paid]);
-  const estMargin = useMemo(() => {
-    const selling = Number(order?.sellingPrice) || 0;
+  const trueCost = useMemo(() => {
     const fabric = Number(order?.fabricCost) || 0;
     const labour = Number(order?.labourCost) || 0;
-    return selling - fabric - labour;
-  }, [order]);
+    return fabric + labour + overhead;
+  }, [order, overhead]);
+  const estMargin = useMemo(() => {
+    const selling = Number(order?.sellingPrice) || 0;
+    return selling - trueCost;
+  }, [order, trueCost]);
 
   const paidPct = order && order.sellingPrice > 0
     ? Math.min(100, Math.round((paid / order.sellingPrice) * 100))
@@ -424,6 +435,14 @@ export default function OrderDetail() {
               <Stat
                 label="Labour Cost"
                 value={formatCurrency(order.labourCost)}
+              />
+              <Stat
+                label="Overhead"
+                value={formatCurrency(overhead)}
+              />
+              <Stat
+                label="True Cost"
+                value={formatCurrency(trueCost)}
               />
               <Stat
                 label="Est. Margin"

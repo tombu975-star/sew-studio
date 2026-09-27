@@ -44,6 +44,7 @@ import {
   ORDER_STATUSES,
   ACTIVE_STATUSES,
   ENTRY_SOURCES,
+  overheadPerOrder,
 } from "@/lib/format";
 import type {
   Order,
@@ -92,8 +93,12 @@ function orderPaidTotal(orderId: string, payments: Payment[]) {
     .reduce((s, p) => s + (Number(p.amount) || 0), 0);
 }
 
-function orderCostTotal(order: Order) {
-  return (Number(order.fabricCost) || 0) + (Number(order.labourCost) || 0);
+function orderCostTotal(order: Order, settings?: Settings | null) {
+  return (
+    (Number(order.fabricCost) || 0) +
+    (Number(order.labourCost) || 0) +
+    overheadPerOrder(settings)
+  );
 }
 
 function sameMonth(d: string | Date | null | undefined, ref: Date) {
@@ -207,8 +212,11 @@ function MainDashboard() {
 
   const m = useMemo(() => {
     if (!data) return null;
-    const { orders, payments, fittings, tasks, users, customers } = data;
+    const { orders, payments, fittings, tasks, users, customers, settings } = data;
     const now = new Date();
+    const overheadEach = overheadPerOrder(settings);
+    const outstandingAlertThreshold = Number(settings?.outstandingBalanceAlertThreshold) || 2000;
+    const staffCapacity = Math.max(1, Number(settings?.typicalActiveOrdersPerStaff) || 4);
 
     const salesThisMonth = orders
       .filter((o) => sameMonth(o.orderDate, now))
@@ -228,7 +236,7 @@ function MainDashboard() {
       }, 0);
 
     const profit = orders.reduce(
-      (s, o) => s + (Number(o.sellingPrice) || 0) - orderCostTotal(o),
+      (s, o) => s + (Number(o.sellingPrice) || 0) - orderCostTotal(o, settings),
       0
     );
 
@@ -256,18 +264,23 @@ function MainDashboard() {
         isWithinDays(o.deliveryDate, 7)
     );
 
-    const staffWorkload = (users || []).map((u) => ({
-      user: u,
-      openTasks: tasks.filter(
-        (t) => t.staffId === u.id && t.status !== "Done"
-      ).length,
-      activeOrders: orders.filter(
+    const staffWorkload = (users || []).map((u) => {
+      const activeOrders = orders.filter(
         (o) => o.assignedStaffId === u.id && ACTIVE.includes(o.status)
-      ).length,
-    }));
+      ).length;
+      return {
+        user: u,
+        openTasks: tasks.filter(
+          (t) => t.staffId === u.id && t.status !== "Done"
+        ).length,
+        activeOrders,
+        capacityPct: Math.min(100, Math.round((activeOrders / staffCapacity) * 100)),
+        overCapacity: activeOrders > staffCapacity,
+      };
+    });
 
     const margins = orders.map(
-      (o) => (Number(o.sellingPrice) || 0) - orderCostTotal(o)
+      (o) => (Number(o.sellingPrice) || 0) - orderCostTotal(o, settings)
     );
     const avgMargin =
       margins.length > 0
@@ -275,9 +288,9 @@ function MainDashboard() {
         : 0;
 
     const healthStatus =
-      outstanding > 5000 || overdueTasks.length > 3
+      outstanding > outstandingAlertThreshold || overdueTasks.length > 3
         ? "At Risk"
-        : outstanding > 1000 || overdueTasks.length > 0
+        : outstanding > outstandingAlertThreshold * 0.4 || overdueTasks.length > 0
         ? "Needs Attention"
         : "On Track";
 
@@ -348,6 +361,21 @@ function MainDashboard() {
         `${quotedCount} quotes sent are awaiting a deposit — nudge the clients.`
       );
     }
+    if (outstanding > outstandingAlertThreshold) {
+      attentionItems.unshift(
+        `Outstanding balance is ${formatCurrency(outstanding)} — above your ${formatCurrency(
+          outstandingAlertThreshold
+        )} alert threshold. Chase payments on open orders.`
+      );
+    }
+    const overCapacityStaff = staffWorkload.filter((w) => w.overCapacity);
+    if (overCapacityStaff.length > 0) {
+      attentionItems.unshift(
+        `${overCapacityStaff.length} staff member${
+          overCapacityStaff.length > 1 ? "s are" : " is"
+        } over typical capacity (${staffCapacity} active orders) — consider reassigning work.`
+      );
+    }
     if (attentionItems.length === 0) {
       attentionItems.push(
         "Nothing pressing — the studio is in good shape today."
@@ -358,6 +386,9 @@ function MainDashboard() {
       salesThisMonth,
       receivedThisMonth,
       outstanding,
+      outstandingAlertThreshold,
+      outstandingOverThreshold: outstanding > outstandingAlertThreshold,
+      staffCapacity,
       profit,
       activeOrders,
       statusCounts,
@@ -555,13 +586,18 @@ function MainDashboard() {
           <PremiumMetric
             label="Outstanding"
             icon={AlertCircle}
-            sub="From open orders"
+            accent={m.outstandingOverThreshold}
+            sub={
+              m.outstandingOverThreshold
+                ? `Above your ${formatCurrency(m.outstandingAlertThreshold)} alert threshold`
+                : "From open orders"
+            }
             value={<AnimatedNumber value={m.outstanding} format="currency" />}
           />
           <PremiumMetric
             label="Estimated Profit"
             icon={Sparkles}
-            sub="Sales − fabric − labour"
+            sub="Sales − fabric − labour − overhead"
             value={<AnimatedNumber value={m.profit} format="currency" />}
           />
         </div>
@@ -732,7 +768,7 @@ function MainDashboard() {
             />
           ) : (
             <div className="divide-y divide-[#E7E5E4]">
-              {m.staffWorkload.map(({ user, openTasks, activeOrders }) => (
+              {m.staffWorkload.map(({ user, openTasks, activeOrders, capacityPct, overCapacity }) => (
                 <div
                   key={user.id}
                   className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#FBF9F7] transition"
@@ -748,9 +784,22 @@ function MainDashboard() {
                     <p className="text-sm font-medium text-[#1C1917] truncate">
                       {user.fullName || user.email}
                     </p>
-                    <p className="text-[11px] text-stone-400">
+                    <p
+                      className={`text-[11px] ${
+                        overCapacity ? "text-[#b91c1c] font-medium" : "text-stone-400"
+                      }`}
+                    >
                       {activeOrders} active order{activeOrders !== 1 ? "s" : ""}
+                      {overCapacity ? " — over capacity" : ""}
                     </p>
+                    <div className="mt-1.5 h-1 w-full max-w-[140px] rounded-full bg-[#E7E5E4] overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          overCapacity ? "bg-[#b91c1c]" : "bg-[#800020]"
+                        }`}
+                        style={{ width: `${Math.max(4, capacityPct)}%` }}
+                      />
+                    </div>
                   </div>
                   <span
                     className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#800020] rounded-full"

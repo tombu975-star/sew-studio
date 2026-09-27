@@ -331,6 +331,15 @@ export function serializeSettings(s: Record<string, any>) {
     depositPolicyText: s.deposit_policy_text,
     alterationsPolicyText: s.alterations_policy_text,
     cancellationPolicyText: s.cancellation_policy_text,
+    // Overhead breakdown & studio operations
+    overheadItems: Array.isArray(s.overhead_items) ? s.overhead_items : [],
+    outstandingBalanceAlertThreshold: s.outstanding_balance_alert_threshold,
+    typicalActiveOrdersPerStaff: s.typical_active_orders_per_staff,
+    contactPhone: s.contact_phone || "",
+    contactEmail: s.contact_email || "",
+    address: s.address || "",
+    taxId: s.tax_id || "",
+    invoicePrefix: s.invoice_prefix || "INV",
   };
 }
 

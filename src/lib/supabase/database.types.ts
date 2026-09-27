@@ -371,6 +371,14 @@ export interface Database {
           deposit_policy_text: string;
           alterations_policy_text: string;
           cancellation_policy_text: string;
+          overhead_items: unknown;
+          outstanding_balance_alert_threshold: number;
+          typical_active_orders_per_staff: number;
+          contact_phone: string;
+          contact_email: string;
+          address: string;
+          tax_id: string;
+          invoice_prefix: string;
           created_at: string;
           updated_at: string;
         };

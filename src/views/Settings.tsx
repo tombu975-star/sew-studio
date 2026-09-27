@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -10,6 +10,16 @@ import {
   Scissors,
   MessagesSquare,
   ShieldCheck,
+  Store,
+  Coins,
+  Gauge,
+  Plus,
+  X,
+  Phone,
+  Mail,
+  MapPin,
+  Hash,
+  Receipt,
 } from "lucide-react";
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -27,27 +37,16 @@ import {
 } from "@/components/ui/select";
 import { apiGet, apiPatch } from "@/lib/api";
 import { useRole } from "@/stores/role";
+import { formatCurrency } from "@/lib/format";
+import type { OverheadItem, Settings as ShopSettings } from "@/lib/types";
 
-interface ShopSettings {
-  id: string;
-  shopId: string;
-  ownerGender: string;
-  studioName: string;
-  overheadAmount: number;
-  selfPayout: number;
-  currency: string;
-  depositPercent: number;
-  rushFeePercent: number;
-  quoteValidDays: number;
-  fullBalanceBeforePickup: boolean;
-  fittingsIncluded: number;
-  alterationsWindowDays: number;
-  depositPolicyText: string;
-  alterationsPolicyText: string;
-  cancellationPolicyText: string;
-}
-
-const CURRENCIES = ["GHS", "NGN", "USD", "GBP", "EUR"] as const;
+const CURRENCIES = [
+  { value: "GHS", label: "GHS — Ghanaian Cedi" },
+  { value: "NGN", label: "NGN — Nigerian Naira" },
+  { value: "USD", label: "USD — US Dollar" },
+  { value: "GBP", label: "GBP — British Pound" },
+  { value: "EUR", label: "EUR — Euro" },
+] as const;
 
 const DEFAULT_POLICY_COPY = {
   deposit:
@@ -65,6 +64,10 @@ function fillTemplate(template: string, vars: Record<string, string | number>) {
   return template.replace(/\{(\w+)\}/g, (_, key) => String(vars[key] ?? ""));
 }
 
+function newItemId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
 export default function Settings() {
   const queryClient = useQueryClient();
   const setStudioName = useRole((s) => s.setStudioName);
@@ -76,10 +79,27 @@ export default function Settings() {
   });
 
   const [studioName, setStudioNameField] = useState("");
-  const [ownerGender, setOwnerGender] = useState("Madam");
+  const [ownerGender, setOwnerGender] = useState("Female");
   const [currency, setCurrency] = useState("GHS");
+
+  // Contact & registration
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [taxId, setTaxId] = useState("");
+  const [invoicePrefix, setInvoicePrefix] = useState("INV");
+
+  // Overhead & costing
+  const [overheadItems, setOverheadItems] = useState<OverheadItem[]>([]);
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemAmount, setNewItemAmount] = useState("");
   const [overheadAmount, setOverheadAmount] = useState<number>(0);
   const [selfPayout, setSelfPayout] = useState<number>(0);
+
+  // Capacity & alerts
+  const [outstandingBalanceAlertThreshold, setOutstandingBalanceAlertThreshold] =
+    useState<number>(2000);
+  const [typicalActiveOrdersPerStaff, setTypicalActiveOrdersPerStaff] = useState<number>(4);
 
   // Business policies
   const [depositPercent, setDepositPercent] = useState<number>(50);
@@ -96,10 +116,22 @@ export default function Settings() {
   useEffect(() => {
     if (!data) return;
     setStudioNameField(data.studioName ?? "");
-    setOwnerGender(data.ownerGender ?? "Madam");
+    setOwnerGender(data.ownerGender ?? "Female");
     setCurrency(data.currency ?? "GHS");
     setOverheadAmount(data.overheadAmount ?? 0);
     setSelfPayout(data.selfPayout ?? 0);
+
+    setContactPhone(data.contactPhone ?? "");
+    setContactEmail(data.contactEmail ?? "");
+    setAddress(data.address ?? "");
+    setTaxId(data.taxId ?? "");
+    setInvoicePrefix(data.invoicePrefix || "INV");
+
+    setOverheadItems(
+      (data.overheadItems ?? []).map((it) => ({ ...it, id: it.id || newItemId() }))
+    );
+    setOutstandingBalanceAlertThreshold(data.outstandingBalanceAlertThreshold ?? 2000);
+    setTypicalActiveOrdersPerStaff(data.typicalActiveOrdersPerStaff ?? 4);
 
     setDepositPercent(data.depositPercent ?? 50);
     setRushFeePercent(data.rushFeePercent ?? 25);
@@ -117,6 +149,25 @@ export default function Settings() {
     setCancellationPolicyText(data.cancellationPolicyText || DEFAULT_POLICY_COPY.cancellation);
   }, [data]);
 
+  const overheadItemsTotal = useMemo(
+    () => overheadItems.reduce((s, it) => s + (Number(it.amount) || 0), 0),
+    [overheadItems]
+  );
+  const effectiveOverheadPerOrder = overheadItemsTotal > 0 ? overheadItemsTotal : overheadAmount;
+
+  function addOverheadItem() {
+    const name = newItemName.trim();
+    const amount = Number(newItemAmount) || 0;
+    if (!name) return;
+    setOverheadItems((prev) => [...prev, { id: newItemId(), name, amount }]);
+    setNewItemName("");
+    setNewItemAmount("");
+  }
+
+  function removeOverheadItem(id: string) {
+    setOverheadItems((prev) => prev.filter((it) => it.id !== id));
+  }
+
   const saveMutation = useMutation({
     mutationFn: () =>
       apiPatch<ShopSettings>("/api/settings", {
@@ -125,6 +176,14 @@ export default function Settings() {
         currency,
         overheadAmount,
         selfPayout,
+        contactPhone: contactPhone.trim(),
+        contactEmail: contactEmail.trim(),
+        address: address.trim(),
+        taxId: taxId.trim(),
+        invoicePrefix: invoicePrefix.trim() || "INV",
+        overheadItems: overheadItems.map(({ id, name, amount }) => ({ id, name, amount })),
+        outstandingBalanceAlertThreshold,
+        typicalActiveOrdersPerStaff,
         depositPercent,
         rushFeePercent,
         quoteValidDays,
@@ -138,6 +197,7 @@ export default function Settings() {
     onSuccess: (updated) => {
       toast.success("Settings saved");
       queryClient.setQueryData(["settings"], updated);
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       // Keep the sidebar / header labels in sync immediately.
       setStudioName(updated.studioName);
       setOwnerLabel(updated.ownerGender === "Male" ? "Master" : "Madam");
@@ -148,7 +208,7 @@ export default function Settings() {
   if (isLoading) {
     return (
       <div className="p-5 md:p-8 max-w-2xl mx-auto w-full">
-        <PageHeader eyebrow="Admin" title="Settings" eyebrowIcon={SettingsIcon} />
+        <PageHeader eyebrow="Admin" title="Studio Settings" eyebrowIcon={SettingsIcon} />
         <div className="mt-6 space-y-4">
           <div className="h-40 rounded-xl bg-stone-100 animate-pulse" />
           <div className="h-56 rounded-xl bg-stone-100 animate-pulse" />
@@ -161,7 +221,7 @@ export default function Settings() {
   if (isError) {
     return (
       <div className="p-5 md:p-8 max-w-2xl mx-auto w-full">
-        <PageHeader eyebrow="Admin" title="Settings" eyebrowIcon={SettingsIcon} />
+        <PageHeader eyebrow="Admin" title="Studio Settings" eyebrowIcon={SettingsIcon} />
         <p className="mt-6 text-sm text-red-600">
           Couldn&apos;t load settings. Try refreshing the page.
         </p>
@@ -170,11 +230,11 @@ export default function Settings() {
   }
 
   return (
-    <div className="p-5 md:p-8 max-w-2xl mx-auto w-full">
+    <div className="p-5 md:p-8 max-w-2xl mx-auto w-full pb-28">
       <PageHeader
         eyebrow="Admin"
-        title="Settings"
-        subtitle="Studio identity and defaults used across the app."
+        title="Studio Settings"
+        subtitle="Studio identity, cost, and alert settings applied across the atelier."
         eyebrowIcon={SettingsIcon}
       />
 
@@ -185,7 +245,7 @@ export default function Settings() {
         }}
         className="mt-6 grid gap-5"
       >
-        <SectionCard title="Studio">
+        <SectionCard title="Studio identity" action={<Store className="w-4 h-4 text-stone-400" />}>
           <div className="grid gap-4 p-1">
             <div className="grid gap-1.5">
               <Label htmlFor="studio-name">Studio name</Label>
@@ -199,14 +259,14 @@ export default function Settings() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="owner-gender">Owner title</Label>
+                <Label htmlFor="owner-gender">Your gender</Label>
                 <Select value={ownerGender} onValueChange={setOwnerGender}>
                   <SelectTrigger id="owner-gender" className="w-full bg-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Female">Madam</SelectItem>
-                    <SelectItem value="Male">Master</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                    <SelectItem value="Male">Male</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -219,40 +279,246 @@ export default function Settings() {
                   </SelectTrigger>
                   <SelectContent>
                     {CURRENCIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
+                      <SelectItem key={c.value} value={c.value}>
+                        {c.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            <p className="text-xs text-stone-500 -mt-1">
+              The owner role is automatically shown as &ldquo;Madam&rdquo; or &ldquo;Master&rdquo; across the app based on this.
+            </p>
+
+            <div className="h-px bg-[#E7E5E4]" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="contact-phone" className="flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-stone-400" /> Studio phone
+                </Label>
+                <Input
+                  id="contact-phone"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  placeholder="+233 24 000 0000"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="contact-email" className="flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-stone-400" /> Studio email
+                </Label>
+                <Input
+                  id="contact-email"
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="hello@yourstudio.com"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="address" className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-stone-400" /> Studio address
+              </Label>
+              <Input
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Shop number, street, city"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="tax-id" className="flex items-center gap-1.5">
+                  <Hash className="w-3.5 h-3.5 text-stone-400" /> Tax / business reg. no.
+                </Label>
+                <Input
+                  id="tax-id"
+                  value={taxId}
+                  onChange={(e) => setTaxId(e.target.value)}
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="invoice-prefix" className="flex items-center gap-1.5">
+                  <Receipt className="w-3.5 h-3.5 text-stone-400" /> Invoice prefix
+                </Label>
+                <Input
+                  id="invoice-prefix"
+                  value={invoicePrefix}
+                  onChange={(e) => setInvoicePrefix(e.target.value.toUpperCase())}
+                  placeholder="INV"
+                  maxLength={8}
+                />
+              </div>
+            </div>
           </div>
         </SectionCard>
 
-        <SectionCard title="Finances">
-          <div className="grid grid-cols-2 gap-3 p-1">
-            <div className="grid gap-1.5">
-              <Label htmlFor="overhead">Monthly overhead</Label>
+        {/* ─── Cost & Alerts ─────────────────────────────────── */}
+        <div className="mt-2 mb-1">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400 mb-2.5 flex items-center gap-2">
+            <Gauge className="w-3.5 h-3.5" />
+            Cost &amp; alert settings
+          </p>
+          <h2 className="font-display font-semibold text-[#1C1917] text-2xl leading-tight">
+            Overhead &amp; capacity
+          </h2>
+          <p className="text-sm text-stone-500 mt-2 max-w-lg">
+            Applied across the studio — these feed every order&apos;s True Cost and the dashboard&apos;s workload alerts.
+          </p>
+        </div>
+
+        <SectionCard title="Overhead breakdown" action={<Coins className="w-4 h-4 text-stone-400" />}>
+          <div className="grid gap-4 p-1">
+            <p className="text-xs text-stone-500 -mt-1">
+              List your monthly studio overhead items — rent, electricity, data, transport, maintenance…
+              While at least one item is listed, their total replaces the flat amount below and is added
+              to every order&apos;s True Cost.
+            </p>
+
+            {overheadItems.length > 0 && (
+              <div className="rounded-lg border border-[#E7E5E4] divide-y divide-[#E7E5E4] overflow-hidden bg-white">
+                {overheadItems.map((it) => (
+                  <div key={it.id} className="flex items-center gap-3 px-3.5 py-2.5">
+                    <span className="text-sm text-[#1C1917] flex-1 truncate">{it.name}</span>
+                    <span className="text-sm font-medium tabular-nums text-stone-600">
+                      {formatCurrency(it.amount)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeOverheadItem(it.id)}
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-stone-400 hover:text-red-600 hover:bg-red-50 transition shrink-0"
+                      aria-label={`Remove ${it.name}`}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+                <div className="flex items-center gap-3 px-3.5 py-2.5 bg-[#FBF9F7]">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-stone-500 flex-1">
+                    Monthly total
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums text-[#800020]">
+                    {formatCurrency(overheadItemsTotal)}
+                  </span>
+                  <span className="w-6 h-6 shrink-0" />
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-2.5">
               <Input
-                id="overhead"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                placeholder="e.g. Electricity"
+                className="bg-white flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addOverheadItem();
+                  }
+                }}
+              />
+              <Input
                 type="number"
                 min={0}
                 step="0.01"
-                value={overheadAmount}
-                onChange={(e) => setOverheadAmount(Number(e.target.value) || 0)}
+                value={newItemAmount}
+                onChange={(e) => setNewItemAmount(e.target.value)}
+                placeholder="Monthly amount"
+                className="bg-white sm:w-40"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addOverheadItem();
+                  }
+                }}
               />
+              <PremiumButton type="button" onClick={addOverheadItem} className="shrink-0">
+                <Plus className="w-4 h-4" />
+                Add
+              </PremiumButton>
+            </div>
+
+            <div className="h-px bg-[#E7E5E4]" />
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="overhead">Overhead per order</Label>
+                <Input
+                  id="overhead"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={overheadAmount}
+                  onChange={(e) => setOverheadAmount(Number(e.target.value) || 0)}
+                  disabled={overheadItemsTotal > 0}
+                  className={overheadItemsTotal > 0 ? "opacity-50" : undefined}
+                />
+                <p className="text-xs text-stone-500">
+                  A flat amount added once to every order&apos;s True Cost — used only while no items are
+                  listed in the Overhead Breakdown above.
+                </p>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="payout">Owner self-payout</Label>
+                <Input
+                  id="payout"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={selfPayout}
+                  onChange={(e) => setSelfPayout(Number(e.target.value) || 0)}
+                />
+                <p className="text-xs text-stone-500">Your own monthly draw from the studio.</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 rounded-lg bg-[#FBF9F7] border border-[#E7E5E4] px-4 py-3">
+              <span className="text-xs font-medium text-stone-500">
+                Effective overhead applied per order right now
+              </span>
+              <span className="text-sm font-semibold text-[#800020] tabular-nums">
+                {formatCurrency(effectiveOverheadPerOrder)}
+              </span>
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Alerts &amp; capacity" action={<Gauge className="w-4 h-4 text-stone-400" />}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-1">
+            <div className="grid gap-1.5">
+              <Label htmlFor="outstanding-threshold">Outstanding balance alert threshold</Label>
+              <Input
+                id="outstanding-threshold"
+                type="number"
+                min={0}
+                step="0.01"
+                value={outstandingBalanceAlertThreshold}
+                onChange={(e) => setOutstandingBalanceAlertThreshold(Number(e.target.value) || 0)}
+              />
+              <p className="text-xs text-stone-500">
+                You&apos;ll be alerted on the Dashboard when total outstanding across orders exceeds this.
+              </p>
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="payout">Owner self-payout</Label>
+              <Label htmlFor="staff-capacity">Typical active work per staff member</Label>
               <Input
-                id="payout"
+                id="staff-capacity"
                 type="number"
-                min={0}
-                step="0.01"
-                value={selfPayout}
-                onChange={(e) => setSelfPayout(Number(e.target.value) || 0)}
+                min={1}
+                value={typicalActiveOrdersPerStaff}
+                onChange={(e) => setTypicalActiveOrdersPerStaff(Number(e.target.value) || 1)}
               />
+              <p className="text-xs text-stone-500">
+                Active orders a staff member typically handles at once — used to flag workload on the
+                Dashboard when someone is over capacity.
+              </p>
             </div>
           </div>
         </SectionCard>

@@ -1,4 +1,26 @@
 // Atelier domain formatting helpers
+import type { Settings } from "@/lib/types";
+
+/** The overhead applied to a single order's True Cost: the Overhead
+ *  Breakdown total when at least one line item is listed, otherwise the
+ *  flat "overhead per order" fallback. Mirrors the rule shown in Settings. */
+export function overheadPerOrder(settings: Settings | null | undefined) {
+  if (!settings) return 0;
+  const items = settings.overheadItems || [];
+  const itemsTotal = items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
+  return itemsTotal > 0 ? itemsTotal : Number(settings.overheadAmount) || 0;
+}
+
+/** An order's full True Cost: fabric + labour + the studio's per-order
+ *  overhead (see overheadPerOrder). */
+export function orderTrueCost(
+  order: { fabricCost?: number | null; labourCost?: number | null },
+  settings: Settings | null | undefined
+) {
+  const fabric = Number(order?.fabricCost) || 0;
+  const labour = Number(order?.labourCost) || 0;
+  return fabric + labour + overheadPerOrder(settings);
+}
 
 export function formatCurrency(value: number | null | undefined) {
   const n = Number(value) || 0;

@@ -197,6 +197,12 @@ export interface CustomerFeedback {
   date: string;
 }
 
+export interface OverheadItem {
+  id: string;
+  name: string;
+  amount: number;
+}
+
 export interface Settings {
   id: string;
   ownerGender: string;
@@ -204,6 +210,24 @@ export interface Settings {
   overheadAmount: number;
   selfPayout: number;
   currency: string;
+  depositPercent?: number;
+  rushFeePercent?: number;
+  quoteValidDays?: number;
+  fullBalanceBeforePickup?: boolean;
+  fittingsIncluded?: number;
+  alterationsWindowDays?: number;
+  depositPolicyText?: string;
+  alterationsPolicyText?: string;
+  cancellationPolicyText?: string;
+  // Overhead breakdown & studio operations
+  overheadItems?: OverheadItem[];
+  outstandingBalanceAlertThreshold?: number;
+  typicalActiveOrdersPerStaff?: number;
+  contactPhone?: string;
+  contactEmail?: string;
+  address?: string;
+  taxId?: string;
+  invoicePrefix?: string;
 }
 
 export interface Freelancer {

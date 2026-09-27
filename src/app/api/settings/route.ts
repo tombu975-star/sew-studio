@@ -98,6 +98,46 @@ export async function PATCH(req: Request) {
       if (key in body) data[column] = typeof body[key] === "string" ? body[key].slice(0, 2000) : "";
     }
 
+    // Overhead breakdown — a list of {id, name, amount} line items. While
+    // non-empty, its total stands in for the flat "overhead per order"
+    // amount everywhere True Cost is computed.
+    if ("overheadItems" in body) {
+      const items = Array.isArray(body.overheadItems) ? body.overheadItems : [];
+      data.overhead_items = items
+        .map((it: any) => ({
+          id: String(it?.id ?? ""),
+          name: typeof it?.name === "string" ? it.name.trim().slice(0, 80) : "",
+          amount: Math.max(0, Number(it?.amount) || 0),
+        }))
+        .filter((it: { name: string }) => it.name.length > 0);
+    }
+
+    // Capacity & alerts
+    if ("outstandingBalanceAlertThreshold" in body) {
+      data.outstanding_balance_alert_threshold = Math.max(
+        0,
+        Number(body.outstandingBalanceAlertThreshold) || 0
+      );
+    }
+    if ("typicalActiveOrdersPerStaff" in body) {
+      data.typical_active_orders_per_staff = Math.max(
+        1,
+        Math.round(Number(body.typicalActiveOrdersPerStaff) || 1)
+      );
+    }
+
+    // Studio contact & registration details
+    const contactFieldMap: Record<string, string> = {
+      contactPhone: "contact_phone",
+      contactEmail: "contact_email",
+      address: "address",
+      taxId: "tax_id",
+      invoicePrefix: "invoice_prefix",
+    };
+    for (const [key, column] of Object.entries(contactFieldMap)) {
+      if (key in body) data[column] = typeof body[key] === "string" ? body[key].trim().slice(0, 300) : "";
+    }
+
     const { data: updated, error } = await ctx.supabase
       .from("settings")
       .update(data)

@@ -8,8 +8,8 @@ import { ArrowLeft, Pencil, TrendingUp } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { useNav } from "@/stores/nav";
 import { useRole } from "@/stores/role";
-import { ORDER_STATUSES, PRIORITY_LEVELS, todayISO, formatCurrency } from "@/lib/format";
-import type { Customer, Order, User } from "@/lib/types";
+import { ORDER_STATUSES, PRIORITY_LEVELS, todayISO, formatCurrency, overheadPerOrder } from "@/lib/format";
+import type { Customer, Order, Settings, User } from "@/lib/types";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -67,12 +67,18 @@ export default function NewOrder() {
   const [priority, setPriority] = useState<string>("Medium");
   const [notes, setNotes] = useState("");
 
+  const { data: settings } = useQuery<Settings>({
+    queryKey: ["settings"],
+    queryFn: () => apiGet<Settings>("/api/settings"),
+  });
+  const overhead = useMemo(() => overheadPerOrder(settings), [settings]);
+
   const estMargin = useMemo(() => {
     const s = Number(sellingPrice) || 0;
     const f = Number(fabricCost) || 0;
     const l = Number(labourCost) || 0;
-    return s - f - l;
-  }, [sellingPrice, fabricCost, labourCost]);
+    return s - f - l - overhead;
+  }, [sellingPrice, fabricCost, labourCost, overhead]);
 
   const createMut = useMutation({
     mutationFn: () => {
@@ -354,7 +360,7 @@ export default function NewOrder() {
                     Estimated Margin
                   </div>
                   <div className="text-[11px] text-stone-400">
-                    Selling − Fabric − Labour
+                    Selling − Fabric − Labour − Overhead ({formatCurrency(overhead)})
                   </div>
                 </div>
               </div>
