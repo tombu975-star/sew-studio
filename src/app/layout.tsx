@@ -8,6 +8,7 @@ import "@fontsource/poppins/700.css";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 // Poppins (display/headings) + Inter (body) via self-hosted @fontsource
 // packages — same reasoning as the previous local-font setup: this avoids
@@ -27,8 +28,19 @@ export const metadata: Metadata = {
     "style assist",
   ],
   authors: [{ name: "Madam Studio" }],
+  manifest: "/manifest.json",
   icons: {
-    icon: "/logo.svg",
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/logo.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Madam Studio",
   },
   openGraph: {
     title: "Madam Studio — Atelier Management",
@@ -56,6 +68,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased font-body">
         {children}
+        <ServiceWorkerRegister />
         <Toaster />
         <SonnerToaster position="top-right" richColors closeButton />
       </body>

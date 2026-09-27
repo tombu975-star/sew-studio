@@ -10,7 +10,7 @@ and `prisma` are no longer dependencies.
 
 ## What replaced what
 
-**Schema** (`supabase/000*.sql`, run in this order in the Supabase SQL
+**Schema** (`supabase/schema/*.sql`, run in this order in the Supabase SQL
 editor — see `DEPLOYMENT.md`):
 - `0001_tables.sql` — every table from the old `prisma/schema.prisma`,
   translated to snake_case with `uuid` ids. `User` → `profiles` (id =
@@ -26,9 +26,6 @@ editor — see `DEPLOYMENT.md`):
   mentor") still lives in route code, same as before — RLS is the coarse,
   unconditional backstop, not a replacement for it.
 - `0004_triggers.sql` — `updated_at` auto-touch on every table that has it.
-- `0005_rls_write_permissions.sql` — makes destructive-write permissions
-  consistent with the manager-only delete rule and protects profile roles and
-  tenant ownership from direct client updates.
 
 **Supabase client layer** (`src/lib/supabase/`):
 - `browserClient.ts` — for client components that need Supabase directly.
