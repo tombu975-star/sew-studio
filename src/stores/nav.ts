@@ -22,6 +22,7 @@ export type ViewKey =
   | "certificate"
   | "messages"
   | "my-jobs"
+  | "profile"
   | "settings";
 
 interface NavState {

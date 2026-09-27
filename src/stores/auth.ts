@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { apiPost, apiGet } from "@/lib/api";
+import { apiPost, apiGet, apiPatch } from "@/lib/api";
 import { useRole, type Role } from "@/stores/role";
 
 export interface AuthShop {
@@ -31,6 +31,7 @@ interface AuthState {
   status: Status;
   hydrate: () => Promise<void>;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<AuthUser>;
+  updateProfile: (patch: { fullName: string; phone: string | null; gender: string | null }) => Promise<AuthUser>;
   register: (data: {
     shopName: string;
     fullName: string;
@@ -75,6 +76,12 @@ export const useAuth = create<AuthState>((set) => ({
   },
   login: async (email, password, rememberMe = false) => {
     const res = await apiPost<{ user: AuthUser }>("/api/auth/login", { email, password, rememberMe });
+    set({ user: res.user, status: "authenticated" });
+    syncRoleStore(res.user);
+    return res.user;
+  },
+  updateProfile: async (patch) => {
+    const res = await apiPatch<{ user: AuthUser }>("/api/auth/profile", patch);
     set({ user: res.user, status: "authenticated" });
     syncRoleStore(res.user);
     return res.user;

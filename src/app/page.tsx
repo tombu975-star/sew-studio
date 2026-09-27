@@ -32,6 +32,7 @@ const Certificate = dynamic(() => import("@/views/Certificate").then((m) => m.de
 const Messages = dynamic(() => import("@/views/Messages").then((m) => m.default), { ssr: false });
 const MyJobs = dynamic(() => import("@/views/MyJobs").then((m) => m.default), { ssr: false });
 const Settings = dynamic(() => import("@/views/Settings").then((m) => m.default), { ssr: false });
+const UserProfile = dynamic(() => import("@/views/UserProfile").then((m) => m.default), { ssr: false });
 
 function CurrentView() {
   const { view } = useNav();
@@ -76,6 +77,8 @@ function CurrentView() {
       return <MyJobs />;
     case "settings":
       return <Settings />;
+    case "profile":
+      return <UserProfile />;
     default:
       return <Dashboard />;
   }

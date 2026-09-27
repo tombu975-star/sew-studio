@@ -8,6 +8,15 @@ drop policy if exists "users can update their own profile"
 drop policy if exists "madam or trainer can update any trainee in their shop"
   on public.profiles;
 
+create policy "users can update safe fields on their own profile"
+  on public.profiles for update
+  using (id = auth.uid() and shop_id = public.current_shop_id())
+  with check (
+    id = auth.uid()
+    and shop_id = public.current_shop_id()
+    and role = public.current_role()
+  );
+
 create policy "managers can update eligible profiles in their shop"
   on public.profiles for update
   using (

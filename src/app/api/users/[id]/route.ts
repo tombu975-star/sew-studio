@@ -1,5 +1,46 @@
 import { getTenant } from "@/lib/supabase/session";
 
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const ctx = await getTenant();
+  if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const { data: profile } = await ctx.supabase
+    .from("profiles")
+    .select("id, email, full_name, role, gender, phone, shop_id, mentor_id, training_duration_weeks, training_started_at, program_id, created_at")
+    .eq("id", id)
+    .eq("shop_id", ctx.shopId)
+    .maybeSingle();
+  if (!profile) return Response.json({ error: "User not found" }, { status: 404 });
+
+  if (profile.id !== ctx.userId) {
+    if (ctx.role !== "madam" && ctx.role !== "trainer") {
+      return Response.json({ error: "You cannot view this profile." }, { status: 403 });
+    }
+    if (ctx.role === "trainer" && !(profile.role === "trainee" && profile.mentor_id === ctx.userId)) {
+      return Response.json({ error: "You can only view profiles of trainees you mentor." }, { status: 403 });
+    }
+  }
+
+  return Response.json({
+    id: profile.id,
+    email: profile.email,
+    fullName: profile.full_name,
+    role: profile.role,
+    gender: profile.gender,
+    phone: profile.phone,
+    shopId: profile.shop_id,
+    mentorId: profile.mentor_id,
+    trainingDurationWeeks: profile.training_duration_weeks,
+    trainingStartedAt: profile.training_started_at,
+    programId: profile.program_id,
+    createdAt: profile.created_at,
+  });
+}
+
 // PATCH — update a user (used by trainer/owner to set mentor + training duration on trainees)
 export async function PATCH(
   req: Request,
