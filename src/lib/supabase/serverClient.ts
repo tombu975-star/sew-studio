@@ -13,13 +13,14 @@ import type { Database } from "./database.types";
  * Must be called inside a Route Handler (or Server Component, read-only
  * there) — relies on next/headers `cookies()`.
  */
-export async function createServerSupabaseClient() {
+export async function createServerSupabaseClient(options: { rememberMe?: boolean } = {}) {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: options.rememberMe ? { maxAge: 60 * 60 * 24 * 30 } : {},
       cookies: {
         getAll() {
           return cookieStore.getAll();

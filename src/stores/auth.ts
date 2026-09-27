@@ -30,7 +30,7 @@ interface AuthState {
   user: AuthUser | null;
   status: Status;
   hydrate: () => Promise<void>;
-  login: (email: string, password: string) => Promise<AuthUser>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<AuthUser>;
   register: (data: {
     shopName: string;
     fullName: string;
@@ -73,8 +73,8 @@ export const useAuth = create<AuthState>((set) => ({
       set({ user: null, status: "unauthenticated" });
     }
   },
-  login: async (email, password) => {
-    const res = await apiPost<{ user: AuthUser }>("/api/auth/login", { email, password });
+  login: async (email, password, rememberMe = false) => {
+    const res = await apiPost<{ user: AuthUser }>("/api/auth/login", { email, password, rememberMe });
     set({ user: res.user, status: "authenticated" });
     syncRoleStore(res.user);
     return res.user;

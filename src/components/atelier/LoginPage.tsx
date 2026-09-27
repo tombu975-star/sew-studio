@@ -11,6 +11,7 @@ import {
   Store,
   User as UserIcon,
   ArrowLeft,
+  Fingerprint,
 } from "lucide-react";
 import { useAuth } from "@/stores/auth";
 import { toast } from "sonner";
@@ -57,6 +58,7 @@ export function LoginPage() {
   // shared / login state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -80,7 +82,7 @@ export function LoginPage() {
     setError("");
     setSubmitting(true);
     try {
-      const user = await login(email, password);
+      const user = await login(email, password, rememberMe);
       toast.success(`Welcome back, ${user.fullName.split(" ")[0]}.`);
     } catch (err) {
       const msg = extractApiError(err, "Could not sign in.");
@@ -226,6 +228,31 @@ export function LoginPage() {
                     </button>
                   </div>
                 </div>
+
+                <div className="flex items-center justify-between gap-4 text-xs">
+                  <label className="inline-flex items-center gap-2 text-stone-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(event) => setRememberMe(event.target.checked)}
+                      className="size-4 accent-[#800020]"
+                    />
+                    Remember me for 30 days
+                  </label>
+                  <a href="/forgot-password" className="font-medium text-[#800020] hover:underline">
+                    Forgot password?
+                  </a>
+                </div>
+
+                <button
+                  type="button"
+                  disabled
+                  title="Passkey sign-in will be available after passkey setup is enabled for this project."
+                  className="w-full h-10 inline-flex items-center justify-center gap-2 border border-[#E7E5E4] rounded-lg text-xs text-stone-400 cursor-not-allowed"
+                >
+                  <Fingerprint className="w-4 h-4" />
+                  Use fingerprint or passkey
+                </button>
 
                 {error && (
                   <div className="flex items-start gap-2 text-sm text-[#800020] bg-[#800020]/5 border border-[#800020]/15 rounded-xl px-3.5 py-2.5 animate-fade-in">
