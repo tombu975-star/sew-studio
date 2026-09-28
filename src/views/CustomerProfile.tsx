@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
+import { MeasurementsPanel } from "@/components/atelier/MeasurementsPanel";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
@@ -390,68 +391,12 @@ export default function CustomerProfile() {
           )}
         </TabsContent>
 
-        {/* Measurements */}
+        {/* Measurements — fixed layout, same for every customer */}
         <TabsContent value="measurements" className="mt-4">
-          <SectionCard
-            title="Measurements"
-            action={
-              <PremiumButton
-                variant="outline"
-                size="sm"
-                onClick={() => setMeasureOpen(true)}
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Measurement
-              </PremiumButton>
-            }
-          >
-            {measurements.length === 0 ? (
-              <EmptyState
-                icon={Ruler}
-                title="No measurements recorded"
-                description="Add this customer's first measurement set to start tracking their fit profile."
-                action={
-                  <PremiumButton
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setMeasureOpen(true)}
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Add Measurement
-                  </PremiumButton>
-                }
-              />
-            ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {measurements.map((m) => (
-                  <div
-                    key={m.id}
-                    className="rounded-lg border border-[#E7E5E4] p-4 surface-premium lift"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="text-sm font-medium text-[#1C1917]">
-                        {formatDate(m.dateTaken)}
-                      </div>
-                      <div className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
-                        {m.unit}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <Meas label="Bust" value={m.bust} unit={m.unit} />
-                      <Meas label="Waist" value={m.waist} unit={m.unit} />
-                      <Meas label="Hip" value={m.hip} unit={m.unit} />
-                      <Meas label="Shoulder" value={m.shoulder} unit={m.unit} />
-                      <Meas label="Length" value={m.length} unit={m.unit} />
-                      <Meas label="Sleeve" value={m.sleeve} unit={m.unit} />
-                    </div>
-                    {m.notes && (
-                      <p className="text-xs text-stone-500 mt-3 italic border-t border-[#E7E5E4]/70 pt-2">
-                        {m.notes}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </SectionCard>
+          <MeasurementsPanel
+            measurements={measurements}
+            onUpdate={() => setMeasureOpen(true)}
+          />
         </TabsContent>
 
         {/* Orders */}
@@ -741,34 +686,6 @@ function ChipList({
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function Meas({
-  label,
-  value,
-  unit,
-}: {
-  label: string;
-  value: number | null | undefined;
-  unit: string;
-}) {
-  return (
-    <div>
-      <div className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
-        {label}
-      </div>
-      <div className="text-[#1C1917] font-medium tabular-nums">
-        {value != null ? (
-          <>
-            {value}
-            <span className="text-stone-400 ml-1 text-xs">{unit}</span>
-          </>
-        ) : (
-          "—"
-        )}
-      </div>
     </div>
   );
 }
@@ -1217,7 +1134,7 @@ function AddMeasurementDialog({
       <DialogContent className="sm:max-w-[480px] rounded-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-xl text-[#1C1917]">
-            Add Measurements
+            Update Measurements
           </DialogTitle>
           <DialogDescription className="text-stone-500">
             All values in centimetres (cm).

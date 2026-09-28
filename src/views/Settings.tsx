@@ -38,6 +38,7 @@ import {
 import { apiGet, apiPatch } from "@/lib/api";
 import { useRole } from "@/stores/role";
 import { formatCurrency, setStudioCurrency } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { OverheadItem, Settings as ShopSettings } from "@/lib/types";
 
 // ISO 4217 currency codes. Formatting itself is done by Intl.NumberFormat, so
@@ -62,6 +63,14 @@ const CURRENCIES = [
   { value: "AED", label: "AED — UAE Dirham" },
   { value: "INR", label: "INR — Indian Rupee" },
 ] as const;
+
+const SETTINGS_TABS = [
+  { key: "general", label: "General & business", icon: Store },
+  { key: "costing", label: "Costing & overhead", icon: Coins },
+  { key: "operations", label: "Operations & alerts", icon: Gauge },
+  { key: "policies", label: "Pricing & policies", icon: ShieldCheck },
+] as const;
+type SettingsTab = (typeof SETTINGS_TABS)[number]["key"];
 
 const DEFAULT_POLICY_COPY = {
   deposit:
@@ -93,6 +102,7 @@ export default function Settings() {
     queryFn: () => apiGet<ShopSettings>("/api/settings"),
   });
 
+  const [tab, setTab] = useState<SettingsTab>("general");
   const [studioName, setStudioNameField] = useState("");
   const [ownerGender, setOwnerGender] = useState("Female");
   const [currency, setCurrency] = useState("GHS");
@@ -252,7 +262,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="p-5 md:p-8 max-w-2xl mx-auto w-full pb-28">
+    <div className="p-5 md:p-8 max-w-6xl mx-auto w-full pb-28">
       <PageHeader
         eyebrow="Admin"
         title="Studio Settings"
@@ -265,8 +275,33 @@ export default function Settings() {
           e.preventDefault();
           saveMutation.mutate();
         }}
-        className="mt-6 grid gap-5"
+        className="mt-6"
       >
+        <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] items-start">
+          <nav aria-label="Settings sections" className="lg:sticky lg:top-6 flex lg:flex-col gap-1 overflow-x-auto rounded-xl border border-[#E7E5E4] bg-white p-1.5">
+            {SETTINGS_TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setTab(t.key)}
+                aria-current={tab === t.key ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm whitespace-nowrap transition",
+                  tab === t.key ? "bg-[#800020] text-white font-medium" : "text-stone-600 hover:bg-stone-50"
+                )}
+              >
+                <t.icon className="w-4 h-4 shrink-0" />
+                {t.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="min-w-0">
+          <div hidden={tab !== "general"} className="grid gap-5">
+            <div className="pb-1">
+              <h2 className="font-display font-semibold text-[#1C1917] text-xl leading-tight">General & business details</h2>
+              <p className="text-sm text-stone-500 mt-1 max-w-xl">Studio identity, contact information and the registration details printed on invoices.</p>
+            </div>
         <SectionCard title="Studio identity" action={<Store className="w-4 h-4 text-stone-400" />}>
           <div className="grid gap-4 p-1">
             <div className="grid gap-1.5">
@@ -380,21 +415,12 @@ export default function Settings() {
             </div>
           </div>
         </SectionCard>
-
-        {/* ─── Cost & Alerts ─────────────────────────────────── */}
-        <div className="mt-2 mb-1">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400 mb-2.5 flex items-center gap-2">
-            <Gauge className="w-3.5 h-3.5" />
-            Cost &amp; alert settings
-          </p>
-          <h2 className="font-display font-semibold text-[#1C1917] text-2xl leading-tight">
-            Overhead &amp; capacity
-          </h2>
-          <p className="text-sm text-stone-500 mt-2 max-w-lg">
-            Applied across the studio — these feed every order&apos;s True Cost and the dashboard&apos;s workload alerts.
-          </p>
-        </div>
-
+          </div>
+          <div hidden={tab !== "costing"} className="grid gap-5">
+            <div className="pb-1">
+              <h2 className="font-display font-semibold text-[#1C1917] text-xl leading-tight">Costing & overhead</h2>
+              <p className="text-sm text-stone-500 mt-1 max-w-xl">Monthly overheads and the overhead recovery rate applied to every order (as a percentage of non-labour cost).</p>
+            </div>
         <SectionCard title="Overhead breakdown" action={<Coins className="w-4 h-4 text-stone-400" />}>
           <div className="grid gap-4 p-1">
             <p className="text-xs text-stone-500 -mt-1">
@@ -548,7 +574,12 @@ export default function Settings() {
             </div>
           </div>
         </SectionCard>
-
+          </div>
+          <div hidden={tab !== "operations"} className="grid gap-5">
+            <div className="pb-1">
+              <h2 className="font-display font-semibold text-[#1C1917] text-xl leading-tight">Operations & alerts</h2>
+              <p className="text-sm text-stone-500 mt-1 max-w-xl">Capacity and outstanding-balance alerts used by the dashboard.</p>
+            </div>
         <SectionCard title="Alerts &amp; capacity" action={<Gauge className="w-4 h-4 text-stone-400" />}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-1">
             <div className="grid gap-1.5">
@@ -581,21 +612,12 @@ export default function Settings() {
             </div>
           </div>
         </SectionCard>
-
-        {/* ─── Business Policies ─────────────────────────────────── */}
-        <div className="mt-2 mb-1">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400 mb-2.5 flex items-center gap-2">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            How the studio runs
-          </p>
-          <h2 className="font-display font-semibold text-[#1C1917] text-2xl leading-tight">
-            Business policies
-          </h2>
-          <p className="text-sm text-stone-500 mt-2 max-w-lg">
-            Your rules, written once — clients see them on their portal every time they check an order.
-          </p>
-        </div>
-
+          </div>
+          <div hidden={tab !== "policies"} className="grid gap-5">
+            <div className="pb-1">
+              <h2 className="font-display font-semibold text-[#1C1917] text-xl leading-tight">Pricing policies & terms</h2>
+              <p className="text-sm text-stone-500 mt-1 max-w-xl">Deposits, rush fees, fittings and the client-facing terms shown on quotes and invoices.</p>
+            </div>
         <SectionCard
           title="Money"
           action={<Percent className="w-4 h-4 text-stone-400" />}
@@ -726,9 +748,13 @@ export default function Settings() {
             </div>
           </div>
         </SectionCard>
+          </div>
+          </div>
+        </div>
 
-        <div className="flex justify-end sticky bottom-4">
-          <PremiumButton type="submit" loading={saveMutation.isPending} size="lg" className="shadow-lg">
+        <div className="mt-6 flex items-center justify-between gap-3 rounded-xl border border-[#E7E5E4] bg-white px-4 py-3 sticky bottom-4 shadow-sm">
+          <p className="text-xs text-stone-500">Changes across all sections are saved together.</p>
+          <PremiumButton type="submit" loading={saveMutation.isPending} size="lg">
             <Save className="w-4 h-4" />
             Save settings
           </PremiumButton>
