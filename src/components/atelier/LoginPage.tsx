@@ -39,7 +39,7 @@ function extractApiError(err: unknown, fallback: string): string {
 }
 
 const inputClass =
-  "h-11 w-full rounded-md border border-[#E7E5E4] bg-white px-3.5 text-sm text-[#1C1917] placeholder:text-stone-400 outline-none transition-colors focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15";
+  "h-12 w-full rounded-md border border-[#E7E5E4] bg-white px-3.5 text-base sm:text-sm text-[#1C1917] placeholder:text-stone-400 outline-none transition-colors focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15";
 
 export function LoginPage() {
   const { login, register, hydrate, status } = useAuth();
@@ -140,9 +140,9 @@ export function LoginPage() {
         </div>
       </aside>
 
-      <main className="flex min-h-dvh flex-col justify-center px-6 py-10 pt-safe pb-safe sm:px-12 lg:min-h-0">
-        <div className="mx-auto w-full max-w-[400px]">
-          <div className="mb-10 flex items-center gap-3">
+      <main className="flex min-h-dvh flex-col justify-center px-5 py-8 pt-safe pb-safe sm:px-12 sm:py-12 lg:min-h-0">
+        <div className="mx-auto w-full max-w-[420px]">
+          <div className="mb-8 sm:mb-10 flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-md bg-[#800020]">
               <Scissors className="size-4 text-white" strokeWidth={2} />
             </div>
@@ -151,7 +151,7 @@ export function LoginPage() {
 
           {mode === "login" ? (
             <section key="login" className="animate-fade-in">
-              <h1 className="font-display text-[34px] font-semibold leading-none text-[#1C1917]">Welcome back</h1>
+              <h1 className="font-display text-[30px] sm:text-[34px] font-semibold leading-tight text-[#1C1917]">Welcome back</h1>
               <p className="mt-2.5 text-sm text-stone-500">Sign in to your studio to continue.</p>
 
               <form onSubmit={submitLogin} className="mt-8 space-y-5">
@@ -182,15 +182,15 @@ export function LoginPage() {
                   />
                 </Field>
 
-                <div className="flex items-center justify-between gap-4 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 text-xs">
                   <label className="inline-flex cursor-pointer items-center gap-2 text-stone-600">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(event) => setRememberMe(event.target.checked)}
-                      className="size-4 accent-[#800020]"
+                      className="size-4 shrink-0 accent-[#800020]"
                     />
-                    Keep me signed in for 30 days
+                    Keep me signed in
                   </label>
                   <a href="/forgot-password" className="font-medium text-[#800020] underline-offset-4 hover:underline">
                     Forgot password?
@@ -217,7 +217,7 @@ export function LoginPage() {
             </section>
           ) : (
             <section key="register" className="animate-fade-in">
-              <h1 className="font-display text-[34px] font-semibold leading-none text-[#1C1917]">Create your shop</h1>
+              <h1 className="font-display text-[30px] sm:text-[34px] font-semibold leading-tight text-[#1C1917]">Create your shop</h1>
               <p className="mt-2.5 text-sm text-stone-500">
                 Open a new atelier — your studio, your clients, your craft.
               </p>
@@ -283,7 +283,7 @@ export function LoginPage() {
                   hint="Used to address you as Madam / Master throughout the studio."
                 >
                   <Select value={gender} onValueChange={setGender}>
-                    <SelectTrigger id="gender" className="h-11 w-full rounded-md border-[#E7E5E4] bg-white text-sm font-normal text-[#1C1917] focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15">
+                    <SelectTrigger id="gender" className="h-12 w-full rounded-md border-[#E7E5E4] bg-white text-base sm:text-sm font-normal text-[#1C1917] focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15">
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
                     <SelectContent className="rounded-md border-[#E7E5E4]">

@@ -4,7 +4,7 @@ import { notifyCustomer, statusChangeMessage } from "@/lib/notify";
 import { serializeOrder, serializeTask } from "@/lib/supabase/serializers";
 
 const ORDER_SELECT =
-  "*, customer:customers(*), assigned_staff:profiles!orders_assigned_staff_id_fkey(*), payments(*), fittings(*), tasks(*, staff:profiles(*), order:orders(*, customer:customers(*)))";
+  "*, customer:customers(*), assigned_staff:profiles!orders_assigned_staff_id_fkey(*), payments(*), fittings(*), tasks(*, staff:profiles!tasks_staff_id_fkey(*))";
 
 function sortByDate<T extends { date: string }>(rows: T[] | null | undefined) {
   return [...(rows ?? [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -37,7 +37,8 @@ export async function GET(
   if (!canSeeAll) {
     query = query.or(`assigned_staff_id.eq.${ctx.userId},assigned_staff_id.is.null`);
   }
-  const { data: order } = await query.maybeSingle();
+  const { data: order, error } = await query.maybeSingle();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
   return NextResponse.json(serializeFullOrder(order));
@@ -76,6 +77,7 @@ export async function PATCH(
   if (body.deliveryDate !== undefined)
     data.delivery_date = body.deliveryDate ? new Date(body.deliveryDate).toISOString() : null;
   if (body.status !== undefined) data.status = body.status;
+  if (body.designImage !== undefined) data.design_image = body.designImage || null;
   if (body.sellingPrice !== undefined) data.selling_price = Number(body.sellingPrice) || 0;
   if (body.fabricCost !== undefined) data.fabric_cost = Number(body.fabricCost) || 0;
   if (body.labourCost !== undefined) data.labour_cost = Number(body.labourCost) || 0;

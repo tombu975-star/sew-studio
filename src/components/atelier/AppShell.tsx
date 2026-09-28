@@ -410,7 +410,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* ─── Main ────────────────────────────────────────────────── */}
-      <main className="flex-1 md:pl-60 pb-mobile-nav md:pb-0 flex flex-col min-w-0">
+      <main className="flex-1 md:pl-60 pb-mobile-nav md:pb-0 flex flex-col min-w-0 overflow-x-clip">
         {children}
       </main>
 

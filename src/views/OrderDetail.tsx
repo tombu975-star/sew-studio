@@ -19,6 +19,10 @@ import {
   Sparkles,
   Image as ImageIcon,
   Link2,
+  Printer,
+  FileText,
+  Scissors,
+  Calculator,
 } from "lucide-react";
 
 import { apiGet, apiPatch, apiPost } from "@/lib/api";
@@ -37,6 +41,7 @@ import {
 } from "@/lib/format";
 import type { Order, Settings } from "@/lib/types";
 
+import { Invoice } from "@/components/atelier/Invoice";
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
@@ -92,6 +97,7 @@ export default function OrderDetail() {
   const canSeeMoney = canSeeBusiness();
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [generatingPortal, setGeneratingPortal] = useState(false);
+  const [tab, setTab] = useState<"invoice" | "production" | "costing" | null>(null);
 
   const { data: order, isLoading } = useQuery<Order>({
     queryKey: ["order", selectedId],
@@ -279,147 +285,18 @@ export default function OrderDetail() {
       hashIndex(order.customer?.id || order.id, AVATAR_GRADIENTS.length)
     ];
 
-  return (
-    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
-      <button
-        onClick={() => go("orders")}
-        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
-      </button>
 
-      {/* Hero design image */}
-      {order.designImage ? (
-        <div className="relative mb-6 animate-fade-in-up">
-          <img
-            src={order.designImage}
-            alt={order.garmentDesign || "Design image"}
-            className="w-full aspect-video rounded-xl object-cover elevate-md bg-[#FBF9F7]"
-          />
-          {canSeeMoney && (
-            <button
-              onClick={() => setImageDialogOpen(true)}
-              className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/95 backdrop-blur border border-[#E7E5E4] rounded-md hover:bg-white transition elevate-sm"
-            >
-              <Pencil className="w-3 h-3" /> Edit image
-            </button>
-          )}
-        </div>
-      ) : canSeeMoney ? (
-        <button
-          onClick={() => setImageDialogOpen(true)}
-          className="w-full mb-6 aspect-video rounded-xl border-2 border-dashed border-[#E7E5E4] bg-[#FBF9F7] flex flex-col items-center justify-center gap-2 hover:border-[#800020]/40 hover:bg-[#faf8f5] transition group animate-fade-in-up"
-        >
-          <div className="w-10 h-10 rounded-full bg-white border border-[#E7E5E4] flex items-center justify-center">
-            <ImageIcon className="w-4 h-4 text-stone-400 group-hover:text-[#800020] transition" />
-          </div>
-          <span className="text-xs text-stone-500 group-hover:text-[#800020] font-medium">
-            Add a design image
-          </span>
-          <span className="text-[10px] text-stone-400">
-            Paste a photo or illustration URL
-          </span>
-        </button>
-      ) : null}
+  const activeTab: "invoice" | "production" | "costing" =
+    tab ?? (canSeeMoney ? "invoice" : "production");
+  const TABS = [
+    ...(canSeeMoney ? [{ key: "invoice" as const, label: "Invoice", icon: FileText }] : []),
+    { key: "production" as const, label: "Production", icon: Scissors },
+    ...(canSeeMoney ? [{ key: "costing" as const, label: "Costing", icon: Calculator }] : []),
+  ];
 
-      {/* Premium header band */}
-      <div className="rounded-xl elevate-md surface-premium border border-[#E7E5E4] p-6 mb-6 animate-fade-in-up">
-        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
-          <div className="min-w-0 flex-1">
-            <h1
-              className="font-display font-semibold text-[#1C1917] leading-[1.1]"
-              style={{ fontSize: "clamp(26px, 3.4vw, 34px)" }}
-            >
-              {order.garmentDesign}
-            </h1>
-            <button
-              onClick={() => go("customer", { id: order.customerId })}
-              className="inline-flex items-center gap-2 mt-2 group"
-            >
-              <div
-                className={cn(
-                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-semibold",
-                  custGrad
-                )}
-              >
-                {initials(order.customer?.name || "?")}
-              </div>
-              <span className="text-sm text-[#800020] hover:underline font-medium">
-                {order.customer?.name || "—"}
-              </span>
-            </button>
-
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 text-[12px] text-stone-500">
-              <span className="flex items-center gap-1.5">
-                <CalendarDays className="w-3.5 h-3.5" />
-                Ordered {formatDate(order.orderDate)}
-              </span>
-              <span
-                className={cn(
-                  "flex items-center gap-1.5",
-                  overdue && "text-amber-700 font-semibold"
-                )}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                Delivery{" "}
-                {order.deliveryDate ? formatDate(order.deliveryDate) : "—"}
-                {overdue && (
-                  <span className="text-[10px] uppercase tracking-wide ml-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> overdue
-                  </span>
-                )}
-              </span>
-              {order.priority && (
-                <StatusBadge status={order.priority} dot={false} />
-              )}
-              {order.assignedStaff && (
-                <span className="flex items-center gap-1.5">
-                  <UserCircle2 className="w-3.5 h-3.5" />
-                  {order.assignedStaff.fullName}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {canSeeMoney ? (
-              <Select
-                value={order.status}
-                onValueChange={(v) => statusMut.mutate(v)}
-                disabled={statusMut.isPending}
-              >
-                <SelectTrigger className="w-[180px] rounded-md h-9 text-sm bg-white">
-                  <SelectValue placeholder="Change status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ORDER_STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <StatusBadge status={order.status} />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Order Journey / Stepper */}
-      <SectionCard
-        title="Order Journey"
-        className="mb-6"
-        bodyClassName="pt-6"
-      >
-        <StatusStepper current={order.status} />
-      </SectionCard>
-
-      {/* Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* LEFT 2/3 */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Financials (money viewers) OR Production (non-money viewers) */}
+  const financialsBlock = (
+    <>
+          
           {canSeeMoney ? (
           <SectionCard
             title="Financials"
@@ -580,6 +457,214 @@ export default function OrderDetail() {
             </SectionCard>
           )}
 
+    </>
+  );
+
+  return (
+    <div className="p-4 sm:p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 print:hidden">
+        <button
+          onClick={() => go("orders")}
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
+        </button>
+        {activeTab === "invoice" && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Select
+              value={order.status}
+              onValueChange={(v) => statusMut.mutate(v)}
+              disabled={statusMut.isPending}
+            >
+              <SelectTrigger className="flex-1 sm:flex-none sm:w-[180px] rounded-md h-9 text-sm bg-white">
+                <SelectValue placeholder="Change status" />
+              </SelectTrigger>
+              <SelectContent>
+                {ORDER_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <PremiumButton variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer className="w-3.5 h-3.5" /> Print
+            </PremiumButton>
+          </div>
+        )}
+      </div>
+
+      <div
+        role="tablist"
+        aria-label="Order sections"
+        className="mb-6 flex gap-1 border-b border-[#E7E5E4] overflow-x-auto scroll-slim print:hidden"
+      >
+        {TABS.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            role="tab"
+            aria-selected={activeTab === key}
+            onClick={() => setTab(key)}
+            className={cn(
+              "inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors",
+              activeTab === key
+                ? "border-[#800020] text-[#800020]"
+                : "border-transparent text-stone-500 hover:text-[#1C1917]"
+            )}
+          >
+            <Icon className="w-4 h-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "invoice" && canSeeMoney && (
+        <div className="mx-auto w-full max-w-[860px]">
+          <Invoice
+            order={order}
+            settings={settings}
+            currency={currency}
+            paymentAction={<PaymentDialog onConfirm={(b) => payMut.mutate(b)} />}
+          />
+        </div>
+      )}
+
+      {activeTab === "costing" && canSeeMoney && (
+        <div className="mx-auto w-full max-w-[900px] space-y-4">{financialsBlock}</div>
+      )}
+
+      {activeTab === "production" && (
+        <>
+      {/* Hero design image */}
+      {order.designImage ? (
+        <div className="relative mb-6 animate-fade-in-up">
+          <img
+            src={order.designImage}
+            alt={order.garmentDesign || "Design image"}
+            className="w-full aspect-video rounded-xl object-cover elevate-md bg-[#FBF9F7]"
+          />
+          {canSeeMoney && (
+            <button
+              onClick={() => setImageDialogOpen(true)}
+              className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/95 backdrop-blur border border-[#E7E5E4] rounded-md hover:bg-white transition elevate-sm"
+            >
+              <Pencil className="w-3 h-3" /> Edit image
+            </button>
+          )}
+        </div>
+      ) : canSeeMoney ? (
+        <button
+          onClick={() => setImageDialogOpen(true)}
+          className="w-full mb-6 aspect-video rounded-xl border-2 border-dashed border-[#E7E5E4] bg-[#FBF9F7] flex flex-col items-center justify-center gap-2 hover:border-[#800020]/40 hover:bg-[#faf8f5] transition group animate-fade-in-up"
+        >
+          <div className="w-10 h-10 rounded-full bg-white border border-[#E7E5E4] flex items-center justify-center">
+            <ImageIcon className="w-4 h-4 text-stone-400 group-hover:text-[#800020] transition" />
+          </div>
+          <span className="text-xs text-stone-500 group-hover:text-[#800020] font-medium">
+            Add a design image
+          </span>
+          <span className="text-[10px] text-stone-400">
+            Paste a photo or illustration URL
+          </span>
+        </button>
+      ) : null}
+
+      {/* Premium header band */}
+      <div className="rounded-xl elevate-md surface-premium border border-[#E7E5E4] p-6 mb-6 animate-fade-in-up">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+          <div className="min-w-0 flex-1">
+            <h1
+              className="font-display font-semibold text-[#1C1917] leading-[1.1]"
+              style={{ fontSize: "clamp(26px, 3.4vw, 34px)" }}
+            >
+              {order.garmentDesign}
+            </h1>
+            <button
+              onClick={() => go("customer", { id: order.customerId })}
+              className="inline-flex items-center gap-2 mt-2 group"
+            >
+              <div
+                className={cn(
+                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-semibold",
+                  custGrad
+                )}
+              >
+                {initials(order.customer?.name || "?")}
+              </div>
+              <span className="text-sm text-[#800020] hover:underline font-medium">
+                {order.customer?.name || "—"}
+              </span>
+            </button>
+
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 text-[12px] text-stone-500">
+              <span className="flex items-center gap-1.5">
+                <CalendarDays className="w-3.5 h-3.5" />
+                Ordered {formatDate(order.orderDate)}
+              </span>
+              <span
+                className={cn(
+                  "flex items-center gap-1.5",
+                  overdue && "text-amber-700 font-semibold"
+                )}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                Delivery{" "}
+                {order.deliveryDate ? formatDate(order.deliveryDate) : "—"}
+                {overdue && (
+                  <span className="text-[10px] uppercase tracking-wide ml-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> overdue
+                  </span>
+                )}
+              </span>
+              {order.priority && (
+                <StatusBadge status={order.priority} dot={false} />
+              )}
+              {order.assignedStaff && (
+                <span className="flex items-center gap-1.5">
+                  <UserCircle2 className="w-3.5 h-3.5" />
+                  {order.assignedStaff.fullName}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {canSeeMoney ? (
+              <Select
+                value={order.status}
+                onValueChange={(v) => statusMut.mutate(v)}
+                disabled={statusMut.isPending}
+              >
+                <SelectTrigger className="w-[180px] rounded-md h-9 text-sm bg-white">
+                  <SelectValue placeholder="Change status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ORDER_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <StatusBadge status={order.status} />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Order Journey / Stepper */}
+      <SectionCard
+        title="Order Journey"
+        className="mb-6"
+        bodyClassName="pt-6"
+      >
+        <StatusStepper current={order.status} />
+      </SectionCard>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 space-y-4 min-w-0">
+              {!canSeeMoney && financialsBlock}
           {/* Fittings */}
           <SectionCard
             title="Fittings"
@@ -806,6 +891,9 @@ export default function OrderDetail() {
         </div>
       </div>
 
+        </>
+      )}
+
       {/* Design image editor */}
       <EditImageDialog
         open={imageDialogOpen}
@@ -817,6 +905,7 @@ export default function OrderDetail() {
     </div>
   );
 }
+
 
 /* ---------- Helpers ---------- */
 

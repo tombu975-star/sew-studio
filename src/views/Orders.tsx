@@ -24,8 +24,9 @@ import {
   ORDER_STATUSES,
   ACTIVE_STATUSES,
 } from "@/lib/format";
-import type { Order, User } from "@/lib/types";
+import type { Order, Settings, User } from "@/lib/types";
 
+import { invoiceNumber } from "@/components/atelier/Invoice";
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumMetric } from "@/components/atelier/PremiumMetric";
@@ -99,6 +100,11 @@ export default function Orders() {
     queryKey: ["orders"],
     queryFn: () => apiGet<Order[]>("/api/orders"),
   });
+  const { data: settings } = useQuery<Settings>({
+    queryKey: ["settings"],
+    queryFn: () => apiGet<Settings>("/api/settings"),
+  });
+  const invoicePrefix = settings?.invoicePrefix;
   const { data: users } = useQuery<User[]>({
     queryKey: ["users"],
     queryFn: () => apiGet<User[]>("/api/users"),
@@ -152,7 +158,7 @@ export default function Orders() {
   };
 
   return (
-    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+    <div className="p-4 sm:p-5 md:p-8 max-w-[1300px] mx-auto w-full">
       <PageHeader
         eyebrow={scopeToMine ? "My work" : "Production"}
         eyebrowIcon={ShoppingBag}
@@ -266,174 +272,194 @@ export default function Orders() {
           />
         ) : (
           <>
-            {/* Table header (desktop) */}
-            <div
-              className={cn(
-                "hidden md:grid gap-3 px-5 py-3 border-b border-[#E7E5E4] bg-[#faf8f5]/60 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500",
-                canSeeMoney
-                  ? "grid-cols-[0.5fr_1.4fr_2.1fr_0.85fr_0.85fr_1fr_0.95fr_1fr]"
-                  : "grid-cols-[0.5fr_1.4fr_2.1fr_0.85fr_0.85fr_1fr]"
-              )}
-            >
-              <span className="sr-only">Image</span>
-              <span>Customer</span>
-              <span>Garment</span>
-              <span>Ordered</span>
-              <span>Delivery</span>
-              <span>Status</span>
-              {canSeeMoney && (
-                <>
-                  <span className="text-right">Amount</span>
-                  <span className="text-right">Paid</span>
-                </>
-              )}
-            </div>
-
-            <div className="divide-y divide-[#E7E5E4]/70">
-              {rows.map((o) => {
-                const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
-                const paidPct =
-                  o.sellingPrice > 0
-                    ? Math.min(100, Math.round((o.paid / o.sellingPrice) * 100))
-                    : 0;
-                const grad =
-                  AVATAR_GRADIENTS[
-                    hashIndex(o.customer?.id || o.id, AVATAR_GRADIENTS.length)
-                  ];
-                return (
-                  <button
-                    key={o.id}
-                    onClick={() => go("order", { id: o.id })}
-                    className={cn(
-                      "w-full text-left px-5 py-3.5 hover:bg-[#faf8f5] transition-colors grid grid-cols-2 md:gap-3 items-center group",
-                      canSeeMoney
-                        ? "md:grid-cols-[0.5fr_1.4fr_2.1fr_0.85fr_0.85fr_1fr_0.95fr_1fr]"
-                        : "md:grid-cols-[0.5fr_1.4fr_2.1fr_0.85fr_0.85fr_1fr]"
-                    )}
-                  >
-                    {/* Design image thumbnail (or placeholder) */}
-                    <div className="hidden md:flex w-12 h-12 rounded-md overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4] items-center justify-center shrink-0">
-                      {o.designImage ? (
-                        <img
-                          src={o.designImage}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Scissors className="w-4 h-4 text-stone-400" />
-                      )}
-                    </div>
-
-                    {/* Customer */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={cn(
-                          "w-9 h-9 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-semibold shrink-0 elevate-xs",
-                          grad
-                        )}
-                      >
-                        {initials(o.customer?.name || "?")}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium text-[#1C1917] truncate group-hover:text-[#800020] transition-colors">
-                          {o.customer?.name || "—"}
-                        </div>
-                        {o.priority === "High" && (
-                          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-[#800020] font-semibold mt-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
-                            Priority
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Garment */}
-                    <div className="min-w-0">
-                      <div className="text-sm text-[#1C1917] truncate">
-                        {o.garmentDesign || "—"}
-                      </div>
-                      {o.assignedStaff && (
-                        <div className="text-[11px] text-stone-400 truncate md:hidden">
-                          {o.assignedStaff.fullName}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Ordered */}
-                    <div className="text-[12px] text-stone-500 tabular-nums">
-                      <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                        Ordered
-                      </span>
-                      {shortDate(o.orderDate)}
-                    </div>
-
-                    {/* Delivery */}
-                    <div
-                      className={cn(
-                        "text-[12px] tabular-nums flex items-center gap-1",
-                        overdue
-                          ? "text-amber-700 font-semibold"
-                          : "text-stone-500"
-                      )}
-                    >
-                      <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                        Delivery
-                      </span>
-                      {overdue && <AlertCircle className="w-3 h-3 shrink-0" />}
-                      {o.deliveryDate ? shortDate(o.deliveryDate) : "—"}
-                    </div>
-
-                    {/* Status */}
-                    <div className="md:col-auto col-span-2">
-                      <StatusBadge status={o.status} />
-                    </div>
-
-                    {/* Amount + Paid — money viewers only */}
+            {/* Desktop: invoice register table */}
+            <div className="hidden md:block overflow-x-auto scroll-slim">
+              <table className="w-full table-fixed border-collapse text-sm">
+                <colgroup>
+                  <col className="w-[132px]" />
+                  <col />
+                  <col />
+                  <col className="w-[92px]" />
+                  <col className="w-[92px]" />
+                  <col className="w-[150px]" />
+                  {canSeeMoney && (
+                    <>
+                      <col className="w-[112px]" />
+                      <col className="w-[112px]" />
+                      <col className="w-[112px]" />
+                    </>
+                  )}
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-[#E7E5E4] bg-[#faf8f5]/60 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                    <th className="px-4 py-3 text-left font-semibold">Invoice</th>
+                    <th className="px-3 py-3 text-left font-semibold">Customer</th>
+                    <th className="px-3 py-3 text-left font-semibold">Garment</th>
+                    <th className="px-3 py-3 text-left font-semibold">Ordered</th>
+                    <th className="px-3 py-3 text-left font-semibold">Delivery</th>
+                    <th className="px-3 py-3 text-left font-semibold">Status</th>
                     {canSeeMoney && (
                       <>
-                        <div className="text-sm font-medium text-[#1C1917] md:text-right tabular-nums">
-                          <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                            Amount
-                          </span>
-                          {formatCurrency(o.sellingPrice)}
-                        </div>
-
-                        <div className="text-sm md:text-right">
-                          <span className="md:hidden text-[10px] uppercase tracking-wide text-stone-400 block">
-                            Paid
-                          </span>
-                          <div
-                            className={cn(
-                              "font-medium tabular-nums",
-                              paidPct >= 100 && o.sellingPrice > 0
-                                ? "text-emerald-700"
-                                : paidPct > 0
-                                  ? "text-[#1C1917]"
-                                  : "text-stone-400"
-                            )}
-                          >
-                            {formatCurrency(o.paid)}
-                          </div>
-                          {o.sellingPrice > 0 && (
-                            <div className="mt-1 h-1 w-full md:w-20 md:ml-auto bg-[#E7E5E4] rounded-full overflow-hidden">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full transition-all",
-                                  paidPct >= 100
-                                    ? "bg-emerald-500"
-                                    : "bg-[#800020]"
-                                )}
-                                style={{ width: `${paidPct}%` }}
-                              />
-                            </div>
-                          )}
-                        </div>
+                        <th className="px-3 py-3 text-right font-semibold">Amount</th>
+                        <th className="px-3 py-3 text-right font-semibold">Paid</th>
+                        <th className="px-4 py-3 text-right font-semibold">Balance</th>
                       </>
                     )}
-                  </button>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E7E5E4]/70">
+                  {rows.map((o) => {
+                    const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
+                    const balance = Math.max(0, (Number(o.sellingPrice) || 0) - o.paid);
+                    const settled = o.sellingPrice > 0 && balance === 0;
+                    return (
+                      <tr
+                        key={o.id}
+                        onClick={() => go("order", { id: o.id })}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            go("order", { id: o.id });
+                          }
+                        }}
+                        tabIndex={0}
+                        role="link"
+                        className="group cursor-pointer align-middle hover:bg-[#faf8f5] focus-visible:bg-[#faf8f5] focus-visible:outline-none transition-colors"
+                      >
+                        <td className="px-4 py-3.5 text-[12px] font-medium tabular-nums text-stone-600 whitespace-nowrap">
+                          {invoiceNumber(o, invoicePrefix)}
+                        </td>
+                        <td className="px-3 py-3.5">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={cn(
+                                "w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-semibold shrink-0",
+                                AVATAR_GRADIENTS[hashIndex(o.customer?.id || o.id, AVATAR_GRADIENTS.length)]
+                              )}
+                            >
+                              {initials(o.customer?.name || "?")}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate font-medium text-[#1C1917] group-hover:text-[#800020] transition-colors">
+                                {o.customer?.name || "—"}
+                              </div>
+                              {o.priority === "High" && (
+                                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-[#800020] font-semibold">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
+                                  Priority
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-3.5">
+                          <div className="truncate text-[#1C1917]">{o.garmentDesign || "—"}</div>
+                          {o.assignedStaff && (
+                            <div className="truncate text-[11px] text-stone-400">
+                              {o.assignedStaff.fullName}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-3 py-3.5 text-[12px] text-stone-500 tabular-nums whitespace-nowrap">
+                          {shortDate(o.orderDate)}
+                        </td>
+                        <td
+                          className={cn(
+                            "px-3 py-3.5 text-[12px] tabular-nums whitespace-nowrap",
+                            overdue ? "text-amber-700 font-semibold" : "text-stone-500"
+                          )}
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            {overdue && <AlertCircle className="w-3 h-3 shrink-0" />}
+                            {o.deliveryDate ? shortDate(o.deliveryDate) : "—"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3.5">
+                          <StatusBadge status={o.status} />
+                        </td>
+                        {canSeeMoney && (
+                          <>
+                            <td className="px-3 py-3.5 text-right font-medium tabular-nums text-[#1C1917] whitespace-nowrap">
+                              {formatCurrency(o.sellingPrice)}
+                            </td>
+                            <td className="px-3 py-3.5 text-right tabular-nums text-stone-600 whitespace-nowrap">
+                              {formatCurrency(o.paid)}
+                            </td>
+                            <td
+                              className={cn(
+                                "px-4 py-3.5 text-right font-semibold tabular-nums whitespace-nowrap",
+                                settled ? "text-emerald-700" : balance > 0 ? "text-[#800020]" : "text-stone-400"
+                              )}
+                            >
+                              {settled ? "Settled" : formatCurrency(balance)}
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile: one card per invoice */}
+            <ul className="md:hidden divide-y divide-[#E7E5E4]/70">
+              {rows.map((o) => {
+                const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
+                const balance = Math.max(0, (Number(o.sellingPrice) || 0) - o.paid);
+                const settled = o.sellingPrice > 0 && balance === 0;
+                return (
+                  <li key={o.id}>
+                    <button
+                      onClick={() => go("order", { id: o.id })}
+                      className="w-full text-left px-4 py-4 active:bg-[#faf8f5] hover:bg-[#faf8f5] transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="truncate font-medium text-[#1C1917]">
+                            {o.customer?.name || "—"}
+                          </div>
+                          <div className="truncate text-[13px] text-stone-600">
+                            {o.garmentDesign || "—"}
+                          </div>
+                        </div>
+                        <StatusBadge status={o.status} />
+                      </div>
+                      <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-stone-400">
+                        <span className="tabular-nums">{invoiceNumber(o, invoicePrefix)}</span>
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 tabular-nums",
+                            overdue && "text-amber-700 font-semibold"
+                          )}
+                        >
+                          {overdue && <AlertCircle className="w-3 h-3" />}
+                          Due {o.deliveryDate ? shortDate(o.deliveryDate) : "—"}
+                        </span>
+                      </div>
+                      {canSeeMoney && (
+                        <div className="mt-2.5 grid grid-cols-3 gap-2 rounded-md bg-[#faf8f5] px-3 py-2 text-[12px] tabular-nums">
+                          <div>
+                            <div className="text-[9px] uppercase tracking-wide text-stone-400">Amount</div>
+                            <div className="font-medium text-[#1C1917]">{formatCurrency(o.sellingPrice)}</div>
+                          </div>
+                          <div>
+                            <div className="text-[9px] uppercase tracking-wide text-stone-400">Paid</div>
+                            <div className="text-stone-600">{formatCurrency(o.paid)}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-[9px] uppercase tracking-wide text-stone-400">Balance</div>
+                            <div className={cn("font-semibold", settled ? "text-emerald-700" : balance > 0 ? "text-[#800020]" : "text-stone-400")}>
+                              {settled ? "Settled" : formatCurrency(balance)}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </>
         )}
       </SectionCard>
