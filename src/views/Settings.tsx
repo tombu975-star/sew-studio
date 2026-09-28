@@ -37,15 +37,30 @@ import {
 } from "@/components/ui/select";
 import { apiGet, apiPatch } from "@/lib/api";
 import { useRole } from "@/stores/role";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, setStudioCurrency } from "@/lib/format";
 import type { OverheadItem, Settings as ShopSettings } from "@/lib/types";
 
+// ISO 4217 currency codes. Formatting itself is done by Intl.NumberFormat, so
+// symbols/placement are always correct for whichever code is chosen.
 const CURRENCIES = [
   { value: "GHS", label: "GHS — Ghanaian Cedi" },
   { value: "NGN", label: "NGN — Nigerian Naira" },
+  { value: "KES", label: "KES — Kenyan Shilling" },
+  { value: "UGX", label: "UGX — Ugandan Shilling" },
+  { value: "TZS", label: "TZS — Tanzanian Shilling" },
+  { value: "RWF", label: "RWF — Rwandan Franc" },
+  { value: "ZAR", label: "ZAR — South African Rand" },
+  { value: "XOF", label: "XOF — West African CFA Franc" },
+  { value: "XAF", label: "XAF — Central African CFA Franc" },
+  { value: "EGP", label: "EGP — Egyptian Pound" },
+  { value: "MAD", label: "MAD — Moroccan Dirham" },
   { value: "USD", label: "USD — US Dollar" },
-  { value: "GBP", label: "GBP — British Pound" },
   { value: "EUR", label: "EUR — Euro" },
+  { value: "GBP", label: "GBP — British Pound" },
+  { value: "CAD", label: "CAD — Canadian Dollar" },
+  { value: "AUD", label: "AUD — Australian Dollar" },
+  { value: "AED", label: "AED — UAE Dirham" },
+  { value: "INR", label: "INR — Indian Rupee" },
 ] as const;
 
 const DEFAULT_POLICY_COPY = {
@@ -94,6 +109,7 @@ export default function Settings() {
   const [newItemName, setNewItemName] = useState("");
   const [newItemAmount, setNewItemAmount] = useState("");
   const [overheadAmount, setOverheadAmount] = useState<number>(0);
+  const [overheadRecoveryBasis, setOverheadRecoveryBasis] = useState<number>(0);
   const [selfPayout, setSelfPayout] = useState<number>(0);
 
   // Capacity & alerts
@@ -119,6 +135,7 @@ export default function Settings() {
     setOwnerGender(data.ownerGender ?? "Female");
     setCurrency(data.currency ?? "GHS");
     setOverheadAmount(data.overheadAmount ?? 0);
+    setOverheadRecoveryBasis(data.overheadRecoveryBasis ?? 0);
     setSelfPayout(data.selfPayout ?? 0);
 
     setContactPhone(data.contactPhone ?? "");
@@ -154,6 +171,9 @@ export default function Settings() {
     [overheadItems]
   );
   const effectiveOverheadPerOrder = overheadItemsTotal > 0 ? overheadItemsTotal : overheadAmount;
+  // Standard overhead recovery rate = total overhead ÷ direct-cost base (excl. labour).
+  const recoveryRate =
+    overheadRecoveryBasis > 0 ? (effectiveOverheadPerOrder / overheadRecoveryBasis) * 100 : 0;
 
   function addOverheadItem() {
     const name = newItemName.trim();
@@ -175,6 +195,7 @@ export default function Settings() {
         ownerGender,
         currency,
         overheadAmount,
+        overheadRecoveryBasis,
         selfPayout,
         contactPhone: contactPhone.trim(),
         contactEmail: contactEmail.trim(),
@@ -199,6 +220,7 @@ export default function Settings() {
       queryClient.setQueryData(["settings"], updated);
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       // Keep the sidebar / header labels in sync immediately.
+      setStudioCurrency(updated.currency);
       setStudioName(updated.studioName);
       setOwnerLabel(updated.ownerGender === "Male" ? "Master" : "Madam");
     },
@@ -447,6 +469,43 @@ export default function Settings() {
 
             <div className="h-px bg-[#E7E5E4]" />
 
+            <div className="rounded-lg border border-[#E7E5E4] bg-[#FBF9F7] p-4 grid gap-3">
+              <div>
+                <p className="text-sm font-semibold text-[#1C1917]">Overhead recovery rate</p>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  The standard way to make every order carry its fair share of overhead: divide your
+                  monthly overhead by your average monthly direct costs (fabric &amp; materials —
+                  <strong> excluding labour</strong>). Each order then adds that percentage of its own
+                  fabric cost as an overhead margin, so bigger jobs carry more and small jobs less.
+                </p>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="recovery-basis">Average monthly direct costs, excluding labour ({currency})</Label>
+                <Input
+                  id="recovery-basis"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={overheadRecoveryBasis}
+                  onChange={(e) => setOverheadRecoveryBasis(Math.max(0, Number(e.target.value) || 0))}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-4 rounded-md bg-white border border-[#E7E5E4] px-3 py-2.5">
+                <span className="text-xs font-medium text-stone-500">
+                  {formatCurrency(effectiveOverheadPerOrder, currency)} overhead ÷{" "}
+                  {overheadRecoveryBasis > 0 ? formatCurrency(overheadRecoveryBasis, currency) : "direct costs"}
+                </span>
+                <span className="text-sm font-semibold text-[#800020] tabular-nums">
+                  {overheadRecoveryBasis > 0 ? `${recoveryRate.toFixed(1)}%` : "Not set"}
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-400">
+                {overheadRecoveryBasis > 0
+                  ? "Applied to every order: overhead margin = fabric cost × this rate."
+                  : "Until this is set, the flat overhead amount below is added to each order instead."}
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="overhead">Overhead per order</Label>
@@ -461,8 +520,8 @@ export default function Settings() {
                   className={overheadItemsTotal > 0 ? "opacity-50" : undefined}
                 />
                 <p className="text-xs text-stone-500">
-                  A flat amount added once to every order&apos;s True Cost — used only while no items are
-                  listed in the Overhead Breakdown above.
+                  A flat fallback amount per order — used only while the recovery rate above isn&apos;t set
+                  and no items are listed in the Overhead Breakdown.
                 </p>
               </div>
               <div className="grid gap-1.5">
@@ -481,7 +540,7 @@ export default function Settings() {
 
             <div className="flex items-center justify-between gap-4 rounded-lg bg-[#FBF9F7] border border-[#E7E5E4] px-4 py-3">
               <span className="text-xs font-medium text-stone-500">
-                Effective overhead applied per order right now
+                Total monthly overhead right now
               </span>
               <span className="text-sm font-semibold text-[#800020] tabular-nums">
                 {formatCurrency(effectiveOverheadPerOrder)}

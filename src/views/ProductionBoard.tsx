@@ -17,7 +17,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { LayoutGrid, AlertCircle, GripVertical } from "lucide-react";
+import { LayoutGrid, AlertCircle, GripVertical, Scissors } from "lucide-react";
 
 import { apiGet, apiPatch } from "@/lib/api";
 import { useNav } from "@/stores/nav";
@@ -409,8 +409,24 @@ function Card({
         <GripVertical className="w-3.5 h-3.5 text-stone-300 shrink-0 mt-0.5" />
       </div>
 
+      {/* Style picture */}
+      <div className="mt-2.5 h-24 w-full rounded-md overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center">
+        {order.designImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={order.designImage}
+            alt={`${order.garmentDesign} style`}
+            loading="lazy"
+            draggable={false}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <Scissors className="w-5 h-5 text-stone-300" />
+        )}
+      </div>
+
       {/* Garment */}
-      <div className="text-[13px] text-[#1C1917] font-medium leading-snug line-clamp-2 mt-1.5">
+      <div className="text-[13px] text-[#1C1917] font-medium leading-snug line-clamp-2 mt-2">
         {order.garmentDesign}
       </div>
 

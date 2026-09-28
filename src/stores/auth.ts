@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { apiPost, apiGet, apiPatch } from "@/lib/api";
 import { useRole, type Role } from "@/stores/role";
+import { setStudioCurrency } from "@/lib/format";
 
 export interface AuthShop {
   id: string;
@@ -18,6 +19,7 @@ export interface AuthUser {
   role: string; // madam | staff | trainer | trainee | freelancer
   gender?: string | null;
   phone?: string | null;
+  avatarUrl?: string | null;
   shopId: string;
   shop?: AuthShop | null;
   canAccessOrders?: boolean;
@@ -31,7 +33,7 @@ interface AuthState {
   status: Status;
   hydrate: () => Promise<void>;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<AuthUser>;
-  updateProfile: (patch: { fullName: string; phone: string | null; gender: string | null }) => Promise<AuthUser>;
+  updateProfile: (patch: { fullName: string; phone: string | null; gender: string | null; avatarUrl?: string | null }) => Promise<AuthUser>;
   register: (data: {
     shopName: string;
     fullName: string;
@@ -49,6 +51,7 @@ const genderToOwnerLabel = (gender?: string | null): string => {
 };
 
 const syncRoleStore = (user: AuthUser) => {
+  setStudioCurrency(user.shop?.currency);
   const roleStore = useRole.getState();
   roleStore.setOwnerLabel(genderToOwnerLabel(user.gender));
   if (user.shop?.name) roleStore.setStudioName(user.shop.name);

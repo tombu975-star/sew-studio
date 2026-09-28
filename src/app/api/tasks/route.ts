@@ -6,18 +6,31 @@ const TASK_SELECT =
 
 // GET /api/tasks — list tasks with relations
 //
-// Scoped by role, not just by tenant: owner and trainers oversee the whole
-// shop, so they see every task. Staff and trainees only work their own
-// assignments, so this only returns tasks assigned to them. RLS already
+// Scoped by role, not just by tenant: the owner oversees the whole shop and
+// sees every task. Everyone else only sees their own scope — staff and
+// trainees see tasks assigned to them; trainers see tasks assigned to
+// themselves plus the trainees they personally mentor (so they can still
+// review and grade that work, but never other people's). RLS already
 // guarantees the tenant boundary; this narrows further by role.
 export async function GET() {
   try {
     const ctx = await getTenant();
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
     let query = ctx.supabase.from("tasks").select(TASK_SELECT).eq("shop_id", ctx.shopId);
-    if (!canSeeAll) query = query.eq("staff_id", ctx.userId);
+    if (ctx.role === "trainer") {
+      const { data: mentees, error: menteeErr } = await ctx.supabase
+        .from("profiles")
+        .select("id")
+        .eq("shop_id", ctx.shopId)
+        .eq("role", "trainee")
+        .eq("mentor_id", ctx.userId);
+      if (menteeErr) throw menteeErr;
+      const scope = [ctx.userId, ...(mentees || []).map((m) => m.id)];
+      query = query.in("staff_id", scope);
+    } else if (ctx.role !== "madam") {
+      query = query.eq("staff_id", ctx.userId);
+    }
 
     const { data: tasks, error } = await query.order("created_at", { ascending: false });
     if (error) throw error;

@@ -32,7 +32,8 @@ import {
   isOverdue,
   ORDER_STATUSES,
   PRIORITY_LEVELS,
-  overheadPerOrder,
+  orderOverheadMargin,
+  overheadRecoveryRatePercent,
 } from "@/lib/format";
 import type { Order, Settings } from "@/lib/types";
 
@@ -103,7 +104,19 @@ export default function OrderDetail() {
     queryFn: () => apiGet<Settings>("/api/settings"),
   });
 
-  const overhead = useMemo(() => overheadPerOrder(settings), [settings]);
+  const currency = settings?.currency || "GHS";
+  // Standard overhead recovery: this order's share of overhead is a % of its
+  // direct (non-labour) cost — see orderOverheadMargin in lib/format.ts.
+  const overhead = useMemo(
+    () => (order ? orderOverheadMargin(order, settings) : 0),
+    [order, settings]
+  );
+  const overheadRate = useMemo(() => overheadRecoveryRatePercent(settings), [settings]);
+  // Minimum selling price that recovers fabric + labour + overhead (no profit).
+  const breakEvenPrice = useMemo(
+    () => (Number(order?.fabricCost) || 0) + (Number(order?.labourCost) || 0) + overhead,
+    [order, overhead]
+  );
 
   const paid = useMemo(
     () =>
@@ -415,38 +428,42 @@ export default function OrderDetail() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
               <Stat
                 label="Selling Price"
-                value={formatCurrency(order.sellingPrice)}
+                value={formatCurrency(order.sellingPrice, currency)}
                 primary
               />
               <Stat
                 label="Paid So Far"
-                value={formatCurrency(paid)}
+                value={formatCurrency(paid, currency)}
                 sub={`${paidPct}% of total`}
               />
               <Stat
                 label="Outstanding Balance"
-                value={formatCurrency(outstanding)}
+                value={formatCurrency(outstanding, currency)}
                 tone={outstanding > 0 ? "warn" : "ok"}
               />
               <Stat
                 label="Fabric Cost"
-                value={formatCurrency(order.fabricCost)}
+                value={formatCurrency(order.fabricCost, currency)}
               />
               <Stat
                 label="Labour Cost"
-                value={formatCurrency(order.labourCost)}
+                value={formatCurrency(order.labourCost, currency)}
               />
               <Stat
-                label="Overhead"
-                value={formatCurrency(overhead)}
+                label={overheadRate > 0 ? `Overhead (${overheadRate.toFixed(1)}% of fabric)` : "Overhead"}
+                value={formatCurrency(overhead, currency)}
               />
               <Stat
                 label="True Cost"
-                value={formatCurrency(trueCost)}
+                value={formatCurrency(trueCost, currency)}
+              />
+              <Stat
+                label="Break-even Price"
+                value={formatCurrency(breakEvenPrice, currency)}
               />
               <Stat
                 label="Est. Margin"
-                value={formatCurrency(estMargin)}
+                value={formatCurrency(estMargin, currency)}
                 tone={estMargin >= 0 ? "ok" : "warn"}
               />
             </div>
@@ -493,7 +510,7 @@ export default function OrderDetail() {
                           </div>
                           <div className="min-w-0">
                             <div className="text-sm font-semibold text-[#1C1917] tabular-nums">
-                              {formatCurrency(p.amount)}
+                              {formatCurrency(p.amount, currency)}
                             </div>
                             <div className="text-[11px] text-stone-400">
                               {formatDate(p.date)}

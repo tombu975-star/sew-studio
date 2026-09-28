@@ -20,6 +20,7 @@ export interface User {
   role: string;
   gender?: string | null;
   phone?: string | null;
+  avatarUrl?: string | null;
   mentorId?: string | null;
   mentor?: { id: string; fullName: string } | null;
   trainingDurationWeeks?: number | null;
@@ -228,6 +229,8 @@ export interface Settings {
   address?: string;
   taxId?: string;
   invoicePrefix?: string;
+  // Standard overhead-recovery-rate costing (see src/lib/format.ts)
+  overheadRecoveryBasis?: number;
 }
 
 export interface Freelancer {
@@ -238,6 +241,7 @@ export interface Freelancer {
   skills?: string | null;
   phone?: string | null;
   email?: string | null;
+  avatarUrl?: string | null;
   rateNotes?: string | null;
   status: string; // Available | Busy | Unavailable
   createdAt: string;

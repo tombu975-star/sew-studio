@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format";
 
 /**
  * Animated number that counts up to the target value on mount.
@@ -11,11 +12,14 @@ export function AnimatedNumber({
   value,
   format = "plain",
   duration = 900,
+  currency,
   className,
 }: {
   value: number;
   format?: "plain" | "currency";
   duration?: number;
+  /** ISO 4217 code, e.g. "GHS", "NGN", "USD" — used when format is "currency". */
+  currency?: string;
   className?: string;
 }) {
   const [display, setDisplay] = useState(0);
@@ -42,11 +46,7 @@ export function AnimatedNumber({
 
   const formatted =
     format === "currency"
-      ? new Intl.NumberFormat("en-GB", {
-          style: "currency",
-          currency: "GHS",
-          maximumFractionDigits: 0,
-        }).format(Math.round(display))
+      ? formatCurrency(Math.round(display), currency)
       : new Intl.NumberFormat("en-GB").format(Math.round(display));
 
   return <span className={cn("tabular-nums", className)}>{formatted}</span>;

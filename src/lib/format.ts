@@ -1,34 +1,101 @@
 // Atelier domain formatting helpers
 import type { Settings } from "@/lib/types";
 
-/** The overhead applied to a single order's True Cost: the Overhead
- *  Breakdown total when at least one line item is listed, otherwise the
- *  flat "overhead per order" fallback. Mirrors the rule shown in Settings. */
-export function overheadPerOrder(settings: Settings | null | undefined) {
+/** The studio's total monthly overhead: the itemised breakdown total when
+ *  at least one line item is listed, otherwise the flat "overhead amount"
+ *  fallback. This is the numerator of the standard overhead recovery rate. */
+export function monthlyOverheadTotal(settings: Settings | null | undefined) {
   if (!settings) return 0;
   const items = settings.overheadItems || [];
   const itemsTotal = items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
   return itemsTotal > 0 ? itemsTotal : Number(settings.overheadAmount) || 0;
 }
 
-/** An order's full True Cost: fabric + labour + the studio's per-order
- *  overhead (see overheadPerOrder). */
+/** @deprecated kept as an alias of monthlyOverheadTotal for anything still
+ *  importing the old name. Prefer monthlyOverheadTotal or, for a specific
+ *  order's overhead, orderOverheadMargin. */
+export const overheadPerOrder = monthlyOverheadTotal;
+
+/**
+ * Standard overhead recovery rate — the predetermined-overhead-rate method
+ * used in job costing:
+ *
+ *   Overhead Recovery Rate (%) = Total Monthly Overhead ÷ Monthly Direct-Cost Base
+ *
+ * The "direct-cost base" is the studio's estimated average monthly direct
+ * costs (materials/fabric etc.), excluding labour — set in Settings as
+ * overheadRecoveryBasis. Returns 0 (not a fraction) when the basis hasn't
+ * been configured yet, so callers can detect "not set up" and fall back.
+ */
+export function overheadRecoveryRatePercent(settings: Settings | null | undefined) {
+  if (!settings) return 0;
+  const basis = Number(settings.overheadRecoveryBasis) || 0;
+  if (basis <= 0) return 0;
+  return (monthlyOverheadTotal(settings) / basis) * 100;
+}
+
+/**
+ * A single order's overhead margin — the amount that order must carry to
+ * cover its proportional share of overhead, computed as a percentage of
+ * the order's direct cost (fabric/materials), excluding labour:
+ *
+ *   Order Overhead Margin = Order Fabric Cost × Overhead Recovery Rate
+ *
+ * Falls back to the studio's flat per-order overhead amount when the
+ * recovery-rate basis hasn't been configured yet (rate is 0), so nothing
+ * regresses for studios that haven't set this up.
+ */
+export function orderOverheadMargin(
+  order: { fabricCost?: number | null },
+  settings: Settings | null | undefined
+) {
+  const rate = overheadRecoveryRatePercent(settings);
+  if (rate <= 0) return monthlyOverheadTotal(settings);
+  const fabric = Number(order?.fabricCost) || 0;
+  return fabric * (rate / 100);
+}
+
+/** An order's full True Cost: fabric + labour + this order's overhead
+ *  margin (see orderOverheadMargin — a percentage of fabric cost under the
+ *  standard method, or the flat fallback if the rate isn't configured). */
 export function orderTrueCost(
   order: { fabricCost?: number | null; labourCost?: number | null },
   settings: Settings | null | undefined
 ) {
   const fabric = Number(order?.fabricCost) || 0;
   const labour = Number(order?.labourCost) || 0;
-  return fabric + labour + overheadPerOrder(settings);
+  return fabric + labour + orderOverheadMargin(order, settings);
 }
 
-export function formatCurrency(value: number | null | undefined) {
+// The studio's currency (ISO 4217). Set once from the signed-in user's shop
+// (see stores/auth.ts) or the client-portal payload, so every formatCurrency()
+// call in the app — including ones that don't pass a currency — renders in
+// the studio's own currency instead of a hardcoded one.
+let studioCurrency = "GHS";
+export function setStudioCurrency(code: string | null | undefined) {
+  if (code && /^[A-Za-z]{3}$/.test(code)) studioCurrency = code.toUpperCase();
+}
+export function getStudioCurrency() {
+  return studioCurrency;
+}
+
+export function formatCurrency(value: number | null | undefined, currency?: string) {
   const n = Number(value) || 0;
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GHS",
-    maximumFractionDigits: 0,
-  }).format(n);
+  const code = currency || studioCurrency;
+  try {
+    return new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: code,
+      maximumFractionDigits: 0,
+    }).format(n);
+  } catch {
+    // Unrecognised ISO 4217 code — never let a bad setting crash a render.
+    return new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: "GHS",
+      maximumFractionDigits: 0,
+    }).format(n);
+  }
 }
 
 export function formatNumber(value: number | null | undefined) {

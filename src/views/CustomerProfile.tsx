@@ -496,8 +496,13 @@ export default function CustomerProfile() {
                     onClick={() => go("order", { id: o.id })}
                     className="group w-full flex flex-wrap items-center gap-3 px-5 py-4 text-left hover:bg-[#faf8f5] transition-all focus:outline-none focus-visible:bg-[#faf8f5]"
                   >
-                    <div className="w-10 h-10 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center text-[#800020] shrink-0">
-                      <ShoppingBag className="w-4 h-4" />
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center text-[#800020] shrink-0">
+                      {o.designImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={o.designImage} alt={`${o.garmentDesign} style`} loading="lazy" className="w-full h-full object-cover" />
+                      ) : (
+                        <ShoppingBag className="w-4 h-4" />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-[#1C1917] truncate">

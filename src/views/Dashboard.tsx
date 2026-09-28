@@ -44,7 +44,7 @@ import {
   ORDER_STATUSES,
   ACTIVE_STATUSES,
   ENTRY_SOURCES,
-  overheadPerOrder,
+  orderTrueCost,
 } from "@/lib/format";
 import type {
   Order,
@@ -94,11 +94,7 @@ function orderPaidTotal(orderId: string, payments: Payment[]) {
 }
 
 function orderCostTotal(order: Order, settings?: Settings | null) {
-  return (
-    (Number(order.fabricCost) || 0) +
-    (Number(order.labourCost) || 0) +
-    overheadPerOrder(settings)
-  );
+  return orderTrueCost(order, settings);
 }
 
 function sameMonth(d: string | Date | null | undefined, ref: Date) {
@@ -214,7 +210,6 @@ function MainDashboard() {
     if (!data) return null;
     const { orders, payments, fittings, tasks, users, customers, settings } = data;
     const now = new Date();
-    const overheadEach = overheadPerOrder(settings);
     const outstandingAlertThreshold = Number(settings?.outstandingBalanceAlertThreshold) || 2000;
     const staffCapacity = Math.max(1, Number(settings?.typicalActiveOrdersPerStaff) || 4);
 

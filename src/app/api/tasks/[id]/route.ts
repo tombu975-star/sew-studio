@@ -20,9 +20,15 @@ export async function PATCH(
       .maybeSingle();
     if (!existing) return Response.json({ error: "Task not found" }, { status: 404 });
 
-    // Staff/trainees may only edit tasks assigned to them. Trainer/madam
-    // oversee the whole shop and can edit any task.
-    const isPrivileged = ctx.role === "trainer" || ctx.role === "madam";
+    // Staff/trainees may only edit tasks assigned to them.
+    // Owner may edit any task. A trainer is only privileged over tasks in
+    // their own scope: assigned to themselves or to a trainee they mentor.
+    const staffRel = (existing as any).staff;
+    const inTrainerScope =
+      existing.staff_id === ctx.userId ||
+      (staffRel?.role === "trainee" && staffRel?.mentor_id === ctx.userId);
+    const isPrivileged =
+      ctx.role === "madam" || (ctx.role === "trainer" && inTrainerScope);
     if (!isPrivileged && existing.staff_id !== ctx.userId) {
       return Response.json(
         { error: "You can only update tasks assigned to you." },

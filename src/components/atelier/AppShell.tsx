@@ -105,6 +105,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
         { to: "orders", label: "Orders", icon: ShoppingBag },
         { to: "board", label: "Board", icon: LayoutGrid },
         { to: "fittings", label: "Fittings", icon: CalendarDays },
+        { to: "tasks", label: "Tasks", icon: CheckSquare },
       ],
     },
     {

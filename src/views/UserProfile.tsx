@@ -80,6 +80,8 @@ export default function UserProfile() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [gender, setGender] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarBroken, setAvatarBroken] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -108,6 +110,8 @@ export default function UserProfile() {
     setFullName(profileQuery.data.fullName || "");
     setPhone(profileQuery.data.phone || "");
     setGender(profileQuery.data.gender || "");
+    setAvatarUrl(profileQuery.data.avatarUrl || "");
+    setAvatarBroken(false);
   }, [profileQuery.data]);
 
   async function save(event: React.FormEvent<HTMLFormElement>) {
@@ -115,12 +119,13 @@ export default function UserProfile() {
     setSaving(true);
     try {
       if (isSelf) {
-        await updateProfile({ fullName, phone: phone.trim() || null, gender: gender || null });
+        await updateProfile({ fullName, phone: phone.trim() || null, gender: gender || null, avatarUrl: avatarUrl.trim() || null });
       } else if (selectedId) {
         await apiPatch(`/api/users/${selectedId}`, {
           fullName,
           phone: phone.trim() || null,
           gender: gender || null,
+          avatarUrl: avatarUrl.trim() || null,
         });
       }
       await profileQuery.refetch();
@@ -197,12 +202,22 @@ export default function UserProfile() {
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-5 p-6">
               <div className="relative shrink-0">
-                <div
-                  className="flex size-16 items-center justify-center rounded-2xl text-white text-xl font-semibold font-display shadow-[0_8px_20px_-6px_rgba(0,0,0,0.35)]"
-                  style={{ background: `linear-gradient(155deg, ${accent} 0%, #1C1917 130%)` }}
-                >
-                  {initialsOf(profile.fullName || profile.email)}
-                </div>
+                {profile.avatarUrl && !avatarBroken ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={profile.avatarUrl}
+                    alt={`${profile.fullName} profile picture`}
+                    onError={() => setAvatarBroken(true)}
+                    className="size-24 rounded-2xl object-cover border border-[#E7E5E4] shadow-[0_8px_20px_-6px_rgba(0,0,0,0.35)]"
+                  />
+                ) : (
+                  <div
+                    className="flex size-24 items-center justify-center rounded-2xl text-white text-3xl font-semibold font-display shadow-[0_8px_20px_-6px_rgba(0,0,0,0.35)]"
+                    style={{ background: `linear-gradient(155deg, ${accent} 0%, #1C1917 130%)` }}
+                  >
+                    {initialsOf(profile.fullName || profile.email)}
+                  </div>
+                )}
                 <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full border-2 border-white bg-[#15803D]">
                   <ShieldCheck className="size-2.5 text-white" />
                 </span>
@@ -262,6 +277,19 @@ export default function UserProfile() {
                       <option value="Male">Male</option>
                       <option value="Other">Other</option>
                     </select>
+                  </label>
+                  <label className="text-xs font-medium text-stone-600 sm:col-span-2">
+                    Profile picture (link)
+                    <span className="mt-2 flex items-center gap-3">
+                      {avatarUrl.trim() ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={avatarUrl.trim()} alt="Preview" className="size-11 shrink-0 rounded-lg object-cover border border-[#E7E5E4]" onError={(e) => ((e.currentTarget.style.visibility = "hidden"))} onLoad={(e) => ((e.currentTarget.style.visibility = "visible"))} />
+                      ) : (
+                        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-dashed border-[#E7E5E4] text-stone-300"><UserRound className="size-5" /></span>
+                      )}
+                      <input type="url" inputMode="url" placeholder="https://… link to a clear, front-facing photo" value={avatarUrl} onChange={(event) => setAvatarUrl(event.target.value)} className="h-11 w-full rounded-md border border-[#E7E5E4] px-3 text-sm font-normal text-[#1C1917] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10" />
+                    </span>
+                    <span className="mt-1.5 block text-[11px] font-normal text-stone-400">Paste a link to an image hosted online. Leave blank to show your initials.</span>
                   </label>
                   <div className="sm:col-span-2 flex items-center justify-between gap-3 pt-1">
                     <p className="text-[11px] text-stone-400">

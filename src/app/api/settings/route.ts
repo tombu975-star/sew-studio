@@ -59,8 +59,17 @@ export async function PATCH(req: Request) {
     for (const [key, column] of Object.entries(fieldMap)) {
       if (key in body && body[key] != null) data[column] = String(body[key]);
     }
+    if ("currency" in body) {
+      const code = String(body.currency ?? "").trim().toUpperCase();
+      if (!/^[A-Z]{3}$/.test(code)) {
+        return Response.json({ error: "Currency must be a 3-letter ISO 4217 code." }, { status: 400 });
+      }
+      data.currency = code;
+      body.currency = code;
+    }
     const numericFieldMap: Record<string, string> = {
       overheadAmount: "overhead_amount",
+      overheadRecoveryBasis: "overhead_recovery_basis",
       selfPayout: "self_payout",
     };
     for (const [key, column] of Object.entries(numericFieldMap)) {
@@ -145,6 +154,18 @@ export async function PATCH(req: Request) {
       .select("*")
       .single();
     if (error) throw error;
+
+    // Currency also lives on `shops` (read into the auth session / JWT-free
+    // client state via shop:shops(...) in /api/auth/me and /login) so the
+    // rest of the app can format money without an extra settings fetch.
+    // Keep the two in sync whenever the owner changes it here — otherwise
+    // the session would keep reporting the shop's old currency forever.
+    if ("currency" in body && body.currency != null) {
+      await ctx.supabase
+        .from("shops")
+        .update({ currency: String(body.currency) })
+        .eq("id", ctx.shopId);
+    }
 
     return Response.json(serializeSettings(updated));
   } catch (err) {

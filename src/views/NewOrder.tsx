@@ -8,7 +8,7 @@ import { ArrowLeft, Pencil, TrendingUp } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { useNav } from "@/stores/nav";
 import { useRole } from "@/stores/role";
-import { ORDER_STATUSES, PRIORITY_LEVELS, todayISO, formatCurrency, overheadPerOrder } from "@/lib/format";
+import { ORDER_STATUSES, PRIORITY_LEVELS, todayISO, formatCurrency, orderOverheadMargin, overheadRecoveryRatePercent } from "@/lib/format";
 import type { Customer, Order, Settings, User } from "@/lib/types";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
@@ -71,7 +71,13 @@ export default function NewOrder() {
     queryKey: ["settings"],
     queryFn: () => apiGet<Settings>("/api/settings"),
   });
-  const overhead = useMemo(() => overheadPerOrder(settings), [settings]);
+  const currency = settings?.currency || "GHS";
+  // Standard method: overhead margin = % of the order's non-labour (fabric) cost.
+  const overhead = useMemo(
+    () => orderOverheadMargin({ fabricCost: Number(fabricCost) || 0 }, settings),
+    [fabricCost, settings]
+  );
+  const overheadRate = useMemo(() => overheadRecoveryRatePercent(settings), [settings]);
 
   const estMargin = useMemo(() => {
     const s = Number(sellingPrice) || 0;
@@ -360,7 +366,7 @@ export default function NewOrder() {
                     Estimated Margin
                   </div>
                   <div className="text-[11px] text-stone-400">
-                    Selling − Fabric − Labour − Overhead ({formatCurrency(overhead)})
+                    Selling − Fabric − Labour − Overhead ({formatCurrency(overhead, currency)}{overheadRate > 0 ? ` = ${overheadRate.toFixed(1)}% of fabric` : ""})
                   </div>
                 </div>
               </div>
@@ -371,7 +377,7 @@ export default function NewOrder() {
                 )}
                 style={{ fontSize: "clamp(22px, 2.6vw, 28px)" }}
               >
-                <AnimatedNumber value={estMargin} format="currency" duration={400} />
+                <AnimatedNumber value={estMargin} format="currency" currency={currency} duration={400} />
               </div>
             </div>
           )}

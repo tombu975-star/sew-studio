@@ -25,7 +25,7 @@ import { useSearchParams } from "next/navigation";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
 import { StatusStepper } from "@/components/atelier/StatusStepper";
 import { PageHeader, SectionCard } from "@/components/atelier/_portal";
-import { formatCurrency, formatDate, shortDate, ORDER_STATUSES } from "@/lib/format";
+import { formatCurrency, formatDate, shortDate, ORDER_STATUSES, setStudioCurrency } from "@/lib/format";
 import type { Order } from "@/lib/types";
 
 interface ShopPolicies {
@@ -240,6 +240,9 @@ export function PortalClient() {
       </div>
     );
   }
+
+  // Render every amount in this studio's own currency.
+  setStudioCurrency(data.shop.currency);
 
   return (
     <div className="min-h-dvh bg-[#faf8f5]">

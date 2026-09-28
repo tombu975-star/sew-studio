@@ -9,7 +9,7 @@ export async function GET() {
     const { data: profile } = await ctx.supabase
       .from("profiles")
       .select(
-        "id, email, full_name, role, gender, phone, shop_id, can_access_orders, can_access_board, shop:shops(id, name, slug, currency)"
+        "id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, shop:shops(id, name, slug, currency)"
       )
       .eq("id", ctx.userId)
       .maybeSingle();
@@ -23,6 +23,7 @@ export async function GET() {
         role: profile.role,
         gender: profile.gender,
         phone: profile.phone,
+        avatarUrl: profile.avatar_url,
         shopId: profile.shop_id,
         shop: profile.shop,
         canAccessOrders: profile.can_access_orders,

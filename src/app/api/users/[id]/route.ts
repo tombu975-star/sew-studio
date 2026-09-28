@@ -10,7 +10,7 @@ export async function GET(
   const { id } = await params;
   const { data: profile } = await ctx.supabase
     .from("profiles")
-    .select("id, email, full_name, role, gender, phone, shop_id, mentor_id, training_duration_weeks, training_started_at, program_id, created_at")
+    .select("id, email, full_name, role, gender, phone, avatar_url, shop_id, mentor_id, training_duration_weeks, training_started_at, program_id, created_at")
     .eq("id", id)
     .eq("shop_id", ctx.shopId)
     .maybeSingle();
@@ -32,6 +32,7 @@ export async function GET(
     role: profile.role,
     gender: profile.gender,
     phone: profile.phone,
+    avatarUrl: profile.avatar_url,
     shopId: profile.shop_id,
     mentorId: profile.mentor_id,
     trainingDurationWeeks: profile.training_duration_weeks,
@@ -84,6 +85,7 @@ export async function PATCH(
       fullName,
       phone,
       gender,
+      avatarUrl,
       canAccessOrders,
       canAccessBoard,
       canManageFreelancers,
@@ -123,6 +125,13 @@ export async function PATCH(
     if (fullName !== undefined) data.full_name = fullName;
     if (phone !== undefined) data.phone = phone || null;
     if (gender !== undefined) data.gender = gender || null;
+    if (avatarUrl !== undefined) {
+      const raw = typeof avatarUrl === "string" ? avatarUrl.trim() : "";
+      if (raw && !/^https?:\/\//i.test(raw)) {
+        return Response.json({ error: "Profile picture must be an http(s) link." }, { status: 400 });
+      }
+      data.avatar_url = raw ? raw.slice(0, 1000) : null;
+    }
     if (canAccessOrders !== undefined) data.can_access_orders = Boolean(canAccessOrders);
     if (canAccessBoard !== undefined) data.can_access_board = Boolean(canAccessBoard);
     // Freelancer management is a financial/business-relationship permission
@@ -142,7 +151,7 @@ export async function PATCH(
       .update(data)
       .eq("id", id)
       .select(
-        "id, email, full_name, role, gender, phone, shop_id, mentor_id, training_duration_weeks, training_started_at, program_id, can_access_orders, can_access_board, can_manage_freelancers, created_at, updated_at"
+        "id, email, full_name, role, gender, phone, avatar_url, shop_id, mentor_id, training_duration_weeks, training_started_at, program_id, can_access_orders, can_access_board, can_manage_freelancers, created_at, updated_at"
       )
       .single();
     if (error) throw error;

@@ -43,6 +43,7 @@ export function serializeUser(u: Record<string, any>) {
     role: u.role,
     gender: u.gender,
     phone: u.phone,
+    avatarUrl: u.avatar_url,
     shopId: u.shop_id,
     mentorId: u.mentor_id,
     trainingDurationWeeks: u.training_duration_weeks,
@@ -340,6 +341,7 @@ export function serializeSettings(s: Record<string, any>) {
     address: s.address || "",
     taxId: s.tax_id || "",
     invoicePrefix: s.invoice_prefix || "INV",
+    overheadRecoveryBasis: s.overhead_recovery_basis,
   };
 }
 
