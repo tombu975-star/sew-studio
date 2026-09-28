@@ -34,10 +34,11 @@ export async function GET(req: NextRequest, { params }: Ctx) {
       .order("order_date", { ascending: false }),
     ctx.supabase
       .from("measurement_sets")
-      .select("*")
+      .select("*, staff:profiles(id, full_name)")
       .eq("customer_id", id)
       .eq("shop_id", ctx.shopId)
-      .order("date_taken", { ascending: false }),
+      .order("date_taken", { ascending: false })
+      .limit(60),
     ctx.supabase
       .from("customer_feedback")
       .select("*")
@@ -55,7 +56,10 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   return NextResponse.json({
     customer: serializeCustomer(customer),
     orders: (ordersRes.data ?? []).map((o) => serializeOrder({ ...o, assigned_staff: o.assigned_staff })),
-    measurements: (measurementsRes.data ?? []).map(serializeMeasurementSet),
+    measurements: (measurementsRes.data ?? []).map((m) => ({
+      ...serializeMeasurementSet(m),
+      staff: m.staff ? { id: m.staff.id, fullName: m.staff.full_name } : null,
+    })),
     feedback: (feedbackRes.data ?? []).map(serializeCustomerFeedback),
     styleConcepts: (styleConceptsRes.data ?? []).map(serializeStyleConcept),
   });

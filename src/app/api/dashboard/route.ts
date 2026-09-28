@@ -10,12 +10,11 @@ import {
   serializeSettings,
 } from "@/lib/supabase/serializers";
 
-const ORDER_SELECT =
-  "*, customer:customers(*), assigned_staff:profiles!orders_assigned_staff_id_fkey(*), payments(*), fittings(*)";
-
-function sortByDate<T extends { date: string }>(rows: T[] | null | undefined) {
-  return [...(rows ?? [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-}
+// Payload is deliberately lean: the dashboard already receives payments and
+// fittings as their own top-level lists, so embedding them again inside every
+// order (plus a full customer + staff row per order) only multiplied the
+// response size as the studio grew. Orders carry just the customer name/id.
+const ORDER_SELECT = "*, customer:customers(id, name, phone)";
 
 export async function GET() {
   try {
@@ -44,12 +43,12 @@ export async function GET() {
         .order("date", { ascending: false }),
       ctx.supabase
         .from("fittings")
-        .select("*, order:orders!inner(*, customer:customers(*))")
+        .select("*, order:orders!inner(id, shop_id, garment_design, customer:customers(id, name))")
         .eq("order.shop_id", ctx.shopId)
         .order("date", { ascending: true }),
       ctx.supabase
         .from("tasks")
-        .select("*, order:orders(*, customer:customers(*)), staff:profiles!tasks_staff_id_fkey(*)")
+        .select("*, order:orders(id, garment_design)")
         .eq("shop_id", ctx.shopId)
         .order("created_at", { ascending: false }),
       ctx.supabase
@@ -64,9 +63,10 @@ export async function GET() {
         .order("created_at", { ascending: false }),
       ctx.supabase
         .from("style_concepts")
-        .select("*, customer:customers(*)")
+        .select("*, customer:customers(id, name)")
         .eq("shop_id", ctx.shopId)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(100),
       ctx.supabase.from("settings").select("*").eq("shop_id", ctx.shopId).maybeSingle(),
     ]);
 
@@ -86,9 +86,7 @@ export async function GET() {
     }
 
     return Response.json({
-      orders: (ordersRes.data ?? []).map((o) =>
-        serializeOrder({ ...o, payments: sortByDate(o.payments), fittings: sortByDate(o.fittings) })
-      ),
+      orders: (ordersRes.data ?? []).map(serializeOrder),
       payments: (paymentsRes.data ?? []).map(serializePayment),
       fittings: (fittingsRes.data ?? []).map((f) => ({
         ...serializeFitting(f),

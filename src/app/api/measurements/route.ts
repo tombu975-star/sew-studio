@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
   const data = {
     shop_id: ctx.shopId,
     customer_id: body.customerId,
-    staff_id: body.staffId ?? null,
-    unit: body.unit ?? "cm",
+    staff_id: ctx.userId, // attributed to whoever took the measurements
+    unit: "cm", // always stored in centimetres; client converts before sending
     date_taken: body.dateTaken ? new Date(body.dateTaken).toISOString() : new Date().toISOString(),
     bust: num(body.bust),
     waist: num(body.waist),
@@ -40,6 +40,23 @@ export async function POST(req: NextRequest) {
     sleeve: num(body.sleeve),
     inseam: num(body.inseam),
     neck: num(body.neck),
+    height: num(body.height),
+    weight: num(body.weight),
+    across_back: num(body.acrossBack),
+    bust_point: num(body.bustPoint),
+    shoulder_to_bust: num(body.shoulderToBust),
+    underbust: num(body.underbust),
+    back_length: num(body.backLength),
+    front_length: num(body.frontLength),
+    upper_arm: num(body.upperArm),
+    wrist: num(body.wrist),
+    waist_to_hip: num(body.waistToHip),
+    crotch_depth: num(body.crotchDepth),
+    thigh: num(body.thigh),
+    knee: num(body.knee),
+    ankle: num(body.ankle),
+    outseam: num(body.outseam),
+    posture: typeof body.posture === "string" && body.posture.trim() ? body.posture.trim().slice(0, 60) : null,
     notes: body.notes ?? null,
   };
 

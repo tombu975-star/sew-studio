@@ -1,45 +1,37 @@
 "use client";
 
 /**
- * Customer Measurements — the studio's single, fixed measurements layout.
- * Deliberately not configurable: every customer's measurements are shown
- * the same way (silhouette + values, unit toggle, history, update button)
- * so staff always know where to look.
+ * Customer Measurements — one fixed, standards-based record sheet.
  *
- * Values are always stored in centimetres; the cm/in toggle only changes
- * how they are displayed.
+ * Dimensions and landmarks follow ISO 8559-1 body-measurement practice and
+ * are grouped the way a pattern-cutter reads them. Values are always stored
+ * in centimetres; the cm / in switch only changes display. Every session is
+ * kept, so fit changes over time are visible as a change-vs-previous column.
  */
 
 import { useMemo, useState } from "react";
+import { ChevronDown, Ruler } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { MeasurementSet } from "@/lib/types";
+import {
+  FIELD_GROUPS,
+  MEASUREMENT_FIELDS,
+  delta,
+  formatValue,
+  fromCm,
+  matchSize,
+  toCm,
+  type MeasurementKey,
+  type Unit,
+} from "@/lib/measurements";
 
-type Unit = "cm" | "in";
-
-const FIELDS = [
-  { key: "bust", label: "Bust" },
-  { key: "waist", label: "Waist" },
-  { key: "hip", label: "Hip" },
-  { key: "shoulder", label: "Shoulder" },
-  { key: "sleeve", label: "Sleeve" },
-  { key: "length", label: "Length" },
-] as const;
-
-type FieldKey = (typeof FIELDS)[number]["key"];
-
-/** Measurements are stored in cm regardless of the unit recorded. */
-function toCm(value: number | null | undefined, storedUnit: string): number | null {
-  if (value == null) return null;
-  return storedUnit === "in" ? value * 2.54 : value;
-}
-
-function display(cm: number | null, unit: Unit): string {
-  if (cm == null) return "—";
-  const v = unit === "in" ? cm / 2.54 : cm;
-  const rounded = Math.round(v * 10) / 10;
-  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}`;
-}
+const cmOf = (m: MeasurementSet | undefined, key: MeasurementKey): number | null => {
+  if (!m) return null;
+  const raw = (m as unknown as Record<string, number | null | undefined>)[key];
+  // Body mass is kg, everything else is length.
+  return key === "weight" ? (raw ?? null) : toCm(raw, m.unit);
+};
 
 export function MeasurementsPanel({
   measurements,
@@ -51,158 +43,237 @@ export function MeasurementsPanel({
   canUpdate?: boolean;
 }) {
   const [unit, setUnit] = useState<Unit>("cm");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   const sorted = useMemo(
-    () =>
-      [...measurements].sort(
-        (a, b) => new Date(b.dateTaken).getTime() - new Date(a.dateTaken).getTime()
-      ),
+    () => [...measurements].sort((a, b) => new Date(b.dateTaken).getTime() - new Date(a.dateTaken).getTime()),
     [measurements]
   );
-  const latest = sorted[0];
 
-  const value = (m: MeasurementSet, key: FieldKey) => toCm(m[key], m.unit);
+  const index = Math.max(0, sorted.findIndex((m) => m.id === selectedId));
+  const current = sorted[index];
+  const previous = sorted[index + 1];
+  const isLatest = index === 0;
+
+  const size = useMemo(
+    () => (current ? matchSize(cmOf(current, "bust"), cmOf(current, "waist"), cmOf(current, "hip")) : null),
+    [current]
+  );
+
+  const recorded = current ? MEASUREMENT_FIELDS.filter((f) => cmOf(current, f.key) != null).length : 0;
+
+  if (sorted.length === 0) {
+    return (
+      <section className="rounded-lg border border-[#E7E5E4] bg-white">
+        <div className="flex flex-col items-center px-6 py-14 text-center">
+          <Ruler className="size-6 text-stone-300" strokeWidth={1.5} />
+          <h2 className="mt-4 font-display text-lg font-semibold text-[#1C1917]">No measurements on file</h2>
+          <p className="mt-1.5 max-w-sm text-sm text-stone-500">
+            Record a full set once and every future order for this client starts from it.
+          </p>
+          {canUpdate && (
+            <button
+              type="button"
+              onClick={onUpdate}
+              className="mt-6 h-10 rounded-md bg-[#800020] px-5 text-sm font-medium text-white transition-colors hover:bg-[#6b0018]"
+            >
+              Record measurements
+            </button>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <div className="max-w-[560px] rounded-2xl border border-[#E7E5E4] bg-[#FBF9F7] p-5 sm:p-6">
+    <section className="rounded-lg border border-[#E7E5E4] bg-white">
       {/* Header */}
-      <h2 className="font-display text-xl font-semibold text-[#1C1917]">Customer Measurements</h2>
-
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <p className="text-xs text-stone-500">
-          Last measured:{" "}
-          <span className="font-semibold text-[#1C1917]">
-            {latest ? formatDate(latest.dateTaken) : "Not yet measured"}
-          </span>
-        </p>
-        <div
-          role="group"
-          aria-label="Measurement unit"
-          className="inline-flex rounded-lg border border-[#E7E5E4] bg-white p-0.5 text-xs"
-        >
-          {(["cm", "in"] as const).map((u) => (
-            <button
-              key={u}
-              type="button"
-              onClick={() => setUnit(u)}
-              aria-pressed={unit === u}
-              className={cn(
-                "px-3 py-1 rounded-md font-medium transition",
-                unit === u ? "bg-[#F1ECE6] text-[#1C1917]" : "text-stone-400 hover:text-stone-600"
-              )}
-            >
-              {u}
-            </button>
-          ))}
+      <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[#E7E5E4] px-5 py-4 sm:px-6">
+        <div>
+          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">
+            Body measurement record
+          </p>
+          <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-[#1C1917]">
+            {isLatest ? "Current measurements" : `Measurements — ${formatDate(current.dateTaken)}`}
+          </h2>
+          <p className="mt-1 text-xs text-stone-500">
+            ISO 8559-1 body dimensions · stored in centimetres · {recorded} of {MEASUREMENT_FIELDS.length} recorded
+          </p>
         </div>
-      </div>
+        <div className="flex items-center gap-2">
+          <div role="group" aria-label="Measurement unit" className="inline-flex rounded-md border border-[#E7E5E4] p-0.5 text-xs">
+            {(["cm", "in"] as const).map((u) => (
+              <button
+                key={u}
+                type="button"
+                onClick={() => setUnit(u)}
+                aria-pressed={unit === u}
+                className={cn(
+                  "h-7 min-w-9 rounded px-2.5 font-medium transition-colors",
+                  unit === u ? "bg-[#1C1917] text-white" : "text-stone-500 hover:text-[#1C1917]"
+                )}
+              >
+                {u}
+              </button>
+            ))}
+          </div>
+          {canUpdate && (
+            <button
+              type="button"
+              onClick={onUpdate}
+              className="h-9 rounded-md bg-[#800020] px-4 text-sm font-medium text-white transition-colors hover:bg-[#6b0018]"
+            >
+              New session
+            </button>
+          )}
+        </div>
+      </header>
 
-      {/* Silhouette + values */}
-      <div className="mt-4 grid grid-cols-[132px_minmax(0,1fr)] gap-4 items-center">
-        <Silhouette />
-        <dl className="divide-y divide-[#E7E5E4]">
-          {FIELDS.map((f) => (
-            <div key={f.key} className="flex items-center justify-between py-2.5">
-              <dt className="text-sm text-stone-500">{f.label}</dt>
-              <dd className="text-sm font-semibold text-[#1C1917] tabular-nums">
-                {latest ? display(value(latest, f.key), unit) : "—"}
-                {latest && value(latest, f.key) != null ? ` ${unit}` : ""}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-
-      {/* History */}
-      <h3 className="mt-6 font-display text-base font-semibold text-[#1C1917]">
-        Measurement History
-      </h3>
-      <div className="mt-2 overflow-hidden rounded-xl border border-[#E7E5E4] bg-white">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-[11px] text-stone-500 bg-[#FBF9F7]">
-              <th className="px-3 py-2 font-medium">Date</th>
-              <th className="px-3 py-2 font-medium">Bust</th>
-              <th className="px-3 py-2 font-medium">Waist</th>
-              <th className="px-3 py-2 font-medium">Hip</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#F1ECE6]">
-            {sorted.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-3 py-6 text-center text-xs text-stone-400">
-                  No measurements recorded yet.
-                </td>
-              </tr>
-            ) : (
-              sorted.map((m) => (
-                <tr key={m.id}>
-                  <td className="px-3 py-2.5 text-stone-600 whitespace-nowrap">
-                    {formatDate(m.dateTaken)}
-                  </td>
-                  <td className="px-3 py-2.5 tabular-nums">{display(value(m, "bust"), unit)}</td>
-                  <td className="px-3 py-2.5 tabular-nums">{display(value(m, "waist"), unit)}</td>
-                  <td className="px-3 py-2.5 tabular-nums">{display(value(m, "hip"), unit)}</td>
-                </tr>
-              ))
+      {/* Session strip */}
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-[#E7E5E4] px-5 py-2.5 sm:px-6" role="tablist" aria-label="Measurement sessions">
+        {sorted.map((m, i) => (
+          <button
+            key={m.id}
+            role="tab"
+            aria-selected={i === index}
+            type="button"
+            onClick={() => setSelectedId(m.id)}
+            className={cn(
+              "shrink-0 rounded-full border px-3 py-1 text-xs tabular-nums transition-colors",
+              i === index
+                ? "border-[#800020] bg-[#800020]/5 font-medium text-[#800020]"
+                : "border-[#E7E5E4] text-stone-500 hover:border-stone-300 hover:text-[#1C1917]"
             )}
-          </tbody>
-        </table>
+          >
+            {formatDate(m.dateTaken)}
+            {i === 0 && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-stone-400">latest</span>}
+          </button>
+        ))}
       </div>
 
-      {canUpdate && (
+      {/* Summary facts */}
+      <dl className="grid grid-cols-2 divide-x divide-y divide-[#E7E5E4] border-b border-[#E7E5E4] text-sm sm:grid-cols-4 sm:divide-y-0">
+        <Fact label="Measured on" value={formatDate(current.dateTaken)} />
+        <Fact label="Measured by" value={current.staff?.fullName ?? "—"} />
+        <Fact label="Stature" value={cmOf(current, "height") != null ? `${formatValue(cmOf(current, "height"), unit)} ${unit}` : "—"} />
+        <Fact label="Posture" value={current.posture || "—"} />
+      </dl>
+
+      {/* Indicative size */}
+      {size && (
+        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-[#E7E5E4] bg-[#FBF9F7] px-5 py-3 sm:px-6">
+          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">Indicative size</p>
+          <p className="text-sm tabular-nums text-[#1C1917]">
+            <span className="font-semibold">EU {size.row.eu}</span>
+            <span className="mx-2 text-stone-300">/</span>UK {size.row.uk}
+            <span className="mx-2 text-stone-300">/</span>US {size.row.us}
+          </p>
+          <p className="text-xs text-stone-500">
+            {size.mixed
+              ? `Bust EU ${size.byBust?.eu ?? "—"} · Waist EU ${size.byWaist?.eu ?? "—"} · Hip EU ${size.byHip?.eu ?? "—"} — grade the pattern between sizes.`
+              : "Bust, waist and hip fall in the same size."}
+          </p>
+        </div>
+      )}
+
+      {/* Dimensions by group */}
+      <div className="grid gap-x-10 gap-y-7 px-5 py-6 sm:px-6 md:grid-cols-2">
+        {FIELD_GROUPS.map((group) => {
+          const fields = MEASUREMENT_FIELDS.filter((f) => f.group === group);
+          return (
+            <div key={group}>
+              <h3 className="border-b border-[#1C1917] pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1C1917]">
+                {group}
+              </h3>
+              <table className="w-full text-sm">
+                <thead className="sr-only">
+                  <tr><th>Dimension</th><th>Value</th><th>Change since previous</th></tr>
+                </thead>
+                <tbody className="divide-y divide-[#F1ECE6]">
+                  {fields.map((f) => {
+                    const cm = cmOf(current, f.key);
+                    const isKg = f.unitOverride === "kg";
+                    const d = isKg ? null : delta(cm, cmOf(previous, f.key));
+                    const shown = isKg ? (cm != null ? String(cm) : "—") : formatValue(cm, unit);
+                    const suffix = cm == null ? "" : isKg ? " kg" : ` ${unit}`;
+                    return (
+                      <tr key={f.key} title={f.how}>
+                        <td className={cn("py-2 pr-3", f.core ? "font-medium text-[#1C1917]" : "text-stone-500")}>{f.label}</td>
+                        <td className={cn("py-2 text-right tabular-nums", cm == null ? "text-stone-300" : "font-semibold text-[#1C1917]")}>
+                          {shown}
+                          <span className="font-normal text-stone-400">{suffix}</span>
+                        </td>
+                        <td className="w-16 py-2 pl-3 text-right text-[11px] tabular-nums">
+                          {d != null && d !== 0 ? (
+                            <span className={cn(Math.abs(d) >= 2 ? "font-medium text-[#800020]" : "text-stone-400")}>
+                              {d > 0 ? "+" : "−"}
+                              {formatValue(Math.abs(d), unit)}
+                            </span>
+                          ) : null}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+      </div>
+
+      {current.notes && (
+        <div className="border-t border-[#E7E5E4] px-5 py-4 sm:px-6">
+          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">Fitting notes</p>
+          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-stone-600">{current.notes}</p>
+        </div>
+      )}
+
+      {previous && (
+        <p className="border-t border-[#E7E5E4] px-5 py-2.5 text-[11px] text-stone-400 sm:px-6">
+          Change column compares with the session on {formatDate(previous.dateTaken)}. Shifts of 2 cm or more are highlighted.
+        </p>
+      )}
+
+      {/* Method */}
+      <div className="border-t border-[#E7E5E4]">
         <button
           type="button"
-          onClick={onUpdate}
-          className="mt-5 inline-flex h-11 items-center justify-center rounded-lg bg-gradient-to-b from-[#B8893B] to-[#9A6F2B] px-5 text-sm font-medium text-white shadow-sm hover:brightness-105 transition"
+          onClick={() => setShowGuide((v) => !v)}
+          aria-expanded={showGuide}
+          className="flex w-full items-center justify-between px-5 py-3 text-left text-sm font-medium text-[#1C1917] hover:bg-[#FBF9F7] sm:px-6"
         >
-          Update Measurements
+          How to take these measurements
+          <ChevronDown className={cn("size-4 text-stone-400 transition-transform", showGuide && "rotate-180")} />
         </button>
-      )}
+        {showGuide && (
+          <div className="grid gap-x-10 gap-y-2 px-5 pb-5 text-xs leading-relaxed text-stone-600 sm:px-6 md:grid-cols-2">
+            <p className="md:col-span-2">
+              Client stands upright and relaxed, feet together, in light clothing. Use a flexible, non-stretch tape. Girths are
+              taken horizontally, snug but not compressing. Lengths follow the body surface between landmarks. Record to the nearest
+              0.1 cm.
+            </p>
+            {MEASUREMENT_FIELDS.filter((f) => f.core).map((f) => (
+              <p key={f.key}>
+                <span className="font-semibold text-[#1C1917]">{f.label}. </span>
+                {f.how}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="px-5 py-3 sm:px-6">
+      <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">{label}</dt>
+      <dd className="mt-0.5 truncate font-medium text-[#1C1917]">{value}</dd>
     </div>
   );
 }
 
-/** Front-view body outline with the measurement guide lines. */
-function Silhouette() {
-  return (
-    <svg
-      viewBox="0 0 132 250"
-      role="img"
-      aria-label="Body outline showing bust, waist, hip, shoulder and length measurement lines"
-      className="w-full h-auto"
-    >
-      {/* body */}
-      <g fill="#EADFD3" stroke="#D9C9B8" strokeWidth="1">
-        <ellipse cx="66" cy="20" rx="13" ry="16" />
-        <rect x="60" y="34" width="12" height="12" rx="4" />
-        {/* torso */}
-        <path d="M34 54 C44 46 88 46 98 54 L96 96 C94 112 90 120 92 136 C94 152 100 168 98 186 L92 232 L76 232 L70 170 L66 150 L62 170 L56 232 L40 232 L34 186 C32 168 38 152 40 136 C42 120 38 112 36 96 Z" />
-        {/* arms */}
-        <path d="M34 54 C24 62 18 96 14 130 L20 132 C26 104 32 84 38 70 Z" />
-        <path d="M98 54 C108 62 114 96 118 130 L112 132 C106 104 100 84 94 70 Z" />
-      </g>
-      {/* guide lines */}
-      <g stroke="#B8893B" strokeWidth="1.4" strokeLinecap="round">
-        <line x1="36" y1="56" x2="96" y2="56" />
-        <line x1="38" y1="78" x2="94" y2="78" />
-        <line x1="40" y1="112" x2="92" y2="112" />
-        <line x1="34" y1="140" x2="98" y2="140" />
-      </g>
-      <g stroke="#C2415E" strokeWidth="1.4" strokeLinecap="round">
-        {/* length */}
-        <line x1="66" y1="48" x2="66" y2="150" />
-        {/* sleeve */}
-        <line x1="112" y1="60" x2="116" y2="128" />
-      </g>
-      <g fill="#B8893B">
-        <circle cx="36" cy="56" r="2.2" />
-        <circle cx="96" cy="56" r="2.2" />
-        <circle cx="38" cy="78" r="2.2" />
-        <circle cx="94" cy="78" r="2.2" />
-        <circle cx="40" cy="112" r="2.2" />
-        <circle cx="92" cy="112" r="2.2" />
-      </g>
-    </svg>
-  );
-}
+// Re-exported so other views can show a value in the same way.
+export { fromCm };

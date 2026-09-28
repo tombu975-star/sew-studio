@@ -131,14 +131,17 @@ function GuardView({
 
 function FullScreenLoader() {
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FBF9F7] gap-4">
-      <div className="w-12 h-12 rounded-full border border-[#800020] flex items-center justify-center">
-        <Scissors className="w-5 h-5 text-[#800020]" />
+    <div
+      role="status"
+      aria-label="Loading"
+      className="min-h-dvh flex flex-col items-center justify-center bg-[#faf8f5]"
+    >
+      <div className="flex size-11 items-center justify-center rounded-md bg-[#800020]">
+        <Scissors className="size-5 text-white" strokeWidth={2} />
       </div>
-      <div className="w-6 h-6 border-2 border-[#E7E5E4] border-t-[#800020] rounded-full animate-spin" />
-      <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400">
-        Preparing the atelier…
-      </p>
+      <div className="mt-6 h-0.5 w-24 overflow-hidden rounded-full bg-[#E7E5E4]">
+        <div className="h-full w-1/2 animate-[loader-slide_1.1s_ease-in-out_infinite] rounded-full bg-[#800020]" />
+      </div>
     </div>
   );
 }
@@ -169,6 +172,29 @@ function AuthGate() {
       hydrate();
     });
   }, [hydrate]);
+
+  // Once signed in, quietly warm the chunks for the screens people open most,
+  // during browser idle time — so tapping a nav item feels instant instead of
+  // waiting on a download.
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const warm = () => {
+      void import("@/views/Orders");
+      void import("@/views/Customers");
+      void import("@/views/CustomerProfile");
+      void import("@/views/ProductionBoard");
+      void import("@/views/Tasks");
+    };
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+    };
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(warm, { timeout: 4000 });
+      return () => (window as any).cancelIdleCallback?.(id);
+    }
+    const t = setTimeout(warm, 2500);
+    return () => clearTimeout(t);
+  }, [status]);
 
   if (status === "loading") return <FullScreenLoader />;
   if (status === "unauthenticated") return <LoginPage />;

@@ -13,6 +13,30 @@ export interface TenantContext {
 }
 
 /**
+ * Resolves the signed-in user's id as cheaply as possible. getClaims()
+ * verifies the session JWT locally against the project's signing keys, so it
+ * skips the network round-trip to Supabase Auth that getUser() makes on every
+ * single API request (it falls back to that call itself when local
+ * verification isn't available). RLS still enforces tenancy on every query,
+ * so this only changes how quickly we learn who the caller is.
+ */
+async function resolveUserId(supabase: SupabaseClient<Database>): Promise<string | null> {
+  const auth = supabase.auth as unknown as {
+    getClaims?: () => Promise<{ data: { claims?: { sub?: string } } | null }>;
+  };
+  if (typeof auth.getClaims === "function") {
+    const { data } = await auth.getClaims();
+    const sub = data?.claims?.sub;
+    if (sub) return sub;
+    return null;
+  }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.id ?? null;
+}
+
+/**
  * Resolves the signed-in shop member for the current request. Replaces the
  * old cookie-parsing getTenant() from src/lib/tenant.ts — session state now
  * lives in Supabase Auth's own cookies (managed by @supabase/ssr), and
@@ -25,15 +49,13 @@ export interface TenantContext {
 export async function getTenant(): Promise<TenantContext | null> {
   try {
     const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return null;
+    const userId = await resolveUserId(supabase);
+    if (!userId) return null;
 
     const { data: profile } = await supabase
       .from("profiles")
       .select("id, shop_id, role, email, can_manage_freelancers")
-      .eq("id", user.id)
+      .eq("id", userId)
       .single();
     if (!profile) return null;
 

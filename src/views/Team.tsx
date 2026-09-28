@@ -217,7 +217,7 @@ export default function Team() {
         actions={
           owner ? (
             <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E7E5E4] bg-white pl-2 pr-3 py-1.5 elevate-sm">
-              <span className="w-6 h-6 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white text-[11px] font-display font-semibold">
+              <span className="w-6 h-6 rounded-full bg-[#800020] flex items-center justify-center text-white text-[11px] font-display font-semibold">
                 {initialOf(owner.fullName)}
               </span>
               <div className="leading-tight">
@@ -406,7 +406,7 @@ function StaffTrainersCard({
                 className="group flex items-center gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                   aria-hidden
                 >
                   {initialOf(u.fullName)}
@@ -550,7 +550,7 @@ function FreelancersCard({
                 className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white shrink-0 shadow-sm"
                   aria-hidden
                 >
                   <SpecialtyIcon className="w-5 h-5" />
@@ -778,7 +778,7 @@ function TraineesCard({
                   className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors"
                 >
                   <div
-                    className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                    className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                     aria-hidden
                   >
                     {initialOf(t.fullName)}
@@ -885,7 +885,7 @@ function TraineesCard({
                           aria-label={`${t.fullName} training progress`}
                         >
                           <div
-                            className="h-full bg-gradient-to-r from-[#800020] to-[#a83349] rounded-full transition-all duration-500"
+                            className="h-full bg-[#800020] rounded-full transition-all duration-500"
                             style={{
                               width: `${
                                 progressPct === 0 ? 1 : progressPct

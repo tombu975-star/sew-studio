@@ -1295,7 +1295,7 @@ function ConceptCard({
         {concept.matchPercent != null && (
           <div className="relative shrink-0">
             {/* Burgundy gradient pill */}
-            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-white px-2.5 py-1.5 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] elevate-burgundy">
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-white px-2.5 py-1.5 rounded-full bg-[#800020]">
               <Sparkles className="w-3 h-3" />
               {concept.matchPercent}% match
             </div>

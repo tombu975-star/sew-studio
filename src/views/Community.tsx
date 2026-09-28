@@ -411,7 +411,7 @@ export default function Community() {
               className={cn(
                 "px-3.5 h-8 rounded-full text-xs font-medium transition-all duration-200 border whitespace-nowrap",
                 active
-                  ? "bg-[#800020] text-white border-[#800020] elevate-burgundy"
+                  ? "bg-[#800020] text-white border-[#800020]"
                   : "bg-white text-stone-500 border-[#E7E5E4] hover:border-[#800020]/30 hover:text-[#1C1917] hover:bg-[#FBF9F7]"
               )}
             >
@@ -537,7 +537,7 @@ function PostCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
             <div
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center font-display font-semibold text-sm shrink-0 elevate-sm"
+              className="w-10 h-10 rounded-full bg-[#800020] text-white flex items-center justify-center font-display font-semibold text-sm shrink-0 elevate-sm"
               aria-hidden
             >
               {initialOf(post.authorName)}
@@ -658,7 +658,7 @@ function PostCard({
               {post.comments.map((c) => (
                 <li key={c.id} className="flex items-start gap-2.5">
                   <div
-                    className="w-7 h-7 rounded-full bg-gradient-to-br from-[#800020]/80 to-[#6b0018]/80 text-white flex items-center justify-center text-[10px] font-medium shrink-0"
+                    className="w-7 h-7 rounded-full bg-[#800020]/85 text-white flex items-center justify-center text-[10px] font-medium shrink-0"
                     aria-hidden
                   >
                     {initialOf(c.authorName)}

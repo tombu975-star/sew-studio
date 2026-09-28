@@ -152,12 +152,12 @@ const STATUS_CATEGORY_COLOR: Record<string, string> = {
 
 /* ---------- gradient avatar palette ---------- */
 const AVATAR_GRADIENTS = [
-  "from-[#800020] to-[#b30030]",
-  "from-[#1C1917] to-[#44403c]",
-  "from-[#7c2d12] to-[#b45309]",
-  "from-[#15803D] to-[#22c55e]",
-  "from-[#0e7490] to-[#06b6d4]",
-  "from-[#7e22ce] to-[#a855f7]",
+  "from-[#800020] to-[#800020]",
+  "from-[#44403c] to-[#44403c]",
+  "from-[#8a5a2b] to-[#8a5a2b]",
+  "from-[#4d6b4a] to-[#4d6b4a]",
+  "from-[#3d5166] to-[#3d5166]",
+  "from-[#6b3f5e] to-[#6b3f5e]",
 ];
 
 function avatarGradient(seed: string) {
@@ -1017,7 +1017,7 @@ function MainDashboard() {
       {canCreateOrders() && (
         <button
           onClick={() => go("new-order")}
-          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#800020] text-white flex items-center justify-center shadow-lg hover:bg-[#6b0018] transition elevate-burgundy"
+          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#800020] text-white flex items-center justify-center shadow-lg hover:bg-[#6b0018] transition"
           aria-label="New Custom Order"
         >
           <Plus className="w-6 h-6" />
@@ -1507,7 +1507,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                     className="w-full text-left px-5 py-3.5 hover:bg-[#FBF9F7] transition group"
                   >
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-[#800020] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
                         {(p.authorName || "?").charAt(0).toUpperCase()}
                       </div>
                       <span className="text-[11px] text-stone-500 truncate">

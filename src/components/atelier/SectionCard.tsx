@@ -24,7 +24,7 @@ export function SectionCard({
   return (
     <div
       className={cn(
-        "surface-premium border border-[#E7E5E4] rounded-xl elevate-sm",
+        "bg-white border border-[#E7E5E4] rounded-lg",
         accent && "border-l-2 border-l-[#800020]",
         className
       )}

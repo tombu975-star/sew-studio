@@ -64,10 +64,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const AVATAR_GRADIENTS = [
-  "from-[#800020] to-[#b45309]",
-  "from-[#0e7490] to-[#800020]",
-  "from-[#15803D] to-[#0e7490]",
-  "from-[#b45309] to-[#800020]",
+  "from-[#800020] to-[#800020]",
+  "from-[#3d5166] to-[#3d5166]",
+  "from-[#4d6b4a] to-[#4d6b4a]",
+  "from-[#8a5a2b] to-[#8a5a2b]",
 ];
 
 function initials(name: string) {

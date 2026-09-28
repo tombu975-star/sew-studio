@@ -197,7 +197,7 @@ export default function UserProfile() {
           <div
             className="relative overflow-hidden rounded-2xl border border-[#E7E5E4] elevate-sm mb-6"
             style={{
-              background: `linear-gradient(135deg, ${accent}14 0%, transparent 60%), #ffffff`,
+              background: "#ffffff",
             }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-5 p-6">
@@ -208,12 +208,12 @@ export default function UserProfile() {
                     src={profile.avatarUrl}
                     alt={`${profile.fullName} profile picture`}
                     onError={() => setAvatarBroken(true)}
-                    className="size-24 rounded-2xl object-cover border border-[#E7E5E4] shadow-[0_8px_20px_-6px_rgba(0,0,0,0.35)]"
+                    className="size-24 rounded-2xl object-cover border border-[#E7E5E4]"
                   />
                 ) : (
                   <div
-                    className="flex size-24 items-center justify-center rounded-2xl text-white text-3xl font-semibold font-display shadow-[0_8px_20px_-6px_rgba(0,0,0,0.35)]"
-                    style={{ background: `linear-gradient(155deg, ${accent} 0%, #1C1917 130%)` }}
+                    className="flex size-24 items-center justify-center rounded-2xl text-white text-3xl font-semibold font-display"
+                    style={{ background: accent }}
                   >
                     {initialsOf(profile.fullName || profile.email)}
                   </div>

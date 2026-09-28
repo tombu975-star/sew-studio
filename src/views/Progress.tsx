@@ -328,7 +328,7 @@ function OwnerProgress() {
                     className={cn(
                       "group shrink-0 flex items-center gap-3 rounded-xl border px-3 py-2 transition-all duration-200",
                       active
-                        ? "bg-gradient-to-br from-[#800020] to-[#6b0018] border-[#6b0018] text-white elevate-burgundy"
+                        ? "bg-[#800020] border-[#6b0018] text-white"
                         : "bg-white border-[#E7E5E4] text-[#1C1917] hover:border-[#800020]/30 hover:bg-[#faf8f5] elevate-sm lift"
                     )}
                   >
@@ -785,7 +785,7 @@ function SkillMasteryCard({
                   {/* Progress hint bar */}
                   <div className="mt-2 h-1 w-full max-w-[220px] rounded-full bg-[#E7E5E4]/80 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-[#800020] to-[#6b0018] rounded-full transition-all"
+                      className="h-full bg-[#800020] rounded-full transition-all"
                       style={{ width: `${pct}%` }}
                       aria-hidden
                     />

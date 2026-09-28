@@ -60,6 +60,17 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import { MeasurementsPanel } from "@/components/atelier/MeasurementsPanel";
+import {
+  FIELD_GROUPS,
+  MEASUREMENT_FIELDS,
+  POSTURES,
+  checkRange,
+  fromCm,
+  inputToCm,
+  toCm,
+  type MeasurementKey,
+  type Unit as MeasureUnit,
+} from "@/lib/measurements";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
@@ -200,7 +211,7 @@ export default function CustomerProfile() {
       <div className="rounded-xl surface-premium border border-[#E7E5E4] elevate-md p-6 mb-6 animate-fade-in-up">
         <div className="flex flex-col md:flex-row md:items-start gap-5">
           <div
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-2xl shrink-0 shadow-md"
+            className="w-16 h-16 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-2xl shrink-0"
             aria-hidden
           >
             {(customer.name || "?").charAt(0).toUpperCase()}
@@ -606,6 +617,7 @@ export default function CustomerProfile() {
         open={measureOpen}
         onOpenChange={setMeasureOpen}
         customerId={selectedId}
+        latest={measurements[0]}
         onSaved={handleMeasurementSaved}
       />
     </div>
@@ -1049,66 +1061,95 @@ function EditPersonalDialog({
 
 /* ---------- Add Measurement Dialog ---------- */
 
-interface MeasurementForm {
-  bust: string;
-  waist: string;
-  hip: string;
-  shoulder: string;
-  length: string;
-  sleeve: string;
-  notes: string;
-}
+type MeasurementForm = Record<MeasurementKey, string> & { posture: string; notes: string };
 
-const EMPTY_MEAS: MeasurementForm = {
-  bust: "",
-  waist: "",
-  hip: "",
-  shoulder: "",
-  length: "",
-  sleeve: "",
+const EMPTY_MEAS = {
+  ...(Object.fromEntries(MEASUREMENT_FIELDS.map((f) => [f.key, ""])) as Record<MeasurementKey, string>),
+  posture: "",
   notes: "",
-};
+} as MeasurementForm;
 
 function AddMeasurementDialog({
   open,
   onOpenChange,
   customerId,
+  latest,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   customerId: string;
+  latest?: MeasurementSet;
   onSaved: () => void;
 }) {
   const [saving, setSaving] = useState(false);
+  const [unit, setUnit] = useState<MeasureUnit>("cm");
   const [form, setForm] = useState<MeasurementForm>(EMPTY_MEAS);
 
-  const set = <K extends keyof MeasurementForm>(
-    key: K,
-    value: MeasurementForm[K]
-  ) => setForm((f) => ({ ...f, [key]: value }));
+  const set = (key: keyof MeasurementForm, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
   const handleOpenChange = (v: boolean) => {
-    if (!v) setForm(EMPTY_MEAS);
+    if (!v) {
+      setForm(EMPTY_MEAS);
+      setUnit("cm");
+    }
     onOpenChange(v);
   };
 
+  /** Start from the previous session so only what changed needs retyping. */
+  const copyPrevious = () => {
+    if (!latest) return;
+    const next = { ...EMPTY_MEAS };
+    for (const f of MEASUREMENT_FIELDS) {
+      const raw = (latest as unknown as Record<string, number | null | undefined>)[f.key];
+      if (raw == null) continue;
+      if (f.unitOverride === "kg") next[f.key] = String(raw);
+      else {
+        const v = fromCm(toCm(raw, latest.unit), unit);
+        next[f.key] = v == null ? "" : String(v);
+      }
+    }
+    next.posture = latest.posture ?? "";
+    setForm(next);
+  };
+
+  /** Switching unit converts what is already typed, so nothing is lost. */
+  const switchUnit = (u: MeasureUnit) => {
+    if (u === unit) return;
+    setForm((prev) => {
+      const next = { ...prev };
+      for (const f of MEASUREMENT_FIELDS) {
+        if (f.unitOverride === "kg" || prev[f.key] === "") continue;
+        const cm = inputToCm(prev[f.key], unit);
+        const v = fromCm(cm, u);
+        next[f.key] = v == null ? "" : String(v);
+      }
+      return next;
+    });
+    setUnit(u);
+  };
+
+  const toCmValue = (f: (typeof MEASUREMENT_FIELDS)[number]) =>
+    f.unitOverride === "kg"
+      ? form[f.key] === "" ? null : Number(form[f.key])
+      : inputToCm(form[f.key], unit);
+
+  const filled = MEASUREMENT_FIELDS.filter((f) => form[f.key] !== "").length;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (filled === 0) {
+      toast.error("Enter at least one measurement");
+      return;
+    }
     setSaving(true);
     try {
-      const num = (v: string) => (v === "" ? null : Number(v));
-      await apiPost("/api/measurements", {
-        customerId,
-        unit: "cm",
-        bust: num(form.bust),
-        waist: num(form.waist),
-        hip: num(form.hip),
-        shoulder: num(form.shoulder),
-        length: num(form.length),
-        sleeve: num(form.sleeve),
-        notes: form.notes.trim() || null,
-      });
+      const payload: Record<string, unknown> = { customerId };
+      for (const f of MEASUREMENT_FIELDS) payload[f.key] = toCmValue(f);
+      payload.posture = form.posture || null;
+      payload.notes = form.notes.trim() || null;
+      await apiPost("/api/measurements", payload);
+      setForm(EMPTY_MEAS);
       onSaved();
     } catch (err) {
       toast.error("Failed to save measurements", {
@@ -1119,81 +1160,123 @@ function AddMeasurementDialog({
     }
   };
 
-  const fields: { key: keyof Omit<MeasurementForm, "notes">; label: string }[] =
-    [
-      { key: "bust", label: "Bust" },
-      { key: "waist", label: "Waist" },
-      { key: "hip", label: "Hip" },
-      { key: "shoulder", label: "Shoulder" },
-      { key: "length", label: "Length" },
-      { key: "sleeve", label: "Sleeve" },
-    ];
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[480px] rounded-lg">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl text-[#1C1917]">
-            Update Measurements
-          </DialogTitle>
+      <DialogContent className="max-h-[92dvh] gap-0 overflow-y-auto rounded-lg p-0 sm:max-w-[720px]">
+        <DialogHeader className="border-b border-[#E7E5E4] px-6 py-4 text-left">
+          <DialogTitle className="font-display text-xl text-[#1C1917]">New measurement session</DialogTitle>
           <DialogDescription className="text-stone-500">
-            All values in centimetres (cm).
+            ISO 8559-1 body dimensions. Saved in centimetres; enter in whichever unit you are reading off the tape.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {fields.map(({ key, label }) => (
-              <div key={key} className="grid gap-2">
-                <Label
-                  htmlFor={`m-${key}`}
-                  className="text-xs text-stone-600"
+        <form onSubmit={handleSubmit}>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E7E5E4] bg-[#FBF9F7] px-6 py-3">
+            <div role="group" aria-label="Entry unit" className="inline-flex rounded-md border border-[#E7E5E4] bg-white p-0.5 text-xs">
+              {(["cm", "in"] as const).map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  onClick={() => switchUnit(u)}
+                  aria-pressed={unit === u}
+                  className={
+                    "h-7 min-w-9 rounded px-2.5 font-medium transition-colors " +
+                    (unit === u ? "bg-[#1C1917] text-white" : "text-stone-500 hover:text-[#1C1917]")
+                  }
                 >
-                  {label}
-                </Label>
-                <Input
-                  id={`m-${key}`}
-                  type="number"
-                  inputMode="decimal"
-                  step="0.1"
-                  min="0"
-                  value={form[key]}
-                  onChange={(e) => set(key, e.target.value)}
-                  placeholder="0"
-                  className="h-10 rounded-md"
+                  {u}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-4 text-xs">
+              <span className="tabular-nums text-stone-500">{filled} of {MEASUREMENT_FIELDS.length} entered</span>
+              {latest && (
+                <button type="button" onClick={copyPrevious} className="font-medium text-[#800020] hover:underline">
+                  Start from previous session
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-6 px-6 py-5">
+            {FIELD_GROUPS.map((group) => (
+              <fieldset key={group}>
+                <legend className="mb-2 w-full border-b border-[#1C1917] pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1C1917]">
+                  {group}
+                </legend>
+                <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-2">
+                  {MEASUREMENT_FIELDS.filter((f) => f.group === group).map((f) => {
+                    const cm = toCmValue(f);
+                    const warn = checkRange(f, cm);
+                    const fieldUnit = f.unitOverride ?? unit;
+                    return (
+                      <div key={f.key}>
+                        <Label htmlFor={`m-${f.key}`} className="flex items-baseline justify-between text-xs text-stone-600">
+                          <span className={f.core ? "font-medium text-[#1C1917]" : undefined}>{f.label}</span>
+                        </Label>
+                        <div className="relative mt-1">
+                          <Input
+                            id={`m-${f.key}`}
+                            type="number"
+                            inputMode="decimal"
+                            step="0.1"
+                            min="0"
+                            value={form[f.key]}
+                            onChange={(e) => set(f.key, e.target.value)}
+                            aria-describedby={`m-${f.key}-hint`}
+                            className={
+                              "h-10 rounded-md pr-10 tabular-nums " +
+                              (warn ? "border-amber-400 focus-visible:ring-amber-300/40" : "")
+                            }
+                          />
+                          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400">
+                            {fieldUnit}
+                          </span>
+                        </div>
+                        <p id={`m-${f.key}-hint`} className={"mt-1 text-[11px] leading-snug " + (warn ? "text-amber-700" : "text-stone-400")}>
+                          {warn ?? f.how}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            ))}
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="m-posture" className="text-xs text-stone-600">Posture</Label>
+                <select
+                  id="m-posture"
+                  value={form.posture}
+                  onChange={(e) => set("posture", e.target.value)}
+                  className="mt-1 h-10 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/20"
+                >
+                  <option value="">Not noted</option>
+                  {POSTURES.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="m-notes" className="text-xs text-stone-600">Fitting notes</Label>
+                <Textarea
+                  id="m-notes"
+                  value={form.notes}
+                  onChange={(e) => set("notes", e.target.value)}
+                  rows={2}
+                  className="mt-1 rounded-md"
+                  placeholder="Shoulder asymmetry, preferred ease, alterations to remember…"
                 />
               </div>
-            ))}
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="m-notes" className="text-xs text-stone-600">
-              Notes
-            </Label>
-            <Textarea
-              id="m-notes"
-              value={form.notes}
-              onChange={(e) => set("notes", e.target.value)}
-              rows={2}
-              className="rounded-md"
-              placeholder="Optional notes…"
-            />
-          </div>
-          <DialogFooter className="gap-2">
-            <PremiumButton
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => handleOpenChange(false)}
-              disabled={saving}
-            >
+
+          <DialogFooter className="sticky bottom-0 gap-2 border-t border-[#E7E5E4] bg-white px-6 py-3">
+            <PremiumButton type="button" variant="outline" size="md" onClick={() => handleOpenChange(false)} disabled={saving}>
               Cancel
             </PremiumButton>
-            <PremiumButton
-              type="submit"
-              variant="primary"
-              size="md"
-              loading={saving}
-            >
-              Save Measurements
+            <PremiumButton type="submit" variant="primary" size="md" loading={saving}>
+              Save session
             </PremiumButton>
           </DialogFooter>
         </form>

@@ -1,18 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Scissors,
-  Mail,
-  Lock,
-  ArrowRight,
-  Eye,
-  EyeOff,
-  Store,
-  User as UserIcon,
-  ArrowLeft,
-  Fingerprint,
-} from "lucide-react";
+import Image from "next/image";
+import { Scissors, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/stores/auth";
 import { toast } from "sonner";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
@@ -49,7 +39,7 @@ function extractApiError(err: unknown, fallback: string): string {
 }
 
 const inputClass =
-  "w-full pl-10 pr-4 h-12 bg-white border border-[#E7E5E4] rounded-xl text-sm text-[#1C1917] placeholder-stone-400 focus:outline-none focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/8 transition-all elevate-sm";
+  "h-11 w-full rounded-md border border-[#E7E5E4] bg-white px-3.5 text-sm text-[#1C1917] placeholder:text-stone-400 outline-none transition-colors focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15";
 
 export function LoginPage() {
   const { login, register, hydrate, status } = useAuth();
@@ -131,368 +121,277 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#faf8f5] px-5 sm:px-6 py-10 pt-safe pb-safe">
-      <div className="w-full max-w-md animate-fade-in-up">
-        {/* Monogram + wordmark */}
-        <div className="flex flex-col items-center text-center mb-7">
-          <div className="w-14 h-14 rounded-2xl bg-[linear-gradient(155deg,#c2415e_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center shadow-[0_10px_28px_-8px_rgba(128,0,32,0.5)] animate-fade-in-up">
-            <Scissors className="w-6 h-6 text-[#1C1917]" strokeWidth={2.25} />
-          </div>
-          <h1
-            className="font-display font-semibold text-[#1C1917] mt-3 animate-fade-in-up"
-            style={{ fontSize: "clamp(22px, 5vw, 26px)", animationDelay: "0.05s" }}
-          >
-            Madam Studio
-          </h1>
-          <p
-            className="text-[10px] uppercase tracking-[0.26em] text-stone-400 mt-1.5 animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Bespoke Atelier · Accra
+    <div className="min-h-dvh lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] bg-[#faf8f5]">
+      {/* Studio photograph — desktop only, so phones never download it */}
+      <aside className="relative hidden lg:block bg-[#1C1917]">
+        <Image
+          src="/atelier-login.jpg"
+          alt="A burgundy satin gown on a dress form in the atelier"
+          fill
+          sizes="50vw"
+          quality={72}
+          className="object-cover"
+        />
+        <div className="absolute inset-x-0 bottom-0 bg-[#1C1917]/70 px-12 py-8">
+          <p className="font-display text-3xl font-semibold leading-tight text-white">
+            Every stitch tells a story.
           </p>
+          <p className="mt-2 text-sm text-white/70">Madam Studio · Bespoke atelier, Accra</p>
         </div>
+      </aside>
 
-        {/* Card */}
-        <div
-          className="bg-white border border-[#E7E5E4] rounded-2xl elevate-lg p-6 sm:p-8 animate-fade-in-up"
-          style={{ animationDelay: "0.12s" }}
-        >
+      <main className="flex min-h-dvh flex-col justify-center px-6 py-10 pt-safe pb-safe sm:px-12 lg:min-h-0">
+        <div className="mx-auto w-full max-w-[400px]">
+          <div className="mb-10 flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-md bg-[#800020]">
+              <Scissors className="size-4 text-white" strokeWidth={2} />
+            </div>
+            <span className="font-display text-xl font-semibold text-[#1C1917]">Madam Studio</span>
+          </div>
+
           {mode === "login" ? (
-            <div key="login" className="animate-fade-in-up">
-              {/* Welcome card */}
-              <div className="mb-6">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400 mb-2 flex items-center gap-2">
-                  <span className="w-5 h-px bg-stone-300" />
-                  Sign in
-                </p>
-                <h2
-                  className="font-display font-semibold text-[#1C1917] leading-[1.1]"
-                  style={{ fontSize: "clamp(26px, 6vw, 32px)" }}
-                >
-                  Welcome back
-                </h2>
-                <p className="text-sm text-stone-500 mt-2">
-                  Sign in to your studio to continue.
-                </p>
-              </div>
+            <section key="login" className="animate-fade-in">
+              <h1 className="font-display text-[34px] font-semibold leading-none text-[#1C1917]">Welcome back</h1>
+              <p className="mt-2.5 text-sm text-stone-500">Sign in to your studio to continue.</p>
 
-              <form onSubmit={submitLogin} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 mb-2"
-                  >
-                    Email
-                  </label>
-                  <div className="relative group">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-[#800020] transition-colors" />
-                    <input
-                      id="email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className={inputClass}
-                      placeholder="you@studio.com"
-                    />
-                  </div>
-                </div>
+              <form onSubmit={submitLogin} className="mt-8 space-y-5">
+                <Field label="Email" htmlFor="email">
+                  <input
+                    id="email"
+                    type="email"
+                    inputMode="email"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={inputClass}
+                    placeholder="you@studio.com"
+                  />
+                </Field>
 
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 mb-2"
-                  >
-                    Password
-                  </label>
-                  <div className="relative group">
-                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-[#800020] transition-colors" />
-                    <input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-11 h-12 bg-white border border-[#E7E5E4] rounded-xl text-sm text-[#1C1917] placeholder-stone-400 focus:outline-none focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/8 transition-all elevate-sm"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((s) => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition p-1"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
+                <Field label="Password" htmlFor="password">
+                  <PasswordInput
+                    id="password"
+                    value={password}
+                    onChange={setPassword}
+                    show={showPassword}
+                    onToggle={() => setShowPassword((v) => !v)}
+                    autoComplete="current-password"
+                  />
+                </Field>
 
                 <div className="flex items-center justify-between gap-4 text-xs">
-                  <label className="inline-flex items-center gap-2 text-stone-600 cursor-pointer">
+                  <label className="inline-flex cursor-pointer items-center gap-2 text-stone-600">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(event) => setRememberMe(event.target.checked)}
                       className="size-4 accent-[#800020]"
                     />
-                    Remember me for 30 days
+                    Keep me signed in for 30 days
                   </label>
-                  <a href="/forgot-password" className="font-medium text-[#800020] hover:underline">
+                  <a href="/forgot-password" className="font-medium text-[#800020] underline-offset-4 hover:underline">
                     Forgot password?
                   </a>
                 </div>
 
+                {error && <ErrorNote>{error}</ErrorNote>}
+
+                <PremiumButton type="submit" size="lg" loading={submitting} className="w-full">
+                  {submitting ? "Signing in…" : "Sign in"}
+                </PremiumButton>
+              </form>
+
+              <p className="mt-8 border-t border-[#E7E5E4] pt-6 text-sm text-stone-500">
+                Opening a new atelier?{" "}
                 <button
                   type="button"
-                  disabled
-                  title="Passkey sign-in will be available after passkey setup is enabled for this project."
-                  className="w-full h-10 inline-flex items-center justify-center gap-2 border border-[#E7E5E4] rounded-lg text-xs text-stone-400 cursor-not-allowed"
+                  onClick={() => switchMode("register")}
+                  className="font-medium text-[#800020] underline-offset-4 hover:underline"
                 >
-                  <Fingerprint className="w-4 h-4" />
-                  Use fingerprint or passkey
-                </button>
-
-                {error && (
-                  <div className="flex items-start gap-2 text-sm text-[#800020] bg-[#800020]/5 border border-[#800020]/15 rounded-xl px-3.5 py-2.5 animate-fade-in">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#800020] mt-1.5 shrink-0" />
-                    {error}
-                  </div>
-                )}
-
-                <PremiumButton
-                  type="submit"
-                  size="lg"
-                  loading={submitting}
-                  className="w-full mt-1 group"
-                >
-                  {submitting ? (
-                    "Signing in…"
-                  ) : (
-                    <>
-                      Sign in
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
-                    </>
-                  )}
-                </PremiumButton>
-              </form>
-
-              {/* Subtle secondary link to create a new shop */}
-              <button
-                type="button"
-                onClick={() => switchMode("register")}
-                className="mt-6 w-full inline-flex items-center justify-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition-colors group"
-              >
-                <Store className="w-3.5 h-3.5" />
-                Opening a new atelier?
-                <span className="font-semibold text-[#800020] underline-offset-4 group-hover:underline">
                   Create a shop
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition" />
-              </button>
-            </div>
+                </button>
+              </p>
+            </section>
           ) : (
-            <div key="register" className="animate-fade-in-up">
-              {/* Heading */}
-              <div className="mb-6">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400 mb-2 flex items-center gap-2">
-                  <span className="w-5 h-px bg-stone-300" />
-                  Register
-                </p>
-                <h2
-                  className="font-display font-semibold text-[#1C1917] leading-[1.1]"
-                  style={{ fontSize: "clamp(26px, 6vw, 32px)" }}
+            <section key="register" className="animate-fade-in">
+              <h1 className="font-display text-[34px] font-semibold leading-none text-[#1C1917]">Create your shop</h1>
+              <p className="mt-2.5 text-sm text-stone-500">
+                Open a new atelier — your studio, your clients, your craft.
+              </p>
+
+              <form onSubmit={submitRegister} className="mt-8 space-y-5">
+                <Field label="Shop name" htmlFor="shopName" required>
+                  <input
+                    id="shopName"
+                    type="text"
+                    required
+                    autoComplete="organization"
+                    value={shopName}
+                    onChange={(e) => setShopName(e.target.value)}
+                    className={inputClass}
+                    placeholder="Esi Atelier"
+                  />
+                </Field>
+
+                <Field label="Your name" htmlFor="fullName" required>
+                  <input
+                    id="fullName"
+                    type="text"
+                    required
+                    autoComplete="name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className={inputClass}
+                    placeholder="Esi Mensah"
+                  />
+                </Field>
+
+                <Field label="Email" htmlFor="reg-email" required>
+                  <input
+                    id="reg-email"
+                    type="email"
+                    inputMode="email"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={inputClass}
+                    placeholder="you@studio.com"
+                  />
+                </Field>
+
+                <Field label="Password" htmlFor="reg-password" required hint="At least 6 characters">
+                  <PasswordInput
+                    id="reg-password"
+                    value={password}
+                    onChange={setPassword}
+                    show={showPassword}
+                    onToggle={() => setShowPassword((v) => !v)}
+                    autoComplete="new-password"
+                    minLength={6}
+                  />
+                </Field>
+
+                <Field
+                  label="Gender"
+                  htmlFor="gender"
+                  hint="Used to address you as Madam / Master throughout the studio."
                 >
-                  Create your shop
-                </h2>
-                <p className="text-sm text-stone-500 mt-2">
-                  Open a new atelier — your studio, your clients, your craft.
-                </p>
-              </div>
-
-              <form onSubmit={submitRegister} className="space-y-4">
-                {/* Shop name */}
-                <div>
-                  <label
-                    htmlFor="shopName"
-                    className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 mb-2"
-                  >
-                    Shop name <span className="text-[#800020]">*</span>
-                  </label>
-                  <div className="relative group">
-                    <Store className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-[#800020] transition-colors" />
-                    <input
-                      id="shopName"
-                      type="text"
-                      required
-                      autoComplete="organization"
-                      value={shopName}
-                      onChange={(e) => setShopName(e.target.value)}
-                      className={inputClass}
-                      placeholder="Esi Atelier"
-                    />
-                  </div>
-                </div>
-
-                {/* Your name */}
-                <div>
-                  <label
-                    htmlFor="fullName"
-                    className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 mb-2"
-                  >
-                    Your name <span className="text-[#800020]">*</span>
-                  </label>
-                  <div className="relative group">
-                    <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-[#800020] transition-colors" />
-                    <input
-                      id="fullName"
-                      type="text"
-                      required
-                      autoComplete="name"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className={inputClass}
-                      placeholder="Esi Mensah"
-                    />
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label
-                    htmlFor="reg-email"
-                    className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 mb-2"
-                  >
-                    Email <span className="text-[#800020]">*</span>
-                  </label>
-                  <div className="relative group">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-[#800020] transition-colors" />
-                    <input
-                      id="reg-email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className={inputClass}
-                      placeholder="you@studio.com"
-                    />
-                  </div>
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label
-                    htmlFor="reg-password"
-                    className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 mb-2"
-                  >
-                    Password <span className="text-[#800020]">*</span>
-                    <span className="text-stone-400 normal-case tracking-normal ml-1.5 font-normal">
-                      · min 6 chars
-                    </span>
-                  </label>
-                  <div className="relative group">
-                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-[#800020] transition-colors" />
-                    <input
-                      id="reg-password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      minLength={6}
-                      autoComplete="new-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-11 h-12 bg-white border border-[#E7E5E4] rounded-xl text-sm text-[#1C1917] placeholder-stone-400 focus:outline-none focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/8 transition-all elevate-sm"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((s) => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition p-1"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Gender */}
-                <div>
-                  <label
-                    htmlFor="gender"
-                    className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 mb-2"
-                  >
-                    Gender
-                  </label>
                   <Select value={gender} onValueChange={setGender}>
-                    <SelectTrigger
-                      id="gender"
-                      className="w-full h-12 bg-white border border-[#E7E5E4] rounded-xl text-sm text-[#1C1917] data-[placeholder]:text-stone-400 focus:outline-none focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/8 transition-all elevate-sm font-normal"
-                    >
+                    <SelectTrigger id="gender" className="h-11 w-full rounded-md border-[#E7E5E4] bg-white text-sm font-normal text-[#1C1917] focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15">
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-[#E7E5E4]">
-                      <SelectItem value="Female" className="rounded-lg text-sm">
-                        Female
-                      </SelectItem>
-                      <SelectItem value="Male" className="rounded-lg text-sm">
-                        Male
-                      </SelectItem>
-                      <SelectItem value="Other" className="rounded-lg text-sm">
-                        Other
-                      </SelectItem>
+                    <SelectContent className="rounded-md border-[#E7E5E4]">
+                      <SelectItem value="Female" className="text-sm">Female</SelectItem>
+                      <SelectItem value="Male" className="text-sm">Male</SelectItem>
+                      <SelectItem value="Other" className="text-sm">Other</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-[10px] text-stone-400 mt-1.5 leading-relaxed">
-                    Used to address you as Madam / Master throughout the studio.
-                  </p>
-                </div>
+                </Field>
 
-                {error && (
-                  <div className="flex items-start gap-2 text-sm text-[#800020] bg-[#800020]/5 border border-[#800020]/15 rounded-xl px-3.5 py-2.5 animate-fade-in">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#800020] mt-1.5 shrink-0" />
-                    {error}
-                  </div>
-                )}
+                {error && <ErrorNote>{error}</ErrorNote>}
 
-                <PremiumButton
-                  type="submit"
-                  size="lg"
-                  loading={submitting}
-                  className="w-full mt-1 group"
-                >
-                  {submitting ? (
-                    "Creating your shop…"
-                  ) : (
-                    <>
-                      Create shop
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
-                    </>
-                  )}
+                <PremiumButton type="submit" size="lg" loading={submitting} className="w-full">
+                  {submitting ? "Creating your shop…" : "Create shop"}
                 </PremiumButton>
               </form>
 
-              {/* Back to sign in */}
-              <button
-                type="button"
-                onClick={() => switchMode("login")}
-                className="mt-6 w-full inline-flex items-center justify-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition-colors group"
-              >
-                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition" />
-                Already have a studio?
-                <span className="font-semibold text-[#800020] underline-offset-4 group-hover:underline">
+              <p className="mt-8 border-t border-[#E7E5E4] pt-6 text-sm text-stone-500">
+                Already have a studio?{" "}
+                <button
+                  type="button"
+                  onClick={() => switchMode("login")}
+                  className="font-medium text-[#800020] underline-offset-4 hover:underline"
+                >
                   Back to sign in
-                </span>
-              </button>
-            </div>
+                </button>
+              </p>
+            </section>
           )}
         </div>
-
-        {/* Subtle footer */}
-        <p className="text-center text-[11px] text-stone-400 mt-6 leading-relaxed">
-          Madam Studio — where every stitch tells a story.
-        </p>
-      </div>
+      </main>
     </div>
+  );
+}
+
+/* ---------- small pieces ---------- */
+
+function Field({
+  label,
+  htmlFor,
+  required,
+  hint,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  required?: boolean;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-medium text-[#1C1917]">
+        {label}
+        {required && <span className="ml-0.5 text-[#800020]" aria-hidden="true">*</span>}
+      </label>
+      {children}
+      {hint && <p className="mt-1.5 text-xs leading-relaxed text-stone-400">{hint}</p>}
+    </div>
+  );
+}
+
+function PasswordInput({
+  id,
+  value,
+  onChange,
+  show,
+  onToggle,
+  autoComplete,
+  minLength,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  show: boolean;
+  onToggle: () => void;
+  autoComplete: string;
+  minLength?: number;
+}) {
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type={show ? "text" : "password"}
+        required
+        minLength={minLength}
+        autoComplete={autoComplete}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClass + " pr-11"}
+        placeholder="••••••••"
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded text-stone-400 transition-colors hover:text-stone-700"
+        aria-label={show ? "Hide password" : "Show password"}
+      >
+        {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </button>
+    </div>
+  );
+}
+
+function ErrorNote({ children }: { children: React.ReactNode }) {
+  return (
+    <p role="alert" className="rounded-md border border-[#800020]/20 bg-[#800020]/5 px-3.5 py-2.5 text-sm text-[#800020]">
+      {children}
+    </p>
   );
 }

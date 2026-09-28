@@ -26,13 +26,13 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="min-h-dvh flex items-center justify-center bg-[#faf8f5] px-5 py-10">
-      <section className="w-full max-w-md rounded-xl border border-[#E7E5E4] bg-white p-6 sm:p-8 shadow-sm">
-        <div className="mb-7 text-center">
-          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-[#800020] text-white">
-            <Scissors className="size-5" />
+      <section className="w-full max-w-md rounded-lg border border-[#E7E5E4] bg-white p-6 sm:p-8">
+        <div className="mb-8">
+          <div className="mb-8 flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-md bg-[#800020] text-white"><Scissors className="size-4" /></div>
+            <span className="font-display text-xl font-semibold text-[#1C1917]">Madam Studio</span>
           </div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400">Madam Studio</p>
-          <h1 className="mt-2 font-display text-2xl font-semibold text-[#1C1917]">Reset your password</h1>
+          <h1 className="font-display text-[34px] font-semibold leading-none text-[#1C1917]">Reset your password</h1>
           <p className="mt-2 text-sm text-stone-500">We’ll email a secure link if an account matches.</p>
         </div>
 
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
           </p>
         ) : (
           <form onSubmit={submit} className="space-y-4">
-            <label htmlFor="recovery-email" className="block text-xs font-medium text-stone-600">Email address</label>
+            <label htmlFor="recovery-email" className="block text-[13px] font-medium text-[#1C1917]">Email address</label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-stone-400" />
               <input
@@ -52,11 +52,11 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="h-12 w-full rounded-lg border border-[#E7E5E4] bg-white pl-10 pr-3 text-sm text-[#1C1917] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15"
+                className="h-11 w-full rounded-md border border-[#E7E5E4] bg-white pl-10 pr-3 text-sm text-[#1C1917] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15"
               />
             </div>
-            {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-            <button disabled={loading} className="h-11 w-full rounded-lg bg-[#800020] text-sm font-medium text-white hover:bg-[#6b0018] disabled:opacity-60">
+            {error && <p role="alert" className="rounded-md border border-[#800020]/20 bg-[#800020]/5 px-3.5 py-2.5 text-sm text-[#800020]">{error}</p>}
+            <button disabled={loading} className="h-11 w-full rounded-md bg-[#800020] text-sm font-medium text-white hover:bg-[#6b0018] disabled:opacity-60">
               {loading ? "Sending…" : "Send reset link"}
             </button>
           </form>

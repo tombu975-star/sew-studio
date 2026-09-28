@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { FIELD_BY_KEY, formatValue, toCm } from "@/lib/measurements";
 import { Image as ImageIcon, Lock } from "lucide-react";
 
 export default function NewOrder() {
@@ -405,12 +406,16 @@ export default function NewOrder() {
           <SectionCard title="Measurements on file" action={<Ruler className="w-4 h-4 text-stone-400" />}>
             {latestMeasurement ? (
                   <dl className="grid grid-cols-3 gap-x-3 gap-y-2 text-xs">
-                    {([["Bust", latestMeasurement.bust], ["Waist", latestMeasurement.waist], ["Hip", latestMeasurement.hip], ["Shoulder", latestMeasurement.shoulder], ["Sleeve", latestMeasurement.sleeve], ["Length", latestMeasurement.length]] as const).map(([label, v]) => (
-                      <div key={label}>
-                        <dt className="text-stone-400">{label}</dt>
-                        <dd className="font-semibold tabular-nums text-[#1C1917]">{v != null ? `${v} ${latestMeasurement.unit}` : "—"}</dd>
-                      </div>
-                    ))}
+                    {(["height", "bust", "waist", "hip", "shoulder", "backLength", "sleeve", "inseam"] as const).map((key) => {
+                      const raw = (latestMeasurement as unknown as Record<string, number | null | undefined>)[key];
+                      const cm = toCm(raw, latestMeasurement.unit);
+                      return (
+                        <div key={key}>
+                          <dt className="text-stone-400">{FIELD_BY_KEY[key].label.replace(/ \(.*\)$/, "")}</dt>
+                          <dd className="font-semibold tabular-nums text-[#1C1917]">{cm != null ? `${formatValue(cm, "cm")} cm` : "—"}</dd>
+                        </div>
+                      );
+                    })}
                   </dl>
                 ) : (
                   <p className="text-xs text-stone-400">{customerId ? "None recorded yet." : "Select a customer to see their measurements."}</p>

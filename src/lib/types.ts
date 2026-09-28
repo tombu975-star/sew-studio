@@ -157,7 +157,27 @@ export interface MeasurementSet {
   shoulder?: number | null;
   length?: number | null;
   sleeve?: number | null;
+  inseam?: number | null;
+  neck?: number | null;
+  height?: number | null;
+  weight?: number | null;
+  acrossBack?: number | null;
+  bustPoint?: number | null;
+  shoulderToBust?: number | null;
+  underbust?: number | null;
+  backLength?: number | null;
+  frontLength?: number | null;
+  upperArm?: number | null;
+  wrist?: number | null;
+  waistToHip?: number | null;
+  crotchDepth?: number | null;
+  thigh?: number | null;
+  knee?: number | null;
+  ankle?: number | null;
+  outseam?: number | null;
+  posture?: string | null;
   notes?: string | null;
+  staff?: { id: string; fullName: string } | null;
 }
 
 export interface StyleConcept {

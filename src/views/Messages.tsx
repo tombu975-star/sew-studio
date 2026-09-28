@@ -474,7 +474,7 @@ function MessageRow({ message }: { message: CustomerNotification }) {
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 mt-2.5">
             {message.customer && (
               <span className="inline-flex items-center gap-1.5 min-w-0">
-                <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
+                <span className="w-5 h-5 rounded-full bg-[#800020] text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
                   {initial}
                 </span>
                 <span className="text-[11px] text-stone-600 truncate">

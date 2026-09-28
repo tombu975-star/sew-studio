@@ -383,7 +383,7 @@ export default function Customers() {
                 className="group w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[#faf8f5] transition-all focus:outline-none focus-visible:bg-[#faf8f5]"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                   aria-hidden
                 >
                   {(c.name || "?").charAt(0).toUpperCase()}

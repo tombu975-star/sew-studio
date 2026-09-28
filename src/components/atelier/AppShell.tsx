@@ -281,7 +281,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => go("dashboard")}
             className="flex items-center gap-3 group w-full"
           >
-            <div className="w-10 h-10 rounded-xl bg-[linear-gradient(155deg,#c2415e_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center text-[#1C1917] transition-transform duration-300 group-hover:scale-105 shadow-[0_6px_16px_-4px_rgba(128,0,32,0.45)] shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#800020] flex items-center justify-center text-[#1C1917] transition-transform duration-300 shrink-0">
               <Scissors className="w-4 h-4" strokeWidth={2.25} />
             </div>
             <div className="min-w-0 text-left">
@@ -346,7 +346,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <div className="relative shrink-0">
                   <div
-                    className="w-9 h-9 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold ring-2"
+                    className="w-9 h-9 rounded-full bg-[#800020] text-white flex items-center justify-center text-xs font-semibold ring-2"
                     style={{ ["--tw-ring-color" as string]: roleAccent }}
                   >
                     {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
@@ -382,7 +382,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => go("dashboard")}
             className="flex items-center gap-2 min-w-0 flex-1"
           >
-            <div className="w-7 h-7 rounded-lg bg-[linear-gradient(155deg,#c2415e_0%,#800020_60%,#5c0016_100%)] flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-[#800020] flex items-center justify-center shrink-0">
               <Scissors className="w-3.5 h-3.5 text-[#1C1917]" strokeWidth={2.25} />
             </div>
             <span
@@ -400,7 +400,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
           <button
             onClick={() => go("profile")}
-            className="w-8 h-8 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-xs font-semibold shrink-0 ring-2"
+            className="w-8 h-8 rounded-full bg-[#800020] text-white flex items-center justify-center text-xs font-semibold shrink-0 ring-2"
             style={{ ["--tw-ring-color" as string]: roleAccent }}
             title={`${user?.fullName} · My profile`}
           >
@@ -495,7 +495,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       : "text-stone-600 hover:bg-[#faf8f5]"
                   )}
                 >
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#800020] to-[#6b0018] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-[#800020] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
                     {(user?.fullName || "?").charAt(0).toUpperCase()}
                   </div>
                   <span className="flex-1 text-left truncate">{user?.fullName || "My profile"}</span>
