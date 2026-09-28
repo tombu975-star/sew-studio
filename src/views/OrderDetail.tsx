@@ -99,10 +99,11 @@ export default function OrderDetail() {
   const [generatingPortal, setGeneratingPortal] = useState(false);
   const [tab, setTab] = useState<"invoice" | "production" | "costing" | null>(null);
 
-  const { data: order, isLoading } = useQuery<Order>({
+  const { data: order, isLoading, isError, error, refetch } = useQuery<Order>({
     queryKey: ["order", selectedId],
     queryFn: () => apiGet<Order>(`/api/orders/${selectedId}`),
     enabled: !!selectedId,
+    retry: 1,
   });
 
   const { data: settings } = useQuery<Settings>({
@@ -248,6 +249,35 @@ export default function OrderDetail() {
             icon={AlertCircle}
             title="No order selected"
             description="Choose an order from the list to view its detail."
+          />
+        </SectionCard>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+        <button
+          onClick={() => go("orders")}
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
+        </button>
+        <SectionCard>
+          <EmptyState
+            icon={AlertCircle}
+            title="Couldn't open this order"
+            description={
+              error instanceof Error && error.message
+                ? error.message
+                : "Something went wrong loading this order. It may have been removed, or you may not have access to it."
+            }
+            action={
+              <PremiumButton variant="outline" onClick={() => refetch()}>
+                Try again
+              </PremiumButton>
+            }
           />
         </SectionCard>
       </div>

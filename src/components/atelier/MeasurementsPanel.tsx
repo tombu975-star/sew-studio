@@ -14,6 +14,7 @@ import { ChevronDown, Ruler } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { MeasurementSet } from "@/lib/types";
+import { BodyDiagram } from "@/components/atelier/BodyDiagram";
 import {
   FIELD_GROUPS,
   MEASUREMENT_FIELDS,
@@ -37,11 +38,16 @@ export function MeasurementsPanel({
   measurements,
   onUpdate,
   canUpdate = true,
+  customerGender,
 }: {
   measurements: MeasurementSet[];
   onUpdate: () => void;
   canUpdate?: boolean;
+  /** Drives which body diagram is shown (Customer.gender). Defaults to female. */
+  customerGender?: string | null;
 }) {
+  const diagramVariant: "female" | "male" =
+    (customerGender || "").toLowerCase().startsWith("m") ? "male" : "female";
   const [unit, setUnit] = useState<Unit>("cm");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
@@ -66,21 +72,24 @@ export function MeasurementsPanel({
   if (sorted.length === 0) {
     return (
       <section className="rounded-lg border border-[#E7E5E4] bg-white">
-        <div className="flex flex-col items-center px-6 py-14 text-center">
-          <Ruler className="size-6 text-stone-300" strokeWidth={1.5} />
-          <h2 className="mt-4 font-display text-lg font-semibold text-[#1C1917]">No measurements on file</h2>
-          <p className="mt-1.5 max-w-sm text-sm text-stone-500">
-            Record a full set once and every future order for this client starts from it.
-          </p>
-          {canUpdate && (
-            <button
-              type="button"
-              onClick={onUpdate}
-              className="mt-6 h-10 rounded-md bg-[#800020] px-5 text-sm font-medium text-white transition-colors hover:bg-[#6b0018]"
-            >
-              Record measurements
-            </button>
-          )}
+        <div className="grid gap-8 px-6 py-10 sm:grid-cols-[180px_1fr] sm:items-center sm:py-14">
+          <BodyDiagram variant={diagramVariant} className="mx-auto max-w-[160px] sm:max-w-none" />
+          <div className="text-center sm:text-left">
+            <Ruler className="mx-auto size-6 text-stone-300 sm:mx-0" strokeWidth={1.5} />
+            <h2 className="mt-4 font-display text-lg font-semibold text-[#1C1917]">No measurements on file</h2>
+            <p className="mt-1.5 max-w-sm text-sm text-stone-500 mx-auto sm:mx-0">
+              Record a full set once and every future order for this client starts from it.
+            </p>
+            {canUpdate && (
+              <button
+                type="button"
+                onClick={onUpdate}
+                className="mt-6 h-10 rounded-md bg-[#800020] px-5 text-sm font-medium text-white transition-colors hover:bg-[#6b0018]"
+              >
+                Record measurements
+              </button>
+            )}
+          </div>
         </div>
       </section>
     );
@@ -177,8 +186,18 @@ export function MeasurementsPanel({
         </div>
       )}
 
-      {/* Dimensions by group */}
-      <div className="grid gap-x-10 gap-y-7 px-5 py-6 sm:px-6 md:grid-cols-2">
+      {/* Diagram + dimensions by group */}
+      <div className="grid gap-x-8 gap-y-7 px-5 py-6 sm:px-6 md:grid-cols-[190px_1fr]">
+        <div className="hidden md:block">
+          <div className="sticky top-4 rounded-lg border border-[#E7E5E4] bg-[#FBF9F7] p-4">
+            <BodyDiagram variant={diagramVariant} />
+            <p className="mt-3 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-stone-400">
+              {diagramVariant === "female" ? "Women's" : "Men's"} reference
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-x-10 gap-y-7 md:grid-cols-2">
         {FIELD_GROUPS.map((group) => {
           const fields = MEASUREMENT_FIELDS.filter((f) => f.group === group);
           return (
@@ -220,6 +239,7 @@ export function MeasurementsPanel({
             </div>
           );
         })}
+        </div>
       </div>
 
       {current.notes && (
@@ -247,18 +267,26 @@ export function MeasurementsPanel({
           <ChevronDown className={cn("size-4 text-stone-400 transition-transform", showGuide && "rotate-180")} />
         </button>
         {showGuide && (
-          <div className="grid gap-x-10 gap-y-2 px-5 pb-5 text-xs leading-relaxed text-stone-600 sm:px-6 md:grid-cols-2">
-            <p className="md:col-span-2">
-              Client stands upright and relaxed, feet together, in light clothing. Use a flexible, non-stretch tape. Girths are
-              taken horizontally, snug but not compressing. Lengths follow the body surface between landmarks. Record to the nearest
-              0.1 cm.
-            </p>
-            {MEASUREMENT_FIELDS.filter((f) => f.core).map((f) => (
-              <p key={f.key}>
-                <span className="font-semibold text-[#1C1917]">{f.label}. </span>
-                {f.how}
+          <div className="px-5 pb-5 sm:px-6">
+            <div className="mb-5 rounded-lg border border-[#E7E5E4] bg-[#FBF9F7] p-4 md:hidden">
+              <BodyDiagram variant={diagramVariant} className="mx-auto max-w-[180px]" />
+              <p className="mt-3 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-stone-400">
+                {diagramVariant === "female" ? "Women's" : "Men's"} reference
               </p>
-            ))}
+            </div>
+            <div className="grid gap-x-10 gap-y-2 text-xs leading-relaxed text-stone-600 md:grid-cols-2">
+              <p className="md:col-span-2">
+                Client stands upright and relaxed, feet together, in light clothing. Use a flexible, non-stretch tape. Girths are
+                taken horizontally, snug but not compressing. Lengths follow the body surface between landmarks. Record to the nearest
+                0.1 cm.
+              </p>
+              {MEASUREMENT_FIELDS.filter((f) => f.core).map((f) => (
+                <p key={f.key}>
+                  <span className="font-semibold text-[#1C1917]">{f.label}. </span>
+                  {f.how}
+                </p>
+              ))}
+            </div>
           </div>
         )}
       </div>

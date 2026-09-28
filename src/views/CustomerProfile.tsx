@@ -407,6 +407,7 @@ export default function CustomerProfile() {
           <MeasurementsPanel
             measurements={measurements}
             onUpdate={() => setMeasureOpen(true)}
+            customerGender={customer.gender}
           />
         </TabsContent>
 

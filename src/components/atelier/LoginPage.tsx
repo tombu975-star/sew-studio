@@ -140,19 +140,20 @@ export function LoginPage() {
         </div>
       </aside>
 
-      <main className="flex min-h-dvh flex-col justify-center px-5 py-8 pt-safe pb-safe sm:px-12 sm:py-12 lg:min-h-0">
-        <div className="mx-auto w-full max-w-[420px]">
-          <div className="mb-8 sm:mb-10 flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-md bg-[#800020]">
-              <Scissors className="size-4 text-white" strokeWidth={2} />
+      <main className="flex min-h-dvh flex-col justify-center px-5 py-8 pt-safe pb-safe sm:px-8 sm:py-12 lg:min-h-0 lg:px-14 xl:px-20">
+        <div className="mx-auto w-full max-w-[440px]">
+          <div className="mb-7 flex items-center justify-center gap-3 lg:justify-start">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-[linear-gradient(155deg,#9c2b45_0%,#800020_55%,#5c0016_100%)] shadow-[0_8px_20px_-8px_rgba(128,0,32,0.5)]">
+              <Scissors className="size-[18px] text-white" strokeWidth={2} />
             </div>
             <span className="font-display text-xl font-semibold text-[#1C1917]">Madam Studio</span>
           </div>
 
+          <div className="rounded-2xl border border-[#E7E5E4] bg-white px-6 py-8 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_16px_40px_-16px_rgba(28,25,23,0.12)] sm:px-9 sm:py-10">
           {mode === "login" ? (
             <section key="login" className="animate-fade-in">
-              <h1 className="font-display text-[30px] sm:text-[34px] font-semibold leading-tight text-[#1C1917]">Welcome back</h1>
-              <p className="mt-2.5 text-sm text-stone-500">Sign in to your studio to continue.</p>
+              <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#1C1917] text-center lg:text-left">Welcome back</h1>
+              <p className="mt-2 text-sm text-stone-500 text-center lg:text-left">Sign in to your studio to continue.</p>
 
               <form onSubmit={submitLogin} className="mt-8 space-y-5">
                 <Field label="Email" htmlFor="email">
@@ -182,7 +183,7 @@ export function LoginPage() {
                   />
                 </Field>
 
-                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 text-xs pt-0.5">
                   <label className="inline-flex cursor-pointer items-center gap-2 text-stone-600">
                     <input
                       type="checkbox"
@@ -204,7 +205,7 @@ export function LoginPage() {
                 </PremiumButton>
               </form>
 
-              <p className="mt-8 border-t border-[#E7E5E4] pt-6 text-sm text-stone-500">
+              <p className="mt-7 border-t border-[#E7E5E4] pt-6 text-center text-sm text-stone-500 lg:text-left">
                 Opening a new atelier?{" "}
                 <button
                   type="button"
@@ -217,8 +218,8 @@ export function LoginPage() {
             </section>
           ) : (
             <section key="register" className="animate-fade-in">
-              <h1 className="font-display text-[30px] sm:text-[34px] font-semibold leading-tight text-[#1C1917]">Create your shop</h1>
-              <p className="mt-2.5 text-sm text-stone-500">
+              <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#1C1917] text-center lg:text-left">Create your shop</h1>
+              <p className="mt-2 text-sm text-stone-500 text-center lg:text-left">
                 Open a new atelier — your studio, your clients, your craft.
               </p>
 
@@ -301,7 +302,7 @@ export function LoginPage() {
                 </PremiumButton>
               </form>
 
-              <p className="mt-8 border-t border-[#E7E5E4] pt-6 text-sm text-stone-500">
+              <p className="mt-7 border-t border-[#E7E5E4] pt-6 text-center text-sm text-stone-500 lg:text-left">
                 Already have a studio?{" "}
                 <button
                   type="button"
@@ -313,6 +314,11 @@ export function LoginPage() {
               </p>
             </section>
           )}
+          </div>
+
+          <p className="mt-6 text-center text-[11px] text-stone-400 lg:text-left">
+            Madam Studio — where every stitch tells a story.
+          </p>
         </div>
       </main>
     </div>
