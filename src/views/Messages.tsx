@@ -165,7 +165,7 @@ const DIRECTION_META: Record<
   },
   manual: {
     label: "Manual",
-    class: "bg-[#800020]/8 text-[#800020] border-[#800020]/20",
+    class: "bg-[#9E5A44]/8 text-[#9E5A44] border-[#9E5A44]/20",
   },
 };
 
@@ -386,7 +386,7 @@ export default function Messages() {
             description="Manual messages and automatic customer notifications will appear here in your outbox."
           />
         ) : (
-          <ul className="divide-y divide-[#E7E5E4]/70">
+          <ul className="divide-y divide-[#EAE6DF]/70">
             {filtered.map((m) => (
               <MessageRow key={m.id} message={m} />
             ))}
@@ -419,7 +419,7 @@ function MessageRow({ message }: { message: CustomerNotification }) {
   const failed = message.deliveryStatus === "failed";
 
   return (
-    <li className="group px-5 py-4 hover:bg-[#FBF9F7]/60 transition-colors">
+    <li className="group px-5 py-4 hover:bg-[#FAF2EC]/60 transition-colors">
       <div className="flex items-start gap-4">
         {/* Channel icon tile */}
         <div
@@ -463,7 +463,7 @@ function MessageRow({ message }: { message: CustomerNotification }) {
           </div>
 
           {/* Title + body */}
-          <p className="text-sm font-medium text-[#1C1917] leading-snug">
+          <p className="text-sm font-medium text-[#1C1A18] leading-snug">
             {message.title || "Untitled message"}
           </p>
           <p className="text-xs text-stone-500 mt-1 leading-relaxed whitespace-pre-wrap line-clamp-2">
@@ -474,7 +474,7 @@ function MessageRow({ message }: { message: CustomerNotification }) {
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 mt-2.5">
             {message.customer && (
               <span className="inline-flex items-center gap-1.5 min-w-0">
-                <span className="w-5 h-5 rounded-full bg-[#800020] text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
+                <span className="w-5 h-5 rounded-full bg-[#9E5A44] text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
                   {initial}
                 </span>
                 <span className="text-[11px] text-stone-600 truncate">
@@ -592,8 +592,8 @@ function SendMessageDialog({
     >
       <DialogContent className="sm:max-w-md rounded-lg">
         <DialogHeader>
-          <DialogTitle className="font-display text-[#1C1917] flex items-center gap-2">
-            <span className="w-7 h-7 rounded-full bg-[#800020]/10 text-[#800020] flex items-center justify-center">
+          <DialogTitle className="font-display text-[#1C1A18] flex items-center gap-2">
+            <span className="w-7 h-7 rounded-full bg-[#9E5A44]/10 text-[#9E5A44] flex items-center justify-center">
               <Send className="w-4 h-4" />
             </span>
             Send new message
@@ -608,7 +608,7 @@ function SendMessageDialog({
           {/* Customer */}
           <div className="grid gap-1.5">
             <Label htmlFor="msg-customer">
-              Customer <span className="text-[#800020]">*</span>
+              Customer <span className="text-[#9E5A44]">*</span>
             </Label>
             <Select value={customerId} onValueChange={handleCustomerChange}>
               <SelectTrigger id="msg-customer" className="w-full bg-white">
@@ -711,7 +711,7 @@ function SendMessageDialog({
           {/* Body */}
           <div className="grid gap-1.5">
             <Label htmlFor="msg-body">
-              Message <span className="text-[#800020]">*</span>
+              Message <span className="text-[#9E5A44]">*</span>
             </Label>
             <Textarea
               id="msg-body"

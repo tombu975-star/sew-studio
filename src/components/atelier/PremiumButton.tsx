@@ -9,20 +9,20 @@ type Size = "sm" | "md" | "lg" | "icon";
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "text-white bg-[#800020] hover:bg-[#6b0018] active:bg-[#5c0016]",
+    "text-white bg-[#9E5A44] hover:bg-[#854B38] hover:shadow-[0_4px_12px_rgba(158,90,68,0.2)] active:bg-[#6B3A27]",
   secondary:
-    "bg-[#1C1917] text-white hover:bg-[#292524]",
+    "bg-[#1C1A18] text-white hover:bg-[#292524]",
   ghost:
-    "bg-transparent text-stone-600 hover:bg-[#F5F1EC] hover:text-[#1C1917]",
+    "bg-transparent text-stone-600 hover:bg-[#F5F4F0] hover:text-[#1C1A18]",
   outline:
-    "bg-white border border-[#E7E5E4] text-[#1C1917] hover:border-[#800020]/35 hover:bg-[#FBF9F7] active:bg-[#F5F1EC]",
+    "bg-white border border-[#EAE6DF] text-[#1C1A18] hover:border-[#9E5A44]/35 hover:bg-[#FAF2EC] active:bg-[#F5F4F0]",
   danger:
-    "bg-[#b91c1c] text-white hover:bg-[#991b1b]",
+    "bg-[#8E3232] text-white hover:bg-[#6B2626]",
 };
 
 const SIZES: Record<Size, string> = {
   sm: "h-8 px-3 text-xs gap-1.5",
-  md: "h-10 px-4 text-sm gap-2",
+  md: "h-11 px-4 text-sm gap-2",
   lg: "h-12 px-6 text-sm gap-2",
   icon: "h-9 w-9",
 };
@@ -54,7 +54,7 @@ export const PremiumButton = forwardRef<
       ref={ref}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex items-center justify-center font-medium rounded-md transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-45 disabled:pointer-events-none disabled:grayscale-[0.3] whitespace-nowrap select-none",
+        "inline-flex items-center justify-center font-medium rounded-md transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9E5A44]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-45 disabled:pointer-events-none disabled:grayscale-[0.3] whitespace-nowrap select-none",
         VARIANTS[variant],
         SIZES[size],
         className

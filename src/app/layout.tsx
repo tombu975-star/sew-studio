@@ -1,14 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import "@fontsource/playfair-display/400.css";
+import "@fontsource/playfair-display/500.css";
+import "@fontsource/playfair-display/600.css";
+import "@fontsource/playfair-display/700.css";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
-// Cormorant Garamond (display serif) + Plus Jakarta Sans (UI text), both
-// self-hosted via next/font/local: no build-time fetch to Google Fonts,
-// automatic preload, and size-adjusted fallbacks so text doesn't jump when
-// the fonts arrive. Only the weights the UI actually uses are shipped.
+// Playfair Display (display serif, self-hosted via @fontsource — no
+// build-time fetch to Google Fonts) + Plus Jakarta Sans (UI text, local
+// woff2 via next/font/local). Only the weights the UI actually uses are
+// shipped, matching the reference "Haute Atelier" type spec.
 const jakarta = localFont({
   src: [
     { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
@@ -17,16 +21,6 @@ const jakarta = localFont({
     { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-700-normal.woff2", weight: "700", style: "normal" },
   ],
   variable: "--font-jakarta",
-  display: "swap",
-});
-
-const cormorant = localFont({
-  src: [
-    { path: "../fonts/cormorant-garamond/cormorant-garamond-latin-500-normal.woff2", weight: "500", style: "normal" },
-    { path: "../fonts/cormorant-garamond/cormorant-garamond-latin-600-normal.woff2", weight: "600", style: "normal" },
-    { path: "../fonts/cormorant-garamond/cormorant-garamond-latin-700-normal.woff2", weight: "700", style: "normal" },
-  ],
-  variable: "--font-cormorant",
   display: "swap",
 });
 
@@ -71,7 +65,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: "#800020",
+  themeColor: "#9E5A44",
 };
 
 export default function RootLayout({
@@ -80,7 +74,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${jakarta.variable} ${cormorant.variable}`}>
+    <html lang="en" suppressHydrationWarning className={jakarta.variable}>
       <body className="antialiased font-body">
         {children}
         <ServiceWorkerRegister />

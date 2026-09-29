@@ -16,9 +16,9 @@ export function BodyDiagram({
   variant?: "female" | "male";
   className?: string;
 }) {
-  const ink = "#57534E";
-  const line = "#A8A29E";
-  const arrow = "#78716C";
+  const ink = "#53433E";
+  const line = "#B8B2AA";
+  const arrow = "#7A746E";
 
   return (
     <svg

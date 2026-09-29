@@ -21,7 +21,7 @@ export function PageHeader({
         </p>
       )}
       <h1
-        className="font-display font-semibold text-[#1C1917] leading-[1.05]"
+        className="font-display font-semibold text-[#1C1A18] leading-[1.05]"
         style={{ fontSize: "clamp(28px, 5vw, 38px)" }}
       >
         {title}
@@ -43,12 +43,12 @@ export function SectionCard({
   return (
     <div
       className={cn(
-        "bg-white border border-[#E7E5E4] rounded-lg elevate-sm",
+        "bg-white border border-[#EAE6DF] rounded-lg elevate-sm",
         className
       )}
     >
       {title && (
-        <div className="px-5 pt-4 pb-3 border-b border-[#E7E5E4]/70">
+        <div className="px-5 pt-4 pb-3 border-b border-[#EAE6DF]/70">
           <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
             {title}
           </h3>

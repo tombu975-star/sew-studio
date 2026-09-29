@@ -39,90 +39,95 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Radii — set directly (not derived from a single --radius calc) so each
+     step lands exactly on the reference spec: 2px micro chips, 4px inputs/
+     buttons/tags, 8px cards/modals, 12px for occasional larger surfaces. */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
 
-  /* Premium elevation tokens */
-  --shadow-xs: 0 1px 2px 0 rgb(28 25 23 / 0.04);
-  --shadow-sm: 0 1px 3px 0 rgb(28 25 23 / 0.05), 0 1px 2px -1px rgb(28 25 23 / 0.04);
-  --shadow-md: 0 4px 12px -2px rgb(28 25 23 / 0.06), 0 2px 6px -2px rgb(28 25 23 / 0.04);
-  --shadow-lg: 0 12px 32px -4px rgb(28 25 23 / 0.08), 0 4px 12px -2px rgb(28 25 23 / 0.05);
-  --shadow-burgundy: 0 4px 14px -4px rgb(28 25 23 / 0.16);
+  /* Elevation — per the reference spec: low-contrast hairline outlines +
+     warm, diffused ambient shadows (no synthetic drop-shadows). */
+  --shadow-xs: 0 1px 2px 0 rgb(45 42 38 / 0.03);
+  --shadow-sm: 0 2px 8px -2px rgb(45 42 38 / 0.03), 0 1px 3px -1px rgb(45 42 38 / 0.02);
+  --shadow-md: 0 12px 28px -6px rgb(45 42 38 / 0.06), 0 4px 10px -2px rgb(45 42 38 / 0.03);
+  --shadow-lg: 0 24px 48px -12px rgb(28 26 24 / 0.12), 0 8px 16px -4px rgb(28 26 24 / 0.04);
+  --shadow-burgundy: 0 4px 12px rgb(158 90 68 / 0.2);
 }
 
 :root {
-  /* Madam Studio palette — burgundy wine chrome + warm cream + stone neutrals */
+  /* Madam Studio palette — "Haute Atelier": warm alabaster canvas, primary
+     terracotta, sage/crimson status colors, architectural (tight) radii. */
   --font-body: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, "Times New Roman", serif;
-  --radius: 0.625rem;
-  --background: #faf8f5;
-  --foreground: #1c1917;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --radius: 0.25rem;
+  --background: #FAFAF7;
+  --foreground: #1c1a18;
   --card: #ffffff;
-  --card-foreground: #1c1917;
+  --card-foreground: #1c1a18;
   --popover: #ffffff;
-  --popover-foreground: #1c1917;
-  --primary: #800020;
-  --primary-foreground: #faf8f5;
-  --secondary: #f5f1ec;
-  --secondary-foreground: #1c1917;
-  --muted: #f5f1ec;
-  --muted-foreground: #78716c;
-  --accent: #f5f1ec;
-  --accent-foreground: #800020;
-  --destructive: #b91c1c;
-  --destructive-foreground: #fef2f2;
-  --border: #ebe7e1;
-  --input: #ebe7e1;
-  --ring: #800020;
+  --popover-foreground: #1c1a18;
+  --primary: #9E5A44;
+  --primary-foreground: #ffffff;
+  --secondary: #F5F4F0;
+  --secondary-foreground: #1c1a18;
+  --muted: #F5F4F0;
+  --muted-foreground: #7A746E;
+  --accent: #F9EFEB;
+  --accent-foreground: #9E5A44;
+  --destructive: #8E3232;
+  --destructive-foreground: #FAF0F0;
+  --border: #EAE6DF;
+  --input: #EAE6DF;
+  --ring: #9E5A44;
   --gold: #b45309;
-  --green: #15803d;
-  --chart-1: #800020;
+  --green: #4A6B53;
+  --chart-1: #9E5A44;
   --chart-2: #b45309;
-  --chart-3: #15803d;
+  --chart-3: #4A6B53;
   --chart-4: #0e7490;
-  --chart-5: #c2410c;
-  /* Sidebar is the dark charcoal chrome that anchors every screen — the
-     one structural constant from the reference design. */
-  --sidebar: #1c1917;
-  --sidebar-foreground: #e7e2da;
-  --sidebar-primary: #c2415e;
-  --sidebar-primary-foreground: #1c1917;
-  --sidebar-accent: #29241f;
-  --sidebar-accent-foreground: #f5f1ec;
-  --sidebar-border: #332d26;
-  --sidebar-ring: #c2415e;
+  --chart-5: #8E3232;
+  /* Sidebar is steamed cream — "Surface Elevation 1" — the quiet, warm
+     backdrop the reference design uses for navigation panels. Not dark. */
+  --sidebar: #F5F4F0;
+  --sidebar-foreground: #1c1a18;
+  --sidebar-primary: #9E5A44;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ffffff;
+  --sidebar-accent-foreground: #9E5A44;
+  --sidebar-border: #EAE6DF;
+  --sidebar-ring: #9E5A44;
 }
 
 .dark {
-  --background: #1c1917;
-  --foreground: #f5f1ec;
+  --background: #1c1a18;
+  --foreground: #F5F4F0;
   --card: #292524;
-  --card-foreground: #f5f1ec;
+  --card-foreground: #F5F4F0;
   --popover: #292524;
-  --popover-foreground: #f5f1ec;
-  --primary: #c2415e;
-  --primary-foreground: #1c1917;
-  --secondary: #44403c;
-  --secondary-foreground: #f5f1ec;
-  --muted: #44403c;
-  --muted-foreground: #a8a29e;
-  --accent: #44403c;
-  --accent-foreground: #f5f1ec;
-  --destructive: #ef4444;
-  --destructive-foreground: #fef2f2;
-  --border: #44403c;
-  --input: #44403c;
-  --ring: #c2415e;
+  --popover-foreground: #F5F4F0;
+  --primary: #9E5A44;
+  --primary-foreground: #1c1a18;
+  --secondary: #2D2A26;
+  --secondary-foreground: #F5F4F0;
+  --muted: #2D2A26;
+  --muted-foreground: #B8B2AA;
+  --accent: #2D2A26;
+  --accent-foreground: #F5F4F0;
+  --destructive: #8E3232;
+  --destructive-foreground: #FAF0F0;
+  --border: #2D2A26;
+  --input: #2D2A26;
+  --ring: #9E5A44;
   --sidebar: #292524;
-  --sidebar-foreground: #f5f1ec;
-  --sidebar-primary: #c2415e;
-  --sidebar-primary-foreground: #1c1917;
-  --sidebar-accent: #44403c;
-  --sidebar-accent-foreground: #f5f1ec;
-  --sidebar-border: #44403c;
-  --sidebar-ring: #c2415e;
+  --sidebar-foreground: #F5F4F0;
+  --sidebar-primary: #9E5A44;
+  --sidebar-primary-foreground: #1c1a18;
+  --sidebar-accent: #2D2A26;
+  --sidebar-accent-foreground: #F5F4F0;
+  --sidebar-border: #2D2A26;
+  --sidebar-ring: #9E5A44;
 }
 
 @layer base {
@@ -137,7 +142,7 @@
   }
   body {
     @apply text-foreground;
-    background-color: #faf8f5;
+    background-color: #FAFAF7;
     background-image:
       radial-gradient(circle at 18% 8%, rgba(146, 64, 14, 0.022), transparent 50%),
       radial-gradient(circle at 88% 78%, rgba(180, 83, 9, 0.016), transparent 45%);
@@ -214,7 +219,7 @@
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
   }
   .lift:hover {
-    border-color: #d6d0c7;
+    border-color: #D8C2BB;
     box-shadow: var(--shadow-sm);
   }
   /* Subtle shimmer for skeletons */
@@ -223,7 +228,7 @@
     100% { background-position: 1000px 0; }
   }
   .shimmer {
-    background: linear-gradient(90deg, #f5f1ec 0%, #ebe7e1 50%, #f5f1ec 100%);
+    background: linear-gradient(90deg, #F5F4F0 0%, #EAE6DF 50%, #F5F4F0 100%);
     background-size: 1000px 100%;
     animation: shimmer 2.2s infinite linear;
   }
@@ -251,15 +256,15 @@
     background: transparent;
   }
   .scroll-slim::-webkit-scrollbar-thumb {
-    background: #d6d3d1;
+    background: #D8C2BB;
     border-radius: 9999px;
   }
   .scroll-slim::-webkit-scrollbar-thumb:hover {
-    background: #a8a29e;
+    background: #B8B2AA;
   }
   /* Premium gradient text */
   .text-gradient-burgundy {
-    color: #800020;
+    color: #9E5A44;
   }
   /* Premium surface for elevated panels */
   .surface-premium {
@@ -272,7 +277,7 @@
   h1, h2, h3 { text-wrap: balance; letter-spacing: -0.005em; }
   /* Figures line up in columns everywhere money / measurements appear. */
   table, dl, .tabular-nums { font-variant-numeric: tabular-nums; }
-  :focus-visible { outline: 2px solid #800020; outline-offset: 2px; }
+  :focus-visible { outline: 2px solid #9E5A44; outline-offset: 2px; }
   input:focus-visible, textarea:focus-visible, select:focus-visible, [role="combobox"]:focus-visible { outline-offset: 0; }
   ::selection { background: rgb(128 0 32 / 0.16); }
 }

@@ -54,7 +54,7 @@ const BOARD_COLUMNS: ColumnDef[] = [
 ];
 
 const AVATAR_GRADIENTS = [
-  "from-[#800020] to-[#800020]",
+  "from-[#9E5A44] to-[#9E5A44]",
   "from-[#3d5166] to-[#3d5166]",
   "from-[#4d6b4a] to-[#4d6b4a]",
   "from-[#8a5a2b] to-[#8a5a2b]",
@@ -227,20 +227,20 @@ export default function ProductionBoard() {
           {BOARD_COLUMNS.map((col) => (
             <div
               key={col.key}
-              className="w-80 shrink-0 rounded-xl border border-[#E7E5E4] bg-[#faf8f5]/60 p-2.5 space-y-2.5"
+              className="w-80 shrink-0 rounded-xl border border-[#EAE6DF] bg-[#FAFAF7]/60 p-2.5 space-y-2.5"
             >
               <div className="h-8 w-2/3 shimmer rounded" />
               {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-28 rounded-lg border border-[#E7E5E4] bg-white shimmer"
+                  className="h-28 rounded-lg border border-[#EAE6DF] bg-white shimmer"
                 />
               ))}
             </div>
           ))}
         </div>
       ) : (orders || []).length === 0 ? (
-        <div className="surface-premium border border-[#E7E5E4] rounded-lg elevate-sm p-6">
+        <div className="surface-premium border border-[#EAE6DF] rounded-lg elevate-sm p-6">
           <EmptyState
             icon={LayoutGrid}
             title="No orders on the board"
@@ -305,18 +305,18 @@ function Column({
     <div
       ref={setNodeRef}
       className={cn(
-        "w-80 shrink-0 rounded-xl border bg-[#faf8f5]/60 elevate-sm flex flex-col transition-colors",
+        "w-80 shrink-0 rounded-xl border bg-[#FAFAF7]/60 elevate-sm flex flex-col transition-colors",
         isOver
-          ? "border-[#800020]/50 ring-2 ring-[#800020]/15"
-          : "border-[#E7E5E4]"
+          ? "border-[#9E5A44]/50 ring-2 ring-[#9E5A44]/15"
+          : "border-[#EAE6DF]"
       )}
     >
       {/* Header */}
-      <div className="px-4 py-3 border-b border-[#E7E5E4]/70 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-[#EAE6DF]/70 flex items-center justify-between">
         <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-500">
           {col.title}
         </h3>
-        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-semibold text-[#1C1917] tabular-nums bg-white border border-[#E7E5E4] rounded-full">
+        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-semibold text-[#1C1A18] tabular-nums bg-white border border-[#EAE6DF] rounded-full">
           {cards.length}
         </span>
       </div>
@@ -386,8 +386,8 @@ function Card({
       {...attributes}
       onClick={onClick}
       className={cn(
-        "rounded-lg bg-white border border-[#E7E5E4] p-3.5 elevate-sm lift cursor-grab active:cursor-grabbing",
-        (dragging || overlay) && "shadow-lg border-[#800020]/40",
+        "rounded-lg bg-white border border-[#EAE6DF] p-3.5 elevate-sm lift cursor-grab active:cursor-grabbing",
+        (dragging || overlay) && "shadow-lg border-[#9E5A44]/40",
         overlay && "rotate-1"
       )}
     >
@@ -410,7 +410,7 @@ function Card({
       </div>
 
       {/* Style picture */}
-      <div className="mt-2.5 h-24 w-full rounded-md overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center">
+      <div className="mt-2.5 h-24 w-full rounded-md overflow-hidden bg-[#FAF2EC] border border-[#EAE6DF] flex items-center justify-center">
         {order.designImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -426,7 +426,7 @@ function Card({
       </div>
 
       {/* Garment */}
-      <div className="text-[13px] text-[#1C1917] font-medium leading-snug line-clamp-2 mt-2">
+      <div className="text-[13px] text-[#1C1A18] font-medium leading-snug line-clamp-2 mt-2">
         {order.garmentDesign}
       </div>
 
@@ -435,10 +435,10 @@ function Card({
         <StatusBadge status={order.status} />
         {order.priority === "High" && (
           <span
-            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#800020] font-semibold"
+            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#9E5A44] font-semibold"
             title="High priority"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#9E5A44]" />
             High
           </span>
         )}
@@ -451,11 +451,11 @@ function Card({
             <span>Paid</span>
             <span className="tabular-nums">{paidPct}%</span>
           </div>
-          <div className="h-1 w-full bg-[#E7E5E4] rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-[#EAE6DF] rounded-full overflow-hidden">
             <div
               className={cn(
                 "h-full rounded-full transition-all",
-                paidPct >= 100 ? "bg-emerald-500" : "bg-[#800020]"
+                paidPct >= 100 ? "bg-emerald-500" : "bg-[#9E5A44]"
               )}
               style={{ width: `${paidPct}%` }}
             />
@@ -464,7 +464,7 @@ function Card({
       )}
 
       {/* Footer: delivery */}
-      <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-[#E7E5E4]/70">
+      <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-[#EAE6DF]/70">
         <span
           className={cn(
             "text-[11px] flex items-center gap-1 tabular-nums",

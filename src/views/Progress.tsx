@@ -115,11 +115,11 @@ function initialOf(name: string): string {
 function gradientFor(name: string): string {
   // Deterministic burgundy-leaning gradient avatar.
   const palettes = [
-    "from-[#800020] to-[#6b0018]",
-    "from-[#800020] to-[#b45309]",
-    "from-[#6b0018] to-[#0e7490]",
-    "from-[#800020] to-[#15803D]",
-    "from-[#6b0018] to-[#800020]",
+    "from-[#9E5A44] to-[#854B38]",
+    "from-[#9E5A44] to-[#b45309]",
+    "from-[#854B38] to-[#0e7490]",
+    "from-[#9E5A44] to-[#4A6B53]",
+    "from-[#854B38] to-[#9E5A44]",
   ];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
@@ -135,17 +135,17 @@ const gradeColor = (pct: number): "emerald" | "amber" | "orange" =>
   pct >= 80 ? "emerald" : pct >= 60 ? "amber" : "orange";
 
 const GRADE_TONES: Record<"emerald" | "amber" | "orange", string> = {
-  emerald: "bg-[#15803D]/12 text-[#15803D] border-[#15803d]/25",
+  emerald: "bg-[#4A6B53]/12 text-[#4A6B53] border-[#4A6B53]/25",
   amber: "bg-amber-100 text-amber-800 border-amber-200",
   orange: "bg-orange-100 text-orange-800 border-orange-200",
 };
 
 const LETTER_TONES: Record<string, string> = {
-  A: "bg-[#15803D]/12 text-[#15803D] border-[#15803d]/25",
+  A: "bg-[#4A6B53]/12 text-[#4A6B53] border-[#4A6B53]/25",
   B: "bg-emerald-100 text-emerald-800 border-emerald-200",
   C: "bg-amber-100 text-amber-800 border-amber-200",
   D: "bg-orange-100 text-orange-800 border-orange-200",
-  F: "bg-[#b91c1c]/12 text-[#b91c1c] border-[#b91c1c]/25",
+  F: "bg-[#8E3232]/12 text-[#8E3232] border-[#8E3232]/25",
 };
 
 const LETTER_HINT: Record<string, string> = {
@@ -241,7 +241,7 @@ function OwnerProgress() {
         subtitle="Review your trainees' skill journeys."
         actions={
           user ? (
-            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E7E5E4] bg-white pl-2 pr-3 py-1.5 elevate-sm">
+            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#EAE6DF] bg-white pl-2 pr-3 py-1.5 elevate-sm">
               <span
                 className={cn(
                   "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-display font-semibold",
@@ -254,7 +254,7 @@ function OwnerProgress() {
                 <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
                   {user.role === "trainer" ? "Trainer" : "Owner"}
                 </div>
-                <div className="text-xs font-medium text-[#1C1917]">
+                <div className="text-xs font-medium text-[#1C1A18]">
                   {user.fullName}
                 </div>
               </div>
@@ -328,8 +328,8 @@ function OwnerProgress() {
                     className={cn(
                       "group shrink-0 flex items-center gap-3 rounded-xl border px-3 py-2 transition-all duration-200",
                       active
-                        ? "bg-[#800020] border-[#6b0018] text-white"
-                        : "bg-white border-[#E7E5E4] text-[#1C1917] hover:border-[#800020]/30 hover:bg-[#faf8f5] elevate-sm lift"
+                        ? "bg-[#9E5A44] border-[#854B38] text-white"
+                        : "bg-white border-[#EAE6DF] text-[#1C1A18] hover:border-[#9E5A44]/30 hover:bg-[#FAFAF7] elevate-sm lift"
                     )}
                   >
                     <span
@@ -401,7 +401,7 @@ function SelectedTraineeHeader({
   onClear: () => void;
 }) {
   return (
-    <div className="surface-premium border border-[#E7E5E4] rounded-lg elevate-sm lift p-5 mb-6 flex items-center gap-4 animate-fade-in-up">
+    <div className="surface-premium border border-[#EAE6DF] rounded-lg elevate-sm lift p-5 mb-6 flex items-center gap-4 animate-fade-in-up">
       <div
         className={cn(
           "w-14 h-14 rounded-full bg-gradient-to-br flex items-center justify-center text-white font-display font-semibold text-xl shrink-0 shadow-sm",
@@ -413,7 +413,7 @@ function SelectedTraineeHeader({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <h2 className="font-display font-semibold text-[#1C1917] text-xl leading-tight">
+          <h2 className="font-display font-semibold text-[#1C1A18] text-xl leading-tight">
             {trainee.fullName}
           </h2>
           <StatusBadge status="Trainee" />
@@ -609,7 +609,7 @@ function ProgressBody({
       <div className="mb-6 flex justify-end animate-fade-in-up">
         <a
           href={`/api/portfolio/${traineeId}/pdf`}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#800020]/30 bg-[#800020]/5 px-4 py-2 text-sm font-medium text-[#800020] hover:bg-[#800020]/10 transition"
+          className="inline-flex items-center gap-2 rounded-lg border border-[#9E5A44]/30 bg-[#9E5A44]/5 px-4 py-2 text-sm font-medium text-[#9E5A44] hover:bg-[#9E5A44]/10 transition"
         >
           <Download className="w-4 h-4" />
           Download Portfolio (PDF)
@@ -693,7 +693,7 @@ function ProgressBody({
               }
             />
           ) : (
-            <div className="divide-y divide-[#E7E5E4]/70">
+            <div className="divide-y divide-[#EAE6DF]/70">
               {logs.map((log, idx) => (
                 <TrainingLogRow
                   key={log.id}
@@ -754,7 +754,7 @@ function SkillMasteryCard({
           description="Once training entries are logged, this overview groups them by skill."
         />
       ) : (
-        <ul className="divide-y divide-[#E7E5E4]/70">
+        <ul className="divide-y divide-[#EAE6DF]/70">
           {skillGroups.map((group, idx) => {
             const proficientCount = group.logs.filter(
               (l) => l.status === "Proficient"
@@ -765,12 +765,12 @@ function SkillMasteryCard({
             return (
               <li
                 key={group.skill}
-                className="flex items-center gap-4 px-5 py-4 hover:bg-[#faf8f5] transition-colors animate-fade-in-up"
+                className="flex items-center gap-4 px-5 py-4 hover:bg-[#FAFAF7] transition-colors animate-fade-in-up"
                 style={{ animationDelay: `${Math.min(idx, 8) * 50}ms` }}
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-[#1C1917]">
+                    <span className="font-medium text-[#1C1A18]">
                       {group.skill}
                     </span>
                     <StatusBadge status={group.latest.status} />
@@ -783,9 +783,9 @@ function SkillMasteryCard({
                     {STATUS_HINT[group.latest.status]}
                   </p>
                   {/* Progress hint bar */}
-                  <div className="mt-2 h-1 w-full max-w-[220px] rounded-full bg-[#E7E5E4]/80 overflow-hidden">
+                  <div className="mt-2 h-1 w-full max-w-[220px] rounded-full bg-[#EAE6DF]/80 overflow-hidden">
                     <div
-                      className="h-full bg-[#800020] rounded-full transition-all"
+                      className="h-full bg-[#9E5A44] rounded-full transition-all"
                       style={{ width: `${pct}%` }}
                       aria-hidden
                     />
@@ -846,7 +846,7 @@ function TrainingLogRow({
 
   return (
     <div
-      className="group px-5 py-4 hover:bg-[#faf8f5] transition-colors animate-fade-in-up"
+      className="group px-5 py-4 hover:bg-[#FAFAF7] transition-colors animate-fade-in-up"
       style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
     >
       <div className="flex items-start gap-4">
@@ -857,7 +857,7 @@ function TrainingLogRow({
               month: "short",
             })}
           </div>
-          <div className="font-display font-semibold text-[#1C1917] text-lg leading-none tabular-nums">
+          <div className="font-display font-semibold text-[#1C1A18] text-lg leading-none tabular-nums">
             {new Date(log.date).getDate()}
           </div>
           <div className="text-[10px] text-stone-400 tabular-nums mt-0.5">
@@ -865,17 +865,17 @@ function TrainingLogRow({
           </div>
         </div>
 
-        <Separator orientation="vertical" className="h-16 bg-[#E7E5E4]/70" />
+        <Separator orientation="vertical" className="h-16 bg-[#EAE6DF]/70" />
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             {log.skill && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#800020] bg-[#800020]/8 border border-[#800020]/15 px-1.5 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#9E5A44] bg-[#9E5A44]/8 border border-[#9E5A44]/15 px-1.5 py-0.5 rounded-md">
                 <Scissors className="w-3 h-3" /> {log.skill}
               </span>
             )}
-            <span className="font-medium text-[#1C1917]">{log.title}</span>
+            <span className="font-medium text-[#1C1A18]">{log.title}</span>
           </div>
           {log.note && (
             <p className="text-xs text-stone-500 mt-1.5 whitespace-pre-wrap leading-relaxed">
@@ -922,7 +922,7 @@ function TrainingLogRow({
               type="button"
               onClick={() => setConfirmOpen(true)}
               aria-label="Delete log entry"
-              className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center w-7 h-7 rounded-md text-stone-400 hover:text-[#b91c1c] hover:bg-[#b91c1c]/8 focus:opacity-100"
+              className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center w-7 h-7 rounded-md text-stone-400 hover:text-[#8E3232] hover:bg-[#8E3232]/8 focus:opacity-100"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -942,7 +942,7 @@ function TrainingLogRow({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-[#b91c1c] text-white hover:bg-[#991b1b]"
+              className="bg-[#8E3232] text-white hover:bg-[#6B2626]"
               onClick={() => deleteMut.mutate()}
               disabled={deleteMut.isPending}
             >
@@ -976,7 +976,7 @@ function MyTasksCard({
           description="When the atelier assigns you a task, it will appear here."
         />
       ) : (
-        <ul className="divide-y divide-[#E7E5E4]/70">
+        <ul className="divide-y divide-[#EAE6DF]/70">
           {tasks.map((task) => {
             const overdue =
               task.status !== "Done" &&
@@ -985,11 +985,11 @@ function MyTasksCard({
             return (
               <li
                 key={task.id}
-                className="px-5 py-3.5 flex items-center gap-4 hover:bg-[#faf8f5] transition-colors"
+                className="px-5 py-3.5 flex items-center gap-4 hover:bg-[#FAFAF7] transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-[#1C1917] text-sm">
+                    <span className="font-medium text-[#1C1A18] text-sm">
                       {task.title}
                     </span>
                     {task.priority && (
@@ -1008,7 +1008,7 @@ function MyTasksCard({
                     <span
                       className={cn(
                         "text-[11px] tabular-nums inline-flex items-center gap-1",
-                        overdue ? "text-[#b91c1c] font-medium" : "text-stone-500"
+                        overdue ? "text-[#8E3232] font-medium" : "text-stone-500"
                       )}
                     >
                       <CalendarDays className="w-3.5 h-3.5" />
@@ -1060,17 +1060,17 @@ function OrdersContributedCard({
       title="Orders I've contributed to"
       bodyClassName="p-0"
     >
-      <ul className="divide-y divide-[#E7E5E4]/70">
+      <ul className="divide-y divide-[#EAE6DF]/70">
         {orders.map((order) => (
           <li key={order.id}>
             <button
               type="button"
               onClick={() => go("order", { id: order.id })}
-              className="w-full text-left px-5 py-3.5 flex items-center gap-4 hover:bg-[#faf8f5] transition-colors group"
+              className="w-full text-left px-5 py-3.5 flex items-center gap-4 hover:bg-[#FAFAF7] transition-colors group"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-[#1C1917] text-sm">
+                  <span className="font-medium text-[#1C1A18] text-sm">
                     {order.garmentDesign}
                   </span>
                   {order.customer && (
@@ -1084,11 +1084,11 @@ function OrdersContributedCard({
                 </p>
               </div>
               <div className="shrink-0 flex items-center gap-3">
-                <span className="text-sm font-medium text-[#1C1917] tabular-nums">
+                <span className="text-sm font-medium text-[#1C1A18] tabular-nums">
                   {formatCurrency(order.sellingPrice)}
                 </span>
                 <StatusBadge status={order.status} />
-                <ArrowRight className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors" />
+                <ArrowRight className="w-4 h-4 text-stone-300 group-hover:text-[#9E5A44] transition-colors" />
               </div>
             </button>
           </li>
@@ -1239,7 +1239,7 @@ function LogForm({
 
         <div className="grid gap-1.5">
           <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
-            Title <span className="text-[#800020]">*</span>
+            Title <span className="text-[#9E5A44]">*</span>
           </Label>
           <Input
             value={title}
@@ -1323,14 +1323,14 @@ function MentorTrainingCard({
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Mentor */}
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#800020]/8 border border-[#800020]/15 flex items-center justify-center shrink-0">
-            <UserIcon className="w-5 h-5 text-[#800020]" />
+          <div className="w-10 h-10 rounded-full bg-[#9E5A44]/8 border border-[#9E5A44]/15 flex items-center justify-center shrink-0">
+            <UserIcon className="w-5 h-5 text-[#9E5A44]" />
           </div>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
               Mentor
             </div>
-            <div className="font-medium text-[#1C1917] mt-0.5 truncate">
+            <div className="font-medium text-[#1C1A18] mt-0.5 truncate">
               {mentorName ?? "Not assigned"}
             </div>
           </div>
@@ -1338,14 +1338,14 @@ function MentorTrainingCard({
 
         {/* Programme length */}
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#800020]/8 border border-[#800020]/15 flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5 text-[#800020]" />
+          <div className="w-10 h-10 rounded-full bg-[#9E5A44]/8 border border-[#9E5A44]/15 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5 text-[#9E5A44]" />
           </div>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
               Programme length
             </div>
-            <div className="font-medium text-[#1C1917] mt-0.5 tabular-nums">
+            <div className="font-medium text-[#1C1A18] mt-0.5 tabular-nums">
               {durationWeeks ? `${durationWeeks} weeks` : "—"}
             </div>
           </div>
@@ -1356,14 +1356,14 @@ function MentorTrainingCard({
         <div className="mt-5">
           <div className="flex items-center justify-between text-xs mb-2">
             <span className="text-stone-500">Training progress</span>
-            <span className="font-medium text-[#800020] tabular-nums">
+            <span className="font-medium text-[#9E5A44] tabular-nums">
               Week {weeksElapsed} of {durationWeeks}
             </span>
           </div>
           <ProgressBar
             value={trainingPercent}
             aria-label={`Training progress: week ${weeksElapsed} of ${durationWeeks}`}
-            className="h-2 bg-[#E7E5E4]/80 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-[#800020] [&>[data-slot=progress-indicator]]:to-[#6b0018]"
+            className="h-2 bg-[#EAE6DF]/80 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-[#9E5A44] [&>[data-slot=progress-indicator]]:to-[#854B38]"
           />
           <div className="flex items-center justify-between mt-2">
             <p className="text-[11px] text-stone-400">
@@ -1375,7 +1375,7 @@ function MentorTrainingCard({
           </div>
         </div>
       ) : (
-        <div className="mt-5 rounded-md bg-stone-50 border border-[#E7E5E4] px-3 py-2.5">
+        <div className="mt-5 rounded-md bg-stone-50 border border-[#EAE6DF] px-3 py-2.5">
           <p className="text-xs text-stone-500 italic">
             Training duration not set —{" "}
             {isTraineeMode
@@ -1422,7 +1422,7 @@ function OverallAverageCard({
           </div>
           <div className="flex items-baseline gap-2 mt-3 flex-wrap">
             <div
-              className="font-display font-semibold text-[#800020] leading-none tabular-nums"
+              className="font-display font-semibold text-[#9E5A44] leading-none tabular-nums"
               style={{ fontSize: "clamp(30px, 4vw, 44px)" }}
             >
               <AnimatedNumber value={avgPctValue} />
@@ -1431,9 +1431,9 @@ function OverallAverageCard({
             <LetterPill pct={avgPctValue} />
           </div>
           <p className="text-xs text-stone-500 mt-3 inline-flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-[#800020]" />
+            <TrendingUp className="w-3.5 h-3.5 text-[#9E5A44]" />
             Letter grade{" "}
-            <span className="font-medium text-[#1C1917]">
+            <span className="font-medium text-[#1C1A18]">
               {letterGrade(avgPctValue)}
             </span>{" "}
             — {LETTER_HINT[letterGrade(avgPctValue)]}.
@@ -1502,7 +1502,7 @@ function AssignmentsGradesCard({
   return (
     <>
       <SectionCard title="Assignments & grades" bodyClassName="p-0">
-        <ul className="divide-y divide-[#E7E5E4]/70">
+        <ul className="divide-y divide-[#EAE6DF]/70">
           {sorted.map((task, idx) => (
             <AssignmentRow
               key={task.id}
@@ -1547,14 +1547,14 @@ function AssignmentRow({
 
   return (
     <li
-      className="px-5 py-4 hover:bg-[#faf8f5] transition-colors animate-fade-in-up"
+      className="px-5 py-4 hover:bg-[#FAFAF7] transition-colors animate-fade-in-up"
       style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
     >
       {/* Header row: title + meta badges */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-[180px]">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-[#1C1917] text-sm">
+            <span className="font-medium text-[#1C1A18] text-sm">
               {task.title}
             </span>
             {task.priority && <StatusBadge status={task.priority} />}
@@ -1571,7 +1571,7 @@ function AssignmentRow({
             <span
               className={cn(
                 "text-[11px] tabular-nums inline-flex items-center gap-1",
-                overdue ? "text-[#b91c1c] font-medium" : "text-stone-500"
+                overdue ? "text-[#8E3232] font-medium" : "text-stone-500"
               )}
             >
               <CalendarDays className="w-3 h-3" />
@@ -1600,8 +1600,8 @@ function AssignmentRow({
 
       {/* Feedback */}
       {graded && task.feedback && (
-        <div className="mt-3 rounded-md bg-[#800020]/[0.04] border-l-2 border-[#800020]/30 pl-3 pr-3 py-2">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-[#800020] mb-1 inline-flex items-center gap-1">
+        <div className="mt-3 rounded-md bg-[#9E5A44]/[0.04] border-l-2 border-[#9E5A44]/30 pl-3 pr-3 py-2">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-[#9E5A44] mb-1 inline-flex items-center gap-1">
             <Sparkles className="w-3 h-3" /> Mentor feedback
           </div>
           <p className="text-xs text-stone-600 whitespace-pre-wrap leading-relaxed">
@@ -1727,8 +1727,8 @@ function GradeForm({
       </DialogHeader>
 
       <div className="grid gap-4">
-        <div className="rounded-md bg-[#faf8f5] border border-[#E7E5E4] px-3 py-2.5">
-          <p className="text-sm font-medium text-[#1C1917]">{task.title}</p>
+        <div className="rounded-md bg-[#FAFAF7] border border-[#EAE6DF] px-3 py-2.5">
+          <p className="text-sm font-medium text-[#1C1A18]">{task.title}</p>
           {task.order?.customer && (
             <p className="text-xs text-stone-400 mt-0.5 truncate">
               {task.order.customer.name} · {task.order.garmentDesign}
@@ -1751,7 +1751,7 @@ function GradeForm({
           </div>
           <div className="grid gap-1.5">
             <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
-              Score <span className="text-[#800020]">*</span>
+              Score <span className="text-[#9E5A44]">*</span>
             </Label>
             <Input
               type="number"
@@ -1765,9 +1765,9 @@ function GradeForm({
         </div>
 
         {livePct !== null && (
-          <div className="flex items-center gap-3 rounded-md bg-[#800020]/[0.04] border border-[#800020]/15 px-3 py-2">
-            <TrendingUp className="w-4 h-4 text-[#800020]" />
-            <span className="text-sm font-medium text-[#1C1917] tabular-nums">
+          <div className="flex items-center gap-3 rounded-md bg-[#9E5A44]/[0.04] border border-[#9E5A44]/15 px-3 py-2">
+            <TrendingUp className="w-4 h-4 text-[#9E5A44]" />
+            <span className="text-sm font-medium text-[#1C1A18] tabular-nums">
               {livePct}%
             </span>
             <LetterPill pct={livePct} />

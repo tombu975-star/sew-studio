@@ -29,8 +29,8 @@ export function PremiumMetric({
   return (
     <div
       className={cn(
-        "relative bg-white border border-[#E7E5E4] rounded-lg p-5 overflow-hidden group",
-        accent && "border-[#800020]/20",
+        "relative bg-white border border-[#EAE6DF] rounded-lg p-5 overflow-hidden group",
+        accent && "border-[#9E5A44]/20",
         className
       )}
     >
@@ -39,14 +39,14 @@ export function PremiumMetric({
           {label}
         </span>
         {Icon && (
-          <Icon className={cn("w-4 h-4", accent ? "text-[#800020]" : "text-stone-300")} />
+          <Icon className={cn("w-4 h-4", accent ? "text-[#9E5A44]" : "text-stone-300")} />
         )}
       </div>
       <div className="relative mt-3 flex items-end gap-2">
         <div
           className={cn(
             "font-display font-semibold leading-none tabular-nums",
-            accent ? "text-[#800020]" : "text-[#1C1917]"
+            accent ? "text-[#9E5A44]" : "text-[#1C1A18]"
           )}
           style={{ fontSize: "clamp(26px, 3vw, 38px)" }}
         >
@@ -56,8 +56,8 @@ export function PremiumMetric({
           <span
             className={cn(
               "mb-1 inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded",
-              trend === "up" && "text-[#15803D] bg-[#15803D]/8",
-              trend === "down" && "text-[#b91c1c] bg-[#b91c1c]/8",
+              trend === "up" && "text-[#4A6B53] bg-[#4A6B53]/8",
+              trend === "down" && "text-[#8E3232] bg-[#8E3232]/8",
               trend === "flat" && "text-stone-500 bg-stone-100"
             )}
           >
@@ -96,7 +96,7 @@ export function Sparkline({
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ");
-  const color = accent ? "#800020" : "#78716c";
+  const color = accent ? "#9E5A44" : "#7A746E";
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}

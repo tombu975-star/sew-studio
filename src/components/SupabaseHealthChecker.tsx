@@ -64,7 +64,7 @@ export function SupabaseHealthChecker() {
         } else {
           console.error(
             `%c[Supabase Health-Check] ❌ Connectivity Error`,
-            "color: #ef4444; font-weight: bold; font-size: 13px;",
+            "color: #8E3232; font-weight: bold; font-size: 13px;",
             data
           );
         }
@@ -72,7 +72,7 @@ export function SupabaseHealthChecker() {
       } catch (err) {
         console.error(
           "%c[Supabase Health-Check] ❌ Fetch Error:",
-          "color: #ef4444; font-weight: bold;",
+          "color: #8E3232; font-weight: bold;",
           err
         );
         if (isMounted) {
@@ -116,7 +116,7 @@ export function SupabaseHealthChecker() {
           color: "#fff",
           boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
           cursor: "pointer",
-          border: `1px solid ${health.status === "connected" ? "#10b981" : "#ef4444"}`,
+          border: `1px solid ${health.status === "connected" ? "#10b981" : "#8E3232"}`,
         }}
         title="Click to view Supabase connection details (Also logged in F12 Console)"
       >

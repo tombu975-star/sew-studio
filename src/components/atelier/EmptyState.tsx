@@ -26,11 +26,11 @@ export function EmptyState({
       )}
     >
       {Icon && (
-        <div className="w-12 h-12 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center mb-4">
+        <div className="w-12 h-12 rounded-full bg-[#FAF2EC] border border-[#EAE6DF] flex items-center justify-center mb-4">
           <Icon className="w-5 h-5 text-stone-400" />
         </div>
       )}
-      <p className="text-sm font-medium text-[#1C1917]">{title}</p>
+      <p className="text-sm font-medium text-[#1C1A18]">{title}</p>
       {description && (
         <p className="text-xs text-stone-400 mt-1 max-w-xs">{description}</p>
       )}
@@ -46,7 +46,7 @@ export function SkeletonCard({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "border border-[#E7E5E4] rounded-lg p-5 space-y-3",
+        "border border-[#EAE6DF] rounded-lg p-5 space-y-3",
         className
       )}
     >
@@ -72,7 +72,7 @@ export function SkeletonRow({ className }: { className?: string }) {
 
 export function SkeletonList({ rows = 4 }: { rows?: number }) {
   return (
-    <div className="divide-y divide-[#E7E5E4]/60">
+    <div className="divide-y divide-[#EAE6DF]/60">
       {Array.from({ length: rows }).map((_, i) => (
         <SkeletonRow key={i} />
       ))}

@@ -25,14 +25,14 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-dvh flex items-center justify-center bg-[#faf8f5] px-5 py-10 pt-safe pb-safe">
-      <section className="w-full max-w-md rounded-lg border border-[#E7E5E4] bg-white p-6 sm:p-8">
+    <main className="min-h-dvh flex items-center justify-center bg-[#FAFAF7] px-5 py-10 pt-safe pb-safe">
+      <section className="w-full max-w-md rounded-lg border border-[#EAE6DF] bg-white p-6 sm:p-8">
         <div className="mb-8 text-center sm:text-left">
           <div className="mb-8 flex items-center justify-center gap-3 sm:justify-start">
-            <div className="flex size-9 items-center justify-center rounded-md bg-[#800020] text-white"><Scissors className="size-4" /></div>
-            <span className="font-display text-xl font-semibold text-[#1C1917]">Madam Studio</span>
+            <div className="flex size-9 items-center justify-center rounded-md bg-[#9E5A44] text-white"><Scissors className="size-4" /></div>
+            <span className="font-display text-xl font-semibold text-[#1C1A18]">Madam Studio</span>
           </div>
-          <h1 className="font-display text-[34px] font-semibold leading-none text-[#1C1917]">Reset your password</h1>
+          <h1 className="font-display text-[34px] font-semibold leading-none text-[#1C1A18]">Reset your password</h1>
           <p className="mt-2 text-sm text-stone-500">We’ll email a secure link if an account matches.</p>
         </div>
 
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
           </p>
         ) : (
           <form onSubmit={submit} className="space-y-4">
-            <label htmlFor="recovery-email" className="block text-[13px] font-medium text-[#1C1917]">Email address</label>
+            <label htmlFor="recovery-email" className="block text-[13px] font-medium text-[#1C1A18]">Email address</label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-stone-400" />
               <input
@@ -52,17 +52,17 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="h-11 w-full rounded-md border border-[#E7E5E4] bg-white pl-10 pr-3 text-sm text-[#1C1917] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15"
+                className="h-11 w-full rounded-md border border-[#EAE6DF] bg-white pl-10 pr-3 text-sm text-[#1C1A18] outline-none focus:border-[#9E5A44] focus:ring-2 focus:ring-[#9E5A44]/15"
               />
             </div>
-            {error && <p role="alert" className="rounded-md border border-[#800020]/20 bg-[#800020]/5 px-3.5 py-2.5 text-sm text-[#800020]">{error}</p>}
-            <button disabled={loading} className="h-11 w-full rounded-md bg-[#800020] text-sm font-medium text-white hover:bg-[#6b0018] disabled:opacity-60">
+            {error && <p role="alert" className="rounded-md border border-[#9E5A44]/20 bg-[#9E5A44]/5 px-3.5 py-2.5 text-sm text-[#9E5A44]">{error}</p>}
+            <button disabled={loading} className="h-11 w-full rounded-md bg-[#9E5A44] text-sm font-medium text-white hover:bg-[#854B38] disabled:opacity-60">
               {loading ? "Sending…" : "Send reset link"}
             </button>
           </form>
         )}
 
-        <a href="/" className="mt-6 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-[#800020]">
+        <a href="/" className="mt-6 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-[#9E5A44]">
           <ArrowLeft className="size-4" /> Back to sign in
         </a>
       </section>

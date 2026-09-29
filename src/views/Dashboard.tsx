@@ -152,8 +152,8 @@ const STATUS_CATEGORY_COLOR: Record<string, string> = {
 
 /* ---------- gradient avatar palette ---------- */
 const AVATAR_GRADIENTS = [
-  "from-[#800020] to-[#800020]",
-  "from-[#44403c] to-[#44403c]",
+  "from-[#9E5A44] to-[#9E5A44]",
+  "from-[#2D2A26] to-[#2D2A26]",
   "from-[#8a5a2b] to-[#8a5a2b]",
   "from-[#4d6b4a] to-[#4d6b4a]",
   "from-[#3d5166] to-[#3d5166]",
@@ -512,13 +512,13 @@ function MainDashboard() {
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
       : m.healthStatus === "Needs Attention"
       ? "bg-amber-50 text-amber-700 border-amber-200"
-      : "bg-[#800020]/10 text-[#800020] border-[#800020]/30";
+      : "bg-[#9E5A44]/10 text-[#9E5A44] border-[#9E5A44]/30";
   const healthDotClass =
     m.healthStatus === "On Track"
       ? "bg-emerald-500"
       : m.healthStatus === "Needs Attention"
       ? "bg-amber-500"
-      : "bg-[#800020]";
+      : "bg-[#9E5A44]";
 
   return (
     <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
@@ -609,7 +609,7 @@ function MainDashboard() {
               action={
                 <button
                   onClick={() => go("orders")}
-                  className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                  className="text-[11px] text-[#9E5A44] font-medium hover:underline flex items-center gap-1"
                 >
                   View all
                   <ChevronRight className="w-3 h-3" />
@@ -632,9 +632,9 @@ function MainDashboard() {
                     <button
                       key={o.id}
                       onClick={() => go("order", { id: o.id })}
-                      className="text-left shrink-0 w-60 rounded-lg border border-[#E7E5E4] p-4 lift hover:border-[#800020]/30 transition group bg-white"
+                      className="text-left shrink-0 w-60 rounded-lg border border-[#EAE6DF] p-4 lift hover:border-[#9E5A44]/30 transition group bg-white"
                     >
-                      <p className="text-sm font-medium text-[#1C1917] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#800020]">
+                      <p className="text-sm font-medium text-[#1C1A18] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#9E5A44]">
                         {o.garmentDesign || "Untitled garment"}
                       </p>
                       <p className="text-xs text-stone-400 mt-2">
@@ -656,7 +656,7 @@ function MainDashboard() {
               {m.statusCounts.map(({ status, count }) => (
                 <div
                   key={status}
-                  className="rounded-lg border border-[#E7E5E4] p-3 hover:border-[#800020]/20 transition bg-white"
+                  className="rounded-lg border border-[#EAE6DF] p-3 hover:border-[#9E5A44]/20 transition bg-white"
                 >
                   <div
                     className={`font-display text-2xl font-semibold leading-none tabular-nums ${
@@ -679,7 +679,7 @@ function MainDashboard() {
             action={
               <button
                 onClick={() => go("fittings")}
-                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#9E5A44] font-medium hover:underline flex items-center gap-1"
               >
                 All fittings
                 <ChevronRight className="w-3 h-3" />
@@ -694,17 +694,17 @@ function MainDashboard() {
                 description="Add one from an order's detail page."
               />
             ) : (
-              <div className="divide-y divide-[#E7E5E4]">
+              <div className="divide-y divide-[#EAE6DF]">
                 {m.upcomingFittings.map((f) => {
                   const order = m.orders.find((o) => o.id === f.orderId);
                   return (
                     <button
                       key={f.id}
                       onClick={() => order && go("order", { id: order.id })}
-                      className="flex items-center justify-between px-5 py-3.5 w-full text-left hover:bg-[#FBF9F7] transition group"
+                      className="flex items-center justify-between px-5 py-3.5 w-full text-left hover:bg-[#FAF2EC] transition group"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#1C1917] group-hover:text-[#800020] truncate">
+                        <p className="text-sm font-medium text-[#1C1A18] group-hover:text-[#9E5A44] truncate">
                           {order?.garmentDesign?.slice(0, 48) || "Order fitting"}
                         </p>
                         <p className="text-xs text-stone-400 mt-0.5">
@@ -729,7 +729,7 @@ function MainDashboard() {
           action={
             <button
               onClick={() => go("tasks")}
-              className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+              className="text-[11px] text-[#9E5A44] font-medium hover:underline flex items-center gap-1"
             >
               {staff ? "Open" : "All tasks"}
               <ChevronRight className="w-3 h-3" />
@@ -739,7 +739,7 @@ function MainDashboard() {
         >
           {staff ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="font-display text-6xl font-semibold text-[#800020] leading-none">
+              <div className="font-display text-6xl font-semibold text-[#9E5A44] leading-none">
                 <AnimatedNumber value={m.openTasks.length} />
               </div>
               <p className="text-xs text-stone-400 mt-3">
@@ -762,11 +762,11 @@ function MainDashboard() {
               description="Add staff in Settings to see workload here."
             />
           ) : (
-            <div className="divide-y divide-[#E7E5E4]">
+            <div className="divide-y divide-[#EAE6DF]">
               {m.staffWorkload.map(({ user, openTasks, activeOrders, capacityPct, overCapacity }) => (
                 <div
                   key={user.id}
-                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#FBF9F7] transition"
+                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#FAF2EC] transition"
                 >
                   <div
                     className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(
@@ -776,28 +776,28 @@ function MainDashboard() {
                     {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1C1917] truncate">
+                    <p className="text-sm font-medium text-[#1C1A18] truncate">
                       {user.fullName || user.email}
                     </p>
                     <p
                       className={`text-[11px] ${
-                        overCapacity ? "text-[#b91c1c] font-medium" : "text-stone-400"
+                        overCapacity ? "text-[#8E3232] font-medium" : "text-stone-400"
                       }`}
                     >
                       {activeOrders} active order{activeOrders !== 1 ? "s" : ""}
                       {overCapacity ? " — over capacity" : ""}
                     </p>
-                    <div className="mt-1.5 h-1 w-full max-w-[140px] rounded-full bg-[#E7E5E4] overflow-hidden">
+                    <div className="mt-1.5 h-1 w-full max-w-[140px] rounded-full bg-[#EAE6DF] overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
-                          overCapacity ? "bg-[#b91c1c]" : "bg-[#800020]"
+                          overCapacity ? "bg-[#8E3232]" : "bg-[#9E5A44]"
                         }`}
                         style={{ width: `${Math.max(4, capacityPct)}%` }}
                       />
                     </div>
                   </div>
                   <span
-                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#800020] rounded-full"
+                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#9E5A44] rounded-full"
                     title={`${openTasks} open task${openTasks !== 1 ? "s" : ""}`}
                   >
                     {openTasks}
@@ -820,7 +820,7 @@ function MainDashboard() {
               action={
                 <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
                   Last 6 months · Total{" "}
-                  <span className="text-[#1C1917] font-semibold tabular-nums">
+                  <span className="text-[#1C1A18] font-semibold tabular-nums">
                     {formatCurrency(m.totalReceived6m)}
                   </span>
                 </span>
@@ -843,29 +843,29 @@ function MainDashboard() {
                       >
                         <stop
                           offset="0%"
-                          stopColor="#800020"
+                          stopColor="#9E5A44"
                           stopOpacity={0.35}
                         />
                         <stop
                           offset="100%"
-                          stopColor="#800020"
+                          stopColor="#9E5A44"
                           stopOpacity={0.02}
                         />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
-                      stroke="#E7E5E4"
+                      stroke="#EAE6DF"
                       strokeDasharray="3 3"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="label"
-                      tick={{ fontSize: 11, fill: "#A8A29E" }}
-                      axisLine={{ stroke: "#E7E5E4" }}
+                      tick={{ fontSize: 11, fill: "#B8B2AA" }}
+                      axisLine={{ stroke: "#EAE6DF" }}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 11, fill: "#A8A29E" }}
+                      tick={{ fontSize: 11, fill: "#B8B2AA" }}
                       axisLine={false}
                       tickLine={false}
                       width={64}
@@ -879,17 +879,17 @@ function MainDashboard() {
                         "Received",
                       ]}
                       contentStyle={{
-                        border: "1px solid #E7E5E4",
+                        border: "1px solid #EAE6DF",
                         borderRadius: 8,
                         fontSize: 12,
-                        background: "#FBF9F7",
+                        background: "#FAF2EC",
                       }}
-                      labelStyle={{ color: "#1C1917", fontWeight: 600 }}
+                      labelStyle={{ color: "#1C1A18", fontWeight: 600 }}
                     />
                     <Area
                       type="monotone"
                       dataKey="total"
-                      stroke="#800020"
+                      stroke="#9E5A44"
                       strokeWidth={2}
                       fill="url(#burgundyGrad)"
                     />
@@ -945,7 +945,7 @@ function MainDashboard() {
                 {m.attentionItems.map((item, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-2.5 text-sm p-2.5 -mx-2.5 rounded-md hover:bg-[#FBF9F7] transition lift"
+                    className="flex items-start gap-2.5 text-sm p-2.5 -mx-2.5 rounded-md hover:bg-[#FAF2EC] transition lift"
                   >
                     <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                     <span className="text-stone-700 leading-snug">{item}</span>
@@ -959,12 +959,12 @@ function MainDashboard() {
           <div className="mb-4">
             <SectionCard
               title="AI Trend Suggestions"
-              action={<Sparkles className="w-4 h-4 text-[#800020]" />}
+              action={<Sparkles className="w-4 h-4 text-[#9E5A44]" />}
             >
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#800020]/10 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4 text-[#800020]" />
+                  <div className="w-10 h-10 rounded-full bg-[#9E5A44]/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#9E5A44]" />
                   </div>
                   <p className="text-sm text-stone-600 leading-snug flex-1">
                     Generate AI insights from your studio's recent orders,
@@ -982,7 +982,7 @@ function MainDashboard() {
                 </div>
 
                 {insights && insights.length > 0 && (
-                  <ul className="space-y-2.5 border-t border-[#E7E5E4] pt-4">
+                  <ul className="space-y-2.5 border-t border-[#EAE6DF] pt-4">
                     {insights.map((s, i) => (
                       <li
                         key={i}
@@ -999,7 +999,7 @@ function MainDashboard() {
                 )}
 
                 {insights && insights.length === 0 && (
-                  <div className="border-t border-[#E7E5E4] pt-4">
+                  <div className="border-t border-[#EAE6DF] pt-4">
                     <EmptyState
                       icon={Sparkles}
                       title="No suggestions returned"
@@ -1017,7 +1017,7 @@ function MainDashboard() {
       {canCreateOrders() && (
         <button
           onClick={() => go("new-order")}
-          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#800020] text-white flex items-center justify-center shadow-lg hover:bg-[#6b0018] transition"
+          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#9E5A44] text-white flex items-center justify-center shadow-lg hover:bg-[#854B38] transition"
           aria-label="New Custom Order"
         >
           <Plus className="w-6 h-6" />
@@ -1041,14 +1041,14 @@ function HealthMetric({
   format: "currency" | "plain";
 }) {
   return (
-    <div className="rounded-lg border border-[#E7E5E4] p-3.5 bg-white hover:border-[#800020]/20 transition">
+    <div className="rounded-lg border border-[#EAE6DF] p-3.5 bg-white hover:border-[#9E5A44]/20 transition">
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-3.5 h-3.5 text-stone-400" />
         <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
           {label}
         </span>
       </div>
-      <div className="font-display font-semibold text-xl text-[#1C1917] tabular-nums">
+      <div className="font-display font-semibold text-xl text-[#1C1A18] tabular-nums">
         <AnimatedNumber value={value} format={format} />
       </div>
     </div>
@@ -1101,7 +1101,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
       action={
         <button
           onClick={() => go("progress")}
-          className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+          className="text-[11px] text-[#9E5A44] font-medium hover:underline flex items-center gap-1"
         >
           All trainees
           <ChevronRight className="w-3 h-3" />
@@ -1116,7 +1116,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
           description="Add trainees from the Team view to follow their progress."
         />
       ) : (
-        <div className="divide-y divide-[#E7E5E4]">
+        <div className="divide-y divide-[#EAE6DF]">
           {trainees.map((t) => {
             const stats = perTrainee.get(t.id) ?? {
               total: 0,
@@ -1128,7 +1128,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
               <button
                 key={t.id}
                 onClick={() => go("progress", { id: t.id })}
-                className="flex items-center gap-3 px-5 py-3.5 w-full text-left hover:bg-[#FBF9F7] transition group"
+                className="flex items-center gap-3 px-5 py-3.5 w-full text-left hover:bg-[#FAF2EC] transition group"
               >
                 <div
                   className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(
@@ -1138,7 +1138,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                   {(t.fullName || t.email || "?").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1C1917] truncate group-hover:text-[#800020] transition-colors">
+                  <p className="text-sm font-medium text-[#1C1A18] truncate group-hover:text-[#9E5A44] transition-colors">
                     {t.fullName || t.email}
                   </p>
                   <p className="text-[11px] text-stone-400">
@@ -1164,7 +1164,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                     </span>
                   )}
                   {stats.total === 0 && (
-                    <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#9E5A44] transition-colors" />
                   )}
                 </div>
               </button>
@@ -1345,7 +1345,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("progress")}
-                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#9E5A44] font-medium hover:underline flex items-center gap-1"
               >
                 View progress
                 <ChevronRight className="w-3 h-3" />
@@ -1369,17 +1369,17 @@ function TraineeDashboard({ userId }: { userId: string }) {
                 }
               />
             ) : (
-              <div className="divide-y divide-[#E7E5E4]/70">
+              <div className="divide-y divide-[#EAE6DF]/70">
                 {skills.slice(0, 5).map((s) => (
                   <div
                     key={s.skill}
                     className="flex items-center gap-3 px-5 py-3.5"
                   >
-                    <div className="w-8 h-8 rounded-md bg-[#800020]/8 border border-[#800020]/15 flex items-center justify-center shrink-0">
-                      <Scissors className="w-3.5 h-3.5 text-[#800020]" />
+                    <div className="w-8 h-8 rounded-md bg-[#9E5A44]/8 border border-[#9E5A44]/15 flex items-center justify-center shrink-0">
+                      <Scissors className="w-3.5 h-3.5 text-[#9E5A44]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-[#1C1917] truncate">
+                      <div className="text-sm font-medium text-[#1C1A18] truncate">
                         {s.skill}
                       </div>
                       <div className="text-[11px] text-stone-400 tabular-nums">
@@ -1407,7 +1407,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("orders")}
-                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#9E5A44] font-medium hover:underline flex items-center gap-1"
               >
                 All orders
                 <ChevronRight className="w-3 h-3" />
@@ -1422,16 +1422,16 @@ function TraineeDashboard({ userId }: { userId: string }) {
                 description="When the studio assigns you a garment, it'll appear here for you to follow."
               />
             ) : (
-              <div className="divide-y divide-[#E7E5E4]/70">
+              <div className="divide-y divide-[#EAE6DF]/70">
                 {myOrders.map((o) => {
                   const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
                   return (
                     <button
                       key={o.id}
                       onClick={() => go("order", { id: o.id })}
-                      className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-[#FBF9F7] transition group"
+                      className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-[#FAF2EC] transition group"
                     >
-                      <div className="w-11 h-11 rounded-md overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4] flex items-center justify-center shrink-0">
+                      <div className="w-11 h-11 rounded-md overflow-hidden bg-[#FAF2EC] border border-[#EAE6DF] flex items-center justify-center shrink-0">
                         {o.designImage ? (
                           <img
                             src={o.designImage}
@@ -1443,7 +1443,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-[#1C1917] truncate group-hover:text-[#800020] transition-colors">
+                        <div className="text-sm font-medium text-[#1C1A18] truncate group-hover:text-[#9E5A44] transition-colors">
                           {o.garmentDesign || "Untitled garment"}
                         </div>
                         <div className="text-[11px] text-stone-400 truncate">
@@ -1475,7 +1475,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("community")}
-                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#9E5A44] font-medium hover:underline flex items-center gap-1"
               >
                 Wall
                 <ChevronRight className="w-3 h-3" />
@@ -1499,15 +1499,15 @@ function TraineeDashboard({ userId }: { userId: string }) {
                 }
               />
             ) : (
-              <div className="divide-y divide-[#E7E5E4]/70">
+              <div className="divide-y divide-[#EAE6DF]/70">
                 {recentPosts.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => go("community")}
-                    className="w-full text-left px-5 py-3.5 hover:bg-[#FBF9F7] transition group"
+                    className="w-full text-left px-5 py-3.5 hover:bg-[#FAF2EC] transition group"
                   >
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-[#800020] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-[#9E5A44] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
                         {(p.authorName || "?").charAt(0).toUpperCase()}
                       </div>
                       <span className="text-[11px] text-stone-500 truncate">
@@ -1518,7 +1518,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                       </span>
                     </div>
                     {p.title && (
-                      <div className="text-sm font-medium text-[#1C1917] truncate group-hover:text-[#800020] transition-colors">
+                      <div className="text-sm font-medium text-[#1C1A18] truncate group-hover:text-[#9E5A44] transition-colors">
                         {p.title}
                       </div>
                     )}

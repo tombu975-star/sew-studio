@@ -260,12 +260,12 @@ export default function Customers() {
               placeholder="Search by name, phone, or email…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-11 bg-white border-[#E7E5E4] rounded-md"
+              className="pl-9 h-11 bg-white border-[#EAE6DF] rounded-md"
               aria-label="Search customers"
             />
           </div>
           <Select value={sourceFilter} onValueChange={setSourceFilter}>
-            <SelectTrigger className="h-11 bg-white border-[#E7E5E4] rounded-md">
+            <SelectTrigger className="h-11 bg-white border-[#EAE6DF] rounded-md">
               <SelectValue placeholder="Entry source" />
             </SelectTrigger>
             <SelectContent>
@@ -278,7 +278,7 @@ export default function Customers() {
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-11 bg-white border-[#E7E5E4] rounded-md">
+            <SelectTrigger className="h-11 bg-white border-[#EAE6DF] rounded-md">
               <SelectValue placeholder="Client type" />
             </SelectTrigger>
             <SelectContent>
@@ -306,12 +306,12 @@ export default function Customers() {
                 className={
                   "rounded-lg border px-3 py-2 text-xs flex items-center gap-2 transition-all lift " +
                   (sourceFilter === src
-                    ? "border-[#800020]/40 bg-[#800020]/5"
-                    : "border-[#E7E5E4] bg-white hover:border-[#800020]/30")
+                    ? "border-[#9E5A44]/40 bg-[#9E5A44]/5"
+                    : "border-[#EAE6DF] bg-white hover:border-[#9E5A44]/30")
                 }
               >
                 <span className="text-stone-500">{src}</span>
-                <span className="font-semibold text-[#1C1917] tabular-nums">
+                <span className="font-semibold text-[#1C1A18] tabular-nums">
                   {count}
                 </span>
               </button>
@@ -375,21 +375,21 @@ export default function Customers() {
         </SectionCard>
       ) : (
         <SectionCard bodyClassName="p-0">
-          <div className="divide-y divide-[#E7E5E4]/70">
+          <div className="divide-y divide-[#EAE6DF]/70">
             {filtered.map((c) => (
               <button
                 key={c.id}
                 onClick={() => go("customer", { id: c.id })}
-                className="group w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[#faf8f5] transition-all focus:outline-none focus-visible:bg-[#faf8f5]"
+                className="group w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[#FAFAF7] transition-all focus:outline-none focus-visible:bg-[#FAFAF7]"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#9E5A44] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                   aria-hidden
                 >
                   {(c.name || "?").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-[#1C1917] truncate">
+                  <div className="font-medium text-[#1C1A18] truncate">
                     {c.name}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
@@ -414,15 +414,15 @@ export default function Customers() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBF9F7] border border-[#E7E5E4] px-2.5 py-1 text-[11px] text-stone-600">
-                    <span className="font-semibold tabular-nums text-[#1C1917]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FAF2EC] border border-[#EAE6DF] px-2.5 py-1 text-[11px] text-stone-600">
+                    <span className="font-semibold tabular-nums text-[#1C1A18]">
                       {c._orderCount}
                     </span>
                     <span className="text-stone-400">
                       {c._orderCount === 1 ? "order" : "orders"}
                     </span>
                   </span>
-                  <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#9E5A44] transition-colors" />
                 </div>
               </button>
             ))}
@@ -517,7 +517,7 @@ function AddCustomerDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl text-[#1C1917]">
+          <DialogTitle className="font-display text-xl text-[#1C1A18]">
             Add New Customer
           </DialogTitle>
           <DialogDescription className="text-stone-500">
@@ -527,7 +527,7 @@ function AddCustomerDialog({
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="c-name" className="text-xs text-stone-600">
-              Name <span className="text-[#800020]">*</span>
+              Name <span className="text-[#9E5A44]">*</span>
             </Label>
             <Input
               id="c-name"
@@ -662,8 +662,8 @@ function AddCustomerDialog({
                     className={
                       "text-[11px] px-2.5 py-1 rounded-md border transition-all " +
                       (active
-                        ? "bg-[#800020]/10 border-[#800020]/40 text-[#800020]"
-                        : "bg-white border-[#E7E5E4] text-stone-600 hover:border-[#800020]/30")
+                        ? "bg-[#9E5A44]/10 border-[#9E5A44]/40 text-[#9E5A44]"
+                        : "bg-white border-[#EAE6DF] text-stone-600 hover:border-[#9E5A44]/30")
                     }
                   >
                     {style}

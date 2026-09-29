@@ -81,11 +81,11 @@ function initialOf(name: string): string {
 function gradientFor(name: string): string {
   // Deterministic burgundy-leaning gradient avatar.
   const palettes = [
-    "from-[#800020] to-[#6b0018]",
-    "from-[#800020] to-[#b45309]",
-    "from-[#6b0018] to-[#0e7490]",
-    "from-[#800020] to-[#15803D]",
-    "from-[#6b0018] to-[#800020]",
+    "from-[#9E5A44] to-[#854B38]",
+    "from-[#9E5A44] to-[#b45309]",
+    "from-[#854B38] to-[#0e7490]",
+    "from-[#9E5A44] to-[#4A6B53]",
+    "from-[#854B38] to-[#9E5A44]",
   ];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
@@ -239,7 +239,7 @@ function OwnerCertificate() {
         subtitle="Issue and print official apprenticeship completion certificates."
         actions={
           user ? (
-            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E7E5E4] bg-white pl-2 pr-3 py-1.5 elevate-sm">
+            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#EAE6DF] bg-white pl-2 pr-3 py-1.5 elevate-sm">
               <span
                 className={cn(
                   "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-display font-semibold",
@@ -252,7 +252,7 @@ function OwnerCertificate() {
                 <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
                   {user.role === "trainer" ? "Trainer" : "Owner"}
                 </div>
-                <div className="text-xs font-medium text-[#1C1917]">
+                <div className="text-xs font-medium text-[#1C1A18]">
                   {user.fullName}
                 </div>
               </div>
@@ -336,8 +336,8 @@ function OwnerCertificate() {
                     className={cn(
                       "group shrink-0 flex items-center gap-3 rounded-xl border px-3 py-2 transition-all duration-200",
                       active
-                        ? "bg-[#800020] border-[#6b0018] text-white"
-                        : "bg-white border-[#E7E5E4] text-[#1C1917] hover:border-[#800020]/30 hover:bg-[#faf8f5] elevate-sm lift"
+                        ? "bg-[#9E5A44] border-[#854B38] text-white"
+                        : "bg-white border-[#EAE6DF] text-[#1C1A18] hover:border-[#9E5A44]/30 hover:bg-[#FAFAF7] elevate-sm lift"
                     )}
                   >
                     <span
@@ -411,7 +411,7 @@ function SelectedTraineeHeader({
   onClear: () => void;
 }) {
   return (
-    <div className="surface-premium border border-[#E7E5E4] rounded-lg elevate-sm lift p-5 mb-6 flex items-center gap-4 animate-fade-in-up no-print">
+    <div className="surface-premium border border-[#EAE6DF] rounded-lg elevate-sm lift p-5 mb-6 flex items-center gap-4 animate-fade-in-up no-print">
       <div
         className={cn(
           "w-14 h-14 rounded-full bg-gradient-to-br flex items-center justify-center text-white font-display font-semibold text-xl shrink-0 shadow-sm",
@@ -423,7 +423,7 @@ function SelectedTraineeHeader({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <h2 className="font-display font-semibold text-[#1C1917] text-xl leading-tight">
+          <h2 className="font-display font-semibold text-[#1C1A18] text-xl leading-tight">
             {trainee.fullName}
           </h2>
           <StatusBadge status="Trainee" />
@@ -541,7 +541,7 @@ function CertificateForTrainee({
               <AlertDialogTitle>Revoke this certificate?</AlertDialogTitle>
               <AlertDialogDescription>
                 This will permanently remove{" "}
-                <span className="font-medium text-[#1C1917]">
+                <span className="font-medium text-[#1C1A18]">
                   {cert.trainee?.fullName}
                 </span>
                 &apos;s certificate ({cert.certificateNo}). This action cannot
@@ -552,7 +552,7 @@ function CertificateForTrainee({
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => onRevoke(cert.id)}
-                className="bg-[#b91c1c] text-white hover:bg-[#991b1b] border-[#b91c1c]"
+                className="bg-[#8E3232] text-white hover:bg-[#6B2626] border-[#8E3232]"
               >
                 {revoking ? "Revoking…" : "Revoke certificate"}
               </AlertDialogAction>
@@ -636,7 +636,7 @@ function IssuePanel({
             {initialOf(trainee.fullName)}
           </div>
           <div>
-            <div className="font-display font-semibold text-[#1C1917] text-lg leading-tight">
+            <div className="font-display font-semibold text-[#1C1A18] text-lg leading-tight">
               {trainee.fullName}
             </div>
             <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400 mt-1">
@@ -662,12 +662,12 @@ function IssuePanel({
 
       <Separator className="my-5" />
 
-      <div className="rounded-lg border border-[#E7E5E4] bg-[#faf8f5] p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-        <div className="w-9 h-9 rounded-full bg-[#800020]/8 border border-[#800020]/15 flex items-center justify-center shrink-0">
-          <GraduationCap className="w-4 h-4 text-[#800020]" />
+      <div className="rounded-lg border border-[#EAE6DF] bg-[#FAFAF7] p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="w-9 h-9 rounded-full bg-[#9E5A44]/8 border border-[#9E5A44]/15 flex items-center justify-center shrink-0">
+          <GraduationCap className="w-4 h-4 text-[#9E5A44]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-[#1C1917]">
+          <p className="text-sm font-medium text-[#1C1A18]">
             Ready to issue {trainee.fullName.split(" ")[0]}&apos;s certificate?
           </p>
           <p className="text-xs text-stone-500 mt-0.5">
@@ -708,14 +708,14 @@ function SummaryStat({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-[#E7E5E4] bg-white p-3">
+    <div className="rounded-lg border border-[#EAE6DF] bg-white p-3">
       <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
         {label}
       </div>
       <div
         className={cn(
           "mt-1 font-display font-semibold tabular-nums",
-          accent ? "text-[#800020]" : "text-[#1C1917]",
+          accent ? "text-[#9E5A44]" : "text-[#1C1A18]",
           "text-2xl"
         )}
       >
@@ -783,13 +783,13 @@ function IssueDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg no-print">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl text-[#1C1917] flex items-center gap-2">
-            <Award className="w-5 h-5 text-[#800020]" />
+          <DialogTitle className="font-display text-xl text-[#1C1A18] flex items-center gap-2">
+            <Award className="w-5 h-5 text-[#9E5A44]" />
             Issue certificate
           </DialogTitle>
           <p className="text-xs text-stone-500 -mt-1">
             For{" "}
-            <span className="font-medium text-[#1C1917]">
+            <span className="font-medium text-[#1C1A18]">
               {trainee.fullName}
             </span>{" "}
             · issued by you ({issuerId ? "you" : "—"}).
@@ -864,7 +864,7 @@ function IssueDialog({
               <button
                 type="button"
                 onClick={() => setSkillsAchieved(prefilledSkills)}
-                className="text-[11px] text-[#800020] hover:underline"
+                className="text-[11px] text-[#9E5A44] hover:underline"
               >
                 Reset to proficient skills
               </button>
@@ -920,7 +920,7 @@ function CertificateStage({
             variant="ghost"
             onClick={onRevoke}
             loading={revoking}
-            className="text-[#b91c1c] hover:bg-[#b91c1c]/5 hover:text-[#991b1b]"
+            className="text-[#8E3232] hover:bg-[#8E3232]/5 hover:text-[#6B2626]"
           >
             <Trash2 className="w-4 h-4" /> Revoke
           </PremiumButton>
@@ -949,7 +949,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
 
   return (
     <div
-      className="cert-card bg-white border-4 border-[#800020] rounded-lg elevate-lg relative overflow-hidden mx-auto"
+      className="cert-card bg-white border-4 border-[#9E5A44] rounded-lg elevate-lg relative overflow-hidden mx-auto"
       style={{
         maxWidth: "920px",
         minHeight: "640px",
@@ -958,7 +958,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
     >
       {/* Inner border ornament */}
       <div
-        className="absolute inset-3 border border-[#800020]/25 rounded-md pointer-events-none"
+        className="absolute inset-3 border border-[#9E5A44]/25 rounded-md pointer-events-none"
         aria-hidden
       />
       {/* Subtle background flourish */}
@@ -966,7 +966,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         className="absolute inset-0 pointer-events-none opacity-[0.04]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 50% 18%, #800020 0%, transparent 45%)",
+            "radial-gradient(circle at 50% 18%, #9E5A44 0%, transparent 45%)",
         }}
         aria-hidden
       />
@@ -981,7 +981,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         <Scissors
           key={pos}
           className={cn(
-            "absolute w-4 h-4 text-[#800020]/30 pointer-events-none",
+            "absolute w-4 h-4 text-[#9E5A44]/30 pointer-events-none",
             pos
           )}
           aria-hidden
@@ -992,11 +992,11 @@ function CertificateCard({ cert }: { cert: Certificate }) {
       <div className="relative z-10 flex flex-col items-center text-center h-full">
         {/* Studio mark */}
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full border-2 border-[#800020] flex items-center justify-center bg-white">
-            <Scissors className="w-5 h-5 text-[#800020]" />
+          <div className="w-12 h-12 rounded-full border-2 border-[#9E5A44] flex items-center justify-center bg-white">
+            <Scissors className="w-5 h-5 text-[#9E5A44]" />
           </div>
           <div
-            className="font-display font-semibold text-[#1C1917] mt-2.5"
+            className="font-display font-semibold text-[#1C1A18] mt-2.5"
             style={{ fontSize: "clamp(20px, 2.4vw, 26px)" }}
           >
             Madam Studio
@@ -1009,7 +1009,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         {/* Title block */}
         <div className="mt-8 sm:mt-10">
           <h1
-            className="font-display font-semibold text-[#800020] leading-[1.05]"
+            className="font-display font-semibold text-[#9E5A44] leading-[1.05]"
             style={{ fontSize: "clamp(30px, 4.2vw, 48px)" }}
           >
             Certificate of Apprenticeship
@@ -1022,12 +1022,12 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         {/* Trainee name */}
         <div className="mt-5 sm:mt-6">
           <div
-            className="font-display font-semibold text-[#1C1917] leading-tight"
+            className="font-display font-semibold text-[#1C1A18] leading-tight"
             style={{ fontSize: "clamp(24px, 3.2vw, 38px)" }}
           >
             {cert.trainee?.fullName ?? "Trainee"}
           </div>
-          <div className="w-48 h-px bg-[#800020]/40 mx-auto mt-2" />
+          <div className="w-48 h-px bg-[#9E5A44]/40 mx-auto mt-2" />
         </div>
 
         {/* Body */}
@@ -1036,16 +1036,16 @@ function CertificateCard({ cert }: { cert: Certificate }) {
           style={{ fontSize: "clamp(13px, 1.1vw, 15px)", lineHeight: 1.7 }}
         >
           has successfully completed the{" "}
-          <span className="italic text-[#800020] font-medium">
+          <span className="italic text-[#9E5A44] font-medium">
             {cert.programName}
           </span>
           , a{" "}
-          <span className="tabular-nums font-medium text-[#1C1917]">
+          <span className="tabular-nums font-medium text-[#1C1A18]">
             {cert.durationWeeks}
           </span>
           -week apprenticeship programme in bespoke tailoring and design.
           {honorsText && (
-            <span className="block mt-2 font-medium text-[#800020]">
+            <span className="block mt-2 font-medium text-[#9E5A44]">
               {honorsText}
             </span>
           )}
@@ -1061,7 +1061,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
               {skills.map((s) => (
                 <span
                   key={s}
-                  className="inline-flex items-center gap-1 rounded-md border border-[#800020]/20 bg-[#800020]/5 text-[#800020] px-2.5 py-1 text-xs"
+                  className="inline-flex items-center gap-1 rounded-md border border-[#9E5A44]/20 bg-[#9E5A44]/5 text-[#9E5A44] px-2.5 py-1 text-xs"
                 >
                   <Check className="w-3 h-3 opacity-70" />
                   {s}
@@ -1079,9 +1079,9 @@ function CertificateCard({ cert }: { cert: Certificate }) {
               <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500 mb-2">
                 Issued by
               </div>
-              <div className="h-px bg-[#1C1917]/40 w-full max-w-[180px] mb-1.5" />
+              <div className="h-px bg-[#1C1A18]/40 w-full max-w-[180px] mb-1.5" />
               <div
-                className="font-display font-semibold text-[#1C1917] leading-tight"
+                className="font-display font-semibold text-[#1C1A18] leading-tight"
                 style={{ fontSize: "clamp(13px, 1.1vw, 16px)" }}
               >
                 {cert.issuedBy?.fullName ?? "—"}
@@ -1094,19 +1094,19 @@ function CertificateCard({ cert }: { cert: Certificate }) {
             {/* Faux seal */}
             <div className="flex flex-col items-center">
               <div
-                className="w-20 h-20 rounded-full border-2 border-[#800020] flex items-center justify-center bg-white relative"
+                className="w-20 h-20 rounded-full border-2 border-[#9E5A44] flex items-center justify-center bg-white relative"
                 style={{ transform: "rotate(-6deg)" }}
                 aria-hidden
               >
-                <div className="absolute inset-1 rounded-full border border-[#800020]/30" />
+                <div className="absolute inset-1 rounded-full border border-[#9E5A44]/30" />
                 <div className="flex flex-col items-center">
                   <span
-                    className="font-display font-semibold text-[#800020] leading-none"
+                    className="font-display font-semibold text-[#9E5A44] leading-none"
                     style={{ fontSize: "clamp(16px, 1.8vw, 20px)" }}
                   >
                     MS
                   </span>
-                  <span className="text-[8px] uppercase tracking-[0.16em] text-[#800020]/70 mt-0.5">
+                  <span className="text-[8px] uppercase tracking-[0.16em] text-[#9E5A44]/70 mt-0.5">
                     {year}
                   </span>
                 </div>
@@ -1118,8 +1118,8 @@ function CertificateCard({ cert }: { cert: Certificate }) {
               <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500 mb-2">
                 Certificate No.
               </div>
-              <div className="h-px bg-[#1C1917]/40 w-full max-w-[180px] ml-auto mb-1.5" />
-              <div className="font-mono text-[#1C1917] text-xs sm:text-sm tabular-nums break-all">
+              <div className="h-px bg-[#1C1A18]/40 w-full max-w-[180px] ml-auto mb-1.5" />
+              <div className="font-mono text-[#1C1A18] text-xs sm:text-sm tabular-nums break-all">
                 {cert.certificateNo}
               </div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mt-0.5">

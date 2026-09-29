@@ -39,7 +39,7 @@ function extractApiError(err: unknown, fallback: string): string {
 }
 
 const inputClass =
-  "h-12 w-full rounded-md border border-[#E7E5E4] bg-white px-3.5 text-base sm:text-sm text-[#1C1917] placeholder:text-stone-400 outline-none transition-colors focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15";
+  "h-12 w-full rounded-md border border-[#EAE6DF] bg-white px-3.5 text-base sm:text-sm text-[#1C1A18] placeholder:text-stone-400 outline-none transition-colors focus:border-[#9E5A44] focus:ring-2 focus:ring-[#9E5A44]/15";
 
 export function LoginPage() {
   const { login, register, hydrate, status } = useAuth();
@@ -121,9 +121,9 @@ export function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-dvh bg-[#1C1917] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:bg-[#faf8f5]">
+    <div className="relative min-h-dvh bg-[#1C1A18] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:bg-[#FAFAF7]">
       {/* Studio photograph — full-bleed behind the form on phones, left half on desktop */}
-      <aside className="fixed inset-0 bg-[#1C1917] lg:relative lg:inset-auto">
+      <aside className="fixed inset-0 bg-[#1C1A18] lg:relative lg:inset-auto">
         <Image
           src="/atelier-login.jpg"
           alt="A burgundy satin gown on a dress form in the atelier"
@@ -135,7 +135,7 @@ export function LoginPage() {
         />
         {/* Mobile scrim so the floating card and brand stay legible */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/65 lg:hidden" />
-        <div className="absolute inset-x-0 bottom-0 hidden bg-[#1C1917]/70 px-12 py-8 lg:block">
+        <div className="absolute inset-x-0 bottom-0 hidden bg-[#1C1A18]/70 px-12 py-8 lg:block">
           <p className="font-display text-3xl font-semibold leading-tight text-white">
             Every stitch tells a story.
           </p>
@@ -143,19 +143,19 @@ export function LoginPage() {
         </div>
       </aside>
 
-      <main className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-8 pt-safe pb-safe sm:px-8 sm:py-12 lg:min-h-0 lg:items-stretch lg:bg-[#faf8f5] lg:px-14 xl:px-20">
+      <main className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-8 pt-safe pb-safe sm:px-8 sm:py-12 lg:min-h-0 lg:items-stretch lg:bg-[#FAFAF7] lg:px-14 xl:px-20">
         <div className="mx-auto w-full max-w-[440px]">
           <div className="mb-6 flex items-center justify-center gap-3 lg:mb-7 lg:justify-start">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-[linear-gradient(155deg,#9c2b45_0%,#800020_55%,#5c0016_100%)] shadow-[0_8px_20px_-8px_rgba(128,0,32,0.5)]">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-[linear-gradient(155deg,#C4927A_0%,#9E5A44_55%,#6B3A27_100%)] shadow-[0_8px_20px_-8px_rgba(158,90,68,0.5)]">
               <Scissors className="size-[18px] text-white" strokeWidth={2} />
             </div>
-            <span className="font-display text-xl font-semibold text-white drop-shadow-sm lg:text-[#1C1917] lg:drop-shadow-none">Madam Studio</span>
+            <span className="font-display text-xl font-semibold text-white drop-shadow-sm lg:text-[#1C1A18] lg:drop-shadow-none">Madam Studio</span>
           </div>
 
-          <div className="rounded-2xl border border-white/30 bg-white/95 px-5 py-7 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:px-9 sm:py-10 lg:border-[#E7E5E4] lg:bg-white lg:shadow-[0_1px_2px_rgba(28,25,23,0.04),0_16px_40px_-16px_rgba(28,25,23,0.12)] lg:backdrop-blur-none">
+          <div className="rounded-2xl border border-white/30 bg-white/95 px-5 py-7 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:px-9 sm:py-10 lg:border-[#EAE6DF] lg:bg-white lg:shadow-[0_1px_2px_rgba(28,25,23,0.04),0_16px_40px_-16px_rgba(28,25,23,0.12)] lg:backdrop-blur-none">
           {mode === "login" ? (
             <section key="login" className="animate-fade-in">
-              <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#1C1917] text-center lg:text-left">Welcome back</h1>
+              <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#1C1A18] text-center lg:text-left">Welcome back</h1>
               <p className="mt-2 text-sm text-stone-500 text-center lg:text-left">Sign in to your studio to continue.</p>
 
               <form onSubmit={submitLogin} className="mt-8 space-y-5">
@@ -192,11 +192,11 @@ export function LoginPage() {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(event) => setRememberMe(event.target.checked)}
-                      className="size-4 shrink-0 accent-[#800020]"
+                      className="size-4 shrink-0 accent-[#9E5A44]"
                     />
                     Keep me signed in
                   </label>
-                  <a href="/forgot-password" className="font-medium text-[#800020] underline-offset-4 hover:underline">
+                  <a href="/forgot-password" className="font-medium text-[#9E5A44] underline-offset-4 hover:underline">
                     Forgot password?
                   </a>
                 </div>
@@ -208,12 +208,12 @@ export function LoginPage() {
                 </PremiumButton>
               </form>
 
-              <p className="mt-7 border-t border-[#E7E5E4] pt-6 text-center text-sm text-stone-500 lg:text-left">
+              <p className="mt-7 border-t border-[#EAE6DF] pt-6 text-center text-sm text-stone-500 lg:text-left">
                 Opening a new atelier?{" "}
                 <button
                   type="button"
                   onClick={() => switchMode("register")}
-                  className="font-medium text-[#800020] underline-offset-4 hover:underline"
+                  className="font-medium text-[#9E5A44] underline-offset-4 hover:underline"
                 >
                   Create a shop
                 </button>
@@ -221,7 +221,7 @@ export function LoginPage() {
             </section>
           ) : (
             <section key="register" className="animate-fade-in">
-              <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#1C1917] text-center lg:text-left">Create your shop</h1>
+              <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#1C1A18] text-center lg:text-left">Create your shop</h1>
               <p className="mt-2 text-sm text-stone-500 text-center lg:text-left">
                 Open a new atelier — your studio, your clients, your craft.
               </p>
@@ -287,10 +287,10 @@ export function LoginPage() {
                   hint="Used to address you as Madam / Master throughout the studio."
                 >
                   <Select value={gender} onValueChange={setGender}>
-                    <SelectTrigger id="gender" className="h-12 w-full rounded-md border-[#E7E5E4] bg-white text-base sm:text-sm font-normal text-[#1C1917] focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15">
+                    <SelectTrigger id="gender" className="h-12 w-full rounded-md border-[#EAE6DF] bg-white text-base sm:text-sm font-normal text-[#1C1A18] focus:border-[#9E5A44] focus:ring-2 focus:ring-[#9E5A44]/15">
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-md border-[#E7E5E4]">
+                    <SelectContent className="rounded-md border-[#EAE6DF]">
                       <SelectItem value="Female" className="text-sm">Female</SelectItem>
                       <SelectItem value="Male" className="text-sm">Male</SelectItem>
                       <SelectItem value="Other" className="text-sm">Other</SelectItem>
@@ -305,12 +305,12 @@ export function LoginPage() {
                 </PremiumButton>
               </form>
 
-              <p className="mt-7 border-t border-[#E7E5E4] pt-6 text-center text-sm text-stone-500 lg:text-left">
+              <p className="mt-7 border-t border-[#EAE6DF] pt-6 text-center text-sm text-stone-500 lg:text-left">
                 Already have a studio?{" "}
                 <button
                   type="button"
                   onClick={() => switchMode("login")}
-                  className="font-medium text-[#800020] underline-offset-4 hover:underline"
+                  className="font-medium text-[#9E5A44] underline-offset-4 hover:underline"
                 >
                   Back to sign in
                 </button>
@@ -345,9 +345,9 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-medium text-[#1C1917]">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-medium text-[#1C1A18]">
         {label}
-        {required && <span className="ml-0.5 text-[#800020]" aria-hidden="true">*</span>}
+        {required && <span className="ml-0.5 text-[#9E5A44]" aria-hidden="true">*</span>}
       </label>
       {children}
       {hint && <p className="mt-1.5 text-xs leading-relaxed text-stone-400">{hint}</p>}
@@ -399,7 +399,7 @@ function PasswordInput({
 
 function ErrorNote({ children }: { children: React.ReactNode }) {
   return (
-    <p role="alert" className="rounded-md border border-[#800020]/20 bg-[#800020]/5 px-3.5 py-2.5 text-sm text-[#800020]">
+    <p role="alert" className="rounded-md border border-[#9E5A44]/20 bg-[#9E5A44]/5 px-3.5 py-2.5 text-sm text-[#9E5A44]">
       {children}
     </p>
   );

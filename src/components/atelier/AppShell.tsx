@@ -216,9 +216,9 @@ const ROLE_LABELS: Record<Role, string> = {
 // tell whose seat you're sitting in without it fighting the gold brand
 // accent used for every interactive/active state.
 const ROLE_ACCENT: Record<Role, string> = {
-  madam: "#c2415e", // house burgundy (bright, dark-bg-safe) — full access
+  madam: "#9E5A44", // primary terracotta — full access (the house color)
   staff: "#0E7490", // teal — operations
-  trainer: "#C2415E", // rose — training & assessment
+  trainer: "#B87A64", // rose clay — training & assessment
   trainee: "#3D5166", // navy-slate — learning & portfolio
   freelancer: "#7A4568", // plum — assigned jobs
 };
@@ -311,7 +311,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => go("dashboard")}
             className="flex items-center gap-3 group w-full"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#800020] flex items-center justify-center text-[#1C1917] transition-transform duration-300 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#9E5A44] flex items-center justify-center text-white transition-transform duration-300 shrink-0">
               <Scissors className="w-4 h-4" strokeWidth={2.25} />
             </div>
             <div className="min-w-0 text-left">
@@ -345,8 +345,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       className={cn(
                         "group relative w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
                         active
-                          ? "bg-white/[0.07] text-sidebar-primary font-medium"
-                          : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-white/[0.04]"
+                          ? "bg-[#9E5A44]/[0.08] text-sidebar-primary font-medium"
+                          : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-black/[0.03]"
                       )}
                     >
                       {active && (
@@ -368,7 +368,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* User */}
         {user && (
           <div className="px-3 py-3 border-t border-sidebar-border shrink-0">
-            <div className="group w-full flex items-center gap-2 rounded-lg hover:bg-white/[0.05] transition-colors">
+            <div className="group w-full flex items-center gap-2 rounded-lg hover:bg-black/[0.03] transition-colors">
               <button
                 onClick={() => go("profile")}
                 className="flex flex-1 min-w-0 items-center gap-3 px-2 py-2 rounded-lg text-left"
@@ -376,12 +376,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <div className="relative shrink-0">
                   <div
-                    className="w-9 h-9 rounded-full bg-[#800020] text-white flex items-center justify-center text-xs font-semibold ring-2"
+                    className="w-9 h-9 rounded-full bg-[#9E5A44] text-white flex items-center justify-center text-xs font-semibold ring-2"
                     style={{ ["--tw-ring-color" as string]: roleAccent }}
                   >
                     {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
                   </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#15803D] border-2 border-sidebar" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#4A6B53] border-2 border-sidebar" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-sidebar-foreground truncate">
@@ -395,7 +395,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
               <button
                 onClick={() => logout()}
-                className="shrink-0 w-8 h-8 mr-1 rounded-lg flex items-center justify-center text-sidebar-foreground/40 hover:text-sidebar-primary hover:bg-white/[0.06] transition-colors"
+                className="shrink-0 w-8 h-8 mr-1 rounded-lg flex items-center justify-center text-sidebar-foreground/40 hover:text-sidebar-primary hover:bg-black/[0.04] transition-colors"
                 title="Sign out"
               >
                 <LogOut className="w-4 h-4" />
@@ -406,7 +406,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ─── Mobile top bar ──────────────────────────────────────── */}
-      <header className="md:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#E7E5E4] bg-white/95 backdrop-blur-md">
+      <header className="md:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#EAE6DF] bg-white/95 backdrop-blur-md">
         {/* Three equal columns keep the title dead-centre regardless of what
             sits on either side (spacer left, profile avatar right). */}
         <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem] items-center gap-3 px-4 h-12">
@@ -416,16 +416,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="flex items-center justify-center gap-2 min-w-0 justify-self-center max-w-full"
             title={shopDisplayName}
           >
-            <div className="w-7 h-7 rounded-lg bg-[#800020] flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-[#9E5A44] flex items-center justify-center shrink-0">
               <ActiveIcon className="w-3.5 h-3.5 text-white" strokeWidth={2.25} />
             </div>
-            <span className="font-display text-base font-semibold text-[#1C1917] truncate min-w-0">
+            <span className="font-display text-base font-semibold text-[#1C1A18] truncate min-w-0">
               {activeMeta.label}
             </span>
           </button>
           <button
             onClick={() => go("profile")}
-            className="w-8 h-8 rounded-full bg-[#800020] text-white flex items-center justify-center text-xs font-semibold shrink-0 ring-2 justify-self-end"
+            className="w-8 h-8 rounded-full bg-[#9E5A44] text-white flex items-center justify-center text-xs font-semibold shrink-0 ring-2 justify-self-end"
             style={{ ["--tw-ring-color" as string]: roleAccent }}
             title={`${user?.fullName} · My profile`}
           >
@@ -440,7 +440,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* ─── Mobile bottom nav (5 priority + More) ───────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#E7E5E4] bg-white/95 backdrop-blur-md">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#EAE6DF] bg-white/95 backdrop-blur-md">
         <div className="flex items-center justify-around h-14">
           {mobileItems.map(({ to, label, icon: Icon }) => {
             const active = isActive(to);
@@ -451,16 +451,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 relative min-w-0 flex-1 max-w-[72px]"
               >
                 {active && (
-                  <span className="absolute top-0 w-8 h-0.5 bg-[#800020] rounded-full" />
+                  <span className="absolute top-0 w-8 h-0.5 bg-[#9E5A44] rounded-full" />
                 )}
                 <Icon
-                  className={cn("w-5 h-5 transition-colors shrink-0", active ? "text-[#800020]" : "text-stone-400")}
+                  className={cn("w-5 h-5 transition-colors shrink-0", active ? "text-[#9E5A44]" : "text-stone-400")}
                   strokeWidth={active ? 2 : 1.5}
                 />
                 <span
                   className={cn(
                     "text-[9px] leading-tight transition-colors truncate w-full text-center",
-                    active ? "text-[#800020] font-semibold" : "text-stone-400"
+                    active ? "text-[#9E5A44] font-semibold" : "text-stone-400"
                   )}
                 >
                   {label}
@@ -474,7 +474,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 min-w-0 flex-1 max-w-[72px]"
             >
               <MoreHorizontal
-                className={cn("w-5 h-5 shrink-0", moreOpen ? "text-[#800020]" : "text-stone-400")}
+                className={cn("w-5 h-5 shrink-0", moreOpen ? "text-[#9E5A44]" : "text-stone-400")}
                 strokeWidth={1.5}
               />
               <span className="text-[9px] leading-tight text-stone-400">More</span>
@@ -490,16 +490,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onClick={() => setMoreOpen(false)}
         >
           <div
-            className="absolute bottom-0 inset-x-0 pb-safe bg-white rounded-t-2xl border-t border-[#E7E5E4] max-h-[80dvh] overflow-y-auto scroll-slim animate-fade-in-up"
+            className="absolute bottom-0 inset-x-0 pb-safe bg-white rounded-t-2xl border-t border-[#EAE6DF] max-h-[80dvh] overflow-y-auto scroll-slim animate-fade-in-up"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white flex items-center justify-between px-5 py-4 border-b border-[#E7E5E4]">
-              <p className="font-display text-lg font-semibold text-[#1C1917]">
+            <div className="sticky top-0 bg-white flex items-center justify-between px-5 py-4 border-b border-[#EAE6DF]">
+              <p className="font-display text-lg font-semibold text-[#1C1A18]">
                 More
               </p>
               <button
                 onClick={() => setMoreOpen(false)}
-                className="w-8 h-8 rounded-full hover:bg-[#faf8f5] flex items-center justify-center text-stone-400"
+                className="w-8 h-8 rounded-full hover:bg-[#FAFAF7] flex items-center justify-center text-stone-400"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -516,11 +516,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                     view === "profile"
-                      ? "bg-[#800020]/8 text-[#800020] font-medium"
-                      : "text-stone-600 hover:bg-[#faf8f5]"
+                      ? "bg-[#9E5A44]/8 text-[#9E5A44] font-medium"
+                      : "text-stone-600 hover:bg-[#FAFAF7]"
                   )}
                 >
-                  <div className="w-7 h-7 rounded-full bg-[#800020] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-[#9E5A44] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
                     {(user?.fullName || "?").charAt(0).toUpperCase()}
                   </div>
                   <span className="flex-1 text-left truncate">{user?.fullName || "My profile"}</span>
@@ -551,8 +551,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             className={cn(
                               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                               active
-                                ? "bg-[#800020]/8 text-[#800020] font-medium"
-                                : "text-stone-600 hover:bg-[#faf8f5]"
+                                ? "bg-[#9E5A44]/8 text-[#9E5A44] font-medium"
+                                : "text-stone-600 hover:bg-[#FAFAF7]"
                             )}
                           >
                             <Icon className="w-[18px] h-[18px]" strokeWidth={1.5} />
@@ -566,13 +566,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 );
               })}
 
-              <div className="mb-3 pt-1 border-t border-[#E7E5E4]">
+              <div className="mb-3 pt-1 border-t border-[#EAE6DF]">
                 <button
                   onClick={() => {
                     setMoreOpen(false);
                     logout();
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-lg text-sm text-stone-500 hover:bg-[#faf8f5] hover:text-[#800020] transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-lg text-sm text-stone-500 hover:bg-[#FAFAF7] hover:text-[#9E5A44] transition-colors"
                 >
                   <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
                   <span className="flex-1 text-left">Sign out</span>
