@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Sparkles,
@@ -14,13 +14,14 @@ import {
   Ruler,
   Users,
   Pencil,
+  Trash2,
   ShoppingBag,
   Check,
   Save,
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { apiGet, apiPost, apiPatch } from "@/lib/api";
+import { apiGet, apiPost, apiPatch, apiDelete } from "@/lib/api";
 import type {
   Customer,
   Order,
@@ -37,6 +38,7 @@ import {
   shortDate,
 } from "@/lib/format";
 import { useNav } from "@/stores/nav";
+import { useRole } from "@/stores/role";
 import { cn } from "@/lib/utils";
 
 import { Input } from "@/components/ui/input";
@@ -73,6 +75,7 @@ import {
 } from "@/lib/measurements";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
+import { ConfirmDeleteDialog } from "@/components/atelier/ConfirmDeleteDialog";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
 import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
 import {
@@ -96,6 +99,23 @@ export default function CustomerProfile() {
   const qc = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [measureOpen, setMeasureOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const owner = useRole((s) => s.isOwner)();
+
+  const deleteMut = useMutation({
+    mutationFn: () => apiDelete(`/api/customers/${selectedId}`),
+    onSuccess: () => {
+      toast.success("Customer deleted");
+      setDeleteOpen(false);
+      qc.removeQueries({ queryKey: ["customer", selectedId] });
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      go("customers");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data, isLoading, isError, refetch } = useQuery<CustomerDetail>({
     queryKey: ["customer", selectedId],
@@ -290,6 +310,16 @@ export default function CustomerProfile() {
             >
               <Pencil className="w-4 h-4" /> Edit
             </PremiumButton>
+            {owner && (
+              <PremiumButton
+                variant="outline"
+                size="md"
+                onClick={() => setDeleteOpen(true)}
+                className="text-red-700 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" /> Delete
+              </PremiumButton>
+            )}
             <PremiumButton
               variant="primary"
               size="md"
@@ -608,6 +638,26 @@ export default function CustomerProfile() {
       </Tabs>
 
       {/* Dialogs */}
+      {owner && (
+        <ConfirmDeleteDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          title="Delete this customer?"
+          description={
+            <>
+              <strong>{customer.name}</strong> will be permanently removed along with their
+              measurements, feedback, style concepts and{" "}
+              {orders.length > 0
+                ? `all ${orders.length} of their order${orders.length === 1 ? "" : "s"} (with payments and fittings)`
+                : "any orders"}
+              . This can&apos;t be undone.
+            </>
+          }
+          confirmLabel="Delete customer"
+          loading={deleteMut.isPending}
+          onConfirm={() => deleteMut.mutate()}
+        />
+      )}
       <EditPersonalDialog
         open={editOpen}
         onOpenChange={setEditOpen}

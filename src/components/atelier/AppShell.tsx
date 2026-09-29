@@ -407,10 +407,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ─── Mobile top bar ──────────────────────────────────────── */}
       <header className="md:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#E7E5E4] bg-white/95 backdrop-blur-md">
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+        {/* Three equal columns keep the title dead-centre regardless of what
+            sits on either side (spacer left, profile avatar right). */}
+        <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem] items-center gap-3 px-4 h-12">
+          <span aria-hidden="true" className="w-8 h-8" />
           <button
             onClick={() => go("dashboard")}
-            className="flex items-center gap-2 min-w-0 flex-1"
+            className="flex items-center justify-center gap-2 min-w-0 justify-self-center max-w-full"
             title={shopDisplayName}
           >
             <div className="w-7 h-7 rounded-lg bg-[#800020] flex items-center justify-center shrink-0">
@@ -419,16 +422,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="font-display text-base font-semibold text-[#1C1917] truncate min-w-0">
               {activeMeta.label}
             </span>
-            <span
-              className="hidden sm:inline-block shrink-0 text-[9px] font-medium tracking-wider px-1.5 py-0.5 rounded"
-              style={{ backgroundColor: `${roleAccent}1A`, color: roleAccent }}
-            >
-              {ROLE_LABELS[role]}
-            </span>
           </button>
           <button
             onClick={() => go("profile")}
-            className="w-8 h-8 rounded-full bg-[#800020] text-white flex items-center justify-center text-xs font-semibold shrink-0 ring-2"
+            className="w-8 h-8 rounded-full bg-[#800020] text-white flex items-center justify-center text-xs font-semibold shrink-0 ring-2 justify-self-end"
             style={{ ["--tw-ring-color" as string]: roleAccent }}
             title={`${user?.fullName} · My profile`}
           >
@@ -438,7 +435,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* ─── Main ────────────────────────────────────────────────── */}
-      <main className="flex-1 md:pl-60 pb-mobile-nav md:pb-0 flex flex-col min-w-0 overflow-x-clip">
+      <main className="flex-1 md:pl-60 pl-safe pr-safe pb-mobile-nav md:pb-0 flex flex-col min-w-0 overflow-x-clip">
         {children}
       </main>
 

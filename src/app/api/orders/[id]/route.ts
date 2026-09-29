@@ -136,3 +136,37 @@ export async function PATCH(
 
   return NextResponse.json(serializeFullOrder(updated));
 }
+
+// DELETE /api/orders/[id] → { ok: true }
+// Owner only. Payments, fittings and tasks cascade from the order row.
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const ctx = await getTenant();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (ctx.role !== "madam") {
+    return NextResponse.json(
+      { error: "Only the studio owner can delete an order." },
+      { status: 403 }
+    );
+  }
+
+  const { id } = await params;
+  const { data: existing } = await ctx.supabase
+    .from("orders")
+    .select("id")
+    .eq("id", id)
+    .eq("shop_id", ctx.shopId)
+    .maybeSingle();
+  if (!existing) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+
+  const { error } = await ctx.supabase
+    .from("orders")
+    .delete()
+    .eq("id", id)
+    .eq("shop_id", ctx.shopId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ ok: true });
+}

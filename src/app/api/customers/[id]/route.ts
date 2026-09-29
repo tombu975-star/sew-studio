@@ -135,3 +135,44 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
 
   return NextResponse.json(serializeCustomer(updated));
 }
+
+// DELETE /api/customers/[id] → { ok: true }
+// Owner only. orders.customer_id has no ON DELETE CASCADE, so this customer's
+// orders are removed first (which cascades to their payments, fittings and
+// tasks); measurements, feedback, style concepts, notes etc. cascade from the
+// customer row itself.
+export async function DELETE(req: NextRequest, { params }: Ctx) {
+  const ctx = await getTenant();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (ctx.role !== "madam") {
+    return NextResponse.json(
+      { error: "Only the studio owner can delete a customer." },
+      { status: 403 }
+    );
+  }
+
+  const { id } = await params;
+  const { data: existing } = await ctx.supabase
+    .from("customers")
+    .select("id")
+    .eq("id", id)
+    .eq("shop_id", ctx.shopId)
+    .maybeSingle();
+  if (!existing) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+
+  const { error: ordersError } = await ctx.supabase
+    .from("orders")
+    .delete()
+    .eq("customer_id", id)
+    .eq("shop_id", ctx.shopId);
+  if (ordersError) return NextResponse.json({ error: ordersError.message }, { status: 500 });
+
+  const { error } = await ctx.supabase
+    .from("customers")
+    .delete()
+    .eq("id", id)
+    .eq("shop_id", ctx.shopId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ ok: true });
+}

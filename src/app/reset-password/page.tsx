@@ -33,8 +33,8 @@ function ResetPasswordForm() {
 
   return (
     <section className="w-full max-w-md rounded-lg border border-[#E7E5E4] bg-white p-6 sm:p-8">
-      <div className="mb-8">
-          <div className="mb-8 flex items-center gap-3">
+      <div className="mb-8 text-center sm:text-left">
+          <div className="mb-8 flex items-center justify-center gap-3 sm:justify-start">
             <div className="flex size-9 items-center justify-center rounded-md bg-[#800020] text-white"><Scissors className="size-4" /></div>
             <span className="font-display text-xl font-semibold text-[#1C1917]">Madam Studio</span>
           </div>
@@ -67,7 +67,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <main className="min-h-dvh flex items-center justify-center bg-[#faf8f5] px-5 py-10">
+    <main className="min-h-dvh flex items-center justify-center bg-[#faf8f5] px-5 py-10 pt-safe pb-safe">
       <Suspense fallback={null}>
         <ResetPasswordForm />
       </Suspense>

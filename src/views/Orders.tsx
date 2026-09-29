@@ -158,7 +158,7 @@ export default function Orders() {
   };
 
   return (
-    <div className="p-4 sm:p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
       <PageHeader
         eyebrow={scopeToMine ? "My work" : "Production"}
         eyebrowIcon={ShoppingBag}

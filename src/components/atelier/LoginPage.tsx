@@ -121,18 +121,21 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] bg-[#faf8f5]">
-      {/* Studio photograph — desktop only, so phones never download it */}
-      <aside className="relative hidden lg:block bg-[#1C1917]">
+    <div className="relative min-h-dvh bg-[#1C1917] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:bg-[#faf8f5]">
+      {/* Studio photograph — full-bleed behind the form on phones, left half on desktop */}
+      <aside className="fixed inset-0 bg-[#1C1917] lg:relative lg:inset-auto">
         <Image
           src="/atelier-login.jpg"
           alt="A burgundy satin gown on a dress form in the atelier"
           fill
-          sizes="50vw"
+          priority
+          sizes="(min-width: 1024px) 50vw, 100vw"
           quality={72}
           className="object-cover"
         />
-        <div className="absolute inset-x-0 bottom-0 bg-[#1C1917]/70 px-12 py-8">
+        {/* Mobile scrim so the floating card and brand stay legible */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/65 lg:hidden" />
+        <div className="absolute inset-x-0 bottom-0 hidden bg-[#1C1917]/70 px-12 py-8 lg:block">
           <p className="font-display text-3xl font-semibold leading-tight text-white">
             Every stitch tells a story.
           </p>
@@ -140,16 +143,16 @@ export function LoginPage() {
         </div>
       </aside>
 
-      <main className="flex min-h-dvh flex-col justify-center px-5 py-8 pt-safe pb-safe sm:px-8 sm:py-12 lg:min-h-0 lg:px-14 xl:px-20">
+      <main className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-8 pt-safe pb-safe sm:px-8 sm:py-12 lg:min-h-0 lg:items-stretch lg:bg-[#faf8f5] lg:px-14 xl:px-20">
         <div className="mx-auto w-full max-w-[440px]">
-          <div className="mb-7 flex items-center justify-center gap-3 lg:justify-start">
+          <div className="mb-6 flex items-center justify-center gap-3 lg:mb-7 lg:justify-start">
             <div className="flex size-10 items-center justify-center rounded-xl bg-[linear-gradient(155deg,#9c2b45_0%,#800020_55%,#5c0016_100%)] shadow-[0_8px_20px_-8px_rgba(128,0,32,0.5)]">
               <Scissors className="size-[18px] text-white" strokeWidth={2} />
             </div>
-            <span className="font-display text-xl font-semibold text-[#1C1917]">Madam Studio</span>
+            <span className="font-display text-xl font-semibold text-white drop-shadow-sm lg:text-[#1C1917] lg:drop-shadow-none">Madam Studio</span>
           </div>
 
-          <div className="rounded-2xl border border-[#E7E5E4] bg-white px-6 py-8 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_16px_40px_-16px_rgba(28,25,23,0.12)] sm:px-9 sm:py-10">
+          <div className="rounded-2xl border border-white/30 bg-white/95 px-5 py-7 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:px-9 sm:py-10 lg:border-[#E7E5E4] lg:bg-white lg:shadow-[0_1px_2px_rgba(28,25,23,0.04),0_16px_40px_-16px_rgba(28,25,23,0.12)] lg:backdrop-blur-none">
           {mode === "login" ? (
             <section key="login" className="animate-fade-in">
               <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#1C1917] text-center lg:text-left">Welcome back</h1>
@@ -316,7 +319,7 @@ export function LoginPage() {
           )}
           </div>
 
-          <p className="mt-6 text-center text-[11px] text-stone-400 lg:text-left">
+          <p className="mt-6 text-center text-[11px] text-white/70 lg:text-left lg:text-stone-400">
             Madam Studio — where every stitch tells a story.
           </p>
         </div>

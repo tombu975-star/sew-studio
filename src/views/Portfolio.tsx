@@ -108,7 +108,7 @@ export default function Portfolio() {
           canSeeAll ? (
             <Select value={staffFilter} onValueChange={setStaffFilter}>
               <SelectTrigger
-                className="w-[200px] h-9 bg-white"
+                className="w-full sm:w-[200px] h-9 bg-white"
                 aria-label="Filter by staff member"
               >
                 <SelectValue placeholder="All staff" />

@@ -23,9 +23,10 @@ import {
   FileText,
   Scissors,
   Calculator,
+  Trash2,
 } from "lucide-react";
 
-import { apiGet, apiPatch, apiPost } from "@/lib/api";
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { useNav } from "@/stores/nav";
 import { useRole } from "@/stores/role";
 import {
@@ -46,6 +47,7 @@ import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { ImageUpload } from "@/components/atelier/ImageUpload";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
+import { ConfirmDeleteDialog } from "@/components/atelier/ConfirmDeleteDialog";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
 import { StatusStepper } from "@/components/atelier/StatusStepper";
 import { EmptyState, SkeletonCard } from "@/components/atelier/EmptyState";
@@ -94,9 +96,12 @@ function hashIndex(s: string, mod: number) {
 export default function OrderDetail() {
   const { selectedId, go } = useNav();
   const qc = useQueryClient();
-  const { canSeeBusiness } = useRole();
+  const { canSeeBusiness, isOwner } = useRole();
   const canSeeMoney = canSeeBusiness();
+  const owner = isOwner();
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [generatingPortal, setGeneratingPortal] = useState(false);
   const [tab, setTab] = useState<"invoice" | "production" | "costing" | null>(null);
 
@@ -167,6 +172,37 @@ export default function OrderDetail() {
       toast.success(`Status updated to ${updated.status}`);
       qc.setQueryData(["order", selectedId], updated);
       qc.invalidateQueries({ queryKey: ["orders"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Edit order details (owner)
+  const editMut = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      apiPatch<Order>(`/api/orders/${selectedId}`, body),
+    onSuccess: (updated) => {
+      toast.success("Order updated");
+      qc.setQueryData(["order", selectedId], updated);
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      setEditOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Delete order (owner)
+  const deleteMut = useMutation({
+    mutationFn: () => apiDelete(`/api/orders/${selectedId}`),
+    onSuccess: () => {
+      toast.success("Order deleted");
+      setDeleteOpen(false);
+      qc.removeQueries({ queryKey: ["order", selectedId] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["customer"] });
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      go("orders");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -265,6 +301,21 @@ export default function OrderDetail() {
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
+        {owner && (
+          <div className="flex items-center gap-2">
+            <PremiumButton variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="w-3.5 h-3.5" /> Edit order
+            </PremiumButton>
+            <PremiumButton
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteOpen(true)}
+              className="text-red-700 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </PremiumButton>
+          </div>
+        )}
         <SectionCard>
           <EmptyState
             icon={AlertCircle}
@@ -492,7 +543,7 @@ export default function OrderDetail() {
   );
 
   return (
-    <div className="p-4 sm:p-5 md:p-8 max-w-[1300px] mx-auto w-full">
+    <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 print:hidden">
         <button
           onClick={() => go("orders")}
@@ -922,6 +973,33 @@ export default function OrderDetail() {
         </div>
       </div>
 
+        </>
+      )}
+
+      {owner && (
+        <>
+          <EditOrderDialog
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            order={order}
+            canEditMoney={canSeeMoney}
+            saving={editMut.isPending}
+            onSave={(body) => editMut.mutate(body)}
+          />
+          <ConfirmDeleteDialog
+            open={deleteOpen}
+            onOpenChange={setDeleteOpen}
+            title="Delete this order?"
+            description={
+              <>
+                <strong>{order.garmentDesign}</strong> will be permanently removed together with
+                its payments, fittings and tasks. This can&apos;t be undone.
+              </>
+            }
+            confirmLabel="Delete order"
+            loading={deleteMut.isPending}
+            onConfirm={() => deleteMut.mutate()}
+          />
         </>
       )}
 
@@ -1382,6 +1460,165 @@ function EditImageDialog({
             onClick={() => onSave(trimmed)}
           >
             Save image
+          </PremiumButton>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ---------- Order details editor (owner) ---------- */
+
+function toDateInput(iso?: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+}
+
+function EditOrderDialog({
+  open,
+  onOpenChange,
+  order,
+  canEditMoney,
+  saving,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  order: Order;
+  canEditMoney: boolean;
+  saving: boolean;
+  onSave: (body: Record<string, unknown>) => void;
+}) {
+  const [garmentDesign, setGarmentDesign] = useState(order.garmentDesign);
+  const [deliveryDate, setDeliveryDate] = useState(toDateInput(order.deliveryDate));
+  const [priority, setPriority] = useState(order.priority || "Medium");
+  const [sellingPrice, setSellingPrice] = useState(String(order.sellingPrice ?? 0));
+  const [fabricCost, setFabricCost] = useState(String(order.fabricCost ?? 0));
+  const [labourCost, setLabourCost] = useState(String(order.labourCost ?? 0));
+
+  function reset() {
+    setGarmentDesign(order.garmentDesign);
+    setDeliveryDate(toDateInput(order.deliveryDate));
+    setPriority(order.priority || "Medium");
+    setSellingPrice(String(order.sellingPrice ?? 0));
+    setFabricCost(String(order.fabricCost ?? 0));
+    setLabourCost(String(order.labourCost ?? 0));
+  }
+
+  const valid = garmentDesign.trim().length > 0;
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (v) reset();
+        onOpenChange(v);
+      }}
+    >
+      <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[90dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit order</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid gap-1.5">
+            <Label htmlFor="eo-design">Garment / design</Label>
+            <Input
+              id="eo-design"
+              value={garmentDesign}
+              onChange={(e) => setGarmentDesign(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label htmlFor="eo-delivery">Delivery date</Label>
+              <Input
+                id="eo-delivery"
+                type="date"
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="eo-priority">Priority</Label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger id="eo-priority" className="w-full bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRIORITY_LEVELS.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {canEditMoney && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="eo-price">Selling price</Label>
+                <Input
+                  id="eo-price"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={sellingPrice}
+                  onChange={(e) => setSellingPrice(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="eo-fabric">Fabric cost</Label>
+                <Input
+                  id="eo-fabric"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={fabricCost}
+                  onChange={(e) => setFabricCost(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="eo-labour">Labour cost</Label>
+                <Input
+                  id="eo-labour"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={labourCost}
+                  onChange={(e) => setLabourCost(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <PremiumButton variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            Cancel
+          </PremiumButton>
+          <PremiumButton
+            loading={saving}
+            disabled={!valid}
+            onClick={() =>
+              onSave({
+                garmentDesign: garmentDesign.trim(),
+                deliveryDate: deliveryDate || null,
+                priority,
+                ...(canEditMoney
+                  ? {
+                      sellingPrice: Number(sellingPrice) || 0,
+                      fabricCost: Number(fabricCost) || 0,
+                      labourCost: Number(labourCost) || 0,
+                    }
+                  : {}),
+              })
+            }
+          >
+            Save changes
           </PremiumButton>
         </DialogFooter>
       </DialogContent>

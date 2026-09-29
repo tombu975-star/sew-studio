@@ -752,8 +752,8 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-between gap-3 rounded-xl border border-[#E7E5E4] bg-white px-4 py-3 sticky bottom-4 shadow-sm">
-          <p className="text-xs text-stone-500">Changes across all sections are saved together.</p>
+        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border border-[#E7E5E4] bg-white px-4 py-3 sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-4 z-20 shadow-sm">
+          <p className="text-xs text-stone-500 text-center sm:text-left">Changes across all sections are saved together.</p>
           <PremiumButton type="submit" loading={saveMutation.isPending} size="lg">
             <Save className="w-4 h-4" />
             Save settings

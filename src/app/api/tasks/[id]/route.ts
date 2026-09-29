@@ -138,3 +138,50 @@ export async function PATCH(
     return Response.json({ error: msg }, { status: 500 });
   }
 }
+
+// DELETE /api/tasks/[id] → { ok: true }
+// Owner can delete any task in the shop; a trainer only tasks in their own
+// scope (assigned to them, or to a trainee they mentor).
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { id } = await params;
+    const { data: existingRow } = await ctx.supabase
+      .from("tasks")
+      .select("id, staff_id, staff:profiles!tasks_staff_id_fkey(role, mentor_id)")
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+    const existing = existingRow as any;
+    if (!existing) return Response.json({ error: "Task not found" }, { status: 404 });
+
+    const staffRel = existing.staff;
+    const inTrainerScope =
+      existing.staff_id === ctx.userId ||
+      (staffRel?.role === "trainee" && staffRel?.mentor_id === ctx.userId);
+    const allowed = ctx.role === "madam" || (ctx.role === "trainer" && inTrainerScope);
+    if (!allowed) {
+      return Response.json(
+        { error: "Only the studio owner can delete this task." },
+        { status: 403 }
+      );
+    }
+
+    const { error } = await ctx.supabase
+      .from("tasks")
+      .delete()
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId);
+    if (error) throw error;
+
+    return Response.json({ ok: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    return Response.json({ error: msg }, { status: 500 });
+  }
+}

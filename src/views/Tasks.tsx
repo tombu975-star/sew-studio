@@ -16,6 +16,7 @@ import {
   Star,
   CheckSquare,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -26,6 +27,7 @@ import {
   SkeletonCard,
 } from "@/components/atelier/EmptyState";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
+import { ConfirmDeleteDialog } from "@/components/atelier/ConfirmDeleteDialog";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import {
   Select,
@@ -45,7 +47,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { apiGet, apiPatch, apiPost } from "@/lib/api";
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { isOverdue, PRIORITY_LEVELS, shortDate, todayISO } from "@/lib/format";
 import type { Order, Task, User } from "@/lib/types";
 import { useNav } from "@/stores/nav";
@@ -172,6 +174,7 @@ export default function Tasks() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [gradeDialogTask, setGradeDialogTask] = useState<TaskWithRelations | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<TaskWithRelations | null>(null);
   const [staffFilter, setStaffFilter] = useState<string>("All");
   const [priorityFilter, setPriorityFilter] = useState<string>("All Priority");
 
@@ -340,6 +343,18 @@ export default function Tasks() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiDelete(`/api/tasks/${id}`),
+    onSuccess: () => {
+      toast.success("Task deleted");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      setTaskToDelete(null);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const showFilters = !traineeMode && staffOptions.length > 0;
 
   const subtitle = traineeMode
@@ -376,7 +391,7 @@ export default function Tasks() {
       />
 
       {/* Premium stat strip */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6">
         <PremiumMetric
           label="To Do"
           value={<AnimatedNumber value={stats.todo} />}
@@ -620,6 +635,7 @@ export default function Tasks() {
                       showGradeControl={graderMode}
                       onGrade={() => setGradeDialogTask(task)}
                       showStaff={!traineeMode}
+                      onDelete={isOwner() ? () => setTaskToDelete(task) : undefined}
                     />
                   ))
                 )}
@@ -648,6 +664,23 @@ export default function Tasks() {
         }
         submitting={gradeMutation.isPending}
       />
+
+      {isOwner() && (
+        <ConfirmDeleteDialog
+          open={!!taskToDelete}
+          onOpenChange={(v) => !v && setTaskToDelete(null)}
+          title="Delete this task?"
+          description={
+            <>
+              <strong>{taskToDelete?.title}</strong> will be permanently removed, along with any
+              grade or feedback on it. This can&apos;t be undone.
+            </>
+          }
+          confirmLabel="Delete task"
+          loading={deleteMutation.isPending}
+          onConfirm={() => taskToDelete && deleteMutation.mutate(taskToDelete.id)}
+        />
+      )}
     </div>
   );
 }
@@ -662,6 +695,7 @@ function TaskCard({
   showGradeControl,
   onGrade,
   showStaff,
+  onDelete,
 }: {
   task: TaskWithRelations;
   onStatusChange: (status: string) => void;
@@ -670,6 +704,7 @@ function TaskCard({
   showGradeControl: boolean;
   onGrade: () => void;
   showStaff: boolean;
+  onDelete?: () => void;
 }) {
   const overdue =
     !!task.dueDate && isOverdue(task.dueDate) && task.status !== "Done";
@@ -697,7 +732,20 @@ function TaskCard({
             {task.title}
           </p>
         </button>
-        <StatusBadge status={task.priority} />
+        <div className="flex items-center gap-1.5 shrink-0">
+          <StatusBadge status={task.priority} />
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label="Delete task"
+              title="Delete task"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {garment && (

@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   CalendarDays,
   AlertCircle,
@@ -9,6 +10,7 @@ import {
   CalendarClock,
   CheckCircle2,
   Scissors,
+  Trash2,
 } from "lucide-react";
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -23,10 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiGet } from "@/lib/api";
+import { apiDelete, apiGet } from "@/lib/api";
 import { formatDate, isOverdue } from "@/lib/format";
 import type { Customer, Fitting } from "@/lib/types";
 import { useNav } from "@/stores/nav";
+import { useRole } from "@/stores/role";
+import { ConfirmDeleteDialog } from "@/components/atelier/ConfirmDeleteDialog";
 import { cn } from "@/lib/utils";
 
 interface FittingWithOrder extends Fitting {
@@ -67,6 +71,21 @@ function initialsOf(name: string) {
 export default function Fittings() {
   const go = useNav((s) => s.go);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
+  const qc = useQueryClient();
+  const owner = useRole((s) => s.isOwner)();
+  const [toDelete, setToDelete] = useState<FittingWithOrder | null>(null);
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => apiDelete(`/api/fittings/${id}`),
+    onSuccess: () => {
+      toast.success("Fitting deleted");
+      setToDelete(null);
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["order"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data, isLoading, isError } = useQuery<DashboardFittingsResponse>({
     queryKey: ["dashboard"],
@@ -126,7 +145,7 @@ export default function Fittings() {
             onValueChange={(v) => setStatusFilter(v as StatusFilter)}
           >
             <SelectTrigger
-              className="w-[180px] h-9 bg-white"
+              className="w-full sm:w-[180px] h-9 bg-white"
               aria-label="Filter by status"
             >
               <SelectValue />
@@ -143,7 +162,7 @@ export default function Fittings() {
       />
 
       {/* Premium stat strip */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6">
         <PremiumMetric
           label="Scheduled"
           value={<AnimatedNumber value={stats.scheduled} />}
@@ -197,6 +216,7 @@ export default function Fittings() {
                     key={f.id}
                     fitting={f}
                     onClick={() => go("order", { id: f.orderId })}
+                    onDelete={owner ? () => setToDelete(f) : undefined}
                   />
                 ))}
               </ul>
@@ -220,12 +240,31 @@ export default function Fittings() {
                     key={f.id}
                     fitting={f}
                     onClick={() => go("order", { id: f.orderId })}
+                    onDelete={owner ? () => setToDelete(f) : undefined}
                   />
                 ))}
               </ul>
             )}
           </SectionCard>
         </div>
+      )}
+
+      {owner && (
+        <ConfirmDeleteDialog
+          open={!!toDelete}
+          onOpenChange={(v) => !v && setToDelete(null)}
+          title="Delete this fitting?"
+          description={
+            <>
+              The fitting for <strong>{toDelete?.order?.garmentDesign ?? "this order"}</strong>
+              {toDelete ? ` on ${formatDate(toDelete.date)}` : ""} will be removed. The order itself
+              is not affected.
+            </>
+          }
+          confirmLabel="Delete fitting"
+          loading={deleteMut.isPending}
+          onConfirm={() => toDelete && deleteMut.mutate(toDelete.id)}
+        />
       )}
     </div>
   );
@@ -257,20 +296,22 @@ function DateChip({ iso }: { iso: string }) {
 function FittingRow({
   fitting,
   onClick,
+  onDelete,
 }: {
   fitting: FittingWithOrder;
   onClick: () => void;
+  onDelete?: () => void;
 }) {
   const overdue = fitting.status === "Scheduled" && isOverdue(fitting.date);
   const customerName = fitting.order?.customer?.name ?? "—";
   const garment = fitting.order?.garmentDesign ?? "—";
 
   return (
-    <li>
+    <li className={cn("flex items-stretch", overdue && "bg-amber-50/60")}>
       <button
         onClick={onClick}
         className={cn(
-          "w-full text-left flex items-center gap-4 px-5 py-3.5 hover:bg-[#FBF9F7] transition group",
+          "flex-1 min-w-0 text-left flex items-center gap-3 sm:gap-4 pl-4 sm:pl-5 pr-3 py-3.5 hover:bg-[#FBF9F7] transition group",
           overdue && "bg-amber-50/60 hover:bg-amber-50"
         )}
       >
@@ -312,6 +353,17 @@ function FittingRow({
 
         <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-stone-500 transition shrink-0" />
       </button>
+      {onDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          aria-label="Delete fitting"
+          title="Delete fitting"
+          className="shrink-0 w-11 flex items-center justify-center text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      )}
     </li>
   );
 }
