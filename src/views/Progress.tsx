@@ -1782,7 +1782,7 @@ function GradeForm({
             Competency unit (evidence)
           </Label>
           <Select value={competencyUnitId} onValueChange={setCompetencyUnitId}>
-            <SelectTrigger className="bg-white">
+            <SelectTrigger className="w-full bg-white">
               <SelectValue placeholder="Not tagged to a unit" />
             </SelectTrigger>
             <SelectContent>

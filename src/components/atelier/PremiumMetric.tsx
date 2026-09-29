@@ -29,35 +29,35 @@ export function PremiumMetric({
   return (
     <div
       className={cn(
-        "relative bg-white border border-[#EAE6DF] rounded-lg p-5 overflow-hidden group",
-        accent && "border-[#9E5A44]/20",
+        "@container relative bg-white border border-[#EAE6DF] rounded-lg p-4 sm:p-5 overflow-hidden group shadow-[0_1px_2px_rgba(45,42,38,0.04),0_8px_24px_-16px_rgba(45,42,38,0.10)]",
+        accent && "border-[#9E5A44]/25 bg-[linear-gradient(180deg,#FFFFFF_0%,#FCF8F6_100%)]",
         className
       )}
     >
       <div className="relative flex items-start justify-between">
-        <span className="text-[10px] font-semibold tracking-[0.16em] text-stone-500">
+        <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-stone-500 leading-tight">
           {label}
         </span>
         {Icon && (
           <Icon className={cn("w-4 h-4", accent ? "text-[#9E5A44]" : "text-stone-300")} />
         )}
       </div>
-      <div className="relative mt-3 flex items-end gap-2">
+      <div className="relative mt-3 flex flex-wrap items-end gap-x-2 gap-y-1.5">
         <div
           className={cn(
             "font-display font-semibold leading-none tabular-nums",
             accent ? "text-[#9E5A44]" : "text-[#1C1A18]"
           )}
-          style={{ fontSize: "clamp(26px, 3vw, 38px)" }}
+          style={{ fontSize: "clamp(22px, 12cqw, 38px)" }}
         >
           {value}
         </div>
         {trend && trendLabel && (
           <span
             className={cn(
-              "mb-1 inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded",
-              trend === "up" && "text-[#4A6B53] bg-[#4A6B53]/8",
-              trend === "down" && "text-[#8E3232] bg-[#8E3232]/8",
+              "mb-1 inline-flex items-center gap-0.5 whitespace-nowrap text-[11px] font-medium px-1.5 py-0.5 rounded-sm",
+              trend === "up" && "text-[#4A6B53] bg-[#4A6B53]/10",
+              trend === "down" && "text-[#8E3232] bg-[#8E3232]/10",
               trend === "flat" && "text-stone-500 bg-stone-100"
             )}
           >
@@ -68,7 +68,7 @@ export function PremiumMetric({
           </span>
         )}
       </div>
-      {sub && <p className="relative mt-2 text-xs text-stone-400">{sub}</p>}
+      {sub && <p className="relative mt-2 text-xs leading-snug text-stone-500">{sub}</p>}
       {spark && spark.length > 1 && <Sparkline data={spark} accent={accent} />}
     </div>
   );

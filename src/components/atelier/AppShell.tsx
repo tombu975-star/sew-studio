@@ -303,24 +303,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh flex flex-col md:flex-row">
-      {/* ─── Desktop sidebar (w-60, sectioned) ───────────────────── */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col border-r border-sidebar-border bg-sidebar z-30">
+      {/* ─── Desktop navigation ──────────────────────────────────
+          md–lg: a 72px icon rail so tablets keep their width for content.
+          lg+:   the full sectioned sidebar. */}
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[72px] lg:w-64 flex-col border-r border-sidebar-border bg-sidebar z-30">
         {/* Brand */}
-        <div className="px-5 py-5 border-b border-sidebar-border shrink-0">
+        <div className="px-3 lg:px-5 h-[76px] flex items-center border-b border-sidebar-border shrink-0">
           <button
             onClick={() => go("dashboard")}
-            className="flex items-center gap-3 group w-full"
+            className="flex items-center gap-3 group w-full justify-center lg:justify-start"
+            title={shopDisplayName}
+            aria-label={`${shopDisplayName} — dashboard`}
           >
-            <div className="w-10 h-10 rounded-xl bg-[#9E5A44] flex items-center justify-center text-white transition-transform duration-300 shrink-0">
-              <Scissors className="w-4 h-4" strokeWidth={2.25} />
+            <div className="w-10 h-10 rounded-[10px] bg-[linear-gradient(160deg,#B26A52_0%,#9E5A44_55%,#7F4634_100%)] shadow-[0_6px_16px_-6px_rgba(158,90,68,0.55),inset_0_1px_0_rgba(255,255,255,0.22)] flex items-center justify-center text-white shrink-0">
+              <Scissors className="w-[17px] h-[17px]" strokeWidth={2.1} />
             </div>
-            <div className="min-w-0 text-left">
-              <p className="font-display text-base font-semibold text-sidebar-foreground truncate leading-tight">
+            <div className="min-w-0 text-left hidden lg:block">
+              <p className="font-display text-[17px] font-semibold text-sidebar-foreground truncate leading-tight">
                 {shopDisplayName}
               </p>
               <span
-                className="inline-flex items-center gap-1 text-[9px] font-medium tracking-[0.14em] mt-1 px-1.5 py-0.5 rounded"
-                style={{ backgroundColor: `${roleAccent}26`, color: roleAccent }}
+                className="inline-flex items-center text-[9px] font-semibold tracking-[0.14em] uppercase mt-1 px-1.5 py-0.5 rounded-sm"
+                style={{ backgroundColor: `${roleAccent}1F`, color: roleAccent }}
               >
                 {ROLE_LABELS[role]} portal
               </span>
@@ -329,10 +333,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Nav sections */}
-        <nav className="flex-1 overflow-y-auto scroll-slim px-3 py-3">
+        <nav
+          aria-label="Primary"
+          className="flex-1 overflow-y-auto overflow-x-hidden scroll-slim px-2.5 lg:px-3 py-3"
+        >
           {sections.map((section, si) => (
-            <div key={section.label} className={cn(si > 0 && "mt-5")}>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/40 px-3 mb-1.5">
+            <div key={section.label} className={cn(si > 0 && "mt-4 lg:mt-[18px]")}>
+              {si > 0 && (
+                <div className="lg:hidden h-px bg-sidebar-border mx-3 mb-3" aria-hidden="true" />
+              )}
+              <p className="hidden lg:block text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/40 px-3 mb-1.5">
                 {section.label}
               </p>
               <div className="space-y-0.5">
@@ -342,21 +352,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <button
                       key={to}
                       onClick={() => go(to)}
+                      title={label}
+                      aria-label={label}
+                      aria-current={active ? "page" : undefined}
                       className={cn(
-                        "group relative w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
+                        "group relative w-full flex items-center justify-center lg:justify-start gap-3 h-10 lg:h-9 lg:px-3 rounded-lg text-[13.5px] transition-colors duration-150",
                         active
-                          ? "bg-[#9E5A44]/[0.08] text-sidebar-primary font-medium"
-                          : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-black/[0.03]"
+                          ? "bg-white text-[#9E5A44] font-semibold shadow-[0_1px_2px_rgba(45,42,38,0.06),0_0_0_1px_#EAE6DF]"
+                          : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-black/[0.035]"
                       )}
                     >
                       {active && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-sidebar-primary rounded-r-full" />
+                        <span className="absolute -left-[11px] lg:-left-3 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#9E5A44] rounded-r-full" />
                       )}
                       <Icon
                         className="w-[18px] h-[18px] shrink-0"
-                        strokeWidth={active ? 2 : 1.5}
+                        strokeWidth={active ? 2 : 1.6}
                       />
-                      <span className="truncate">{label}</span>
+                      <span className="hidden lg:inline truncate">{label}</span>
                     </button>
                   );
                 })}
@@ -367,36 +380,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* User */}
         {user && (
-          <div className="px-3 py-3 border-t border-sidebar-border shrink-0">
-            <div className="group w-full flex items-center gap-2 rounded-lg hover:bg-black/[0.03] transition-colors">
+          <div className="px-2.5 lg:px-3 py-3 border-t border-sidebar-border shrink-0">
+            <div className="group w-full flex flex-col lg:flex-row items-center gap-1 lg:gap-2 rounded-lg lg:hover:bg-black/[0.03] transition-colors">
               <button
                 onClick={() => go("profile")}
-                className="flex flex-1 min-w-0 items-center gap-3 px-2 py-2 rounded-lg text-left"
+                className="flex lg:flex-1 min-w-0 items-center justify-center lg:justify-start gap-3 lg:px-2 py-1.5 rounded-lg text-left"
                 title={`${user.fullName} · My profile`}
+                aria-label="My profile"
               >
                 <div className="relative shrink-0">
                   <div
-                    className="w-9 h-9 rounded-full bg-[#9E5A44] text-white flex items-center justify-center text-xs font-semibold ring-2"
+                    className="w-9 h-9 rounded-full bg-[#9E5A44] text-white flex items-center justify-center text-xs font-semibold ring-2 ring-offset-2 ring-offset-sidebar"
                     style={{ ["--tw-ring-color" as string]: roleAccent }}
                   >
                     {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
                   </div>
                   <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#4A6B53] border-2 border-sidebar" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-sidebar-foreground truncate">
+                <div className="hidden lg:block flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-sidebar-foreground truncate">
                     {user.fullName}
                   </p>
-                  <p className="text-[10px] text-sidebar-foreground/45 flex items-center gap-1 mt-0.5 group-hover:text-sidebar-primary transition-colors">
-                    <UserRound className="w-2.5 h-2.5" />
+                  <p className="text-[11px] text-sidebar-foreground/50 group-hover:text-sidebar-primary transition-colors">
                     My profile
                   </p>
                 </div>
               </button>
               <button
                 onClick={() => logout()}
-                className="shrink-0 w-8 h-8 mr-1 rounded-lg flex items-center justify-center text-sidebar-foreground/40 hover:text-sidebar-primary hover:bg-black/[0.04] transition-colors"
+                className="shrink-0 w-9 h-9 lg:w-8 lg:h-8 lg:mr-1 rounded-lg flex items-center justify-center text-sidebar-foreground/45 hover:text-sidebar-primary hover:bg-black/[0.04] transition-colors"
                 title="Sign out"
+                aria-label="Sign out"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -435,8 +449,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* ─── Main ────────────────────────────────────────────────── */}
-      <main className="flex-1 md:pl-60 pl-safe pr-safe pb-mobile-nav md:pb-0 flex flex-col min-w-0 overflow-x-clip">
-        {children}
+      <main className="flex-1 md:pl-[72px] lg:pl-64 pl-safe pr-safe pb-mobile-nav md:pb-0 flex flex-col min-w-0 overflow-x-clip">
+        <div className="w-full max-w-[1480px] mx-auto flex-1 flex flex-col min-w-0">
+          {children}
+        </div>
       </main>
 
       {/* ─── Mobile bottom nav (5 priority + More) ───────────────── */}

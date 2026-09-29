@@ -983,7 +983,7 @@ function EditPersonalDialog({
                 value={form.gender || undefined}
                 onValueChange={(v) => set("gender", v)}
               >
-                <SelectTrigger className="h-10 rounded-md">
+                <SelectTrigger className="w-full h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1014,7 +1014,7 @@ function EditPersonalDialog({
                 value={form.entrySource || undefined}
                 onValueChange={(v) => set("entrySource", v)}
               >
-                <SelectTrigger className="h-10 rounded-md">
+                <SelectTrigger className="w-full h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1032,7 +1032,7 @@ function EditPersonalDialog({
                 value={form.customerType || undefined}
                 onValueChange={(v) => set("customerType", v)}
               >
-                <SelectTrigger className="h-10 rounded-md">
+                <SelectTrigger className="w-full h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>

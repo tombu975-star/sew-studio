@@ -135,7 +135,7 @@ export function LoginPage() {
         />
         {/* Mobile scrim so the floating card and brand stay legible */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/65 lg:hidden" />
-        <div className="absolute inset-x-0 bottom-0 hidden bg-[#1C1A18]/70 px-12 py-8 lg:block">
+        <div className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-[#1C1A18]/85 via-[#1C1A18]/45 to-transparent px-12 pb-10 pt-28 lg:block">
           <p className="font-display text-3xl font-semibold leading-tight text-white">
             Every stitch tells a story.
           </p>

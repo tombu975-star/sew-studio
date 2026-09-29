@@ -265,7 +265,7 @@ export default function Customers() {
             />
           </div>
           <Select value={sourceFilter} onValueChange={setSourceFilter}>
-            <SelectTrigger className="h-11 bg-white border-[#EAE6DF] rounded-md">
+            <SelectTrigger className="w-full h-11 bg-white border-[#EAE6DF] rounded-md">
               <SelectValue placeholder="Entry source" />
             </SelectTrigger>
             <SelectContent>
@@ -278,7 +278,7 @@ export default function Customers() {
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-11 bg-white border-[#EAE6DF] rounded-md">
+            <SelectTrigger className="w-full h-11 bg-white border-[#EAE6DF] rounded-md">
               <SelectValue placeholder="Client type" />
             </SelectTrigger>
             <SelectContent>
@@ -572,7 +572,7 @@ function AddCustomerDialog({
                 value={form.gender || undefined}
                 onValueChange={(v) => set("gender", v)}
               >
-                <SelectTrigger className="h-10 rounded-md">
+                <SelectTrigger className="w-full h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -604,7 +604,7 @@ function AddCustomerDialog({
                 value={form.entrySource || undefined}
                 onValueChange={(v) => set("entrySource", v)}
               >
-                <SelectTrigger className="h-10 rounded-md">
+                <SelectTrigger className="w-full h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -622,7 +622,7 @@ function AddCustomerDialog({
                 value={form.customerType || undefined}
                 onValueChange={(v) => set("customerType", v)}
               >
-                <SelectTrigger className="h-10 rounded-md">
+                <SelectTrigger className="w-full h-10 rounded-md">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>

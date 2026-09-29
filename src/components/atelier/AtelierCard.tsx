@@ -16,10 +16,10 @@ export function AtelierCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn("surface-premium border border-[#EAE6DF] rounded-lg elevate-sm", className)}>
+    <div className={cn("surface-premium border border-[#EAE6DF] rounded-lg shadow-[0_1px_2px_rgba(45,42,38,0.04),0_8px_24px_-16px_rgba(45,42,38,0.10)]", className)}>
       {title && (
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-[#EAE6DF]/70">
-          <h3 className="text-[11px] font-semibold tracking-[0.14em] text-stone-500">
+        <div className="flex items-center justify-between gap-3 px-5 min-h-12 py-3 border-b border-[#EAE6DF]/80">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
             {title}
           </h3>
           {action}

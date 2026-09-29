@@ -140,14 +140,14 @@ const STATUS_CATEGORY_COLOR: Record<string, string> = {
   Enquiry: "text-stone-700",
   Quoted: "text-stone-700",
   Consultation: "text-stone-700",
-  Confirmed: "text-blue-700",
-  "Deposit Paid": "text-blue-700",
-  "In Production": "text-violet-700",
-  Fitting: "text-cyan-700",
-  Alterations: "text-cyan-700",
-  Ready: "text-emerald-700",
-  "Collected/Delivered": "text-teal-700",
-  Completed: "text-teal-700",
+  Confirmed: "text-[#3D5166]",
+  "Deposit Paid": "text-[#3D5166]",
+  "In Production": "text-[#7A4568]",
+  Fitting: "text-[#8A5A2B]",
+  Alterations: "text-[#8A5A2B]",
+  Ready: "text-[#4A6B53]",
+  "Collected/Delivered": "text-[#4A6B53]",
+  Completed: "text-[#4A6B53]",
 };
 
 /* ---------- gradient avatar palette ---------- */
@@ -466,8 +466,8 @@ function MainDashboard() {
             ))}
           </div>
         )}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 flex flex-col gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-3 xl:items-start gap-4">
+          <div className="xl:col-span-2 flex flex-col gap-4">
             <SkeletonCard />
             <SkeletonList rows={3} />
           </div>
@@ -599,9 +599,9 @@ function MainDashboard() {
       )}
 
       {/* ---------- Work + People grid ---------- */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 xl:items-start gap-4 mb-4">
         {/* Left 2/3 column — stack of section cards */}
-        <div className="lg:col-span-2 flex flex-col gap-4">
+        <div className="xl:col-span-2 flex flex-col gap-4">
           {/* Active Orders */}
           <div className="animate-fade-in-up">
             <SectionCard
@@ -652,11 +652,11 @@ function MainDashboard() {
 
           {/* Status Pipeline */}
           <SectionCard title="Status Pipeline">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-2.5">
               {m.statusCounts.map(({ status, count }) => (
                 <div
                   key={status}
-                  className="rounded-lg border border-[#EAE6DF] p-3 hover:border-[#9E5A44]/20 transition bg-white"
+                  className="rounded-lg border border-[#EAE6DF] px-3.5 py-3 hover:border-[#9E5A44]/30 transition-colors bg-[#FDFCFA]"
                 >
                   <div
                     className={`font-display text-2xl font-semibold leading-none tabular-nums ${
@@ -665,8 +665,8 @@ function MainDashboard() {
                   >
                     {count}
                   </div>
-                  <div className="text-[10px] text-stone-400 mt-1.5 leading-tight uppercase tracking-wide">
-                    {status}
+                  <div className="text-[12px] text-stone-500 mt-2 leading-tight break-words">
+                    {status.replace("/", "/\u200b")}
                   </div>
                 </div>
               ))}
@@ -1292,7 +1292,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
           <div className="h-9 w-72 shimmer rounded mb-3" />
           <div className="h-3 w-80 shimmer rounded" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-3 xl:items-start gap-4">
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
@@ -1314,8 +1314,8 @@ function TraineeDashboard({ userId }: { userId: string }) {
       />
 
       {/* Hero metric — My Open Tasks */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <div className="lg:col-span-1 animate-fade-in-up">
+      <div className="grid grid-cols-1 xl:grid-cols-3 xl:items-start gap-4 mb-4">
+        <div className="xl:col-span-1 animate-fade-in-up">
           <PremiumMetric
             label="My Open Tasks"
             accent
@@ -1339,7 +1339,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
         </div>
 
         {/* My Training Progress */}
-        <div className="lg:col-span-2">
+        <div className="xl:col-span-2">
           <SectionCard
             title="My Training Progress"
             action={
@@ -1399,9 +1399,9 @@ function TraineeDashboard({ userId }: { userId: string }) {
       </div>
 
       {/* My Assigned Orders + Recent Community */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 xl:items-start gap-4">
         {/* My Assigned Orders (NO prices) */}
-        <div className="lg:col-span-2">
+        <div className="xl:col-span-2">
           <SectionCard
             title="My Assigned Orders"
             action={

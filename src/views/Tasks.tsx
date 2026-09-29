@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -17,6 +17,7 @@ import {
   CheckSquare,
   Clock,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -175,6 +176,7 @@ export default function Tasks() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [gradeDialogTask, setGradeDialogTask] = useState<TaskWithRelations | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<TaskWithRelations | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<TaskWithRelations | null>(null);
   const [staffFilter, setStaffFilter] = useState<string>("All");
   const [priorityFilter, setPriorityFilter] = useState<string>("All Priority");
 
@@ -343,6 +345,19 @@ export default function Tasks() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const editMutation = useMutation({
+    mutationFn: ({ id, ...body }: { id: string } & Record<string, unknown>) =>
+      apiPatch<Task>(`/api/tasks/${id}`, body),
+    onSuccess: () => {
+      toast.success("Task updated");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      setTaskToEdit(null);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiDelete(`/api/tasks/${id}`),
     onSuccess: () => {
@@ -426,7 +441,7 @@ export default function Tasks() {
             )
           }
         >
-          <div className="flex flex-wrap items-center gap-6 sm:gap-10">
+          <div className="flex flex-wrap items-end gap-x-10 gap-y-5">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
                 {traineeMode ? "Your average" : "Studio average"}
@@ -475,7 +490,7 @@ export default function Tasks() {
               <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
                 {traineeMode ? "Graded assignments" : "Graded assignments"}
               </span>
-              <span className="text-2xl font-display font-semibold text-[#1C1A18] tabular-nums">
+              <span className="font-display font-semibold text-[#1C1A18] tabular-nums leading-none" style={{ fontSize: "clamp(28px, 3.5vw, 40px)" }}>
                 <AnimatedNumber value={gradedTasks.length} />
                 <span className="text-sm text-stone-400 font-sans font-normal ml-1">
                   of {filtered.length}
@@ -600,7 +615,7 @@ export default function Tasks() {
                       className={cn(
                         "w-3.5 h-3.5",
                         col === "To Do" && "text-[#9E5A44]",
-                        col === "In Progress" && "text-blue-600",
+                        col === "In Progress" && "text-[#3D5166]",
                         col === "Done" && "text-[#4A6B53]"
                       )}
                     />
@@ -636,6 +651,7 @@ export default function Tasks() {
                       onGrade={() => setGradeDialogTask(task)}
                       showStaff={!traineeMode}
                       onDelete={isOwner() ? () => setTaskToDelete(task) : undefined}
+                      onEdit={isOwner() ? () => setTaskToEdit(task) : undefined}
                     />
                   ))
                 )}
@@ -653,6 +669,20 @@ export default function Tasks() {
           members={assignableMembers}
           onSubmit={(payload) => createMutation.mutate(payload)}
           submitting={createMutation.isPending}
+        />
+      )}
+
+      {isOwner() && (
+        <NewTaskDialog
+          open={!!taskToEdit}
+          onOpenChange={(v) => !v && setTaskToEdit(null)}
+          orders={orders}
+          members={assignableMembers}
+          task={taskToEdit}
+          onSubmit={(payload) =>
+            taskToEdit && editMutation.mutate({ id: taskToEdit.id, ...payload })
+          }
+          submitting={editMutation.isPending}
         />
       )}
 
@@ -696,6 +726,7 @@ function TaskCard({
   onGrade,
   showStaff,
   onDelete,
+  onEdit,
 }: {
   task: TaskWithRelations;
   onStatusChange: (status: string) => void;
@@ -705,6 +736,7 @@ function TaskCard({
   onGrade: () => void;
   showStaff: boolean;
   onDelete?: () => void;
+  onEdit?: () => void;
 }) {
   const overdue =
     !!task.dueDate && isOverdue(task.dueDate) && task.status !== "Done";
@@ -734,6 +766,17 @@ function TaskCard({
         </button>
         <div className="flex items-center gap-1.5 shrink-0">
           <StatusBadge status={task.priority} />
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label="Edit task"
+              title="Edit task"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#9E5A44] hover:bg-[#9E5A44]/5 transition"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
           {onDelete && (
             <button
               type="button"
@@ -902,6 +945,7 @@ function NewTaskDialog({
   members,
   onSubmit,
   submitting,
+  task,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -909,7 +953,10 @@ function NewTaskDialog({
   members: User[];
   onSubmit: (payload: NewTaskPayload) => void;
   submitting: boolean;
+  /** When set, the dialog edits this task instead of creating a new one. */
+  task?: TaskWithRelations | null;
 }) {
+  const editing = !!task;
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<string>("Medium");
   const [dueDate, setDueDate] = useState<string>("");
@@ -926,10 +973,32 @@ function NewTaskDialog({
     setNotes("");
   };
 
+  useEffect(() => {
+    if (!task) return;
+    setTitle(task.title);
+    setPriority(task.priority || "Medium");
+    setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : "");
+    setOrderId(task.orderId || "none");
+    setStaffId(task.staffId || "none");
+    setNotes(task.notes || "");
+  }, [task]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
       toast.error("Task title is required");
+      return;
+    }
+    if (editing) {
+      // Send every field so cleared ones (no due date, unassigned…) are saved too.
+      onSubmit({
+        title: title.trim(),
+        priority,
+        dueDate: dueDate || null,
+        orderId: orderId !== "none" ? orderId : null,
+        staffId: staffId !== "none" ? staffId : null,
+        notes: notes.trim() || null,
+      } as unknown as NewTaskPayload);
       return;
     }
     const payload: NewTaskPayload = {
@@ -951,13 +1020,15 @@ function NewTaskDialog({
         if (!v) setTimeout(reset, 150);
       }}
     >
-      <DialogContent className="sm:max-w-md rounded-lg">
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md rounded-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-[#1C1A18]">
-            New Task
+            {editing ? "Edit Task" : "New Task"}
           </DialogTitle>
           <DialogDescription>
-            Capture a quick to-do. You can attach it to an existing order.
+            {editing
+              ? "Update the details of this task."
+              : "Capture a quick to-do. You can attach it to an existing order."}
           </DialogDescription>
         </DialogHeader>
 
@@ -997,7 +1068,7 @@ function NewTaskDialog({
                 id="task-due"
                 type="date"
                 value={dueDate}
-                min={todayISO()}
+                min={editing ? undefined : todayISO()}
                 onChange={(e) => setDueDate(e.target.value)}
               />
             </div>
@@ -1059,7 +1130,7 @@ function NewTaskDialog({
               Cancel
             </PremiumButton>
             <PremiumButton type="submit" loading={submitting}>
-              Create Task
+              {editing ? "Save changes" : "Create Task"}
             </PremiumButton>
           </DialogFooter>
         </form>

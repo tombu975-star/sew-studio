@@ -273,8 +273,8 @@ export default function Orders() {
         ) : (
           <>
             {/* Desktop: invoice register table */}
-            <div className="hidden md:block overflow-x-auto scroll-slim">
-              <table className="w-full table-fixed border-collapse text-sm">
+            <div className="hidden xl:block overflow-x-auto scroll-slim">
+              <table className="w-full min-w-[900px] table-fixed border-collapse text-sm">
                 <colgroup>
                   <col className="w-[132px]" />
                   <col />
@@ -403,16 +403,16 @@ export default function Orders() {
             </div>
 
             {/* Mobile: one card per invoice */}
-            <ul className="md:hidden divide-y divide-[#EAE6DF]/70">
+            <ul className="xl:hidden divide-y divide-[#EAE6DF]/70 md:divide-y-0 md:grid md:grid-cols-2 md:gap-3 md:p-4">
               {rows.map((o) => {
                 const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
                 const balance = Math.max(0, (Number(o.sellingPrice) || 0) - o.paid);
                 const settled = o.sellingPrice > 0 && balance === 0;
                 return (
-                  <li key={o.id}>
+                  <li key={o.id} className="md:border md:border-[#EAE6DF] md:rounded-lg md:overflow-hidden md:bg-white">
                     <button
                       onClick={() => go("order", { id: o.id })}
-                      className="w-full text-left px-4 py-4 active:bg-[#FAFAF7] hover:bg-[#FAFAF7] transition-colors"
+                      className="w-full h-full text-left px-4 py-4 active:bg-[#FAFAF7] hover:bg-[#FAFAF7] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
