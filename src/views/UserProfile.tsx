@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { SectionCard } from "@/components/atelier/SectionCard";
+import { ImageUpload } from "@/components/atelier/ImageUpload";
 import { apiGet, apiPatch, apiPost } from "@/lib/api";
 import { useAuth, type AuthUser } from "@/stores/auth";
 import { useNav } from "@/stores/nav";
@@ -278,19 +279,16 @@ export default function UserProfile() {
                       <option value="Other">Other</option>
                     </select>
                   </label>
-                  <label className="text-xs font-medium text-stone-600 sm:col-span-2">
-                    Profile picture (link)
-                    <span className="mt-2 flex items-center gap-3">
-                      {avatarUrl.trim() ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={avatarUrl.trim()} alt="Preview" className="size-11 shrink-0 rounded-lg object-cover border border-[#E7E5E4]" onError={(e) => ((e.currentTarget.style.visibility = "hidden"))} onLoad={(e) => ((e.currentTarget.style.visibility = "visible"))} />
-                      ) : (
-                        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-dashed border-[#E7E5E4] text-stone-300"><UserRound className="size-5" /></span>
-                      )}
-                      <input type="url" inputMode="url" placeholder="https://… link to a clear, front-facing photo" value={avatarUrl} onChange={(event) => setAvatarUrl(event.target.value)} className="h-11 w-full rounded-md border border-[#E7E5E4] px-3 text-sm font-normal text-[#1C1917] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10" />
-                    </span>
-                    <span className="mt-1.5 block text-[11px] font-normal text-stone-400">Paste a link to an image hosted online. Leave blank to show your initials.</span>
-                  </label>
+                  <div className="sm:col-span-2">
+                    <p className="text-xs font-medium text-stone-600 mb-2">Profile picture</p>
+                    <ImageUpload
+                      kind="avatar"
+                      value={avatarUrl}
+                      onChange={setAvatarUrl}
+                      label="Upload photo"
+                      hint="A clear, front-facing photo works best · JPG, PNG or WebP · up to 5 MB"
+                    />
+                  </div>
                   <div className="sm:col-span-2 flex items-center justify-between gap-3 pt-1">
                     <p className="text-[11px] text-stone-400">
                       {isSelf ? "Only you can see and change these." : "Visible to studio owners and trainers."}

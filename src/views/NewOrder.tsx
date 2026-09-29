@@ -13,6 +13,7 @@ import type { Customer, MeasurementSet, Order, Settings, User } from "@/lib/type
 
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
+import { ImageUpload } from "@/components/atelier/ImageUpload";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
 import { EmptyState } from "@/components/atelier/EmptyState";
@@ -28,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { FIELD_BY_KEY, formatValue, toCm } from "@/lib/measurements";
-import { Image as ImageIcon, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 
 export default function NewOrder() {
   const { go, params } = useNav();
@@ -239,22 +240,16 @@ export default function NewOrder() {
                 </div>
                 <div>
                   <Label>Style reference picture</Label>
-                  <Input
-                    value={designImage}
-                    onChange={(e) => setDesignImage(e.target.value)}
-                    placeholder="Paste an image link (optional)"
-                    className="rounded-md mt-1.5"
-                  />
-                  {designImage.trim() ? (
-                    <div className="mt-3 aspect-video rounded-lg overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4] animate-fade-in">
-                      <img src={designImage.trim()} alt="Style reference preview" className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="mt-3 aspect-video rounded-lg border-2 border-dashed border-[#E7E5E4] bg-[#FBF9F7] flex flex-col items-center justify-center gap-1.5">
-                      <ImageIcon className="w-5 h-5 text-stone-400" />
-                      <span className="text-[11px] text-stone-400">Style preview appears here</span>
-                    </div>
-                  )}
+                  <div className="mt-1.5">
+                    <ImageUpload
+                      kind="design"
+                      shape="wide"
+                      value={designImage}
+                      onChange={setDesignImage}
+                      label="Upload picture"
+                      hint="Photo or sketch of the style · optional"
+                    />
+                  </div>
                 </div>
               </div>
             </SectionCard>

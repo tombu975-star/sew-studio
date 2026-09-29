@@ -44,6 +44,7 @@ import type { Order, Settings } from "@/lib/types";
 import { Invoice } from "@/components/atelier/Invoice";
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
+import { ImageUpload } from "@/components/atelier/ImageUpload";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
 import { StatusStepper } from "@/components/atelier/StatusStepper";
@@ -1358,33 +1359,14 @@ function EditImageDialog({
           <DialogTitle>Design image</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <div>
-            <Label>Image URL</Label>
-            <Input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://…"
-              className="rounded-md mt-1"
-            />
-            <p className="text-[11px] text-stone-400 mt-1.5">
-              Paste a photo or illustration URL. Leave empty to remove the
-              current image.
-            </p>
-          </div>
-          {trimmed ? (
-            <div className="aspect-video rounded-md overflow-hidden bg-[#FBF9F7] border border-[#E7E5E4]">
-              <img
-                src={trimmed}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ) : (
-            <div className="aspect-video rounded-md border-2 border-dashed border-[#E7E5E4] bg-[#FBF9F7] flex flex-col items-center justify-center gap-1.5">
-              <ImageIcon className="w-5 h-5 text-stone-400" />
-              <span className="text-[11px] text-stone-400">No preview yet</span>
-            </div>
-          )}
+          <ImageUpload
+            kind="design"
+            shape="wide"
+            value={url}
+            onChange={setUrl}
+            label="Upload picture"
+            hint="Photo or sketch of the style · leave empty to remove the current picture"
+          />
         </div>
         <DialogFooter>
           <PremiumButton

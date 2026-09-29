@@ -223,6 +223,34 @@ const ROLE_ACCENT: Record<Role, string> = {
   freelancer: "#7A4568", // plum — assigned jobs
 };
 
+// Page title + icon shown in the mobile header for every route — including
+// ones reached by drilling in (order/customer detail) that aren't in the
+// nav itself. Keeps the header meaningful ("Order Details") instead of
+// static branding that never changes as you move through the app.
+const VIEW_META: Record<ViewKey, { label: string; icon: IconType }> = {
+  dashboard: { label: "Dashboard", icon: LayoutDashboard },
+  customers: { label: "Customers", icon: Users },
+  customer: { label: "Customer Profile", icon: UserRound },
+  orders: { label: "Orders", icon: ShoppingBag },
+  order: { label: "Order Details", icon: ShoppingBag },
+  "new-order": { label: "New Order", icon: ShoppingBag },
+  board: { label: "Production Board", icon: LayoutGrid },
+  fittings: { label: "Fittings", icon: CalendarDays },
+  tasks: { label: "Tasks", icon: CheckSquare },
+  "style-assist": { label: "Style Assist", icon: Sparkles },
+  quote: { label: "Quick Quote", icon: Zap },
+  team: { label: "Team", icon: UsersRound },
+  community: { label: "Community", icon: MessageSquare },
+  progress: { label: "Trainee Progress", icon: GraduationCap },
+  curriculum: { label: "Curriculum", icon: BookOpen },
+  portfolio: { label: "Portfolio", icon: ImageIcon },
+  certificate: { label: "Certificate", icon: Award },
+  messages: { label: "Messages", icon: Send },
+  "my-jobs": { label: "My Jobs", icon: Briefcase },
+  profile: { label: "My Profile", icon: UserRound },
+  settings: { label: "Settings", icon: SettingsIcon },
+};
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { role, studioName } = useRole();
   const { view, go } = useNav();
@@ -231,6 +259,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const shopDisplayName = user?.shop?.name || studioName;
   const roleAccent = ROLE_ACCENT[role] || ROLE_ACCENT.staff;
+  const activeMeta = VIEW_META[view] || VIEW_META.dashboard;
+  const ActiveIcon = activeMeta.icon;
 
   // Trainee access to Orders + Board is gated by trainer-granted permissions.
   // Default trainee sees only Tasks in the Studio section; permitted trainees see the granted items.
@@ -381,15 +411,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button
             onClick={() => go("dashboard")}
             className="flex items-center gap-2 min-w-0 flex-1"
+            title={shopDisplayName}
           >
             <div className="w-7 h-7 rounded-lg bg-[#800020] flex items-center justify-center shrink-0">
-              <Scissors className="w-3.5 h-3.5 text-[#1C1917]" strokeWidth={2.25} />
+              <ActiveIcon className="w-3.5 h-3.5 text-white" strokeWidth={2.25} />
             </div>
-            <span
-              className="font-display text-base font-semibold text-[#1C1917] truncate min-w-0"
-              title={shopDisplayName}
-            >
-              {shopDisplayName}
+            <span className="font-display text-base font-semibold text-[#1C1917] truncate min-w-0">
+              {activeMeta.label}
             </span>
             <span
               className="hidden sm:inline-block shrink-0 text-[9px] font-medium tracking-wider px-1.5 py-0.5 rounded"
