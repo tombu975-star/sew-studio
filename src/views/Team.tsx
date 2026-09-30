@@ -1647,7 +1647,7 @@ function AssignJobDialog({
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Cost (GHS)">
               <Input
                 type="number"

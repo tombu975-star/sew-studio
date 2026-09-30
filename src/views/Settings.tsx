@@ -314,7 +314,7 @@ export default function Settings() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="owner-gender">Your gender</Label>
                 <Select value={ownerGender} onValueChange={setOwnerGender}>
@@ -532,7 +532,7 @@ export default function Settings() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="overhead">Overhead per order</Label>
                 <Input
@@ -676,7 +676,7 @@ export default function Settings() {
           title="Fittings & alterations"
           action={<Scissors className="w-4 h-4 text-stone-400" />}
         >
-          <div className="grid grid-cols-2 gap-3 p-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1">
             <div className="grid gap-1.5">
               <Label htmlFor="fittings-included">Fittings included</Label>
               <Input

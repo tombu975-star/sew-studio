@@ -1045,7 +1045,7 @@ function NewTaskDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label htmlFor="task-priority">Priority</Label>
               <Select value={priority} onValueChange={setPriority}>
@@ -1232,7 +1232,7 @@ function GradeForm({
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="grid gap-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="grid gap-1.5">
             <Label htmlFor="grade-max">Max score</Label>
             <Input

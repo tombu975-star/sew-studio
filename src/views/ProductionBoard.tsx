@@ -223,11 +223,11 @@ export default function ProductionBoard() {
 
       {/* Board */}
       {isLoading ? (
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-slim">
           {BOARD_COLUMNS.map((col) => (
             <div
               key={col.key}
-              className="w-80 shrink-0 rounded-xl border border-[#EAE6DF] bg-[#FAFAF7]/60 p-2.5 space-y-2.5"
+              className="w-[85vw] max-w-80 sm:w-80 shrink-0 snap-start rounded-xl border border-[#EAE6DF] bg-[#FAFAF7]/60 p-2.5 space-y-2.5"
             >
               <div className="h-8 w-2/3 shimmer rounded" />
               {Array.from({ length: 3 }).map((_, i) => (
@@ -260,7 +260,7 @@ export default function ProductionBoard() {
           onDragEnd={handleDragEnd}
           onDragCancel={() => setActiveId(null)}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4 scroll-slim">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-slim">
             {columns.map((col) => (
               <Column
                 key={col.key}
@@ -305,7 +305,7 @@ function Column({
     <div
       ref={setNodeRef}
       className={cn(
-        "w-80 shrink-0 rounded-xl border bg-[#FAFAF7]/60 elevate-sm flex flex-col transition-colors",
+        "w-[85vw] max-w-80 sm:w-80 shrink-0 snap-start rounded-xl border bg-[#FAFAF7]/60 elevate-sm flex flex-col transition-colors",
         isOver
           ? "border-[#9E5A44]/50 ring-2 ring-[#9E5A44]/15"
           : "border-[#EAE6DF]"
