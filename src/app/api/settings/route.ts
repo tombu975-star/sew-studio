@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 import { serializeSettings } from "@/lib/supabase/serializers";
 
 export async function GET() {
@@ -50,7 +51,7 @@ export async function PATCH(req: Request) {
       settings = created;
     }
 
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["settings"]["Update"] = {};
     const fieldMap: Record<string, string> = {
       ownerGender: "owner_gender",
       studioName: "studio_name",

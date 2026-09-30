@@ -1,7 +1,12 @@
 import { getTenant } from "@/lib/supabase/session";
 import { serializeCommunityPost, serializeCommunityComment } from "@/lib/supabase/serializers";
 
-const POST_SELECT = "*, comments(*), likes(count)";
+// Aliased embeds are required here — PostgREST resolves an embed by the
+// actual related table name (or an explicit `alias:table` pair), and
+// "comments"/"likes" aren't real table names (they're community_comments /
+// community_likes). Without the alias this 500s with "could not find a
+// relationship" on every load of the Community feed.
+const POST_SELECT = "*, comments:community_comments(*), likes:community_likes(count)";
 
 export async function GET() {
   try {

@@ -1,4 +1,5 @@
 import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 import { serializeFreelanceJob } from "@/lib/supabase/serializers";
 
 const PERMISSION_ERROR = {
@@ -31,7 +32,7 @@ export async function PATCH(
 
     const body = await req.json();
     const { taskDescription, cost, dueDate, status } = body || {};
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["freelance_jobs"]["Update"] = {};
     if (taskDescription !== undefined) data.task_description = taskDescription;
     if (cost !== undefined) data.cost = cost != null ? Number(cost) : null;
     if (dueDate !== undefined) data.due_date = dueDate ? new Date(dueDate).toISOString() : null;

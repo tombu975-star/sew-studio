@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 import { serializeStyleConcept } from "@/lib/supabase/serializers";
 
 const CAMEL_TO_SNAKE: Record<string, string> = {
@@ -43,7 +44,7 @@ export async function PATCH(
     if (!existing) return Response.json({ error: "Style concept not found" }, { status: 404 });
 
     const body = await req.json();
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["style_concepts"]["Update"] = {};
     for (const [camel, snake] of Object.entries(CAMEL_TO_SNAKE)) {
       if (camel in body) data[snake] = body[camel] == null ? null : String(body[camel]);
     }

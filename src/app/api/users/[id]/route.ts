@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 
 export async function GET(
   _req: Request,
@@ -91,7 +92,7 @@ export async function PATCH(
       canManageFreelancers,
     } = body || {};
 
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["profiles"]["Update"] = {};
     if (mentorId !== undefined) {
       if (mentorId) {
         const { data: mentor } = await ctx.supabase

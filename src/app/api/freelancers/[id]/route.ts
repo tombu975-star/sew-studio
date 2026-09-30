@@ -1,4 +1,5 @@
 import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 
 const PERMISSION_ERROR = {
   error: "Only the studio owner, or someone granted freelancer access, can manage this.",
@@ -35,7 +36,7 @@ export async function PATCH(
 
     const body = await req.json();
     const { rateNotes, status } = body || {};
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["freelancer_shop_links"]["Update"] = {};
     if (rateNotes !== undefined) data.rate_notes = rateNotes;
     if (status !== undefined) data.status = status;
 

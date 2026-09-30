@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 import { serializeCompetencyUnit } from "@/lib/supabase/serializers";
 
 export async function PATCH(
@@ -24,7 +25,7 @@ export async function PATCH(
     if (!existing) return Response.json({ error: "Unit not found" }, { status: 404 });
 
     const body = await req.json();
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["competency_units"]["Update"] = {};
     if (body.title !== undefined) data.title = String(body.title).trim();
     if (body.code !== undefined) data.code = body.code ? String(body.code) : null;
     if (body.learningOutcomes !== undefined) data.learning_outcomes = String(body.learningOutcomes);

@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 import { serializeTrainingLog } from "@/lib/supabase/serializers";
 
 const LOG_SELECT =
@@ -23,7 +24,7 @@ export async function PATCH(
 
     const body = await req.json();
     const { skill, title, note, status, mentorId } = body || {};
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["training_logs"]["Update"] = {};
     if (skill !== undefined) data.skill = skill;
     if (title !== undefined) data.title = title;
     if (note !== undefined) data.note = note;

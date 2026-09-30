@@ -46,13 +46,18 @@ import { cn } from "@/lib/utils";
 // Types
 // ---------------------------------------------------------------------------
 
-interface OrderWithCustomer extends Order {
+// The freelancer-facing API deliberately returns a slimmer embed than the
+// full Order/Task shape (see /api/orders, /api/tasks) — `extends` would
+// require `customer`/`order` to still satisfy the full Customer/Order type,
+// which this narrower shape doesn't, so we override the field via Omit
+// instead of widening the shared type for every other caller.
+type OrderWithCustomer = Omit<Order, "customer"> & {
   customer?: { id: string; name: string } | null;
-}
+};
 
-interface TaskWithOrder extends Task {
+type TaskWithOrder = Omit<Task, "order"> & {
   order?: { id: string; garmentDesign: string } | null;
-}
+};
 
 // ---------------------------------------------------------------------------
 // Main view

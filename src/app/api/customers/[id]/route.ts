@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Database } from "@/lib/supabase/database.types";
 import { getTenant } from "@/lib/supabase/session";
 import {
   serializeCustomer,
@@ -53,9 +54,17 @@ export async function GET(req: NextRequest, { params }: Ctx) {
       .order("created_at", { ascending: false }),
   ]);
 
+  // Cast needed: this file's hand-maintained Relationships metadata can't
+  // resolve the assigned_staff embed, so postgrest-js falls back to `never`
+  // even though the runtime shape (and serializeOrder, which accepts a
+  // loose Record<string, any>) is correct.
+  type OrderWithStaffRow = Database["public"]["Tables"]["orders"]["Row"] & Record<string, unknown>;
+
   return NextResponse.json({
     customer: serializeCustomer(customer),
-    orders: (ordersRes.data ?? []).map((o) => serializeOrder({ ...o, assigned_staff: o.assigned_staff })),
+    orders: (ordersRes.data as unknown as OrderWithStaffRow[] ?? []).map((o) =>
+      serializeOrder({ ...o, assigned_staff: o.assigned_staff })
+    ),
     measurements: (measurementsRes.data ?? []).map((m) => ({
       ...serializeMeasurementSet(m),
       staff: m.staff ? { id: m.staff.id, fullName: m.staff.full_name } : null,
@@ -81,7 +90,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     .maybeSingle();
   if (!existing) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
 
-  const data: Record<string, unknown> = {};
+  const data: Database["public"]["Tables"]["customers"]["Update"] = {};
   const fieldMap: Record<string, string> = {
     name: "name",
     phone: "phone",

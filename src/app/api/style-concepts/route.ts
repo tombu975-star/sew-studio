@@ -1,3 +1,4 @@
+import type { Database } from "@/lib/supabase/database.types";
 import { getTenant } from "@/lib/supabase/session";
 import { serializeStyleConcept } from "@/lib/supabase/serializers";
 
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "Customer not found in this shop" }, { status: 404 });
     }
 
-    const data: Record<string, unknown> = {
+    const data: Database["public"]["Tables"]["style_concepts"]["Insert"] = {
       shop_id: ctx.shopId,
       customer_id: String(body.customerId),
       garment_type: String(body.garmentDesign ?? body.garmentType ?? "").trim(),

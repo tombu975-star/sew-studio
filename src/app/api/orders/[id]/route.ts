@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Database } from "@/lib/supabase/database.types";
 import { getTenant } from "@/lib/supabase/session";
 import { notifyCustomer, statusChangeMessage } from "@/lib/notify";
 import { serializeOrder, serializeTask } from "@/lib/supabase/serializers";
@@ -70,7 +71,7 @@ export async function PATCH(
   const body = await req.json();
   const statusChanged = body.status !== undefined && body.status !== existing.status;
 
-  const data: Record<string, unknown> = {};
+  const data: Database["public"]["Tables"]["orders"]["Update"] = {};
   if (body.garmentDesign !== undefined) data.garment_design = body.garmentDesign;
   if (body.orderDate !== undefined)
     data.order_date = body.orderDate ? new Date(body.orderDate).toISOString() : new Date().toISOString();

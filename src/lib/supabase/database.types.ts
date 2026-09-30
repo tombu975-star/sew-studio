@@ -1,8 +1,17 @@
-// Hand-written to match supabase/schema/*.sql. Once the Supabase project is
-// live, prefer regenerating this with:
+// Hand-written to match the full migration chain in supabase/*.sql
+// (0001 through 0010 — this file had drifted and was missing profiles/
+// freelancer_profiles.avatar_url and settings.overhead_recovery_basis from
+// 0008, which made every `.select()` touching those columns fail to
+// type-check). Once the Supabase project is live, prefer regenerating with:
 //   npx supabase gen types typescript --project-id <ref> > src/lib/supabase/database.types.ts
 // which will be exactly correct; this file is a faithful-effort stand-in so
 // the app has type safety in the meantime.
+//
+// Every table also carries `Relationships: []` and the schema carries empty
+// `Views`/`Functions` maps — required by the GenericTable/GenericSchema
+// shape in newer @supabase/postgrest-js versions; without them every query
+// silently typed as `never`, masking real errors under hundreds of false
+// "Property does not exist on type 'never'" ones.
 
 type Nullable<T> = T | null;
 
@@ -24,6 +33,7 @@ export interface Database {
           slug: string;
         };
         Update: Partial<Database["public"]["Tables"]["shops"]["Row"]>;
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -41,6 +51,7 @@ export interface Database {
           can_access_orders: boolean;
           can_access_board: boolean;
           can_manage_freelancers: boolean;
+          avatar_url: Nullable<string>;
           created_at: string;
           updated_at: string;
         };
@@ -51,6 +62,7 @@ export interface Database {
           shop_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Row"]>;
+        Relationships: [];
       };
       freelancer_profiles: {
         Row: {
@@ -60,6 +72,7 @@ export interface Database {
           phone: Nullable<string>;
           specialty: Nullable<string>;
           skills: Nullable<string>;
+          avatar_url: Nullable<string>;
           created_at: string;
           updated_at: string;
         };
@@ -69,6 +82,7 @@ export interface Database {
           full_name: string;
         };
         Update: Partial<Database["public"]["Tables"]["freelancer_profiles"]["Row"]>;
+        Relationships: [];
       };
       freelancer_shop_links: {
         Row: {
@@ -85,6 +99,7 @@ export interface Database {
           freelancer_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["freelancer_shop_links"]["Row"]>;
+        Relationships: [];
       };
       freelance_jobs: {
         Row: {
@@ -105,6 +120,7 @@ export interface Database {
           task_description: string;
         };
         Update: Partial<Database["public"]["Tables"]["freelance_jobs"]["Row"]>;
+        Relationships: [];
       };
       customers: {
         Row: {
@@ -144,6 +160,7 @@ export interface Database {
           name: string;
         };
         Update: Partial<Database["public"]["Tables"]["customers"]["Row"]>;
+        Relationships: [];
       };
       measurement_sets: {
         Row: {
@@ -186,6 +203,7 @@ export interface Database {
           customer_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["measurement_sets"]["Row"]>;
+        Relationships: [];
       };
       customer_feedback: {
         Row: {
@@ -202,6 +220,7 @@ export interface Database {
           customer_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["customer_feedback"]["Row"]>;
+        Relationships: [];
       };
       orders: {
         Row: {
@@ -229,6 +248,7 @@ export interface Database {
           order_date: string;
         };
         Update: Partial<Database["public"]["Tables"]["orders"]["Row"]>;
+        Relationships: [];
       };
       payments: {
         Row: {
@@ -245,6 +265,7 @@ export interface Database {
           amount: number;
         };
         Update: Partial<Database["public"]["Tables"]["payments"]["Row"]>;
+        Relationships: [];
       };
       fittings: {
         Row: {
@@ -260,6 +281,7 @@ export interface Database {
           date: string;
         };
         Update: Partial<Database["public"]["Tables"]["fittings"]["Row"]>;
+        Relationships: [];
       };
       tasks: {
         Row: {
@@ -286,6 +308,7 @@ export interface Database {
           title: string;
         };
         Update: Partial<Database["public"]["Tables"]["tasks"]["Row"]>;
+        Relationships: [];
       };
       training_programs: {
         Row: {
@@ -307,6 +330,7 @@ export interface Database {
           created_by_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["training_programs"]["Row"]>;
+        Relationships: [];
       };
       competency_units: {
         Row: {
@@ -330,6 +354,7 @@ export interface Database {
           assessment_criteria: string;
         };
         Update: Partial<Database["public"]["Tables"]["competency_units"]["Row"]>;
+        Relationships: [];
       };
       style_concepts: {
         Row: {
@@ -369,6 +394,7 @@ export interface Database {
           concept_name: string;
         };
         Update: Partial<Database["public"]["Tables"]["style_concepts"]["Row"]>;
+        Relationships: [];
       };
       settings: {
         Row: {
@@ -388,7 +414,7 @@ export interface Database {
           deposit_policy_text: string;
           alterations_policy_text: string;
           cancellation_policy_text: string;
-          overhead_items: unknown;
+          overhead_items: { id: string; name: string; amount: number }[];
           outstanding_balance_alert_threshold: number;
           typical_active_orders_per_staff: number;
           contact_phone: string;
@@ -396,6 +422,7 @@ export interface Database {
           address: string;
           tax_id: string;
           invoice_prefix: string;
+          overhead_recovery_basis: number;
           created_at: string;
           updated_at: string;
         };
@@ -403,6 +430,7 @@ export interface Database {
           shop_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["settings"]["Row"]>;
+        Relationships: [];
       };
       community_posts: {
         Row: {
@@ -425,6 +453,7 @@ export interface Database {
           body: string;
         };
         Update: Partial<Database["public"]["Tables"]["community_posts"]["Row"]>;
+        Relationships: [];
       };
       community_comments: {
         Row: {
@@ -441,6 +470,7 @@ export interface Database {
           body: string;
         };
         Update: Partial<Database["public"]["Tables"]["community_comments"]["Row"]>;
+        Relationships: [];
       };
       community_likes: {
         Row: {
@@ -453,6 +483,7 @@ export interface Database {
           post_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["community_likes"]["Row"]>;
+        Relationships: [];
       };
       training_logs: {
         Row: {
@@ -474,6 +505,7 @@ export interface Database {
           title: string;
         };
         Update: Partial<Database["public"]["Tables"]["training_logs"]["Row"]>;
+        Relationships: [];
       };
       certificates: {
         Row: {
@@ -497,6 +529,7 @@ export interface Database {
           certificate_no: string;
         };
         Update: Partial<Database["public"]["Tables"]["certificates"]["Row"]>;
+        Relationships: [];
       };
       customer_notifications: {
         Row: {
@@ -525,7 +558,10 @@ export interface Database {
           body: string;
         };
         Update: Partial<Database["public"]["Tables"]["customer_notifications"]["Row"]>;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
   };
 }

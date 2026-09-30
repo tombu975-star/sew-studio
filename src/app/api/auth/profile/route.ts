@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Database } from "@/lib/supabase/database.types";
 import { getTenant } from "@/lib/supabase/session";
 
 export async function PATCH(req: Request) {
@@ -11,7 +12,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Your name is required." }, { status: 400 });
   }
 
-  const data: Record<string, string | null> = { full_name: fullName };
+  const data: Database["public"]["Tables"]["profiles"]["Update"] = { full_name: fullName };
   if ("phone" in body) data.phone = typeof body.phone === "string" && body.phone.trim() ? body.phone.trim() : null;
   if ("gender" in body) data.gender = typeof body.gender === "string" && body.gender.trim() ? body.gender.trim() : null;
 

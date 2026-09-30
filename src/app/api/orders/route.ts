@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Database } from "@/lib/supabase/database.types";
 import { getTenant } from "@/lib/supabase/session";
 import { serializeOrder } from "@/lib/supabase/serializers";
 
@@ -28,9 +29,20 @@ export async function GET(req: NextRequest) {
   const { data: orders, error } = await query.order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Cast needed: this file's hand-maintained Relationships metadata can't
+  // resolve the customer/assigned_staff/payments/fittings embeds, so
+  // postgrest-js falls back to `never` even though the runtime shape (and
+  // serializeOrder, which accepts a loose Record<string, any>) is correct.
+  type OrderRow = Database["public"]["Tables"]["orders"]["Row"] & {
+    customer: unknown;
+    assigned_staff: unknown;
+    payments: { date: string; [key: string]: unknown }[];
+    fittings: { date: string; [key: string]: unknown }[];
+  };
+
   // .order() on nested payments/fittings isn't available via the top-level
   // query builder for embedded resources, so sort them client-side.
-  const result = orders.map((o) =>
+  const result = (orders as unknown as OrderRow[]).map((o) =>
     serializeOrder({
       ...o,
       payments: [...(o.payments ?? [])].sort(
@@ -61,7 +73,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Customer not found in this shop" }, { status: 404 });
   }
 
-  const data: Record<string, unknown> = {
+  const data: Database["public"]["Tables"]["orders"]["Insert"] = {
     shop_id: ctx.shopId,
     customer_id: body.customerId,
     garment_design: body.garmentDesign,

@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 import { serializeTrainingProgram } from "@/lib/supabase/serializers";
 
 export async function GET(
@@ -55,7 +56,7 @@ export async function PATCH(
     if (!existing) return Response.json({ error: "Program not found" }, { status: 404 });
 
     const body = await req.json();
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["training_programs"]["Update"] = {};
     if (body.name !== undefined) data.name = String(body.name).trim();
     if (body.level !== undefined) data.level = String(body.level).trim();
     if (body.durationWeeks !== undefined) data.duration_weeks = Number(body.durationWeeks);

@@ -1,3 +1,4 @@
+import type { Database } from "@/lib/supabase/database.types";
 import { getTenant } from "@/lib/supabase/session";
 import { serializeTask } from "@/lib/supabase/serializers";
 
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const data: Record<string, unknown> = {
+    const data: Database["public"]["Tables"]["tasks"]["Insert"] = {
       shop_id: ctx.shopId,
       title: String(body.title ?? "").trim(),
       status: body.status ? String(body.status) : "To Do",

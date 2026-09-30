@@ -32,7 +32,7 @@ export async function GET(
     // Business policies live on `settings`, one row per shop — fetched
     // separately since the customer→shop embed above doesn't carry it.
     const shopId = (customer.shop as { id?: string } | null)?.id;
-    let policies = null;
+    let policies: ReturnType<typeof serializeShopPolicies> = null;
     if (shopId) {
       const { data: settings } = await admin
         .from("settings")

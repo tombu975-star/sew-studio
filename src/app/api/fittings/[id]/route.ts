@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 import { serializeFitting } from "@/lib/supabase/serializers";
 
 export async function PATCH(
@@ -25,7 +26,7 @@ export async function PATCH(
       return Response.json({ error: "Fitting not found" }, { status: 404 });
     }
 
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["fittings"]["Update"] = {};
     if ("date" in body && body.date) data.date = new Date(body.date).toISOString();
     if ("status" in body && body.status) data.status = String(body.status);
     if ("notes" in body) data.notes = body.notes ? String(body.notes) : null;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Database } from "@/lib/supabase/database.types";
 import { getTenant } from "@/lib/supabase/session";
 import { serializeCustomer } from "@/lib/supabase/serializers";
 
@@ -14,7 +15,11 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const result = customers.map((c) =>
+  // Cast needed: the `orders(count)` aggregate embed can't be resolved from
+  // this file's hand-maintained Relationships metadata, so postgrest-js
+  // falls back to `never` here even though the shape at runtime is correct.
+  type CustomerRow = Database["public"]["Tables"]["customers"]["Row"] & { orders: { count: number }[] };
+  const result = (customers as unknown as CustomerRow[]).map((c) =>
     serializeCustomer({
       ...c,
       _orderCount: Array.isArray(c.orders) ? (c.orders[0]?.count ?? 0) : 0,
@@ -33,7 +38,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
-  const data: Record<string, unknown> = {
+  const data: Database["public"]["Tables"]["customers"]["Insert"] = {
     shop_id: ctx.shopId,
     name: String(body.name).trim(),
     phone: body.phone ?? null,

@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/supabase/database.types";
 import { serializeTask } from "@/lib/supabase/serializers";
 
 export async function PATCH(
@@ -36,7 +37,7 @@ export async function PATCH(
       );
     }
 
-    const data: Record<string, unknown> = {};
+    const data: Database["public"]["Tables"]["tasks"]["Update"] = {};
     if ("title" in body && body.title) data.title = String(body.title);
     if ("status" in body && body.status) data.status = String(body.status);
     if ("priority" in body && body.priority) data.priority = String(body.priority);
