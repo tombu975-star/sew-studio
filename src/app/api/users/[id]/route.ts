@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/supabase/session";
+import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 import type { Database } from "@/lib/supabase/database.types";
 
 export async function GET(
@@ -175,6 +176,96 @@ export async function PATCH(
       createdAt: updated.created_at,
       updatedAt: updated.updated_at,
     });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    return Response.json({ error: msg }, { status: 500 });
+  }
+}
+
+// DELETE /api/users/[id] → { ok: true, openOrders: number }
+// "Remove from studio" (owner only). Nothing is deleted: the member loses the
+// ability to sign in and disappears from the team list, but every order,
+// grade and certificate that mentions them stays intact.
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const ctx = await getTenant();
+    if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
+    if (ctx.role !== "madam") {
+      return Response.json(
+        { error: "Only the studio owner can remove a team member." },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await params;
+    if (id === ctx.userId) {
+      return Response.json({ error: "You can't remove yourself." }, { status: 400 });
+    }
+
+    const { data: target } = await ctx.supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId)
+      .maybeSingle();
+    if (!target) return Response.json({ error: "User not found" }, { status: 404 });
+    if (target.role === "madam") {
+      return Response.json({ error: "The studio owner can't be removed." }, { status: 400 });
+    }
+
+    const admin = createAdminSupabaseClient();
+    const nowIso = new Date().toISOString();
+
+    // 1. Mark inactive. If migration 0012 hasn't been run, this column is missing.
+    const { error: flagError } = await admin
+      .from("profiles")
+      .update({ is_active: false, removed_at: nowIso })
+      .eq("id", id)
+      .eq("shop_id", ctx.shopId);
+    if (flagError) {
+      return Response.json(
+        {
+          error:
+            "Couldn't remove this member. Make sure migration 0012_member_removal.sql has been run in Supabase. (" +
+            flagError.message +
+            ")",
+        },
+        { status: 500 }
+      );
+    }
+
+    // 2. Block sign-in. Their existing session stops working straight away
+    //    too, because getTenant() rejects inactive members.
+    const { error: banError } = await admin.auth.admin.updateUserById(id, {
+      ban_duration: "876000h",
+    });
+    if (banError) console.error("Could not ban removed member:", banError.message);
+
+    // 3. Free up their unfinished work and any trainees they mentored.
+    await admin
+      .from("tasks")
+      .update({ staff_id: null })
+      .eq("shop_id", ctx.shopId)
+      .eq("staff_id", id)
+      .neq("status", "Done");
+    await admin
+      .from("profiles")
+      .update({ mentor_id: null })
+      .eq("shop_id", ctx.shopId)
+      .eq("mentor_id", id);
+
+    // 4. Tell the owner how many live orders still list them as the tailor.
+    const { count } = await admin
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("shop_id", ctx.shopId)
+      .eq("assigned_staff_id", id)
+      .not("status", "in", '("Completed","Collected/Delivered")');
+
+    return Response.json({ ok: true, openOrders: count ?? 0 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });

@@ -72,6 +72,7 @@ import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import type { Freelancer, FreelanceJob, TrainingLog, TrainingProgram, User } from "@/lib/types";
 import { useAuth } from "@/stores/auth";
+import { ConfirmDeleteDialog } from "@/components/atelier/ConfirmDeleteDialog";
 import { useNav } from "@/stores/nav";
 import { useRole } from "@/stores/role";
 
@@ -158,6 +159,7 @@ export default function Team() {
   const [addTraineeOpen, setAddTraineeOpen] = useState(false);
   const [addFreelancerOpen, setAddFreelancerOpen] = useState(false);
   const [editMember, setEditMember] = useState<User | null>(null);
+  const [removeMember, setRemoveMember] = useState<User | null>(null);
 
   const usersQ = useQuery<User[]>({
     queryKey: ["users"],
@@ -289,6 +291,7 @@ export default function Team() {
             onAdd={() => setAddMemberOpen(true)}
             isOwnerViewer={role.isOwner()}
             onEdit={(u) => setEditMember(u)}
+            onRemove={(u) => setRemoveMember(u)}
             onToggleFreelancerAccess={(id, v) =>
               permissionMutation.mutate({ id, canManageFreelancers: v })
             }
@@ -337,6 +340,7 @@ export default function Team() {
         }}
         mentors={mentors}
       />
+      <RemoveMemberDialog member={removeMember} onClose={() => setRemoveMember(null)} />
       <EditMemberDialog
         key={editMember?.id ?? "none"}
         open={!!editMember}
@@ -361,6 +365,7 @@ function StaffTrainersCard({
   onAdd,
   isOwnerViewer,
   onEdit,
+  onRemove,
   onToggleFreelancerAccess,
   togglingId,
 }: {
@@ -370,6 +375,7 @@ function StaffTrainersCard({
   onAdd: () => void;
   isOwnerViewer: boolean;
   onEdit: (u: User) => void;
+  onRemove: (u: User) => void;
   onToggleFreelancerAccess: (id: string, value: boolean) => void;
   togglingId?: string | null;
 }) {
@@ -492,6 +498,17 @@ function StaffTrainersCard({
                       <span className="hidden sm:inline">Edit</span>
                     </button>
                   )}
+                  {isOwnerViewer && !isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => onRemove(u)}
+                      aria-label={`Remove ${u.fullName} from the studio`}
+                      title="Remove from studio"
+                      className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-md text-stone-400 hover:text-[#8E3232] hover:bg-[#8E3232]/8 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -515,6 +532,7 @@ function FreelancersCard({
 }) {
   const qc = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editFreelancer, setEditFreelancer] = useState<Freelancer | null>(null);
 
   const statusMutation = useMutation({
     mutationFn: ({ linkId, status }: { linkId: string; status: string }) =>
@@ -643,6 +661,16 @@ function FreelancersCard({
                       ))}
                     </SelectContent>
                   </Select>
+                  <button
+                    type="button"
+                    onClick={() => setEditFreelancer(f)}
+                    aria-label={`Edit details for ${f.name}`}
+                    title="Edit details"
+                    className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#EAE6DF] bg-white text-xs text-stone-600 hover:text-[#9E5A44] hover:border-[#9E5A44]/40 hover:bg-[#FAF2EC] transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Edit</span>
+                  </button>
                   <PremiumButton
                     variant="ghost"
                     size="icon"
@@ -658,6 +686,13 @@ function FreelancersCard({
           })}
         </div>
       )}
+
+      <EditFreelancerDialog
+        key={editFreelancer?.linkId ?? "none"}
+        open={!!editFreelancer}
+        onOpenChange={(o) => !o && setEditFreelancer(null)}
+        freelancer={editFreelancer}
+      />
 
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
@@ -2400,5 +2435,206 @@ function EditMemberDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ====================== Edit Freelancer Dialog ====================== */
+
+function EditFreelancerDialog({
+  open,
+  onOpenChange,
+  freelancer,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  freelancer: Freelancer | null;
+}) {
+  const qc = useQueryClient();
+  const [fullName, setFullName] = useState(freelancer?.name ?? "");
+  const [phone, setPhone] = useState(freelancer?.phone ?? "");
+  const [specialty, setSpecialty] = useState(freelancer?.specialty ?? "");
+  const [skills, setSkills] = useState(freelancer?.skills ?? "");
+  const [rateNotes, setRateNotes] = useState(freelancer?.rateNotes ?? "");
+  const [status, setStatus] = useState(freelancer?.status ?? "Available");
+
+  const saveMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      apiPatch<Freelancer>(`/api/freelancers/${freelancer?.linkId}`, body),
+    onSuccess: (f) => {
+      qc.invalidateQueries({ queryKey: ["freelancers"] });
+      toast.success(`${f.name}'s details updated.`);
+      onOpenChange(false);
+    },
+    onError: (err: Error) => {
+      toast.error("Could not update freelancer.", { description: err.message });
+    },
+  });
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!freelancer) return;
+    if (!fullName.trim()) {
+      toast.error("Name can't be empty.");
+      return;
+    }
+    // Studio-side details (rate notes, status) are always saved. Contact
+    // details are sent only if changed, so a freelancer who also works with
+    // other studios can still have their rate notes and status updated.
+    const body: Record<string, unknown> = {
+      rateNotes: rateNotes.trim() || null,
+      status,
+    };
+    if (fullName.trim() !== freelancer.name) body.fullName = fullName.trim();
+    if ((phone.trim() || null) !== (freelancer.phone || null)) body.phone = phone.trim() || null;
+    if ((specialty || null) !== (freelancer.specialty || null)) body.specialty = specialty || null;
+    if ((skills.trim() || null) !== (freelancer.skills || null)) body.skills = skills.trim() || null;
+    saveMutation.mutate(body);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md max-h-[90dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit freelancer</DialogTitle>
+          <DialogDescription>
+            Update details and working terms for {freelancer?.name ?? "this freelancer"}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Field label="Full name">
+            <Input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="h-10 bg-white border-[#EAE6DF] rounded-md"
+            />
+          </Field>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Phone">
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+233 …"
+                className="h-10 bg-white border-[#EAE6DF] rounded-md"
+              />
+            </Field>
+            <Field label="Specialty">
+              <Select value={specialty || undefined} onValueChange={setSpecialty}>
+                <SelectTrigger className="h-10 bg-white border-[#EAE6DF] rounded-md w-full">
+                  <SelectValue placeholder="Select specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SPECIALTIES.map((sp) => (
+                    <SelectItem key={sp} value={sp}>
+                      {sp}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+          <Field label="Skills">
+            <Input
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+              placeholder="e.g. hand beading, gele tying"
+              className="h-10 bg-white border-[#EAE6DF] rounded-md"
+            />
+          </Field>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Status">
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="h-10 bg-white border-[#EAE6DF] rounded-md w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FREELANCER_STATUSES.map((st) => (
+                    <SelectItem key={st} value={st}>
+                      {st}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Rate & notes">
+              <Input
+                value={rateNotes}
+                onChange={(e) => setRateNotes(e.target.value)}
+                placeholder="e.g. GHS 150 per piece"
+                className="h-10 bg-white border-[#EAE6DF] rounded-md"
+              />
+            </Field>
+          </div>
+          <p className="text-[11px] text-stone-400 -mt-1">
+            Freelancers who also work with other studios control their own
+            contact details; you can always change their status and your rate
+            notes.
+          </p>
+
+          <DialogFooter>
+            <PremiumButton
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => onOpenChange(false)}
+              disabled={saveMutation.isPending}
+            >
+              Cancel
+            </PremiumButton>
+            <PremiumButton type="submit" variant="primary" size="md" loading={saveMutation.isPending}>
+              Save changes
+            </PremiumButton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ====================== Remove Member Dialog ====================== */
+
+function RemoveMemberDialog({
+  member,
+  onClose,
+}: {
+  member: User | null;
+  onClose: () => void;
+}) {
+  const qc = useQueryClient();
+  const removeMutation = useMutation({
+    mutationFn: (id: string) => apiDelete<{ ok: boolean; openOrders: number }>(`/api/users/${id}`),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success(`${member?.fullName ?? "Member"} was removed from the studio.`, {
+        description:
+          res?.openOrders > 0
+            ? `${res.openOrders} unfinished order${res.openOrders === 1 ? " is" : "s are"} still assigned to them — reassign ${res.openOrders === 1 ? "it" : "them"} from the order page.`
+            : undefined,
+      });
+      onClose();
+    },
+    onError: (err: Error) => {
+      toast.error("Could not remove this member.", { description: err.message });
+    },
+  });
+
+  return (
+    <ConfirmDeleteDialog
+      open={!!member}
+      onOpenChange={(v) => !v && onClose()}
+      title="Remove from studio?"
+      description={
+        <>
+          <strong>{member?.fullName}</strong> will no longer be able to sign in or appear in your
+          team. Their past orders, grades and certificates are kept, their unfinished tasks become
+          unassigned{member?.role === "trainer" ? ", and trainees they mentored lose their mentor" : ""}.
+        </>
+      }
+      confirmLabel="Remove member"
+      loading={removeMutation.isPending}
+      onConfirm={() => member && removeMutation.mutate(member.id)}
+    />
   );
 }

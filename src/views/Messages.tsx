@@ -185,6 +185,10 @@ const DELIVERY_META: Record<
     label: "Failed",
     class: "bg-red-50 text-red-700 border-red-200",
   },
+  logged_only: {
+    label: "Logged only",
+    class: "bg-stone-100 text-stone-600 border-stone-200",
+  },
 };
 
 // ---------------------------------------------------------------------------

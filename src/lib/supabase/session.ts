@@ -52,12 +52,36 @@ export async function getTenant(): Promise<TenantContext | null> {
     const userId = await resolveUserId(supabase);
     if (!userId) return null;
 
-    const { data: profile } = await supabase
+    // `is_active` comes from migration 0012. If that migration hasn't been
+    // applied yet the column doesn't exist, so fall back to the old query
+    // rather than locking everyone out.
+    let profile: {
+      id: string;
+      shop_id: string;
+      role: TenantContext["role"];
+      email: string;
+      can_manage_freelancers: boolean;
+      is_active?: boolean;
+    } | null = null;
+    const withActive = await supabase
       .from("profiles")
-      .select("id, shop_id, role, email, can_manage_freelancers")
+      .select("id, shop_id, role, email, can_manage_freelancers, is_active")
       .eq("id", userId)
       .single();
+    if (withActive.error) {
+      const legacy = await supabase
+        .from("profiles")
+        .select("id, shop_id, role, email, can_manage_freelancers")
+        .eq("id", userId)
+        .single();
+      profile = legacy.data;
+    } else {
+      profile = withActive.data;
+    }
     if (!profile) return null;
+    // A member the owner has removed keeps their history but loses access
+    // immediately, even if their browser session is still valid.
+    if (profile.is_active === false) return null;
 
     return {
       supabase,

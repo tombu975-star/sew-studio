@@ -9,14 +9,16 @@ export async function GET() {
     // RLS already scopes this to ctx.shopId — the explicit .eq is defense
     // in depth, matching the app's existing convention of never relying on
     // a single layer for tenant isolation.
-    const { data: users, error } = await ctx.supabase
-      .from("profiles")
-      .select(
-        "id, email, full_name, role, gender, phone, shop_id, mentor_id, training_duration_weeks, training_started_at, can_access_orders, can_access_board, created_at, updated_at"
-      )
-      .eq("shop_id", ctx.shopId)
-      .order("created_at", { ascending: true });
-    if (error) throw error;
+    const columns = "id, email, full_name, role, gender, phone, shop_id, mentor_id, training_duration_weeks, training_started_at, can_access_orders, can_access_board, created_at, updated_at";
+    const listMembers = (activeOnly: boolean) => {
+      let q = ctx.supabase.from("profiles").select(columns).eq("shop_id", ctx.shopId);
+      if (activeOnly) q = q.eq("is_active", true);
+      return q.order("created_at", { ascending: true });
+    };
+    // Hide removed members; if migration 0012 isn't applied yet, list everyone.
+    let { data: users, error } = await listMembers(true);
+    if (error) ({ data: users, error } = await listMembers(false));
+    if (error || !users) throw error ?? new Error("Could not load team");
 
     return Response.json(
       users.map((u) => ({

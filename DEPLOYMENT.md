@@ -126,7 +126,33 @@ just about *which shop* — those stay in the route handlers).
 
 ---
 
-## Troubleshooting
+## Customer notifications — Google Apps Script
+
+Order status changes, payments, and fittings all call `notifyCustomer()`
+(`src/lib/notify.ts`), which always logs an audit row to
+`customer_notifications`, and — if configured — also attempts real delivery
+via a **Google Apps Script Web App** you deploy from your own Google
+account. No Twilio/SendGrid account needed; Apps Script runs your Gmail
+sending for free and can fan out to WhatsApp/SMS providers too if you wire
+those in.
+
+**Setup:**
+1. Go to [script.google.com](https://script.google.com) → New project.
+2. Paste the script from `docs/google-apps-script-notifications.md` in.
+3. **Deploy → New deployment → Web app.** Execute as: *Me*. Who has access: *Anyone*.
+4. Copy the deployment URL.
+5. Set these on Vercel (and your local `.env.local`):
+   ```
+   GOOGLE_APPS_SCRIPT_URL=https://script.google.com/macros/s/XXXXX/exec
+   GOOGLE_APPS_SCRIPT_SECRET=choose-a-random-string
+   ```
+   (Put the same secret string in the `SHARED_SECRET` constant at the top of the script.)
+
+Without `GOOGLE_APPS_SCRIPT_URL` set, nothing breaks — notifications are
+still logged (shown in Messages as "Logged only") but nothing is actually
+sent, exactly like before this was wired up.
+
+
 
 - **"Invalid email or password" but the account exists in Supabase**: make
   sure it was created via this app's own register/invite flow (or

@@ -51,6 +51,8 @@ export interface Database {
           can_access_orders: boolean;
           can_access_board: boolean;
           can_manage_freelancers: boolean;
+          is_active: boolean;
+          removed_at: Nullable<string>;
           avatar_url: Nullable<string>;
           created_at: string;
           updated_at: string;
