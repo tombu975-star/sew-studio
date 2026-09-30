@@ -324,7 +324,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </p>
               <span
                 className="inline-flex items-center text-[9px] font-semibold tracking-[0.14em] uppercase mt-1 px-1.5 py-0.5 rounded-sm"
-                style={{ backgroundColor: `${roleAccent}1F`, color: roleAccent }}
+                style={{ backgroundColor: "rgba(224,164,140,0.16)", color: "#E9BBA8" }}
               >
                 {ROLE_LABELS[role]} portal
               </span>
@@ -342,7 +342,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {si > 0 && (
                 <div className="lg:hidden h-px bg-sidebar-border mx-3 mb-3" aria-hidden="true" />
               )}
-              <p className="hidden lg:block text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/40 px-3 mb-1.5">
+              <p className="hidden lg:block text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/35 px-3 mb-1.5">
                 {section.label}
               </p>
               <div className="space-y-0.5">
@@ -358,12 +358,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       className={cn(
                         "group relative w-full flex items-center justify-center lg:justify-start gap-3 h-10 lg:h-9 lg:px-3 rounded-lg text-[13.5px] transition-colors duration-150",
                         active
-                          ? "bg-white text-[#9E5A44] font-semibold shadow-[0_1px_2px_rgba(45,42,38,0.06),0_0_0_1px_#EAE6DF]"
-                          : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-black/[0.035]"
+                          ? "bg-white/[0.09] text-white font-semibold shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]"
+                          : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-white/[0.05]"
                       )}
                     >
                       {active && (
-                        <span className="absolute -left-[11px] lg:-left-3 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#9E5A44] rounded-r-full" />
+                        <span className="absolute -left-[11px] lg:-left-3 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#E0A48C] rounded-r-full" />
                       )}
                       <Icon
                         className="w-[18px] h-[18px] shrink-0"
@@ -381,7 +381,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* User */}
         {user && (
           <div className="px-2.5 lg:px-3 py-3 border-t border-sidebar-border shrink-0">
-            <div className="group w-full flex flex-col lg:flex-row items-center gap-1 lg:gap-2 rounded-lg lg:hover:bg-black/[0.03] transition-colors">
+            <div className="group w-full flex flex-col lg:flex-row items-center gap-1 lg:gap-2 rounded-lg lg:hover:bg-white/[0.05] transition-colors">
               <button
                 onClick={() => go("profile")}
                 className="flex lg:flex-1 min-w-0 items-center justify-center lg:justify-start gap-3 lg:px-2 py-1.5 rounded-lg text-left"
@@ -408,7 +408,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
               <button
                 onClick={() => logout()}
-                className="shrink-0 w-9 h-9 lg:w-8 lg:h-8 lg:mr-1 rounded-lg flex items-center justify-center text-sidebar-foreground/45 hover:text-sidebar-primary hover:bg-black/[0.04] transition-colors"
+                className="shrink-0 w-9 h-9 lg:w-8 lg:h-8 lg:mr-1 rounded-lg flex items-center justify-center text-sidebar-foreground/45 hover:text-sidebar-primary hover:bg-white/[0.08] transition-colors"
                 title="Sign out"
                 aria-label="Sign out"
               >
@@ -450,7 +450,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ─── Main ────────────────────────────────────────────────── */}
       <main className="flex-1 md:pl-[72px] lg:pl-64 pl-safe pr-safe pb-mobile-nav md:pb-0 flex flex-col min-w-0 overflow-x-clip">
-        <div className="w-full max-w-[1480px] mx-auto flex-1 flex flex-col min-w-0">
+        <div key={view} className="w-full max-w-[1480px] mx-auto flex-1 flex flex-col min-w-0 animate-fade-in">
           {children}
         </div>
       </main>

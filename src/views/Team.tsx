@@ -157,6 +157,7 @@ export default function Team() {
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [addTraineeOpen, setAddTraineeOpen] = useState(false);
   const [addFreelancerOpen, setAddFreelancerOpen] = useState(false);
+  const [editMember, setEditMember] = useState<User | null>(null);
 
   const usersQ = useQuery<User[]>({
     queryKey: ["users"],
@@ -287,6 +288,7 @@ export default function Team() {
             ownerId={owner?.id}
             onAdd={() => setAddMemberOpen(true)}
             isOwnerViewer={role.isOwner()}
+            onEdit={(u) => setEditMember(u)}
             onToggleFreelancerAccess={(id, v) =>
               permissionMutation.mutate({ id, canManageFreelancers: v })
             }
@@ -335,6 +337,12 @@ export default function Team() {
         }}
         mentors={mentors}
       />
+      <EditMemberDialog
+        key={editMember?.id ?? "none"}
+        open={!!editMember}
+        onOpenChange={(o) => !o && setEditMember(null)}
+        member={editMember}
+      />
       <AddFreelancerDialog
         open={addFreelancerOpen}
         onOpenChange={setAddFreelancerOpen}
@@ -352,6 +360,7 @@ function StaffTrainersCard({
   ownerId,
   onAdd,
   isOwnerViewer,
+  onEdit,
   onToggleFreelancerAccess,
   togglingId,
 }: {
@@ -360,6 +369,7 @@ function StaffTrainersCard({
   ownerId?: string;
   onAdd: () => void;
   isOwnerViewer: boolean;
+  onEdit: (u: User) => void;
   onToggleFreelancerAccess: (id: string, value: boolean) => void;
   togglingId?: string | null;
 }) {
@@ -469,6 +479,18 @@ function StaffTrainersCard({
                     <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-stone-300">
                       Permanent
                     </span>
+                  )}
+                  {isOwnerViewer && (
+                    <button
+                      type="button"
+                      onClick={() => onEdit(u)}
+                      aria-label={`Edit details for ${u.fullName}`}
+                      title="Edit details"
+                      className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#EAE6DF] bg-white text-xs text-stone-600 hover:text-[#9E5A44] hover:border-[#9E5A44]/40 hover:bg-[#FAF2EC] transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Edit</span>
+                    </button>
                   )}
                 </div>
               </div>
@@ -1899,6 +1921,9 @@ function AddFreelancerDialog({
 /* ====================== Edit Trainee Profile Dialog ====================== */
 
 interface EditTraineeForm {
+  fullName: string;
+  phone: string;
+  gender: string;
   mentorId: string;
   programId: string;
   trainingDurationWeeks: string;
@@ -1930,6 +1955,9 @@ function EditTraineeDialog({
   // based on `editTrainee?.id` so the dialog remounts (and this runs again)
   // whenever a different trainee is opened.
   const [form, setForm] = useState<EditTraineeForm>(() => ({
+    fullName: trainee?.fullName ?? "",
+    phone: trainee?.phone ?? "",
+    gender: trainee?.gender ?? "",
     mentorId: trainee?.mentorId ?? UNASSIGNED_MENTOR,
     programId: trainee?.programId ?? NO_PROGRAM,
     trainingDurationWeeks:
@@ -1944,6 +1972,9 @@ function EditTraineeDialog({
 
   const saveMutation = useMutation({
     mutationFn: (body: {
+      fullName: string;
+      phone: string | null;
+      gender: string | null;
       mentorId: string | null;
       programId: string | null;
       trainingDurationWeeks: number | null;
@@ -1972,7 +2003,14 @@ function EditTraineeDialog({
     if (!trainee) return;
     const durationRaw = form.trainingDurationWeeks.trim();
     const durationNum = durationRaw ? Number(durationRaw) : NaN;
+    if (!form.fullName.trim()) {
+      toast.error("Name can't be empty.");
+      return;
+    }
     saveMutation.mutate({
+      fullName: form.fullName.trim(),
+      phone: form.phone.trim() || null,
+      gender: form.gender || null,
       mentorId:
         form.mentorId && form.mentorId !== UNASSIGNED_MENTOR
           ? form.mentorId
@@ -1998,12 +2036,44 @@ function EditTraineeDialog({
         <DialogHeader>
           <DialogTitle>Edit trainee profile</DialogTitle>
           <DialogDescription>
-            Assign a mentor and set the apprenticeship schedule
+            Update details, assign a mentor and set the apprenticeship schedule
             {trainee ? ` for ${trainee.fullName}` : ""}.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[70dvh] overflow-y-auto pr-1">
+          <Field label="Full name">
+            <Input
+              value={form.fullName}
+              onChange={(e) => set("fullName", e.target.value)}
+              className="h-10 bg-white border-[#EAE6DF] rounded-md"
+            />
+          </Field>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Phone">
+              <Input
+                value={form.phone}
+                onChange={(e) => set("phone", e.target.value)}
+                placeholder="+233 …"
+                className="h-10 bg-white border-[#EAE6DF] rounded-md"
+              />
+            </Field>
+            <Field label="Gender">
+              <Select value={form.gender || undefined} onValueChange={(v) => set("gender", v)}>
+                <SelectTrigger className="h-10 bg-white border-[#EAE6DF] rounded-md w-full">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDER_OPTIONS.map((g) => (
+                    <SelectItem key={g} value={g}>
+                      {g}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+
           <Field label="Mentor">
             <Select
               value={form.mentorId || UNASSIGNED_MENTOR}
@@ -2197,5 +2267,138 @@ function Field({
       </Label>
       {children}
     </div>
+  );
+}
+
+/* ====================== Edit Member Dialog (staff, trainers, owner) ====================== */
+
+function EditMemberDialog({
+  open,
+  onOpenChange,
+  member,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  member: User | null;
+}) {
+  const qc = useQueryClient();
+  const hydrate = useAuth((s) => s.hydrate);
+  const [fullName, setFullName] = useState(member?.fullName ?? "");
+  const [phone, setPhone] = useState(member?.phone ?? "");
+  const [gender, setGender] = useState(member?.gender ?? "");
+  const [avatarUrl, setAvatarUrl] = useState(member?.avatarUrl ?? "");
+
+  const saveMutation = useMutation({
+    mutationFn: (body: {
+      fullName: string;
+      phone: string | null;
+      gender: string | null;
+      avatarUrl: string | null;
+    }) => apiPatch<User>(`/api/users/${member?.id}`, body),
+    onSuccess: (u) => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      // Refresh the signed-in user's name/photo if the owner edited their own row.
+      hydrate();
+      toast.success(`${u.fullName}'s details updated.`);
+      onOpenChange(false);
+    },
+    onError: (err: Error) => {
+      toast.error("Could not update details.", { description: err.message });
+    },
+  });
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!member) return;
+    if (!fullName.trim()) {
+      toast.error("Name can't be empty.");
+      return;
+    }
+    saveMutation.mutate({
+      fullName: fullName.trim(),
+      phone: phone.trim() || null,
+      gender: gender || null,
+      avatarUrl: avatarUrl.trim() || null,
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md max-h-[90dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit member details</DialogTitle>
+          <DialogDescription>
+            Update contact details for {member?.fullName ?? "this member"}
+            {member ? ` (${roleLabel(member.role)})` : ""}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Field label="Full name">
+            <Input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="h-10 bg-white border-[#EAE6DF] rounded-md"
+            />
+          </Field>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Phone">
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+233 …"
+                className="h-10 bg-white border-[#EAE6DF] rounded-md"
+              />
+            </Field>
+            <Field label="Gender">
+              <Select value={gender || undefined} onValueChange={setGender}>
+                <SelectTrigger className="h-10 bg-white border-[#EAE6DF] rounded-md w-full">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDER_OPTIONS.map((g) => (
+                    <SelectItem key={g} value={g}>
+                      {g}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+          <Field label="Profile picture link (optional)">
+            <Input
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              placeholder="https://…"
+              className="h-10 bg-white border-[#EAE6DF] rounded-md"
+            />
+          </Field>
+          <p className="text-[11px] text-stone-400 -mt-1">
+            Email{member?.email ? ` (${member.email})` : ""} is the sign-in
+            identity and can&rsquo;t be changed here.
+          </p>
+
+          <DialogFooter>
+            <PremiumButton
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => onOpenChange(false)}
+              disabled={saveMutation.isPending}
+            >
+              Cancel
+            </PremiumButton>
+            <PremiumButton
+              type="submit"
+              variant="primary"
+              size="md"
+              loading={saveMutation.isPending}
+            >
+              Save changes
+            </PremiumButton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

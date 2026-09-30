@@ -21,20 +21,24 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center py-10 px-6",
+        "flex flex-col items-center justify-center text-center py-12 px-6",
         className
       )}
     >
       {Icon && (
-        <div className="w-12 h-12 rounded-full bg-[#FAF2EC] border border-[#EAE6DF] flex items-center justify-center mb-4">
-          <Icon className="w-5 h-5 text-stone-400" />
+        <div className="relative mb-5" aria-hidden="true">
+          <span className="absolute inset-0 -m-3 rounded-full border border-dashed border-[#9E5A44]/25" />
+          <span className="absolute inset-0 -m-1.5 rounded-full bg-[#9E5A44]/[0.05]" />
+          <div className="relative w-14 h-14 rounded-full bg-[linear-gradient(160deg,#FFFFFF_0%,#FAF2EC_100%)] border border-[#EAE6DF] shadow-[0_6px_16px_-8px_rgba(158,90,68,0.35)] flex items-center justify-center">
+            <Icon className="w-[22px] h-[22px] text-[#9E5A44]" />
+          </div>
         </div>
       )}
-      <p className="text-sm font-medium text-[#1C1A18]">{title}</p>
+      <p className="font-display text-lg font-semibold text-[#1C1A18] leading-snug">{title}</p>
       {description && (
-        <p className="text-xs text-stone-400 mt-1 max-w-xs">{description}</p>
+        <p className="text-[13px] leading-relaxed text-stone-500 mt-1.5 max-w-sm">{description}</p>
       )}
-      {action && <div className="mt-4">{action}</div>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }

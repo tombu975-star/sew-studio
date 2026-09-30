@@ -88,15 +88,15 @@
   --chart-3: #4A6B53;
   --chart-4: #0e7490;
   --chart-5: #8E3232;
-  /* Sidebar is steamed cream — "Surface Elevation 1" — the quiet, warm
-     backdrop the reference design uses for navigation panels. Not dark. */
-  --sidebar: #F5F4F0;
-  --sidebar-foreground: #1c1a18;
-  --sidebar-primary: #9E5A44;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ffffff;
-  --sidebar-accent-foreground: #9E5A44;
-  --sidebar-border: #EAE6DF;
+  /* Sidebar is deep espresso — a dark, quiet frame around the warm-paper
+     workspace so the content reads as the brightest thing on screen. */
+  --sidebar: #211C19;
+  --sidebar-foreground: #F3EDE6;
+  --sidebar-primary: #E0A48C;
+  --sidebar-primary-foreground: #211C19;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #352E29;
   --sidebar-ring: #9E5A44;
 }
 

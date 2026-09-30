@@ -301,21 +301,6 @@ export default function OrderDetail() {
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
-        {owner && (
-          <div className="flex items-center gap-2">
-            <PremiumButton variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="w-3.5 h-3.5" /> Edit order
-            </PremiumButton>
-            <PremiumButton
-              variant="outline"
-              size="sm"
-              onClick={() => setDeleteOpen(true)}
-              className="text-red-700 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Delete
-            </PremiumButton>
-          </div>
-        )}
         <SectionCard>
           <EmptyState
             icon={AlertCircle}
@@ -551,8 +536,9 @@ export default function OrderDetail() {
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
         {activeTab === "invoice" && (
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <>
             <Select
               value={order.status}
               onValueChange={(v) => statusMut.mutate(v)}
@@ -572,8 +558,24 @@ export default function OrderDetail() {
             <PremiumButton variant="outline" size="sm" onClick={() => window.print()}>
               <Printer className="w-3.5 h-3.5" /> Print
             </PremiumButton>
-          </div>
+          </>
         )}
+        {owner && (
+          <>
+            <PremiumButton variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="w-3.5 h-3.5" /> Edit order
+            </PremiumButton>
+            <PremiumButton
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteOpen(true)}
+              className="text-red-700 hover:text-red-700 hover:border-red-300 hover:bg-red-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </PremiumButton>
+          </>
+        )}
+        </div>
       </div>
 
       <div
