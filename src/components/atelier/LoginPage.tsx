@@ -218,6 +218,15 @@ export function LoginPage() {
                   Create a shop
                 </button>
               </p>
+              <p className="mt-3 text-center text-sm text-stone-500 lg:text-left">
+                Work with studios as a freelancer?{" "}
+                <a
+                  href="/freelancer?mode=register"
+                  className="font-medium text-[#9E5A44] underline-offset-4 hover:underline"
+                >
+                  Create a freelancer account
+                </a>
+              </p>
             </section>
           ) : (
             <section key="register" className="animate-fade-in">

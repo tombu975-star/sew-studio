@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Scissors, LogOut, Loader2, AlertCircle, CalendarDays, Banknote } from "lucide-react";
 import { PageHeader, SectionCard } from "@/components/atelier/_portal";
 import { apiGet, apiPost, apiPatch } from "@/lib/api";
@@ -54,7 +55,7 @@ export function FreelancerPortalClient() {
   }
 
   if (!profile) {
-    return <FreelancerLogin onLoggedIn={setProfile} />;
+    return <FreelancerAuth onLoggedIn={setProfile} />;
   }
 
   return (
@@ -62,78 +63,196 @@ export function FreelancerPortalClient() {
   );
 }
 
-function FreelancerLogin({
+/** Pull the server's friendly message out of the Error thrown by apiPost. */
+function serverMessage(err: unknown, fallback: string): string {
+  const raw = err instanceof Error ? err.message : "";
+  const start = raw.indexOf("{");
+  if (start >= 0) {
+    try {
+      const parsed = JSON.parse(raw.slice(start));
+      if (parsed?.error) return String(parsed.error);
+    } catch {
+      /* not JSON */
+    }
+  }
+  return fallback;
+}
+
+const SPECIALTIES = ["Beader", "Embroiderer", "Cutter", "Tailor", "Designer", "Photographer", "Other"];
+
+const INPUT_CLASS =
+  "w-full h-10 px-3 rounded-md border border-[#EAE6DF] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9E5A44]/20 focus:border-[#9E5A44]/50";
+
+function FreelancerAuth({
   onLoggedIn,
 }: {
   onLoggedIn: (p: FreelancerProfile) => void;
 }) {
+  const params = useSearchParams();
+  const [mode, setMode] = useState<"login" | "register">(
+    params.get("mode") === "register" ? "register" : "login"
+  );
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [skills, setSkills] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const registering = mode === "register";
+
+  function switchMode(m: "login" | "register") {
+    setMode(m);
+    setError("");
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (registering) {
+      if (!fullName.trim()) return setError("Please enter your name.");
+      if (password.length < 6) return setError("Password must be at least 6 characters.");
+    }
     setLoading(true);
     try {
-      const res = await apiPost<{ freelancer: FreelancerProfile }>(
-        "/api/freelancer-auth/login",
-        { email, password }
-      );
+      const res = registering
+        ? await apiPost<{ freelancer: FreelancerProfile }>("/api/freelancer-auth/register", {
+            fullName: fullName.trim(),
+            email: email.trim(),
+            password,
+            phone: phone.trim() || undefined,
+            specialty: specialty || undefined,
+            skills: skills.trim() || undefined,
+          })
+        : await apiPost<{ freelancer: FreelancerProfile }>("/api/freelancer-auth/login", {
+            email,
+            password,
+          });
       onLoggedIn(res.freelancer);
-    } catch {
-      setError("Invalid email or password.");
+    } catch (err) {
+      setError(
+        registering
+          ? serverMessage(err, "Could not create your account. Please try again.")
+          : "Invalid email or password."
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FAFAF7] px-6">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FAFAF7] px-6 py-10 pt-safe pb-safe">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#9E5A44] to-[#854B38] flex items-center justify-center text-white shadow-sm mb-4">
             <Scissors className="w-5 h-5" />
           </div>
           <h1 className="font-display font-semibold text-[#1C1A18] text-2xl">
-            Freelancer sign in
+            {registering ? "Create your freelancer account" : "Freelancer sign in"}
           </h1>
           <p className="text-sm text-stone-500 mt-1 text-center">
-            See the jobs shops have commissioned you for.
+            {registering
+              ? "One account for every studio that commissions you."
+              : "See the jobs shops have commissioned you for."}
           </p>
         </div>
 
         <SectionCard>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {registering && (
+              <div>
+                <label className="text-xs font-medium text-stone-500 mb-1 block">Full name</label>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className={INPUT_CLASS}
+                  autoComplete="name"
+                  autoFocus
+                />
+              </div>
+            )}
             <div>
-              <label className="text-xs font-medium text-stone-500 mb-1 block">
-                Email
-              </label>
+              <label className="text-xs font-medium text-stone-500 mb-1 block">Email</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border border-[#EAE6DF] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9E5A44]/20"
-                autoFocus
+                className={INPUT_CLASS}
+                autoComplete="email"
+                autoFocus={!registering}
               />
             </div>
+            {registering && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-stone-500 mb-1 block">
+                      Phone <span className="text-stone-400">(optional)</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+233 …"
+                      className={INPUT_CLASS}
+                      autoComplete="tel"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-stone-500 mb-1 block">
+                      Specialty
+                    </label>
+                    <select
+                      value={specialty}
+                      onChange={(e) => setSpecialty(e.target.value)}
+                      className={INPUT_CLASS}
+                    >
+                      <option value="">Select…</option>
+                      {SPECIALTIES.map((sp) => (
+                        <option key={sp} value={sp}>
+                          {sp}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-stone-500 mb-1 block">
+                    Skills <span className="text-stone-400">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={skills}
+                    onChange={(e) => setSkills(e.target.value)}
+                    placeholder="e.g. hand beading, gele tying"
+                    className={INPUT_CLASS}
+                  />
+                </div>
+              </>
+            )}
             <div>
-              <label className="text-xs font-medium text-stone-500 mb-1 block">
-                Password
-              </label>
+              <label className="text-xs font-medium text-stone-500 mb-1 block">Password</label>
               <input
                 type="password"
                 required
+                minLength={registering ? 6 : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border border-[#EAE6DF] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9E5A44]/20"
+                className={INPUT_CLASS}
+                autoComplete={registering ? "new-password" : "current-password"}
               />
+              {registering && (
+                <p className="text-[11px] text-stone-400 mt-1">At least 6 characters.</p>
+              )}
             </div>
             {error && (
-              <div className="flex items-center gap-2 text-sm text-red-600">
-                <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+              <div className="flex items-start gap-2 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> {error}
               </div>
             )}
             <button
@@ -141,12 +260,28 @@ function FreelancerLogin({
               disabled={loading}
               className="w-full h-10 rounded-md bg-[#9E5A44] hover:bg-[#854B38] text-white text-sm font-medium transition-colors disabled:opacity-60"
             >
-              {loading ? "Signing in…" : "Sign in"}
+              {loading
+                ? registering
+                  ? "Creating account…"
+                  : "Signing in…"
+                : registering
+                  ? "Create account"
+                  : "Sign in"}
             </button>
           </form>
         </SectionCard>
 
-        <p className="text-xs text-stone-400 text-center mt-6">
+        <p className="text-sm text-stone-500 text-center mt-6">
+          {registering ? "Already have an account?" : "New freelancer?"}{" "}
+          <button
+            type="button"
+            onClick={() => switchMode(registering ? "login" : "register")}
+            className="font-medium text-[#9E5A44] underline-offset-4 hover:underline"
+          >
+            {registering ? "Sign in" : "Create an account"}
+          </button>
+        </p>
+        <p className="text-xs text-stone-400 text-center mt-4">
           Your login works the same way across every shop that commissions
           you — one account, all your jobs.
         </p>
@@ -221,6 +356,10 @@ function FreelancerDashboard({
               <p className="text-sm text-stone-500">
                 No jobs commissioned yet. Check back once a shop assigns you
                 work.
+              </p>
+              <p className="text-xs text-stone-400 mt-3 max-w-xs mx-auto">
+                New here? Give a studio the email you signed up with ({profile.email}) and
+                they can add you from their Team page.
               </p>
             </div>
           </SectionCard>

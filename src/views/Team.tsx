@@ -475,6 +475,7 @@ function StaffTrainersCard({
                           onToggleFreelancerAccess(u.id, v)
                         }
                         disabled={togglingId === u.id}
+                        loading={togglingId === u.id}
                         aria-label={`Freelancer access for ${u.fullName}`}
                       />
                       Freelancers
