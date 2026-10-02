@@ -40,3 +40,21 @@ export const apiPatch = <T,>(path: string, body: unknown) =>
 
 export const apiDelete = <T = { ok: boolean }>(path: string) =>
   api<T>(path, { method: "DELETE" });
+
+/**
+ * The friendly text from a failed API call. api() throws
+ * "409 Conflict — {"error":"…"}"; this returns just the "…" part.
+ */
+export function apiErrorMessage(err: unknown, fallback = "Something went wrong. Please try again."): string {
+  const raw = err instanceof Error ? err.message : "";
+  const start = raw.indexOf("{");
+  if (start >= 0) {
+    try {
+      const parsed = JSON.parse(raw.slice(start));
+      if (parsed?.error) return String(parsed.error);
+    } catch {
+      /* not JSON */
+    }
+  }
+  return fallback;
+}

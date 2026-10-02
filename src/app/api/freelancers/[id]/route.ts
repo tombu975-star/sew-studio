@@ -1,6 +1,7 @@
 import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
 import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 import type { Database } from "@/lib/supabase/database.types";
+import { findIdentityConflict, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 const PERMISSION_ERROR = {
   error: "Only the studio owner, or someone granted freelancer access, can manage this.",
@@ -69,7 +70,19 @@ export async function PATCH(
         if (!name) return Response.json({ error: "Name can't be empty." }, { status: 400 });
         profileUpdate.full_name = name;
       }
-      if (phone !== undefined) profileUpdate.phone = phone ? String(phone).trim() : null;
+      if (phone !== undefined) {
+        profileUpdate.phone = phone ? String(phone).trim() : null;
+        if (phone) {
+          if (!isPlausiblePhone(phone)) {
+            return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
+          }
+          const conflict = await findIdentityConflict(admin, {
+            phone,
+            excludeId: existing.freelancer_id,
+          });
+          if (conflict) return Response.json({ error: conflict.message }, { status: 409 });
+        }
+      }
       if (specialty !== undefined) profileUpdate.specialty = specialty ? String(specialty) : null;
       if (skills !== undefined) profileUpdate.skills = skills ? String(skills) : null;
       const { error: profileError } = await admin

@@ -1,6 +1,7 @@
 import { getTenant } from "@/lib/supabase/session";
 import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 import type { Database } from "@/lib/supabase/database.types";
+import { findIdentityConflict, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 export async function GET(
   _req: Request,
@@ -125,7 +126,19 @@ export async function PATCH(
       }
     }
     if (fullName !== undefined) data.full_name = fullName;
-    if (phone !== undefined) data.phone = phone || null;
+    if (phone !== undefined) {
+      data.phone = phone || null;
+      if (phone) {
+        if (!isPlausiblePhone(phone)) {
+          return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
+        }
+        const conflict = await findIdentityConflict(createAdminSupabaseClient(), {
+          phone,
+          excludeId: id,
+        });
+        if (conflict) return Response.json({ error: conflict.message }, { status: 409 });
+      }
+    }
     if (gender !== undefined) data.gender = gender || null;
     if (avatarUrl !== undefined) {
       const raw = typeof avatarUrl === "string" ? avatarUrl.trim() : "";

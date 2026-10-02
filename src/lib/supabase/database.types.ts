@@ -25,6 +25,8 @@ export interface Database {
           slug: string;
           plan: string;
           currency: string;
+          suspended_at: Nullable<string>;
+          suspended_reason: Nullable<string>;
           created_at: string;
           updated_at: string;
         };
@@ -33,6 +35,21 @@ export interface Database {
           slug: string;
         };
         Update: Partial<Database["public"]["Tables"]["shops"]["Row"]>;
+        Relationships: [];
+      };
+      system_admins: {
+        Row: {
+          id: string;
+          email: string;
+          full_name: string;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["system_admins"]["Row"]> & {
+          id: string;
+          email: string;
+          full_name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["system_admins"]["Row"]>;
         Relationships: [];
       };
       profiles: {

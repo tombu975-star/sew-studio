@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 const SPECIALTIES = ["Beader", "Embroiderer", "Cutter", "Tailor", "Designer", "Photographer", "Other"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -36,6 +37,16 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    if (phone && !isPlausiblePhone(phone)) {
+      return NextResponse.json({ error: MESSAGES.badPhone }, { status: 400 });
+    }
+
+    // One account per email and per phone number, across the whole app.
+    const conflict = await findIdentityConflict(admin, { email: emailNorm, phone });
+    if (conflict) {
+      return NextResponse.json({ error: conflict.message }, { status: 409 });
+    }
+
     const specialtyClean =
       specialty && SPECIALTIES.includes(String(specialty)) ? String(specialty) : null;
 
@@ -99,6 +110,8 @@ export async function POST(req: Request) {
     if (createdAuthUserId) {
       await admin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
     }
+    const friendly = identityErrorMessage(error);
+    if (friendly) return NextResponse.json({ error: friendly }, { status: 409 });
     return NextResponse.json(
       { error: "Could not create your account. Please try again." },
       { status: 500 }

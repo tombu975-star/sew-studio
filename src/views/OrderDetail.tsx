@@ -544,10 +544,7 @@ export default function OrderDetail() {
               onValueChange={(v) => statusMut.mutate(v)}
               disabled={statusMut.isPending}
             >
-              <SelectTrigger
-                className="flex-1 sm:flex-none sm:w-[180px] rounded-md h-9 text-sm bg-white"
-                loading={statusMut.isPending}
-              >
+              <SelectTrigger className="flex-1 sm:flex-none sm:w-[180px] rounded-md h-9 text-sm bg-white">
                 <SelectValue placeholder="Change status" />
               </SelectTrigger>
               <SelectContent>
@@ -722,10 +719,7 @@ export default function OrderDetail() {
                 onValueChange={(v) => statusMut.mutate(v)}
                 disabled={statusMut.isPending}
               >
-                <SelectTrigger
-                  className="w-[180px] rounded-md h-9 text-sm bg-white"
-                  loading={statusMut.isPending}
-                >
+                <SelectTrigger className="w-[180px] rounded-md h-9 text-sm bg-white">
                   <SelectValue placeholder="Change status" />
                 </SelectTrigger>
                 <SelectContent>

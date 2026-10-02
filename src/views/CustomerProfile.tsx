@@ -67,6 +67,7 @@ import {
   MEASUREMENT_FIELDS,
   POSTURES,
   checkRange,
+  dummyMeasurementsFor,
   fromCm,
   inputToCm,
   toCm,
@@ -668,6 +669,7 @@ export default function CustomerProfile() {
         open={measureOpen}
         onOpenChange={setMeasureOpen}
         customerId={selectedId}
+        customerGender={customer.gender}
         latest={measurements[0]}
         onSaved={handleMeasurementSaved}
       />
@@ -1124,12 +1126,14 @@ function AddMeasurementDialog({
   open,
   onOpenChange,
   customerId,
+  customerGender,
   latest,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   customerId: string;
+  customerGender?: string | null;
   latest?: MeasurementSet;
   onSaved: () => void;
 }) {

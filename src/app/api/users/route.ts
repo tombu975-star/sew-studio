@@ -1,5 +1,6 @@
 import { getTenant } from "@/lib/supabase/session";
 import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 export async function GET() {
   try {
@@ -74,6 +75,13 @@ export async function POST(req: Request) {
     }
     const emailNorm = String(email).toLowerCase().trim();
 
+    if (phone && !isPlausiblePhone(phone)) {
+      return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
+    }
+    // One account per email (Gmail aliases included) and per phone number.
+    const conflict = await findIdentityConflict(admin, { email: emailNorm, phone });
+    if (conflict) return Response.json({ error: conflict.message }, { status: 409 });
+
     // A mentor can only be assigned when creating a trainee, and must be a
     // trainer/madam in the same shop.
     let finalMentorId: string | null = null;
@@ -139,6 +147,8 @@ export async function POST(req: Request) {
     if (createdAuthUserId) {
       await admin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
     }
+    const friendly = identityErrorMessage(err);
+    if (friendly) return Response.json({ error: friendly }, { status: 409 });
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
   }

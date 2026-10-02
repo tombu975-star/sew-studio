@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 function slugify(name: string): string {
   return (
@@ -34,6 +35,12 @@ export async function POST(req: Request) {
       );
     }
     const emailNorm = String(email).toLowerCase().trim();
+
+    // One account per email (Gmail dots / "+tags" count as the same address).
+    const emailConflict = await findIdentityConflict(admin, { email: emailNorm });
+    if (emailConflict) {
+      return NextResponse.json({ error: emailConflict.message }, { status: 409 });
+    }
 
     // Generate a unique slug.
     let slug = slugify(String(shopName));
@@ -130,6 +137,8 @@ export async function POST(req: Request) {
     if (createdAuthUserId) {
       await admin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
     }
+    const friendly = identityErrorMessage(error);
+    if (friendly) return NextResponse.json({ error: friendly }, { status: 409 });
     return NextResponse.json(
       { error: "Could not create your shop. Please try again." },
       { status: 500 }

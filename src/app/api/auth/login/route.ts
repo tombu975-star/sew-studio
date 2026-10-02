@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const { data: profile } = await supabase
       .from("profiles")
       .select(
-        "id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, shop:shops(id, name, slug, currency)"
+        "id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, can_manage_freelancers, shop:shops(id, name, slug, currency, suspended_at, suspended_reason)"
       )
       .eq("id", data.user.id)
       .maybeSingle();
@@ -36,6 +36,19 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "No shop account found for that email. Freelancers should sign in at /freelancer." },
         { status: 401 }
+      );
+    }
+
+    const shop = profile.shop as { suspended_at: string | null; suspended_reason: string | null } | null;
+    if (shop?.suspended_at) {
+      await supabase.auth.signOut();
+      return NextResponse.json(
+        {
+          error: shop.suspended_reason
+            ? `This studio's account is suspended: ${shop.suspended_reason}`
+            : "This studio's account is currently suspended. Contact support for help.",
+        },
+        { status: 403 }
       );
     }
 
@@ -52,6 +65,7 @@ export async function POST(req: Request) {
         shop: profile.shop,
         canAccessOrders: profile.can_access_orders,
         canAccessBoard: profile.can_access_board,
+        canManageFreelancers: profile.can_manage_freelancers,
       },
     });
   } catch (error) {

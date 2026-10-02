@@ -68,7 +68,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
-import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
+import { apiDelete, apiGet, apiPatch, apiPost, apiErrorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import type { Freelancer, FreelanceJob, TrainingLog, TrainingProgram, User } from "@/lib/types";
 import { useAuth } from "@/stores/auth";
@@ -475,7 +475,6 @@ function StaffTrainersCard({
                           onToggleFreelancerAccess(u.id, v)
                         }
                         disabled={togglingId === u.id}
-                        loading={togglingId === u.id}
                         aria-label={`Freelancer access for ${u.fullName}`}
                       />
                       Freelancers
@@ -1118,11 +1117,10 @@ function AddMemberDialog({
     onError: (err: Error) => {
       const msg = err.message || "";
       if (msg.includes("409")) {
-        toast.error("That email is already in use.", {
-          description: "Try a different email address.",
-        });
+        // 409 = email/phone already used by another account (or already linked).
+        toast.error("Those details are already in use.", { description: apiErrorMessage(err, "Try a different email address.") });
       } else {
-        toast.error("Could not add member.", { description: msg });
+        toast.error("Could not add member.", { description: apiErrorMessage(err, msg) });
       }
     },
   });
@@ -1322,11 +1320,10 @@ function AddTraineeDialog({
     onError: (err: Error) => {
       const msg = err.message || "";
       if (msg.includes("409")) {
-        toast.error("That email is already in use.", {
-          description: "Try a different email address.",
-        });
+        // 409 = email/phone already used by another account (or already linked).
+        toast.error("Those details are already in use.", { description: apiErrorMessage(err, "Try a different email address.") });
       } else {
-        toast.error("Could not add trainee.", { description: msg });
+        toast.error("Could not add trainee.", { description: apiErrorMessage(err, msg) });
       }
     },
   });
@@ -1652,7 +1649,7 @@ function AssignJobDialog({
       onOpenChange(false);
     },
     onError: (err: Error) =>
-      toast.error("Could not assign job.", { description: err.message }),
+      toast.error("Could not assign job.", { description: apiErrorMessage(err) }),
   });
 
   const valid = freelancerId && taskDescription.trim().length > 0;
@@ -1786,7 +1783,7 @@ function AddFreelancerDialog({
     },
     onError: (err: Error) => {
       toast.error("Could not add freelancer.", {
-        description: err.message,
+        description: apiErrorMessage(err),
       });
     },
   });
@@ -2027,7 +2024,7 @@ function EditTraineeDialog({
       onOpenChange(false);
     },
     onError: (err: Error) => {
-      toast.error("Could not update profile.", { description: err.message });
+      toast.error("Could not update profile.", { description: apiErrorMessage(err) });
     },
   });
 
@@ -2339,7 +2336,7 @@ function EditMemberDialog({
       onOpenChange(false);
     },
     onError: (err: Error) => {
-      toast.error("Could not update details.", { description: err.message });
+      toast.error("Could not update details.", { description: apiErrorMessage(err) });
     },
   });
 
@@ -2467,7 +2464,7 @@ function EditFreelancerDialog({
       onOpenChange(false);
     },
     onError: (err: Error) => {
-      toast.error("Could not update freelancer.", { description: err.message });
+      toast.error("Could not update freelancer.", { description: apiErrorMessage(err) });
     },
   });
 
@@ -2617,7 +2614,7 @@ function RemoveMemberDialog({
       onClose();
     },
     onError: (err: Error) => {
-      toast.error("Could not remove this member.", { description: err.message });
+      toast.error("Could not remove this member.", { description: apiErrorMessage(err) });
     },
   });
 

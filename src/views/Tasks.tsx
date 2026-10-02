@@ -640,9 +640,6 @@ export default function Tasks() {
                     <TaskCard
                       key={task.id}
                       task={task}
-                      statusUpdating={
-                        statusMutation.isPending && statusMutation.variables?.id === task.id
-                      }
                       onStatusChange={(status) =>
                         statusMutation.mutate({ id: task.id, status })
                       }
@@ -723,7 +720,6 @@ export default function Tasks() {
 function TaskCard({
   task,
   onStatusChange,
-  statusUpdating = false,
   onClick,
   canChangeStatus,
   showGradeControl,
@@ -734,10 +730,6 @@ function TaskCard({
 }: {
   task: TaskWithRelations;
   onStatusChange: (status: string) => void;
-  /** True only while *this* card's status change is in flight — the parent
-   *  shares one mutation across every card, so this is keyed off the
-   *  mutation's pending variables rather than a plain isPending flag. */
-  statusUpdating?: boolean;
   onClick: () => void;
   canChangeStatus: boolean;
   showGradeControl: boolean;
@@ -915,8 +907,8 @@ function TaskCard({
           Status
         </span>
         {canChangeStatus ? (
-          <Select value={task.status} onValueChange={onStatusChange} disabled={statusUpdating}>
-            <SelectTrigger size="sm" className="h-7 w-[140px] text-xs bg-white" loading={statusUpdating}>
+          <Select value={task.status} onValueChange={onStatusChange}>
+            <SelectTrigger size="sm" className="h-7 w-[140px] text-xs bg-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

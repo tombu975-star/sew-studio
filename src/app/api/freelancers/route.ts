@@ -1,5 +1,7 @@
 import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
 import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, normalizeEmail, MESSAGES } from "@/lib/identity";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // GET /api/freelancers — this shop's linked freelancers (their own
 // rate notes/status here, plus the freelancer's shared identity fields).
@@ -75,13 +77,35 @@ export async function POST(req: Request) {
     }
     const normalizedEmail = String(email).toLowerCase().trim();
 
-    let { data: freelancer } = await admin
-      .from("freelancer_profiles")
-      .select("*")
-      .eq("email", normalizedEmail)
-      .maybeSingle();
+    // Find the freelancer by their normalised email, so a Gmail alias
+    // (jo.hn+x@gmail.com) links to the account that already exists instead of
+    // creating a second one. Falls back to the exact email if migration 0013
+    // hasn't been applied yet.
+    const emailKey = normalizeEmail(normalizedEmail);
+    // email_key comes from migration 0013, so it isn't in the generated types.
+    const untyped = admin as unknown as SupabaseClient;
+    const byKey = emailKey
+      ? await untyped.from("freelancer_profiles").select("*").eq("email_key", emailKey).maybeSingle()
+      : null;
+    let freelancer = byKey && !byKey.error ? byKey.data : null;
+    if (byKey?.error) {
+      const exact = await admin
+        .from("freelancer_profiles")
+        .select("*")
+        .eq("email", normalizedEmail)
+        .maybeSingle();
+      freelancer = exact.data;
+    }
 
     if (!freelancer) {
+      if (phone && !isPlausiblePhone(phone)) {
+        return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
+      }
+      // A brand-new account: its email/phone must not belong to anyone else
+      // (a shop owner, a team member or another freelancer).
+      const conflict = await findIdentityConflict(admin, { email: normalizedEmail, phone });
+      if (conflict) return Response.json({ error: conflict.message }, { status: 409 });
+
       const { data: authData, error: authError } = await admin.auth.admin.createUser({
         email: normalizedEmail,
         password: String(password || "freelancer2025"),
@@ -147,6 +171,8 @@ export async function POST(req: Request) {
     if (createdAuthUserId) {
       await admin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
     }
+    const friendly = identityErrorMessage(err);
+    if (friendly) return Response.json({ error: friendly }, { status: 409 });
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });
   }

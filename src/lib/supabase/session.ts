@@ -62,16 +62,17 @@ export async function getTenant(): Promise<TenantContext | null> {
       email: string;
       can_manage_freelancers: boolean;
       is_active?: boolean;
+      shop?: { suspended_at: string | null } | null;
     } | null = null;
     const withActive = await supabase
       .from("profiles")
-      .select("id, shop_id, role, email, can_manage_freelancers, is_active")
+      .select("id, shop_id, role, email, can_manage_freelancers, is_active, shop:shops(suspended_at)")
       .eq("id", userId)
       .single();
     if (withActive.error) {
       const legacy = await supabase
         .from("profiles")
-        .select("id, shop_id, role, email, can_manage_freelancers")
+        .select("id, shop_id, role, email, can_manage_freelancers, shop:shops(suspended_at)")
         .eq("id", userId)
         .single();
       profile = legacy.data;
@@ -82,6 +83,10 @@ export async function getTenant(): Promise<TenantContext | null> {
     // A member the owner has removed keeps their history but loses access
     // immediately, even if their browser session is still valid.
     if (profile.is_active === false) return null;
+    // Same for a shop the platform admin has suspended — every existing
+    // session for that shop is cut off on its very next request, not just
+    // at their next login.
+    if (profile.shop?.suspended_at) return null;
 
     return {
       supabase,
@@ -129,6 +134,41 @@ export async function getFreelancerSession(): Promise<FreelancerContext | null> 
     if (!freelancer) return null;
 
     return { supabase, freelancerId: freelancer.id, email: freelancer.email };
+  } catch {
+    return null;
+  }
+}
+
+export interface SystemAdminContext {
+  supabase: SupabaseClient<Database>;
+  adminId: string;
+  email: string;
+}
+
+/**
+ * Same idea again, for the platform-level system admin identity — a third,
+ * separate space from shop members and freelancers. System admin API
+ * routes check this, then do their actual data access through the
+ * service-role client (see adminClient.ts), not ctx.supabase, since admin
+ * work is explicitly meant to cross shop boundaries that RLS otherwise
+ * enforces everywhere else.
+ */
+export async function getSystemAdminSession(): Promise<SystemAdminContext | null> {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data: admin } = await supabase
+      .from("system_admins")
+      .select("id, email")
+      .eq("id", user.id)
+      .single();
+    if (!admin) return null;
+
+    return { supabase, adminId: admin.id, email: admin.email };
   } catch {
     return null;
   }

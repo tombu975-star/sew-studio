@@ -105,6 +105,42 @@ export const FIELD_BY_KEY = Object.fromEntries(MEASUREMENT_FIELDS.map((f) => [f.
   MeasurementField
 >;
 
+/**
+ * Standard adult-average body dimensions (cm), one set per gender, used as
+ * a dummy starting base for a customer with no measurement history yet —
+ * distinct from "start from previous session", which uses this customer's
+ * own last-recorded figures. Figures are representative averages for a
+ * mid-range adult build (roughly UK 12–14 / EU 40 for women, UK/EU 40
+ * chest for men) — always meant to be adjusted to the actual client, never
+ * used as-is. `length` is garment-specific, not a body dimension, so it's
+ * never prefilled. Bust-dart landmarks (bustPoint, shoulderToBust,
+ * underbust) aren't conventionally taken for menswear, so they're omitted
+ * from the male set rather than filled with a misleading guess.
+ */
+export const DUMMY_MEASUREMENTS: Record<"Female" | "Male", Partial<Record<MeasurementKey, number>>> = {
+  Female: {
+    height: 165, weight: 65,
+    neck: 34, shoulder: 39, acrossBack: 35, bust: 92, bustPoint: 18,
+    shoulderToBust: 26, underbust: 78, waist: 75, backLength: 40, frontLength: 41,
+    sleeve: 58, upperArm: 28, wrist: 15,
+    hip: 100, waistToHip: 20, crotchDepth: 28, thigh: 56, knee: 38, ankle: 22,
+    inseam: 76, outseam: 102,
+  },
+  Male: {
+    height: 175, weight: 78,
+    neck: 39, shoulder: 45, acrossBack: 42, bust: 100,
+    waist: 88, backLength: 44, frontLength: 45,
+    sleeve: 63, upperArm: 32, wrist: 17,
+    hip: 98, waistToHip: 21, crotchDepth: 27, thigh: 58, knee: 40, ankle: 24,
+    inseam: 82, outseam: 106,
+  },
+};
+
+/** Pick the dummy base for a customer's gender. Anything other than "Male" defaults to the Female set. */
+export function dummyMeasurementsFor(gender: string | null | undefined) {
+  return (gender || "").trim().toLowerCase() === "male" ? DUMMY_MEASUREMENTS.Male : DUMMY_MEASUREMENTS.Female;
+}
+
 export const POSTURES = ["Upright / neutral", "Forward-leaning", "Erect / swayback", "Uneven shoulders", "Other"] as const;
 
 /* ── Unit handling ─────────────────────────────────────────── */

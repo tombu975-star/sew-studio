@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
 import { getTenant } from "@/lib/supabase/session";
+import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
+import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
 
 export async function PATCH(req: Request) {
   const ctx = await getTenant();
@@ -27,6 +29,17 @@ export async function PATCH(req: Request) {
     data.avatar_url = raw ? raw.slice(0, 1000) : null;
   }
 
+  if (data.phone) {
+    if (!isPlausiblePhone(data.phone)) {
+      return NextResponse.json({ error: MESSAGES.badPhone }, { status: 400 });
+    }
+    const conflict = await findIdentityConflict(createAdminSupabaseClient(), {
+      phone: data.phone,
+      excludeId: ctx.userId,
+    });
+    if (conflict) return NextResponse.json({ error: conflict.message }, { status: 409 });
+  }
+
   const { data: profile, error } = await ctx.supabase
     .from("profiles")
     .update(data)
@@ -35,6 +48,8 @@ export async function PATCH(req: Request) {
     .select("id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, shop:shops(id, name, slug, currency)")
     .single();
   if (error) {
+    const friendly = identityErrorMessage(error);
+    if (friendly) return NextResponse.json({ error: friendly }, { status: 409 });
     return NextResponse.json({ error: "Could not update your profile." }, { status: 400 });
   }
 
