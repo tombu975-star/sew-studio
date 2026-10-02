@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "db:init-essential": "npx tsx scripts/init-supabase-essential.ts"
+    "db:init-essential": "npx tsx scripts/init-supabase-essential.ts",
+    "create-admin": "node scripts/create-system-admin.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.6",

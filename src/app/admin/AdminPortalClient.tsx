@@ -15,7 +15,7 @@ import {
   Search,
 } from "lucide-react";
 import { PageHeader, SectionCard } from "@/components/atelier/_portal";
-import { apiGet, apiPost, apiPatch } from "@/lib/api";
+import { apiGet, apiPost, apiPatch, apiErrorMessage } from "@/lib/api";
 import { formatDate, formatCurrency } from "@/lib/format";
 
 interface AdminProfile {
@@ -100,7 +100,7 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (a: AdminProfile) => void }) {
       });
       onLoggedIn(res.admin);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid email or password.");
+      setError(apiErrorMessage(err, "Invalid email or password."));
     } finally {
       setLoading(false);
     }
