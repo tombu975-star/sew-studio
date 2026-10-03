@@ -1,6 +1,13 @@
 {
   "name": "nextjs_tailwind_shadcn_ts",
   "version": "0.2.1",
+  "allowScripts": {
+    "@parcel/watcher": true,
+    "@swc/core": true,
+    "es5-ext": true,
+    "sharp": true,
+    "unrs-resolver": true
+  },
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 -H 0.0.0.0",

@@ -17,7 +17,33 @@ export async function POST(req: Request) {
       password: String(password),
     });
     if (error || !data.user) {
-      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+      // Log the real reason on the server (visible in your host's logs) so a
+      // failing sign-in can be diagnosed; show the visitor a safe message.
+      const code = (error as { code?: string } | null)?.code ?? "";
+      const msg = error?.message ?? "";
+      console.error("[admin-auth/login] sign-in failed:", code || "(no code)", msg);
+
+      if (code === "email_not_confirmed" || /not confirmed/i.test(msg)) {
+        return NextResponse.json(
+          { error: "This account's email isn't confirmed yet. Run: npm run create-admin -- <email> <password>" },
+          { status: 401 }
+        );
+      }
+      if (code === "over_request_rate_limit" || error?.status === 429) {
+        return NextResponse.json(
+          { error: "Too many attempts. Please wait a minute and try again." },
+          { status: 429 }
+        );
+      }
+      if (code === "invalid_credentials" || /invalid login credentials/i.test(msg)) {
+        return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+      }
+      // Anything else is not a wrong password: the sign-in service itself
+      // failed (wrong project URL/keys, auth disabled, network…).
+      return NextResponse.json(
+        { error: "Could not reach the sign-in service. Check the Supabase URL and keys, then try again." },
+        { status: 502 }
+      );
     }
 
     const { data: admin } = await supabase
