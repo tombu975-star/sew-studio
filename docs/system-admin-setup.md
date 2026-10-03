@@ -23,6 +23,14 @@ insert into public.system_admins (id, email, full_name)
 select id, email, 'Your Name' from auth.users where email = 'admin@yourdomain.com';
 ```
 
+**First stop if you see "Could not reach the sign-in service":** open
+`https://YOUR-SITE/api/admin-auth/status` in a browser. It reports, in plain
+English, whether the site's Supabase address and key are set and match, whether
+Supabase is reachable (or paused), and whether email sign-in is switched on. It
+never shows a key. Fix what it lists, **redeploy** (changes to `NEXT_PUBLIC_`
+settings only take effect after a new build), and try again. You can delete
+`src/app/api/admin-auth/status/route.ts` once sign-in works.
+
 **Can't sign in? Find out why.** Run:
 
 ```
@@ -43,7 +51,10 @@ at another is the most common cause of "Invalid email or password".
 - "This account's email isn't confirmed yet." — run `npm run create-admin` again
   for that email; it confirms it.
 - "Too many attempts." — wait a minute; Supabase rate-limits repeated tries.
-- "Could not reach the sign-in service." — the site's Supabase URL or keys are wrong.
+- "Couldn't connect to Supabase" / "Supabase rejected the API key" / "Email sign-in is
+  switched off" — the site's connection to Supabase is the problem, not the
+  password. The bracketed text at the end is Supabase's own error code; open
+  `/api/admin-auth/status` for the fix.
 - "No system admin account found for that email." — the sign-in works but isn't
   marked as an admin yet (step 2 or the SQL above).
 

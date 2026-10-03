@@ -35,13 +35,30 @@ export async function POST(req: Request) {
           { status: 429 }
         );
       }
+      if (code === "user_banned" || /banned/i.test(msg)) {
+        return NextResponse.json({ error: "This account has been disabled." }, { status: 403 });
+      }
       if (code === "invalid_credentials" || /invalid login credentials/i.test(msg)) {
         return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
       }
-      // Anything else is not a wrong password: the sign-in service itself
-      // failed (wrong project URL/keys, auth disabled, network…).
+
+      // Everything below is NOT a wrong password: the request to Supabase
+      // itself failed. Say what kind of failure, and point at the status page.
+      const name = (error as { name?: string } | null)?.name ?? "";
+      const detail = code || name || "unknown error";
+      const status = error?.status;
+      let reason: string;
+      if (code === "email_provider_disabled" || /email.*(disabled|not enabled)/i.test(msg)) {
+        reason = "Email sign-in is switched off in your Supabase project (Authentication → Providers → Email).";
+      } else if (code === "invalid_api_key" || /invalid api key|apikey/i.test(msg) || status === 401 || status === 403) {
+        reason = "Supabase rejected the API key this site uses (wrong key, or one from a different project).";
+      } else if (name === "AuthRetryableFetchError" || !status || status >= 500) {
+        reason = "The site couldn't connect to Supabase (wrong URL, or the project is paused).";
+      } else {
+        reason = "Supabase returned an unexpected error.";
+      }
       return NextResponse.json(
-        { error: "Could not reach the sign-in service. Check the Supabase URL and keys, then try again." },
+        { error: `${reason} [${detail}] Open /api/admin-auth/status on this site for exact steps.` },
         { status: 502 }
       );
     }
