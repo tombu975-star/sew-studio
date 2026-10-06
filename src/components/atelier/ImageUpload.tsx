@@ -94,7 +94,6 @@ export function ImageUpload({
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
-        capture="environment"
         className="sr-only"
         onChange={(e) => handleFile(e.target.files?.[0])}
       />

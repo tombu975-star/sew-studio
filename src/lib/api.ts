@@ -7,18 +7,40 @@ export function setOnSessionExpired(cb: () => void) {
   onSessionExpired = cb;
 }
 
+// Without a timeout, a stalled connection (very common on mobile — wifi/
+// cellular handoff, a backgrounded tab mid-request) leaves fetch() hanging
+// forever: no error, no response, the calling mutation stuck "pending"
+// indefinitely with no way out except a page refresh. 20s is generous for
+// a slow connection but still finite.
+const DEFAULT_TIMEOUT_MS = 20_000;
+
 export async function api<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
-  const res = await fetch(path, {
-    ...init,
-    credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      ...init,
+      signal: init?.signal ?? AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers || {}),
+      },
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "TimeoutError") {
+      throw new Error(
+        "That's taking too long — check your connection and try again."
+      );
+    }
+    if (err instanceof Error && err.name === "AbortError") throw err;
+    throw new Error(
+      "Couldn't reach the server. Check your connection and try again."
+    );
+  }
+
   if (!res.ok) {
     // On 401, the session has expired — trigger a global re-auth.
     if (res.status === 401 && onSessionExpired && !path.includes("/auth/")) {
