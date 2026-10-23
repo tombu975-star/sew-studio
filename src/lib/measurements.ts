@@ -15,7 +15,17 @@
 
 export type Unit = "cm" | "in";
 
-export type FieldGroup = "Stature" | "Upper body" | "Arm" | "Lower body";
+export type FieldGroup =
+  | "Stature"
+  | "Upper body"
+  | "Shoulders & neck"
+  | "Bust detail"
+  | "Waist detail"
+  | "Arm"
+  | "Arms (left / right)"
+  | "Lower body"
+  | "Hips & legs (left / right)"
+  | "Full-length garment";
 
 export interface MeasurementField {
   /** camelCase key used in the API / MeasurementSet type. */
@@ -30,6 +40,12 @@ export interface MeasurementField {
   core?: boolean;
   /** Stored in kg rather than cm. */
   unitOverride?: "kg";
+  /**
+   * Stored in the measurement_sets.extended jsonb column rather than a
+   * dedicated column (still centimetres). Adding another extended field
+   * only needs an entry here — no migration.
+   */
+  extended?: boolean;
 }
 
 export type MeasurementKey =
@@ -38,7 +54,22 @@ export type MeasurementKey =
   | "underbust" | "waist" | "backLength" | "frontLength"
   | "sleeve" | "upperArm" | "wrist"
   | "hip" | "waistToHip" | "crotchDepth" | "thigh" | "knee" | "ankle"
-  | "inseam" | "outseam" | "length";
+  | "inseam" | "outseam" | "length"
+  // Extended (Base44 parity) — Shoulders & neck
+  | "frontNeckDepth" | "backNeckDepth" | "shoulderWidth"
+  | "leftShoulderLength" | "rightShoulderLength"
+  | "leftShoulderHeight" | "rightShoulderHeight" | "acrossChest"
+  // Bust detail
+  | "highBust" | "upperBust" | "bustPointToWaist" | "leftBust" | "rightBust"
+  // Waist detail
+  | "highWaist" | "lowerWaist"
+  // Arms (left / right)
+  | "armhole" | "leftUpperArm" | "rightUpperArm" | "leftWrist" | "rightWrist" | "shoulderToWrist"
+  // Hips & legs (left / right)
+  | "highHip" | "leftThigh" | "rightThigh" | "leftKnee" | "rightKnee"
+  | "leftCalf" | "rightCalf" | "leftAnkle" | "rightAnkle" | "frontRise" | "backRise"
+  // Full-length garment
+  | "shoulderToFloor" | "bustToFloor" | "dressLength" | "skirtLength" | "topLength" | "trouserLength";
 
 export const MEASUREMENT_FIELDS: MeasurementField[] = [
   // ── Stature ─────────────────────────────────────────────
@@ -96,9 +127,107 @@ export const MEASUREMENT_FIELDS: MeasurementField[] = [
     how: "From the natural waist down the outside of the leg to the floor." },
   { key: "length", label: "Garment length (as requested)", group: "Lower body", range: [20, 200],
     how: "The finished length the client wants for this garment, from the agreed start point." },
+
+  // ═══ Extended fields (Base44 parity) ═══════════════════════════════════
+  { key: "frontNeckDepth", label: "Front neck depth", group: "Shoulders & neck", extended: true, range: [4, 22],
+    how: "From the neck-base line straight down the centre front to where the finished neckline should sit." },
+  { key: "backNeckDepth", label: "Back neck depth", group: "Shoulders & neck", extended: true, range: [1, 14],
+    how: "From the neck-base line down the centre back to where the finished back neckline should sit." },
+  { key: "shoulderWidth", label: "Shoulder width (front, point to point)", group: "Shoulders & neck", extended: true, range: [30, 60],
+    how: "Straight line across the front between the two shoulder points (acromion). Differs from 'Across shoulder', which is taken across the back." },
+  { key: "leftShoulderLength", label: "Left shoulder length", group: "Shoulders & neck", extended: true, range: [9, 20],
+    how: "From the side of the neck to the left shoulder point, along the top of the shoulder." },
+  { key: "rightShoulderLength", label: "Right shoulder length", group: "Shoulders & neck", extended: true, range: [9, 20],
+    how: "From the side of the neck to the right shoulder point, along the top of the shoulder." },
+  { key: "leftShoulderHeight", label: "Left shoulder height (from floor)", group: "Shoulders & neck", extended: true, range: [100, 175],
+    how: "Floor to the left shoulder point, standing straight. Compare with the right to spot uneven shoulders." },
+  { key: "rightShoulderHeight", label: "Right shoulder height (from floor)", group: "Shoulders & neck", extended: true, range: [100, 175],
+    how: "Floor to the right shoulder point, standing straight. Compare with the left to spot uneven shoulders." },
+  { key: "acrossChest", label: "Across chest", group: "Shoulders & neck", extended: true, range: [26, 52],
+    how: "Across the front between the two front armfold creases, at armpit level." },
+  { key: "highBust", label: "High bust girth", group: "Bust detail", extended: true, range: [60, 160],
+    how: "Horizontal tape around the chest high up, directly under the armpits, level at the back." },
+  { key: "upperBust", label: "Upper bust girth", group: "Bust detail", extended: true, range: [60, 160],
+    how: "Horizontal tape around the upper chest, about 5 cm above the fullest part of the bust." },
+  { key: "bustPointToWaist", label: "Bust point to waist", group: "Bust detail", extended: true, range: [15, 40],
+    how: "From the bust point straight down to the natural waist." },
+  { key: "leftBust", label: "Left bust (single side)", group: "Bust detail", extended: true, range: [25, 90],
+    how: "Left side only, centre front to side seam across the fullest part. Record both sides when they differ noticeably." },
+  { key: "rightBust", label: "Right bust (single side)", group: "Bust detail", extended: true, range: [25, 90],
+    how: "Right side only, centre front to side seam across the fullest part. Record both sides when they differ noticeably." },
+  { key: "highWaist", label: "High waist girth", group: "Waist detail", extended: true, range: [45, 170],
+    how: "Horizontal tape just below the ribcage, above the natural waist." },
+  { key: "lowerWaist", label: "Lower waist girth", group: "Waist detail", extended: true, range: [50, 180],
+    how: "Horizontal tape about 5 cm below the natural waist — for low-rise garments." },
+  { key: "armhole", label: "Armhole girth", group: "Arms (left / right)", extended: true, range: [34, 62],
+    how: "Around the armscye: from the shoulder point, under the armpit, and back up to the shoulder point." },
+  { key: "leftUpperArm", label: "Left upper arm girth", group: "Arms (left / right)", extended: true, range: [18, 50],
+    how: "Around the fullest part of the left upper arm, arm hanging relaxed." },
+  { key: "rightUpperArm", label: "Right upper arm girth", group: "Arms (left / right)", extended: true, range: [18, 50],
+    how: "Around the fullest part of the right upper arm, arm hanging relaxed." },
+  { key: "leftWrist", label: "Left wrist girth", group: "Arms (left / right)", extended: true, range: [12, 22],
+    how: "Around the left wrist just above the wrist bone." },
+  { key: "rightWrist", label: "Right wrist girth", group: "Arms (left / right)", extended: true, range: [12, 22],
+    how: "Around the right wrist just above the wrist bone." },
+  { key: "shoulderToWrist", label: "Shoulder to wrist (arm straight)", group: "Arms (left / right)", extended: true, range: [45, 80],
+    how: "From the shoulder point to the wrist bone with the arm hanging straight. 'Arm length' above is taken over a slightly bent elbow." },
+  { key: "highHip", label: "High hip girth", group: "Hips & legs (left / right)", extended: true, range: [65, 170],
+    how: "Horizontal tape around the top of the hip bones, about 10 cm below the waist." },
+  { key: "leftThigh", label: "Left thigh girth", group: "Hips & legs (left / right)", extended: true, range: [35, 80],
+    how: "Around the fullest part of the left upper thigh, just below the buttock fold." },
+  { key: "rightThigh", label: "Right thigh girth", group: "Hips & legs (left / right)", extended: true, range: [35, 80],
+    how: "Around the fullest part of the right upper thigh, just below the buttock fold." },
+  { key: "leftKnee", label: "Left knee girth", group: "Hips & legs (left / right)", extended: true, range: [26, 55],
+    how: "Around the left knee over the middle of the kneecap, leg straight." },
+  { key: "rightKnee", label: "Right knee girth", group: "Hips & legs (left / right)", extended: true, range: [26, 55],
+    how: "Around the right knee over the middle of the kneecap, leg straight." },
+  { key: "leftCalf", label: "Left calf girth", group: "Hips & legs (left / right)", extended: true, range: [24, 55],
+    how: "Around the fullest part of the left calf." },
+  { key: "rightCalf", label: "Right calf girth", group: "Hips & legs (left / right)", extended: true, range: [24, 55],
+    how: "Around the fullest part of the right calf." },
+  { key: "leftAnkle", label: "Left ankle girth", group: "Hips & legs (left / right)", extended: true, range: [18, 34],
+    how: "Around the narrowest part of the left ankle." },
+  { key: "rightAnkle", label: "Right ankle girth", group: "Hips & legs (left / right)", extended: true, range: [18, 34],
+    how: "Around the narrowest part of the right ankle." },
+  { key: "frontRise", label: "Front rise", group: "Hips & legs (left / right)", extended: true, range: [20, 40],
+    how: "From the crotch point up the centre front to the waistline." },
+  { key: "backRise", label: "Back rise", group: "Hips & legs (left / right)", extended: true, range: [25, 52],
+    how: "From the crotch point up the centre back to the waistline." },
+  { key: "shoulderToFloor", label: "Shoulder to floor", group: "Full-length garment", extended: true, range: [110, 190],
+    how: "From the shoulder-neck point straight down the front to the floor, in the shoes the garment will be worn with." },
+  { key: "bustToFloor", label: "Bust point to floor", group: "Full-length garment", extended: true, range: [90, 170],
+    how: "From the bust point straight down to the floor, in the shoes the garment will be worn with." },
+  { key: "dressLength", label: "Dress length (as requested)", group: "Full-length garment", extended: true, range: [50, 200],
+    how: "Finished dress length from the shoulder-neck point, as the client wants it." },
+  { key: "skirtLength", label: "Skirt length (as requested)", group: "Full-length garment", extended: true, range: [30, 150],
+    how: "Finished skirt length from the natural waist, as the client wants it." },
+  { key: "topLength", label: "Top length (as requested)", group: "Full-length garment", extended: true, range: [30, 110],
+    how: "Finished top length from the shoulder-neck point, as the client wants it." },
+  { key: "trouserLength", label: "Trouser length (as requested)", group: "Full-length garment", extended: true, range: [60, 130],
+    how: "Finished trouser length from the natural waist, as the client wants it." },
 ];
 
-export const FIELD_GROUPS: FieldGroup[] = ["Stature", "Upper body", "Arm", "Lower body"];
+export const FIELD_GROUPS: FieldGroup[] = [
+  "Stature",
+  "Upper body",
+  "Shoulders & neck",
+  "Bust detail",
+  "Waist detail",
+  "Arm",
+  "Arms (left / right)",
+  "Lower body",
+  "Hips & legs (left / right)",
+  "Full-length garment",
+];
+
+/** Fields persisted in measurement_sets.extended (jsonb), all in cm. */
+export const EXTENDED_FIELDS = MEASUREMENT_FIELDS.filter((f) => f.extended);
+
+/** Shared by the entry form and the API so both accept exactly the same values. */
+export const SHOULDER_SLOPES = ["Square", "Normal", "Sloping", "Uneven", "Custom"] as const;
+export const GARMENT_TYPES = ["General", "Dress", "Top", "Skirt", "Trousers", "Bridal"] as const;
+export const SET_STATUSES = ["Draft", "Confirmed"] as const;
+export const APPROVAL_STATES = ["Pending", "Approved"] as const;
 
 export const FIELD_BY_KEY = Object.fromEntries(MEASUREMENT_FIELDS.map((f) => [f.key, f])) as Record<
   MeasurementKey,

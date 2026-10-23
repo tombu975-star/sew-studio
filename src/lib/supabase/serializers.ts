@@ -137,6 +137,11 @@ export function serializeTask(t: Record<string, any>) {
 
 export function serializeMeasurementSet(m: Record<string, any>) {
   return {
+    // Extended measurements are stored in one jsonb column but exposed flat
+    // (leftShoulderLength, highBust, …) so the client treats them exactly
+    // like the core fields. Spread FIRST: every explicit field below then
+    // takes precedence, so a stray jsonb key can never overwrite a core one.
+    ...(m.extended && typeof m.extended === "object" ? m.extended : {}),
     id: m.id,
     customerId: m.customer_id,
     staffId: m.staff_id,
@@ -168,6 +173,12 @@ export function serializeMeasurementSet(m: Record<string, any>) {
     outseam: m.outseam,
     posture: m.posture,
     notes: m.notes,
+    setName: m.set_name ?? null,
+    garmentType: m.garment_type ?? "General",
+    status: m.status ?? "Confirmed",
+    customerApproval: m.customer_approval ?? "Pending",
+    shoulderSlope: m.shoulder_slope ?? null,
+    customMeasurements: m.custom_measurements ?? null,
   };
 }
 

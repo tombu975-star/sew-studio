@@ -1,4 +1,6 @@
-// Shared domain types — mirror the Prisma models (serialised for the client).
+// Shared domain types — mirror the database tables (serialised for the client).
+
+import type { MeasurementKey } from "@/lib/measurements";
 
 export type OrderStatus =
   | "Enquiry"
@@ -145,7 +147,9 @@ export interface Task {
   createdAt: string;
 }
 
-export interface MeasurementSet {
+// Every measurement key (core + extended) is an optional number in cm/kg, so
+// new fields added to MEASUREMENT_FIELDS appear on this type automatically.
+export interface MeasurementSet extends Partial<Record<MeasurementKey, number | null>> {
   id: string;
   customerId: string;
   staffId?: string | null;
@@ -177,6 +181,12 @@ export interface MeasurementSet {
   outseam?: number | null;
   posture?: string | null;
   notes?: string | null;
+  setName?: string | null;
+  garmentType?: string | null;
+  status?: string | null;
+  customerApproval?: string | null;
+  shoulderSlope?: string | null;
+  customMeasurements?: string | null;
   staff?: { id: string; fullName: string } | null;
 }
 
