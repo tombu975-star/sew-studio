@@ -56,6 +56,3 @@ server.log
 # local SQLite database (dev only — Supabase used in production)
 /db/*.db
 /db/*.db-journal
-
-.vercel
-.env*

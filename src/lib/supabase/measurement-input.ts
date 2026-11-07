@@ -121,7 +121,9 @@ export function buildMeasurementData(body: Body, opts: { partial: boolean }): Me
   if (!partial || has(body, "status")) {
     const r = checkEnum(body.status, SET_STATUSES);
     if (!r.ok) return { ok: false, error: "Invalid status." };
-    data.status = r.value ?? "Draft";
+    // Sessions have always been the working record the moment they are saved,
+    // so an unspecified status means Confirmed; "Draft" is opt-in.
+    data.status = r.value ?? "Confirmed";
   }
   if (!partial || has(body, "customerApproval")) {
     const r = checkEnum(body.customerApproval, APPROVAL_STATES);
