@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSystemAdminSession } from "@/lib/supabase/session";
 import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import type { Database } from "@/lib/supabase/database.types";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -104,7 +105,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   const { data: updated, error } = await admin
     .from("shops")
-    .update(data)
+    .update(data as Database["public"]["Tables"]["shops"]["Update"])
     .eq("id", id)
     .select("*")
     .single();

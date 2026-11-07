@@ -486,7 +486,7 @@ export default function CustomerProfile() {
                   >
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#FAF2EC] border border-[#EAE6DF] flex items-center justify-center text-[#9E5A44] shrink-0">
                       {o.designImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
+                         
                         <img src={o.designImage} alt={`${o.garmentDesign} style`} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
                         <ShoppingBag className="w-4 h-4" />

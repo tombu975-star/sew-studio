@@ -204,7 +204,7 @@ export default function UserProfile() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-5 p-6">
               <div className="relative shrink-0">
                 {profile.avatarUrl && !avatarBroken ? (
-                  // eslint-disable-next-line @next/next/no-img-element
+                   
                   <img
                     src={profile.avatarUrl}
                     alt={`${profile.fullName} profile picture`}
