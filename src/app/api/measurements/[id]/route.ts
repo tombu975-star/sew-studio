@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTenant } from "@/lib/supabase/session";
 import { serializeMeasurementSet } from "@/lib/supabase/serializers";
+import type { Database } from "@/lib/supabase/database.types";
 import { buildMeasurementData } from "@/lib/supabase/measurement-input";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -33,7 +34,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
 
   const { data: updated, error } = await ctx.supabase
     .from("measurement_sets")
-    .update(built.data)
+    .update(built.data as Database["public"]["Tables"]["measurement_sets"]["Update"])
     .eq("id", id)
     .eq("shop_id", ctx.shopId)
     .select("*")

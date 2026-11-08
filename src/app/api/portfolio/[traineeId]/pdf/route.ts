@@ -75,7 +75,7 @@ export async function GET(
       shopName: shop?.name ?? "Studio",
       traineeName: trainee.full_name,
       traineeEmail: trainee.email,
-      mentorName: trainee.mentor?.full_name ?? null,
+      mentorName: (trainee.mentor as unknown as { full_name: string } | null)?.full_name ?? null,
       programName: trainee.program?.name ?? null,
       programLevel: trainee.program?.level ?? null,
       trainingDurationWeeks: trainee.training_duration_weeks,
