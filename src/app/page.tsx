@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { AppShell } from "@/components/atelier/AppShell";
 import { Providers } from "@/components/Providers";
-import { LoginPage } from "@/components/atelier/LoginPage";
 import { PlatformExperience } from "@/components/atelier/PlatformExperience";
 import { PlatformLogin } from "@/components/atelier/PlatformLogin";
 import { useAuth } from "@/stores/auth";
