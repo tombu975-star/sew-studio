@@ -1,8 +1,31 @@
 import { NextResponse } from "next/server";
+import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { getRailwayShopSession, isRailwayAuthEnabled } from "@/lib/railway-auth";
 import { getTenant } from "@/lib/supabase/session";
 
 export async function GET() {
   try {
+    if (isRailwayAuthEnabled()) {
+      const profile = await getRailwayShopSession();
+      if (!profile) return NextResponse.json({ user: null }, { status: 200 });
+      return NextResponse.json({
+        user: {
+          id: profile.id,
+          email: profile.email,
+          fullName: profile.fullName,
+          role: profile.role,
+          gender: profile.gender,
+          phone: profile.phone,
+          avatarUrl: profile.avatarUrl,
+          shopId: profile.shopId,
+          shop: profile.shop,
+          canAccessOrders: profile.canAccessOrders,
+          canAccessBoard: profile.canAccessBoard,
+          canManageFreelancers: profile.canManageFreelancers,
+        },
+      });
+    }
+
     const ctx = await getTenant();
     if (!ctx) return NextResponse.json({ user: null }, { status: 200 });
 
