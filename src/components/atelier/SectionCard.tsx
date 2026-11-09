@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Premium section card — elevated white surface with refined header.
+ * Standard section card with a clear title and optional action.
  * Supports optional action slot, padding override, and an accent variant.
  */
 export function SectionCard({
@@ -24,13 +24,13 @@ export function SectionCard({
   return (
     <div
       className={cn(
-        "bg-white border border-[#E2E8F0] rounded-xl shadow-sm",
-        accent && "border-l-2 border-l-[#2563EB]",
+        "bg-white border border-[#D8DEE7] rounded-lg",
+        accent && "border-l-2 border-l-[#1D4ED8]",
         className
       )}
     >
       {title && (
-        <div className="flex items-center justify-between gap-3 px-5 min-h-12 py-3 border-b border-[#E2E8F0]">
+        <div className="flex items-center justify-between gap-3 px-5 min-h-12 py-3 border-b border-[#E4E8EE]">
           <h3 className="text-sm font-semibold tracking-tight text-slate-800">
             {title}
           </h3>

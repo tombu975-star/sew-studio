@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { Scissors, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/stores/auth";
 import { toast } from "sonner";
@@ -121,47 +120,26 @@ export function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-dvh bg-[#0F172A] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:bg-[#F8FAFC]">
-      {/* Studio photograph — full-bleed behind the form on phones, left half on desktop */}
-      <aside className="fixed inset-0 bg-[#0F172A] lg:relative lg:inset-auto">
-        <Image
-          src="/atelier-login.jpg"
-          alt="A burgundy satin gown on a dress form in the atelier"
-          fill
-          priority
-          sizes="(min-width: 1024px) 50vw, 100vw"
-          quality={75}
-          className="object-cover"
-        />
-        {/* Mobile scrim so the floating card and brand stay legible */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/65 lg:hidden" />
-        <div className="absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-[#0F172A]/85 via-[#0F172A]/45 to-transparent px-12 pb-10 pt-28 lg:block">
-          <p className="font-display text-3xl font-semibold leading-tight text-white">
-            Every stitch tells a story.
-          </p>
-          <p className="mt-2 text-sm text-white/70">Madam Studio · Bespoke atelier, Accra</p>
-        </div>
-      </aside>
-
-      <main className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-8 pt-safe pb-safe sm:px-8 sm:py-12 lg:min-h-0 lg:items-stretch lg:bg-[#F8FAFC] lg:px-14 xl:px-20">
+    <div className="min-h-dvh bg-[#F4F6F8]">
+      <main className="flex min-h-dvh flex-col items-center justify-center px-4 py-10 pt-safe pb-safe sm:px-8">
         <div className="mx-auto w-full max-w-[440px]">
-          <div className="mb-6 flex items-center justify-center gap-3 lg:mb-7 lg:justify-start">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-[linear-gradient(155deg,#C4927A_0%,#2563EB_55%,#1E40AF_100%)] shadow-[0_8px_20px_-8px_rgba(37,99,235,0.5)]">
+          <div className="mb-6 flex items-center justify-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-md bg-[#17263C]">
               <Scissors className="size-[18px] text-white" strokeWidth={2} />
             </div>
-            <span className="font-display text-xl font-semibold text-white drop-shadow-sm lg:text-[#0F172A] lg:drop-shadow-none">Madam Studio</span>
+            <span className="text-lg font-semibold tracking-tight text-[#17263C]">Madam Studio</span>
           </div>
 
-          <div className="rounded-2xl border border-white/30 bg-white/95 px-5 py-7 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:px-9 sm:py-10 lg:border-[#E2E8F0] lg:bg-white lg:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_16px_40px_-16px_rgba(15,23,42,0.12)] lg:backdrop-blur-none">
+          <div className="rounded-lg border border-[#D8DEE7] bg-white px-5 py-7 sm:px-9 sm:py-9">
           {mode === "login" ? (
             <section key="login" className="animate-fade-in">
-              <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#0F172A] text-center lg:text-left">Welcome back</h1>
-              <p className="mt-2 text-sm text-stone-500 text-center lg:text-left">
+              <h1 className="text-2xl font-semibold leading-tight tracking-tight text-[#17263C]">Sign in</h1>
+              <p className="mt-2 text-sm text-slate-600">
                 Sign in to manage your studio&apos;s customers, orders and daily work.
               </p>
 
               <form onSubmit={submitLogin} className="mt-8 space-y-5">
-                <Field label="Email" htmlFor="email">
+                <Field label="Email address" htmlFor="email">
                   <input
                     id="email"
                     type="email"
@@ -198,7 +176,7 @@ export function LoginPage() {
                     />
                     Keep me signed in
                   </label>
-                  <a href="/forgot-password" className="font-medium text-[#2563EB] underline-offset-4 hover:underline">
+                  <a href="/forgot-password" className="font-medium text-[#1D4ED8] underline-offset-4 hover:underline">
                     Forgot password?
                   </a>
                 </div>
@@ -210,21 +188,21 @@ export function LoginPage() {
                 </PremiumButton>
               </form>
 
-              <p className="mt-7 border-t border-[#E2E8F0] pt-6 text-center text-sm text-stone-500 lg:text-left">
+              <p className="mt-7 border-t border-[#E2E8F0] pt-6 text-sm leading-relaxed text-slate-600">
                 New to Madam Studio? Create a shop account to set up your workspace.{" "}
                 <button
                   type="button"
                   onClick={() => switchMode("register")}
-                  className="font-medium text-[#2563EB] underline-offset-4 hover:underline"
+                  className="font-medium text-[#1D4ED8] underline-offset-4 hover:underline"
                 >
                   Create a shop account
                 </button>
               </p>
-              <p className="mt-3 text-center text-sm text-stone-500 lg:text-left">
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">
                 Work with studios as a freelancer?{" "}
                 <a
                   href="/freelancer?mode=register"
-                  className="font-medium text-[#2563EB] underline-offset-4 hover:underline"
+                  className="font-medium text-[#1D4ED8] underline-offset-4 hover:underline"
                 >
                   Create a freelancer account
                 </a>
@@ -232,8 +210,8 @@ export function LoginPage() {
             </section>
           ) : (
             <section key="register" className="animate-fade-in">
-              <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#0F172A] text-center lg:text-left">Create your shop</h1>
-              <p className="mt-2 text-sm text-stone-500 text-center lg:text-left">
+              <h1 className="text-2xl font-semibold leading-tight tracking-tight text-[#17263C]">Create your studio account</h1>
+              <p className="mt-2 text-sm text-slate-600">
                 Set up your studio account to start adding customers and orders.
               </p>
 
@@ -316,12 +294,12 @@ export function LoginPage() {
                 </PremiumButton>
               </form>
 
-              <p className="mt-7 border-t border-[#E2E8F0] pt-6 text-center text-sm text-stone-500 lg:text-left">
+              <p className="mt-7 border-t border-[#E2E8F0] pt-6 text-sm text-slate-600">
                 Already have a studio?{" "}
                 <button
                   type="button"
                   onClick={() => switchMode("login")}
-                  className="font-medium text-[#2563EB] underline-offset-4 hover:underline"
+                  className="font-medium text-[#1D4ED8] underline-offset-4 hover:underline"
                 >
                   Back to sign in
                 </button>
@@ -330,8 +308,8 @@ export function LoginPage() {
           )}
           </div>
 
-          <p className="mt-6 text-center text-[11px] text-white/70 lg:text-left lg:text-stone-400">
-            Madam Studio — where every stitch tells a story.
+          <p className="mt-5 text-center text-xs text-slate-500">
+            Madam Studio · Atelier management system
           </p>
         </div>
       </main>

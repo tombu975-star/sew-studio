@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Premium empty state — icon, title, description, optional action.
+ * Clear empty state — icon, title, explanation, optional next action.
  */
 export function EmptyState({
   icon: Icon,
@@ -21,22 +21,20 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center py-12 px-6",
+        "flex flex-col items-center justify-center text-center py-10 px-6",
         className
       )}
     >
       {Icon && (
-        <div className="relative mb-5" aria-hidden="true">
-          <span className="absolute inset-0 -m-3 rounded-full border border-dashed border-[#2563EB]/25" />
-          <span className="absolute inset-0 -m-1.5 rounded-full bg-[#2563EB]/[0.05]" />
-          <div className="relative w-14 h-14 rounded-full bg-[linear-gradient(160deg,#FFFFFF_0%,#EFF6FF_100%)] border border-[#E2E8F0] shadow-[0_6px_16px_-8px_rgba(37,99,235,0.35)] flex items-center justify-center">
-            <Icon className="w-[22px] h-[22px] text-[#2563EB]" />
+        <div className="mb-4" aria-hidden="true">
+          <div className="w-11 h-11 rounded-lg bg-slate-100 border border-[#E2E8F0] flex items-center justify-center">
+            <Icon className="w-5 h-5 text-slate-600" />
           </div>
         </div>
       )}
-      <p className="font-display text-lg font-semibold text-[#0F172A] leading-snug">{title}</p>
+      <p className="text-base font-semibold text-[#17263C] leading-snug">{title}</p>
       {description && (
-        <p className="text-[13px] leading-relaxed text-stone-500 mt-1.5 max-w-sm">{description}</p>
+        <p className="text-sm leading-relaxed text-slate-600 mt-1.5 max-w-sm">{description}</p>
       )}
       {action && <div className="mt-5">{action}</div>}
     </div>

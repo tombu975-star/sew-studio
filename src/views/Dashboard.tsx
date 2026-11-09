@@ -557,18 +557,18 @@ function MainDashboard() {
       {owner && m.orders.length === 0 && (
         <section
           aria-labelledby="getting-started-title"
-          className="mb-5 rounded-xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/70 p-5 md:p-6"
+          className="mb-5 rounded-lg border border-[#D8DEE7] bg-white p-5 md:p-6"
         >
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+              <p className="text-xs font-medium text-slate-500">
                 Getting started
               </p>
               <h2
                 id="getting-started-title"
-                className="mt-1 font-display text-xl font-semibold text-[#0F172A]"
+                className="mt-1 text-lg font-semibold tracking-tight text-[#17263C]"
               >
-                Your first order is just two steps away
+                Recommended first steps
               </h2>
               <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
                 Add a customer, then create an order for the garment they want.
@@ -580,7 +580,7 @@ function MainDashboard() {
                     {m.customers.length > 0 ? <Check className="size-3.5" /> : "1"}
                   </span>
                   <span>
-                    <span className="block text-sm font-medium text-[#0F172A]">Add a customer</span>
+                    <span className="block text-sm font-medium text-[#17263C]">Add a customer</span>
                     <span className="block text-xs leading-relaxed text-stone-500">Save their name and contact details.</span>
                   </span>
                 </li>
@@ -589,7 +589,7 @@ function MainDashboard() {
                     2
                   </span>
                   <span>
-                    <span className="block text-sm font-medium text-[#0F172A]">Create an order</span>
+                    <span className="block text-sm font-medium text-[#17263C]">Create an order</span>
                     <span className="block text-xs leading-relaxed text-stone-500">Choose the customer and describe the garment.</span>
                   </span>
                 </li>
@@ -598,7 +598,7 @@ function MainDashboard() {
                     3
                   </span>
                   <span>
-                    <span className="block text-sm font-medium text-[#0F172A]">Follow the progress</span>
+                    <span className="block text-sm font-medium text-[#17263C]">Track the order</span>
                     <span className="block text-xs leading-relaxed text-stone-500">Update sewing, fittings and payments.</span>
                   </span>
                 </li>

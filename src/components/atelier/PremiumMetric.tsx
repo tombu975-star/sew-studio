@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Premium metric card — large display value, label, optional sparkline + trend delta.
+ * Metric card with a numeric value, supporting context and optional trend.
  */
 export function PremiumMetric({
   label,
@@ -29,24 +29,24 @@ export function PremiumMetric({
   return (
     <div
       className={cn(
-        "@container relative bg-white border border-[#E2E8F0] rounded-lg p-4 sm:p-5 overflow-hidden group shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-16px_rgba(15,23,42,0.10)]",
-        accent && "border-[#2563EB]/25 bg-[linear-gradient(180deg,#FFFFFF_0%,#EFF6FF_100%)]",
+        "@container relative bg-white border border-[#D8DEE7] rounded-lg p-4 sm:p-5 overflow-hidden",
+        accent && "border-l-2 border-l-[#1D4ED8]",
         className
       )}
     >
       <div className="relative flex items-start justify-between">
-        <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-stone-500 leading-tight">
+        <span className="text-xs font-medium text-slate-600 leading-tight">
           {label}
         </span>
         {Icon && (
-          <Icon className={cn("w-4 h-4", accent ? "text-[#2563EB]" : "text-stone-300")} />
+          <Icon className={cn("w-4 h-4", accent ? "text-[#1D4ED8]" : "text-slate-400")} />
         )}
       </div>
       <div className="relative mt-3 flex flex-wrap items-end gap-x-2 gap-y-1.5">
         <div
           className={cn(
             "font-display font-semibold leading-none tabular-nums",
-            accent ? "text-[#2563EB]" : "text-[#0F172A]"
+            accent ? "text-[#1D4ED8]" : "text-[#17263C]"
           )}
           style={{ fontSize: "clamp(22px, 12cqw, 38px)" }}
         >

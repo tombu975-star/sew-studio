@@ -332,7 +332,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             title={shopDisplayName}
             aria-label={`${shopDisplayName} — dashboard`}
           >
-            <div className="w-10 h-10 rounded-xl bg-[#2563EB] shadow-sm flex items-center justify-center text-white shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-[#1D4ED8] flex items-center justify-center text-white shrink-0">
               <Scissors className="w-[17px] h-[17px]" strokeWidth={2.1} />
             </div>
             <div className="min-w-0 text-left hidden lg:block">
@@ -340,8 +340,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {shopDisplayName}
               </p>
               <span
-                className="inline-flex items-center text-[9px] font-semibold tracking-[0.14em] uppercase mt-1 px-1.5 py-0.5 rounded-sm"
-                style={{ backgroundColor: "#EFF6FF", color: "#1D4ED8" }}
+                className="inline-flex items-center text-[10px] font-medium mt-1 px-1.5 py-0.5 rounded-sm"
+                style={{ backgroundColor: "#243751", color: "#CBD5E1" }}
               >
                 {ROLE_LABELS[role]} portal
               </span>
@@ -359,7 +359,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {si > 0 && (
                 <div className="lg:hidden h-px bg-sidebar-border mx-3 mb-3" aria-hidden="true" />
               )}
-              <p className="hidden lg:block text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 px-3 mb-1.5">
+              <p className="hidden lg:block text-[11px] font-medium text-slate-400 px-3 mb-1.5">
                 {section.label}
               </p>
               <div className="space-y-0.5">
@@ -375,12 +375,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       className={cn(
                         "group relative w-full flex items-center justify-center lg:justify-start gap-3 h-10 lg:h-9 lg:px-3 rounded-lg text-[13.5px] transition-colors duration-150",
                         active
-                          ? "bg-blue-50 text-blue-700 font-semibold"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/70"
                       )}
                     >
                       {active && (
-                        <span className="absolute -left-[11px] lg:-left-3 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#2563EB] rounded-r-full" />
+                        <span className="absolute -left-[11px] lg:-left-3 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#93C5FD] rounded-r-full" />
                       )}
                       <Icon
                         className="w-[18px] h-[18px] shrink-0"
@@ -407,7 +407,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <div className="relative shrink-0">
                   <div
-                    className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold ring-2 ring-offset-2 ring-offset-sidebar"
+                    className="w-9 h-9 rounded-full bg-[#34445B] text-white flex items-center justify-center text-xs font-semibold ring-2 ring-offset-2 ring-offset-sidebar"
                     style={{ ["--tw-ring-color" as string]: roleAccent }}
                   >
                     {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
@@ -425,7 +425,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
               <button
                 onClick={() => logout()}
-                className="shrink-0 w-9 h-9 lg:w-8 lg:h-8 lg:mr-1 rounded-lg flex items-center justify-center text-sidebar-foreground/45 hover:text-sidebar-primary hover:bg-white/[0.08] transition-colors"
+                className="shrink-0 w-9 h-9 lg:w-8 lg:h-8 lg:mr-1 rounded-lg flex items-center justify-center text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent transition-colors"
                 title="Sign out"
                 aria-label="Sign out"
               >
