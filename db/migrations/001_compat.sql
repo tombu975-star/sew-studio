@@ -1,7 +1,5 @@
--- Railway Postgres bootstrap. Recreates the few Supabase pieces the existing
--- schema depends on (roles, auth.uid(), a minimal auth.users identity table)
--- so the row-level-security policies in supabase/*.sql keep working unchanged.
--- Run this BEFORE the supabase/*.sql schema files.
+-- Railway Postgres bootstrap for the role and auth helpers used by later
+-- database migrations. Run this before the application schema migrations.
 
 create extension if not exists pgcrypto;
 
