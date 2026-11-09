@@ -24,6 +24,7 @@ export interface AuthUser {
   shop?: AuthShop | null;
   canAccessOrders?: boolean;
   canAccessBoard?: boolean;
+  canManageFreelancers?: boolean;
 }
 
 type Status = "loading" | "authenticated" | "unauthenticated";

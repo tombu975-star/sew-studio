@@ -63,11 +63,20 @@ export async function POST(req: Request) {
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (ctx.role === "madam") {
+      return Response.json(
+        {
+          error:
+            "Studio owners can view freelancers and assign them work, but cannot add freelancer accounts from this portal.",
+        },
+        { status: 403 }
+      );
+    }
     if (!canManageFreelancers(ctx)) {
       return Response.json(
         {
           error:
-            "Only the studio owner, or someone granted freelancer access, can manage freelancers.",
+            "Only a team member granted freelancer-management access can add freelancer accounts.",
         },
         { status: 403 }
       );

@@ -153,6 +153,8 @@ export default function Team() {
   const { user: owner } = useAuth();
   const role = useRole();
   const canEditTrainees = role.isOwner() || role.isTrainer();
+  const canAddFreelancers =
+    !role.isOwner() && owner?.canManageFreelancers === true;
   const { go } = useNav();
   const qc = useQueryClient();
   const [tab, setTab] = useState("staff");
@@ -324,6 +326,7 @@ export default function Team() {
             freelancers={freelancers}
             isLoading={freelancersQ.isLoading}
             onAdd={() => setAddFreelancerOpen(true)}
+            canAdd={canAddFreelancers}
           />
           <FreelanceJobsSection freelancers={freelancers} />
         </TabsContent>
@@ -350,18 +353,21 @@ export default function Team() {
         onOpenChange={(o) => !o && setEditMember(null)}
         member={editMember}
       />
-      <AddFreelancerDialog
-        open={addFreelancerOpen}
-        onOpenChange={setAddFreelancerOpen}
-        onDone={() => qc.invalidateQueries({ queryKey: ["freelancers"] })}
-        onAccountCreated={setCreatedFreelancerCredentials}
-      />
-      <Dialog
-        open={!!createdFreelancerCredentials}
-        onOpenChange={(open) => {
-          if (!open) setCreatedFreelancerCredentials(null);
-        }}
-      >
+      {canAddFreelancers && (
+        <AddFreelancerDialog
+          open={addFreelancerOpen}
+          onOpenChange={setAddFreelancerOpen}
+          onDone={() => qc.invalidateQueries({ queryKey: ["freelancers"] })}
+          onAccountCreated={setCreatedFreelancerCredentials}
+        />
+      )}
+      {canAddFreelancers && (
+        <Dialog
+          open={!!createdFreelancerCredentials}
+          onOpenChange={(open) => {
+            if (!open) setCreatedFreelancerCredentials(null);
+          }}
+        >
         <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Freelancer login created</DialogTitle>
@@ -415,7 +421,8 @@ export default function Team() {
             </PremiumButton>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+        </Dialog>
+      )}
     </div>
   );
 }
@@ -589,10 +596,12 @@ function FreelancersCard({
   freelancers,
   isLoading,
   onAdd,
+  canAdd,
 }: {
   freelancers: Freelancer[];
   isLoading: boolean;
   onAdd: () => void;
+  canAdd: boolean;
 }) {
   const qc = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -624,11 +633,11 @@ function FreelancersCard({
     <SectionCard
       title={`Commissioned Talent · ${freelancers.length}`}
       bodyClassName="p-0"
-      action={
+      action={canAdd ? (
         <PremiumButton size="sm" onClick={onAdd}>
           <Plus className="w-4 h-4" /> Add Freelancer
         </PremiumButton>
-      }
+      ) : undefined}
     >
       {isLoading ? (
         <SkeletonList rows={4} />
@@ -636,12 +645,12 @@ function FreelancersCard({
         <EmptyState
           icon={UsersRound}
           title="No freelancers yet"
-          description="Add the beaders, embroiderers, cutters and tailors you commission for bespoke work."
-          action={
+          description="Freelancers added to your studio will appear here. Ask a team member with freelancer-management access if you need someone added."
+          action={canAdd ? (
             <PremiumButton size="sm" onClick={onAdd}>
               <Plus className="w-4 h-4" /> Add Freelancer
             </PremiumButton>
-          }
+          ) : undefined}
         />
       ) : (
         <div className="divide-y divide-[#E2E8F0]/70">

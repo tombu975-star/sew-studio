@@ -45,7 +45,7 @@ export async function PATCH(req: Request) {
     .update(data)
     .eq("id", ctx.userId)
     .eq("shop_id", ctx.shopId)
-    .select("id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, shop:shops(id, name, slug, currency)")
+    .select("id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, can_manage_freelancers, shop:shops(id, name, slug, currency)")
     .single();
   if (error) {
     const friendly = identityErrorMessage(error);
@@ -66,6 +66,7 @@ export async function PATCH(req: Request) {
       shop: profile.shop,
       canAccessOrders: profile.can_access_orders,
       canAccessBoard: profile.can_access_board,
+      canManageFreelancers: profile.can_manage_freelancers,
     },
   });
 }
