@@ -1,64 +1,30 @@
 # Deploying Madam Studio on Railway
 
-This project is configured to run the app and its PostgreSQL database on Railway itself.
+> **Migration status:** the app still depends on Supabase for its data-access
+> and authentication code. Railway Postgres has an initial auth schema under
+> `railway/migrations/`, but the application has not been fully converted and
+> this guide is not a production cutover recipe yet. See `RAILWAY_MIGRATION.md`.
+> Keep the current Supabase project and variables until the full migration,
+> data copy, and verification are complete.
 
-The database is not outsourced to a separate service like Supabase. Railway owns the
-Postgres instance, and the app connects to it via `DATABASE_URL`.
+## Target setup
 
-## 1. Push the code to GitHub
+The target is a Next.js app service and a PostgreSQL service in the same Railway
+project. The app will connect to Postgres through a private, server-only
+`DATABASE_URL`. Do not expose database credentials in browser variables.
 
-Never commit `.env*` files (the repo's `.gitignore` already blocks them).
+## Railway project setup (when app conversion is ready)
 
-## 2. Create the Railway service
+1. Create a Railway project and deploy this repository as a service.
+2. Add a PostgreSQL service to the same Railway project.
+3. Configure the app's private `DATABASE_URL` from the Railway Postgres
+   connection reference.
+4. Take a database backup before applying schema migrations.
+5. Apply only the reviewed Railway migrations from a trusted environment.
+6. Configure `NEXT_PUBLIC_APP_URL` to the public Railway/custom domain and
+   redeploy.
+7. Complete the login, registration, data-integrity, tenant-isolation, uploads,
+   and recovery smoke tests before any production cutover.
 
-Railway → New Project → Deploy from GitHub repo → pick this repo.
-`railway.json` supplies the start command, health check and restart policy; the build
-(`npm run build`) is detected automatically.
-
-## 3. Add the Postgres database
-
-In the Railway project dashboard:
-
-1. Click New → Database → PostgreSQL
-2. Wait for the database to provision
-3. Copy the generated `DATABASE_URL`
-4. Add it to the app service as a variable
-
-The app service should use the database created in the same Railway project so the
-backend is not dependent on another hosted application.
-
-## 4. Set variables — before the first deploy
-
-Service → Variables. See `.env.example` for the full list.
-
-| Variable | Required | Notes |
-|---|---|---|
-| `DATABASE_URL` | yes | Railway PostgreSQL connection string |
-| `NEXT_PUBLIC_APP_URL` | recommended | Public Railway/custom domain |
-| `NEXTAUTH_SECRET` / `AUTH_SECRET` | recommended | Session signing secret |
-| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | optional | Style Assist (AI) |
-| `GOOGLE_APPS_SCRIPT_URL` / `_SECRET` | optional | Customer notification relay |
-
-`NEXT_PUBLIC_*` values are baked into the browser bundle at build time — if you change
-one, trigger a redeploy, not just a restart.
-
-## 5. Public domain
-
-Service → Settings → Networking → Generate Domain (or add a custom domain).
-Then set `NEXT_PUBLIC_APP_URL` to that URL and redeploy.
-
-## 6. Verify
-
-1. `https://<domain>/api/health` → `{"ok":true,...}` (the app is up)
-2. Confirm the app can read/write from the Railway Postgres database
-3. Sign in at `/`, `/freelancer` and `/admin`
-
-## Good to know
-
-- Railway owns the database instance, so the app has one deployment boundary instead of
-  depending on a separate external backend.
-- Keep the app and Postgres in the same Railway project to minimize latency and simplify
-  networking.
-- Everyone signs in again on a new domain — session cookies do not carry across domains.
-- Once Railway is working, any old Vercel project or Supabase dependency can be removed
-  if it was only being used for the database.
+The current `npm run start` deployment still requires the existing Supabase
+variables because production routes have not yet been converted.
