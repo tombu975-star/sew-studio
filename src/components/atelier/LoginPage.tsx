@@ -156,7 +156,9 @@ export function LoginPage() {
           {mode === "login" ? (
             <section key="login" className="animate-fade-in">
               <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#0F172A] text-center lg:text-left">Welcome back</h1>
-              <p className="mt-2 text-sm text-stone-500 text-center lg:text-left">Sign in to your studio to continue.</p>
+              <p className="mt-2 text-sm text-stone-500 text-center lg:text-left">
+                Sign in to manage your studio&apos;s customers, orders and daily work.
+              </p>
 
               <form onSubmit={submitLogin} className="mt-8 space-y-5">
                 <Field label="Email" htmlFor="email">
@@ -209,13 +211,13 @@ export function LoginPage() {
               </form>
 
               <p className="mt-7 border-t border-[#E2E8F0] pt-6 text-center text-sm text-stone-500 lg:text-left">
-                Opening a new atelier?{" "}
+                New to Madam Studio? Create a shop account to set up your workspace.{" "}
                 <button
                   type="button"
                   onClick={() => switchMode("register")}
                   className="font-medium text-[#2563EB] underline-offset-4 hover:underline"
                 >
-                  Create a shop
+                  Create a shop account
                 </button>
               </p>
               <p className="mt-3 text-center text-sm text-stone-500 lg:text-left">
@@ -232,7 +234,7 @@ export function LoginPage() {
             <section key="register" className="animate-fade-in">
               <h1 className="font-display text-[28px] sm:text-[32px] font-semibold leading-tight text-[#0F172A] text-center lg:text-left">Create your shop</h1>
               <p className="mt-2 text-sm text-stone-500 text-center lg:text-left">
-                Open a new atelier — your studio, your clients, your craft.
+                Set up your studio account to start adding customers and orders.
               </p>
 
               <form onSubmit={submitRegister} className="mt-8 space-y-5">

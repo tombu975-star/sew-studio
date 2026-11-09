@@ -545,15 +545,77 @@ function MainDashboard() {
             <PremiumButton
               variant="primary"
               size="md"
-              onClick={() => go("new-order")}
-              className="hidden md:inline-flex"
+              onClick={() => go(m.customers.length > 0 ? "new-order" : "customers")}
             >
               <Plus className="w-4 h-4" />
-              New Custom Order
+              {m.customers.length > 0 ? "Create an order" : "Add a customer"}
             </PremiumButton>
           ) : undefined
         }
       />
+
+      {owner && m.orders.length === 0 && (
+        <section
+          aria-labelledby="getting-started-title"
+          className="mb-5 rounded-xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/70 p-5 md:p-6"
+        >
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                Getting started
+              </p>
+              <h2
+                id="getting-started-title"
+                className="mt-1 font-display text-xl font-semibold text-[#0F172A]"
+              >
+                Your first order is just two steps away
+              </h2>
+              <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
+                Add a customer, then create an order for the garment they want.
+                You can add measurements, prices and a delivery date as you go.
+              </p>
+              <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+                <li className="flex items-start gap-2.5">
+                  <span className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${m.customers.length > 0 ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
+                    {m.customers.length > 0 ? <Check className="size-3.5" /> : "1"}
+                  </span>
+                  <span>
+                    <span className="block text-sm font-medium text-[#0F172A]">Add a customer</span>
+                    <span className="block text-xs leading-relaxed text-stone-500">Save their name and contact details.</span>
+                  </span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${m.customers.length > 0 ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"}`}>
+                    2
+                  </span>
+                  <span>
+                    <span className="block text-sm font-medium text-[#0F172A]">Create an order</span>
+                    <span className="block text-xs leading-relaxed text-stone-500">Choose the customer and describe the garment.</span>
+                  </span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
+                    3
+                  </span>
+                  <span>
+                    <span className="block text-sm font-medium text-[#0F172A]">Follow the progress</span>
+                    <span className="block text-xs leading-relaxed text-stone-500">Update sewing, fittings and payments.</span>
+                  </span>
+                </li>
+              </ol>
+            </div>
+            <PremiumButton
+              variant="primary"
+              size="md"
+              className="shrink-0"
+              onClick={() => go(m.customers.length > 0 ? "new-order" : "customers")}
+            >
+              <Plus className="size-4" />
+              {m.customers.length > 0 ? "Create your first order" : "Add your first customer"}
+            </PremiumButton>
+          </div>
+        </section>
+      )}
 
       {/* ---------- Money row (Madam only) ---------- */}
       {!staff && (
@@ -621,7 +683,7 @@ function MainDashboard() {
                 <EmptyState
                   icon={ClipboardList}
                   title="No active orders right now"
-                  description="Start one with New Custom Order to see it appear here."
+                  description="When you create an order for a customer, its progress will appear here."
                 />
               ) : (
                 <div
