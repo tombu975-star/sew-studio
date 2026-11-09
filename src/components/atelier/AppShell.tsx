@@ -26,6 +26,8 @@ import {
   BookOpen,
   UserRound,
   AlertCircle,
+  Crown,
+  Clock3,
 } from "lucide-react";
 import { useRole, type Role } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
@@ -33,6 +35,7 @@ import { useAuth } from "@/stores/auth";
 import { useMenuSettings } from "@/stores/menu-settings";
 import { menuForView } from "@/lib/menu-config";
 import { cn } from "@/lib/utils";
+import { getPlanEntitlements } from "@/lib/plans";
 
 type IconType = React.ComponentType<{ className?: string; strokeWidth?: number }>;
 
@@ -266,6 +269,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [loadMenuSettings]);
 
   const shopDisplayName = user?.shop?.name || studioName;
+  const planAccess = user?.shop
+    ? getPlanEntitlements(user.shop.plan, user.shop.trial_ends_at)
+    : null;
   const roleAccent = ROLE_ACCENT[role] || ROLE_ACCENT.staff;
   const activeMeta = VIEW_META[view] || VIEW_META.dashboard;
   const ActiveIcon = activeMeta.icon;
@@ -467,6 +473,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ─── Main ────────────────────────────────────────────────── */}
       <main className="flex-1 md:pl-[72px] lg:pl-64 pl-safe pr-safe pb-mobile-nav md:pb-0 flex flex-col min-w-0 overflow-x-clip">
+        {planAccess?.trialExpired ? (
+          <div
+            role="alert"
+            className="mx-4 mt-4 flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900 sm:flex-row sm:items-center sm:justify-between md:mx-8"
+          >
+            <span className="flex items-center gap-2">
+              <Crown className="size-4 shrink-0" />
+              Your trial has ended. Your studio is read-only and your data is safe.
+            </span>
+            {user?.role === "madam" ? (
+              <button onClick={() => go("settings")} className="shrink-0 text-left font-semibold underline underline-offset-2">
+                View plans
+              </button>
+            ) : (
+              <span className="shrink-0 text-xs">Ask your studio owner to upgrade.</span>
+            )}
+          </div>
+        ) : planAccess?.daysRemaining !== null && planAccess?.daysRemaining !== undefined && planAccess.daysRemaining <= 5 ? (
+          <div className="mx-4 mt-4 flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between md:mx-8">
+            <span className="flex items-center gap-2">
+              <Clock3 className="size-4 shrink-0" />
+              {planAccess.daysRemaining === 0
+                ? "Your trial ends today."
+                : `${planAccess.daysRemaining} ${planAccess.daysRemaining === 1 ? "day" : "days"} left in your trial.`}
+            </span>
+            {user?.role === "madam" && (
+              <button onClick={() => go("settings")} className="shrink-0 text-left font-semibold underline underline-offset-2">
+                Explore plans
+              </button>
+            )}
+          </div>
+        ) : null}
         {menuSettingsError && (
           <div
             role="alert"

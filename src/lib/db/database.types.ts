@@ -17,6 +17,8 @@ export interface Database {
           name: string;
           slug: string;
           plan: string;
+          trial_started_at: string;
+          trial_ends_at: string;
           currency: string;
           suspended_at: Nullable<string>;
           suspended_reason: Nullable<string>;
@@ -28,6 +30,27 @@ export interface Database {
           slug: string;
         };
         Update: Partial<Database["public"]["Tables"]["shops"]["Row"]>;
+        Relationships: [];
+      };
+      shop_plan_requests: {
+        Row: {
+          id: string;
+          shop_id: string;
+          requested_by: string;
+          requested_plan: "pro" | "enterprise";
+          status: "pending" | "approved" | "declined";
+          message: string;
+          reviewed_by: Nullable<string>;
+          reviewed_at: Nullable<string>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["shop_plan_requests"]["Row"]> & {
+          shop_id: string;
+          requested_by: string;
+          requested_plan: "pro" | "enterprise";
+        };
+        Update: Partial<Database["public"]["Tables"]["shop_plan_requests"]["Row"]>;
         Relationships: [];
       };
       system_admins: {

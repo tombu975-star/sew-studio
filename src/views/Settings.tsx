@@ -20,6 +20,7 @@ import {
   MapPin,
   Hash,
   Receipt,
+  Crown,
 } from "lucide-react";
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -40,6 +41,7 @@ import { useRole } from "@/stores/role";
 import { formatCurrency, setStudioCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { OverheadItem, Settings as ShopSettings } from "@/lib/types";
+import { PlanSettingsPanel } from "@/views/PlanSettingsPanel";
 
 // ISO 4217 currency codes. Formatting itself is done by Intl.NumberFormat, so
 // symbols/placement are always correct for whichever code is chosen.
@@ -69,6 +71,7 @@ const SETTINGS_TABS = [
   { key: "costing", label: "Costing & overhead", icon: Coins },
   { key: "operations", label: "Operations & alerts", icon: Gauge },
   { key: "policies", label: "Pricing & policies", icon: ShieldCheck },
+  { key: "plan", label: "Plan & upgrades", icon: Crown },
 ] as const;
 type SettingsTab = (typeof SETTINGS_TABS)[number]["key"];
 
@@ -297,6 +300,9 @@ export default function Settings() {
           </nav>
 
           <div className="min-w-0">
+          <div hidden={tab !== "plan"}>
+            <PlanSettingsPanel />
+          </div>
           <div hidden={tab !== "general"} className="grid gap-5">
             <div className="pb-1">
               <h2 className="font-display font-semibold text-[#0F172A] text-xl leading-tight">General & business details</h2>

@@ -10,6 +10,8 @@ import {
   serializeStyleConcept,
   serializeSettings,
 } from "@/lib/db/serializers";
+import { getPlanEntitlements } from "@/lib/plans";
+import type { MenuKey } from "@/lib/menu-config";
 
 // Payload is deliberately lean: the dashboard already receives payments and
 // fittings as their own top-level lists, so embedding them again inside every
@@ -28,6 +30,15 @@ export async function GET() {
     const menuEnabled = new Map<string, boolean>(
       menuRows.map((row) => [row.menu_key, row.enabled])
     );
+    const { data: shop, error: shopError } = await ctx.db
+      .from("shops")
+      .select("plan, trial_ends_at")
+      .eq("id", ctx.shopId)
+      .single();
+    if (shopError || !shop) throw shopError ?? new Error("Could not load studio plan.");
+    const planFeatures = new Set(getPlanEntitlements(shop.plan, shop.trial_ends_at).features);
+    const featureEnabled = (key: MenuKey) =>
+      menuEnabled.get(key) !== false && planFeatures.has(key);
 
     const [
       ordersRes,
@@ -94,17 +105,17 @@ export async function GET() {
     }
 
     return Response.json({
-      orders: menuEnabled.get("orders") === false ? [] : (ordersRes.data ?? []).map(serializeOrder),
-      payments: menuEnabled.get("orders") === false ? [] : (paymentsRes.data ?? []).map(serializePayment),
-      fittings: menuEnabled.get("fittings") === false ? [] : (fittingsRes.data ?? []).map((f) => ({
+      orders: !featureEnabled("orders") ? [] : (ordersRes.data ?? []).map(serializeOrder),
+      payments: !featureEnabled("orders") ? [] : (paymentsRes.data ?? []).map(serializePayment),
+      fittings: !featureEnabled("fittings") ? [] : (fittingsRes.data ?? []).map((f) => ({
         ...serializeFitting(f),
         order: f.order ? serializeOrder(f.order) : null,
       })),
-      tasks: menuEnabled.get("tasks") === false ? [] : (tasksRes.data ?? []).map(serializeTask),
-      users: menuEnabled.get("team") === false ? [] : (usersRes.data ?? []).map(serializeUser),
-      customers: menuEnabled.get("customers") === false ? [] : (customersRes.data ?? []).map(serializeCustomer),
-      settings: menuEnabled.get("settings") === false ? null : serializeSettings(settings),
-      styleConcepts: menuEnabled.get("style-assist") === false
+      tasks: !featureEnabled("tasks") ? [] : (tasksRes.data ?? []).map(serializeTask),
+      users: !featureEnabled("team") ? [] : (usersRes.data ?? []).map(serializeUser),
+      customers: !featureEnabled("customers") ? [] : (customersRes.data ?? []).map(serializeCustomer),
+      settings: !featureEnabled("settings") ? null : serializeSettings(settings),
+      styleConcepts: !featureEnabled("style-assist")
         ? []
         : (styleConceptsRes.data ?? []).map(serializeStyleConcept),
     });

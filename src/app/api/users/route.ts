@@ -1,7 +1,9 @@
 import { getTenant } from "@/lib/db/session";
 import { createAdminClient } from "@/lib/db/adminClient";
+import { getPool } from "@/lib/db/pool";
 import type { PoolClient } from "pg";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
+import { getPlanEntitlements } from "@/lib/plans";
 
 export async function GET() {
   try {
@@ -63,6 +65,26 @@ export async function POST(req: Request) {
       );
     }
 
+    const { rows: planRows } = await getPool().query(
+      `select s.plan, s.trial_ends_at,
+              (select count(*)::int from public.profiles p
+                where p.shop_id = s.id and p.is_active = true) as member_count
+         from public.shops s
+        where s.id = $1`,
+      [ctx.shopId]
+    );
+    const shopPlan = planRows[0];
+    if (!shopPlan) return Response.json({ error: "Studio not found." }, { status: 404 });
+    const entitlements = getPlanEntitlements(shopPlan.plan, shopPlan.trial_ends_at);
+    if (entitlements.maxMembers !== null && shopPlan.member_count >= entitlements.maxMembers) {
+      return Response.json(
+        {
+          error: `Your ${entitlements.plan} plan includes up to ${entitlements.maxMembers} studio members. Upgrade to add more.`,
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return Response.json({ error: "A valid member request is required." }, { status: 400 });
@@ -113,6 +135,19 @@ export async function POST(req: Request) {
       password: memberPassword,
       email_confirm: true,
       provision: async (client: PoolClient, user) => {
+        await client.query("select pg_advisory_xact_lock(hashtext($1))", [ctx.shopId]);
+        const { rows: memberRows } = await client.query(
+          "select count(*)::int as member_count from public.profiles where shop_id = $1 and is_active = true",
+          [ctx.shopId]
+        );
+        if (
+          entitlements.maxMembers !== null &&
+          memberRows[0].member_count >= entitlements.maxMembers
+        ) {
+          throw new Error(
+            `PLAN_LIMIT: Your ${entitlements.plan} plan includes up to ${entitlements.maxMembers} studio members. Upgrade to add more.`
+          );
+        }
         const result = await client.query(
           `insert into public.profiles
             (id, shop_id, full_name, email, role, gender, phone, mentor_id)
@@ -133,6 +168,9 @@ export async function POST(req: Request) {
       },
     });
     if (authError || !authData.user) {
+      if (authError?.message.startsWith("PLAN_LIMIT:")) {
+        return Response.json({ error: authError.message.slice("PLAN_LIMIT:".length).trim() }, { status: 403 });
+      }
       const message = authError?.message ?? "";
       if (message.toLowerCase().includes("already")) {
         return Response.json(

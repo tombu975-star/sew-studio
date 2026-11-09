@@ -10,9 +10,10 @@ import { useAuth } from "@/stores/auth";
 import { useNav } from "@/stores/nav";
 import { setOnSessionExpired } from "@/lib/api";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
-import { Scissors, Lock } from "lucide-react";
+import { Scissors, Lock, Crown } from "lucide-react";
 import { menuForView, MENU_DEFINITIONS } from "@/lib/menu-config";
 import { useMenuSettings } from "@/stores/menu-settings";
+import { getPlanEntitlements, requiredPlanForFeature } from "@/lib/plans";
 
 // Load all views lazily so each is a separate client bundle.
 const Dashboard = dynamic(() => import("@/views/Dashboard").then((m) => m.default), { ssr: false });
@@ -38,19 +39,45 @@ const Settings = dynamic(() => import("@/views/Settings").then((m) => m.default)
 const UserProfile = dynamic(() => import("@/views/UserProfile").then((m) => m.default), { ssr: false });
 
 function CurrentView() {
-  const { view } = useNav();
+  const { view, go } = useNav();
+  const user = useAuth((state) => state.user);
   const enabledMenus = useMenuSettings((state) => state.enabled);
   const menuKey = menuForView(view);
   const menu = menuKey ? MENU_DEFINITIONS.find((item) => item.key === menuKey) : undefined;
   if (menuKey && enabledMenus?.[menuKey] === false) {
+    const planFeatures = user?.shop
+      ? getPlanEntitlements(user.shop.plan, user.shop.trial_ends_at).features
+      : [];
+    const planLocked = !planFeatures.includes(menuKey);
+    const requiredPlan = requiredPlanForFeature(menuKey);
     return (
-      <div className="p-5 md:p-8 max-w-md mx-auto w-full">
-        <div className="surface-premium border border-[#E2E8F0] rounded-lg elevate-sm p-8 text-center">
-          <div className="w-14 h-14 rounded-full bg-[#2563EB]/8 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-6 h-6 text-[#2563EB]" />
-          </div>
-          <h2 className="font-display text-xl font-semibold text-[#0F172A]">{menu?.label ?? "This feature"} is unavailable</h2>
-          <p className="text-sm text-stone-500 mt-2 leading-relaxed">This feature has been disabled by the platform administrator.</p>
+      <div className="mx-auto w-full max-w-lg p-5 md:p-8">
+        <div className="rounded-2xl border border-[#E8DDD5] bg-white p-7 text-center shadow-sm sm:p-9">
+          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-[#8E3232]/10 text-[#8E3232]">
+            {planLocked ? <Crown className="size-5" /> : <Lock className="size-5" />}
+          </span>
+          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[.16em] text-[#8E3232]">
+            {planLocked ? "A little more room to grow" : "Studio feature"}
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-semibold text-[#302623]">
+            {menu?.label ?? "This feature"} is {planLocked ? "part of a higher plan" : "unavailable"}
+          </h2>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-stone-500">
+            {planLocked
+              ? `Upgrade to ${requiredPlan === "enterprise" ? "Enterprise" : "Pro"} to bring this tool into your studio.`
+              : "This feature is currently disabled by the platform administrator."}
+          </p>
+          {planLocked && user?.role === "madam" ? (
+            <button
+              type="button"
+              onClick={() => go("settings")}
+              className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#782f43] px-4 text-sm font-semibold text-white hover:bg-[#632638]"
+            >
+              <Crown className="size-4" /> View plans
+            </button>
+          ) : planLocked ? (
+            <p className="mt-5 text-xs text-stone-500">Ask your studio owner about upgrading.</p>
+          ) : null}
         </div>
       </div>
     );

@@ -10,6 +10,9 @@ export interface AuthShop {
   name: string;
   slug: string;
   currency: string;
+  plan: string;
+  trial_started_at: string | null;
+  trial_ends_at: string | null;
 }
 
 export interface AuthUser {

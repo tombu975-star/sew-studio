@@ -3,6 +3,14 @@ import { getSystemAdminSession } from "@/lib/db/session";
 import { createAdminClient } from "@/lib/db/adminClient";
 
 type Ctx = { params: Promise<{ id: string }> };
+type PlanRequestRow = {
+  id: string;
+  requested_plan: "pro" | "enterprise";
+  status: "pending" | "approved" | "declined";
+  message: string;
+  created_at: string;
+  updated_at: string;
+};
 
 // GET /api/admin/shops/:id — full detail: the shop, its members, and
 // recent orders. Full platform-management access — this deliberately
@@ -20,7 +28,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Shop not found" }, { status: 404 });
   }
 
-  const [{ data: members }, { data: orders }, { count: customerCount }] = await Promise.all([
+  const [{ data: members }, { data: orders }, { count: customerCount }, { data: latestRequest }] = await Promise.all([
     admin
       .from("profiles")
       .select("id, full_name, email, role, phone, created_at")
@@ -33,6 +41,13 @@ export async function GET(_req: Request, { params }: Ctx) {
       .order("created_at", { ascending: false })
       .limit(20),
     admin.from("customers").select("id", { count: "exact", head: true }).eq("shop_id", id),
+    admin
+      .from("shop_plan_requests")
+      .select("id, requested_plan, status, message, created_at, updated_at")
+      .eq("shop_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   return NextResponse.json({
@@ -40,11 +55,23 @@ export async function GET(_req: Request, { params }: Ctx) {
     name: shop.name,
     slug: shop.slug,
     plan: shop.plan,
+    trialStartedAt: shop.trial_started_at,
+    trialEndsAt: shop.trial_ends_at,
     currency: shop.currency,
     suspendedAt: shop.suspended_at,
     suspendedReason: shop.suspended_reason,
     createdAt: shop.created_at,
     customerCount: customerCount ?? 0,
+    latestPlanRequest: latestRequest
+      ? {
+          id: latestRequest.id,
+          requestedPlan: latestRequest.requested_plan,
+          status: latestRequest.status,
+          message: latestRequest.message,
+          createdAt: latestRequest.created_at,
+          updatedAt: latestRequest.updated_at,
+        }
+      : null,
     members: (members || []).map((m) => ({
       id: m.id,
       fullName: m.full_name,
@@ -75,14 +102,23 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const body = await req.json().catch(() => ({}));
   const admin = createAdminClient();
 
-  const { data: existing } = await admin.from("shops").select("id").eq("id", id).maybeSingle();
+  const { data: existing } = await admin.from("shops").select("id, plan").eq("id", id).maybeSingle();
   if (!existing) {
     return NextResponse.json({ error: "Shop not found" }, { status: 404 });
   }
 
   const data: Record<string, unknown> = {};
   if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim();
-  if (typeof body.plan === "string" && body.plan.trim()) data.plan = body.plan.trim();
+  if ("plan" in body) {
+    if (body.plan !== "trial" && body.plan !== "pro" && body.plan !== "enterprise") {
+      return NextResponse.json({ error: "Plan must be Trial, Pro, or Enterprise." }, { status: 400 });
+    }
+    data.plan = body.plan;
+    if (body.plan === "trial" && existing.plan !== "trial") {
+      data.trial_started_at = new Date().toISOString();
+      data.trial_ends_at = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    }
+  }
   if (typeof body.currency === "string" && body.currency.trim()) data.currency = body.currency.trim().toUpperCase();
 
   if (typeof body.suspended === "boolean") {
@@ -112,11 +148,60 @@ export async function PATCH(req: Request, { params }: Ctx) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  let latestPlanRequest: PlanRequestRow | null = null;
+  const { data: pendingRequest, error: requestError } = await admin
+    .from("shop_plan_requests")
+    .select("id, requested_plan, status, message, created_at, updated_at")
+    .eq("shop_id", id)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (requestError) {
+    console.error("[admin/shops] could not load upgrade request after plan update", requestError);
+    return NextResponse.json({ error: "Plan was updated, but its upgrade request could not be refreshed." }, { status: 500 });
+  }
+  if (pendingRequest && typeof data.plan === "string" && existing.plan !== data.plan) {
+    const status = pendingRequest.requested_plan === data.plan ? "approved" : "declined";
+    const { error: reviewError } = await admin
+      .from("shop_plan_requests")
+      .update({
+        status,
+        reviewed_by: ctx.adminId,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", pendingRequest.id);
+    if (reviewError) {
+      console.error("[admin/shops] could not review plan request", reviewError);
+      return NextResponse.json({ error: "Plan was updated, but the upgrade request could not be reviewed." }, { status: 500 });
+    }
+    latestPlanRequest = { ...pendingRequest, status };
+  } else {
+    const { data: latest } = await admin
+      .from("shop_plan_requests")
+      .select("id, requested_plan, status, message, created_at, updated_at")
+      .eq("shop_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    latestPlanRequest = latest;
+  }
+
   return NextResponse.json({
     id: updated.id,
     name: updated.name,
     slug: updated.slug,
     plan: updated.plan,
+    trialStartedAt: updated.trial_started_at,
+    trialEndsAt: updated.trial_ends_at,
+    latestPlanRequest: latestPlanRequest
+      ? {
+          id: latestPlanRequest.id,
+          requestedPlan: latestPlanRequest.requested_plan,
+          status: latestPlanRequest.status,
+          message: latestPlanRequest.message,
+          createdAt: latestPlanRequest.created_at,
+          updatedAt: latestPlanRequest.updated_at,
+        }
+      : null,
     currency: updated.currency,
     suspendedAt: updated.suspended_at,
     suspendedReason: updated.suspended_reason,

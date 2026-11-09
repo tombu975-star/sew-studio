@@ -59,6 +59,16 @@ interface ShopSummary {
 
 interface ShopDetail extends Omit<ShopSummary, "userCount" | "orderCount"> {
   customerCount: number;
+  trialStartedAt: string;
+  trialEndsAt: string;
+  latestPlanRequest: {
+    id: string;
+    requestedPlan: "pro" | "enterprise";
+    status: "pending" | "approved" | "declined";
+    message: string;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
   members: {
     id: string;
     fullName: string;
@@ -423,6 +433,24 @@ function ShopDetailPanel({ shopId, onClose, onChanged }: { shopId: string; onClo
         {error && <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800"><AlertCircle className="size-4 shrink-0" />{error}</div>}
         <div className="grid grid-cols-3 gap-2"><MiniMetric label="Members" value={shop.members.length} icon={Users} /><MiniMetric label="Customers" value={shop.customerCount} icon={Users} /><MiniMetric label="Orders" value={shop.recentOrders.length} icon={Package} /></div>
         {shop.suspendedAt ? <div className="rounded-xl border border-red-200 bg-red-50 p-4"><div className="flex items-center gap-2 text-sm font-semibold text-red-800"><Ban className="size-4" />Access suspended</div><p className="mt-1 text-xs text-red-700">Since {formatDate(shop.suspendedAt)}{shop.suspendedReason ? ` · ${shop.suspendedReason}` : ""}</p><button disabled={saving} onClick={() => void toggleSuspend(false)} className="mt-3 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50">Reinstate studio</button></div> : <div className="rounded-xl border border-slate-200 bg-white p-4"><p className="text-sm font-semibold text-slate-800">Suspend studio access</p><p className="mt-1 text-xs leading-relaxed text-slate-500">Members will be signed out and unable to sign back in until the studio is reinstated.</p><div className="mt-3 flex flex-col gap-2 sm:flex-row"><input value={suspendReason} onChange={(event) => setSuspendReason(event.target.value)} placeholder="Reason (shown to the owner)" className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-red-300" /><button disabled={saving} onClick={() => void toggleSuspend(true)} className="h-9 rounded-lg bg-red-600 px-3 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50">Suspend studio</button></div></div>}
+        {shop.latestPlanRequest && (
+          <div className={`rounded-xl border p-4 ${shop.latestPlanRequest.status === "pending" ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-white"}`}>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold capitalize text-slate-800">
+                {shop.latestPlanRequest.requestedPlan} upgrade request
+              </p>
+              <span className={`rounded-full px-2 py-1 text-[10px] font-semibold capitalize ${shop.latestPlanRequest.status === "pending" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600"}`}>
+                {shop.latestPlanRequest.status}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              Submitted {formatDate(shop.latestPlanRequest.createdAt)}. Assign the requested plan below to approve, or another plan to decline.
+            </p>
+            {shop.latestPlanRequest.message && (
+              <p className="mt-2 rounded-lg bg-white/70 p-2 text-xs leading-relaxed text-slate-600">{shop.latestPlanRequest.message}</p>
+            )}
+          </div>
+        )}
         <form onSubmit={saveDetails} className="rounded-xl border border-slate-200 bg-white p-4"><h3 className="text-sm font-semibold text-slate-800">Studio settings</h3><div className="mt-3 space-y-3"><label className="block text-xs font-medium text-slate-500">Studio name<input required value={name} onChange={(event) => setName(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-800 outline-none focus:border-[#527564]" /></label><div className="grid grid-cols-2 gap-3"><label className="block text-xs font-medium text-slate-500">Plan<select value={plan} onChange={(event) => setPlan(event.target.value)} className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-800"><option value="trial">Trial</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select></label><label className="block text-xs font-medium text-slate-500">Currency<input value={currency} onChange={(event) => setCurrency(event.target.value.toUpperCase())} maxLength={3} pattern="[A-Za-z]{3}" title="Use a 3-letter currency code" className="mt-1 h-9 w-full rounded-lg border border-slate-200 px-3 text-sm uppercase text-slate-800" /></label></div><div className="flex items-center justify-between border-t border-slate-100 pt-3"><span className="text-xs text-slate-400">Created {formatDate(shop.createdAt)} · /{shop.slug}</span><button type="submit" disabled={saving} className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#315B4A] px-3.5 text-xs font-medium text-white hover:bg-[#244638] disabled:opacity-50">{saving && <Loader2 className="size-3.5 animate-spin" />}Save changes</button></div></div></form>
         <SectionCard className="!p-0 overflow-hidden"><div className="border-b border-slate-100 px-4 py-3"><h3 className="text-sm font-semibold text-slate-800">Studio members <span className="ml-1 font-normal text-slate-400">{shop.members.length}</span></h3></div>{shop.members.length ? <div className="divide-y divide-slate-100">{shop.members.map((member) => <div key={member.id} className="flex items-center gap-3 px-4 py-3"><span className="grid size-8 shrink-0 place-items-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">{initials(member.fullName)}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-800">{member.fullName || "Unnamed member"}</p><p className="truncate text-xs text-slate-500">{member.email}</p></div><span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] uppercase tracking-wide text-slate-500">{member.role}</span></div>)}</div> : <p className="px-4 py-6 text-center text-xs text-slate-500">No members found.</p>}</SectionCard>
         <SectionCard className="!p-0 overflow-hidden"><div className="border-b border-slate-100 px-4 py-3"><h3 className="text-sm font-semibold text-slate-800">Recent orders <span className="ml-1 font-normal text-slate-400">· {shop.customerCount} customers</span></h3></div>{shop.recentOrders.length ? <div className="divide-y divide-slate-100">{shop.recentOrders.map((order) => <div key={order.id} className="flex items-center gap-3 px-4 py-3"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-800">{order.garmentDesign || "Untitled order"}</p><p className="truncate text-xs text-slate-500">{order.customerName || "Customer not set"} · {formatDate(order.orderDate)}</p></div><div className="text-right"><p className="text-xs text-slate-500">{order.status}</p>{order.sellingPrice != null && <p className="mt-0.5 text-xs font-medium tabular-nums text-slate-700">{formatCurrency(order.sellingPrice, shop.currency)}</p>}</div></div>)}</div> : <p className="px-4 py-6 text-center text-xs text-slate-500">No orders recorded yet.</p>}</SectionCard>

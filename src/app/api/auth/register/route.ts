@@ -79,7 +79,15 @@ export async function POST(req: Request) {
         const baseSlug = slugify(shopName);
         await client.query("select pg_advisory_xact_lock(hashtext($1))", [baseSlug]);
 
-        let shop: { id: string; name: string; slug: string; currency: string } | undefined;
+        let shop: {
+          id: string;
+          name: string;
+          slug: string;
+          currency: string;
+          plan: string;
+          trial_started_at: string;
+          trial_ends_at: string;
+        } | undefined;
         for (let suffix = 0; suffix < 10_000 && !shop; suffix++) {
           const suffixText = suffix ? `-${suffix}` : "";
           const candidate = `${baseSlug.slice(0, 40 - suffixText.length)}${suffixText}`;
@@ -87,7 +95,7 @@ export async function POST(req: Request) {
             `insert into public.shops (name, slug, plan, currency)
              values ($1, $2, 'trial', 'GHS')
              on conflict (slug) do nothing
-             returning id, name, slug, currency`,
+             returning id, name, slug, currency, plan, trial_started_at, trial_ends_at`,
             [shopName, candidate]
           );
           shop = result.rows[0];
@@ -146,7 +154,15 @@ export async function POST(req: Request) {
         role: profile.role,
         gender: profile.gender,
         shopId: shop.id,
-        shop: { id: shop.id, name: shop.name, slug: shop.slug, currency: shop.currency },
+        shop: {
+          id: shop.id,
+          name: shop.name,
+          slug: shop.slug,
+          currency: shop.currency,
+          plan: shop.plan,
+          trial_started_at: shop.trial_started_at,
+          trial_ends_at: shop.trial_ends_at,
+        },
       },
     });
   } catch (error) {

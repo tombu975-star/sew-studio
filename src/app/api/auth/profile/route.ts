@@ -45,7 +45,7 @@ export async function PATCH(req: Request) {
     .update(data)
     .eq("id", ctx.userId)
     .eq("shop_id", ctx.shopId)
-    .select("id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, can_manage_freelancers, shop:shops(id, name, slug, currency)")
+    .select("id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, can_manage_freelancers, shop:shops(id, name, slug, currency, plan, trial_started_at, trial_ends_at)")
     .single();
   if (error) {
     const friendly = identityErrorMessage(error);

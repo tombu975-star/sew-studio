@@ -9,7 +9,7 @@ export async function GET() {
     const { data: profile } = await ctx.db
       .from("profiles")
       .select(
-        "id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, can_manage_freelancers, shop:shops(id, name, slug, currency)"
+        "id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, can_manage_freelancers, shop:shops(id, name, slug, currency, plan, trial_started_at, trial_ends_at)"
       )
       .eq("id", ctx.userId)
       .maybeSingle();

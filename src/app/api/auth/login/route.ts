@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const { data: profile } = await db
       .from("profiles")
       .select(
-        "id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, can_manage_freelancers, shop:shops(id, name, slug, currency, suspended_at, suspended_reason)"
+        "id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, can_manage_freelancers, shop:shops(id, name, slug, currency, plan, trial_started_at, trial_ends_at, suspended_at, suspended_reason)"
       )
       .eq("id", data.user.id)
       .maybeSingle();
@@ -39,7 +39,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const shop = profile.shop as { suspended_at: string | null; suspended_reason: string | null } | null;
+    const shop = profile.shop as {
+      suspended_at: string | null;
+      suspended_reason: string | null;
+    } | null;
     if (shop?.suspended_at) {
       await db.auth.signOut();
       return NextResponse.json(
