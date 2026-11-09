@@ -9,13 +9,13 @@ type Size = "sm" | "md" | "lg" | "icon";
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "text-white bg-[linear-gradient(180deg,#A86249_0%,#9E5A44_100%)] shadow-[0_1px_2px_rgba(107,58,39,0.35),inset_0_1px_0_rgba(255,255,255,0.16)] hover:bg-[#854B38] hover:bg-none hover:shadow-[0_6px_16px_-6px_rgba(158,90,68,0.55),inset_0_1px_0_rgba(255,255,255,0.12)] active:bg-[#6B3A27] active:bg-none active:shadow-none",
+    "text-white bg-[#2563EB] shadow-sm hover:bg-[#1D4ED8] active:bg-[#1E40AF]",
   secondary:
-    "bg-[#1C1A18] text-white hover:bg-[#292524]",
+    "bg-[#0F172A] text-white hover:bg-[#1E293B]",
   ghost:
-    "bg-transparent text-stone-600 hover:bg-[#F5F4F0] hover:text-[#1C1A18]",
+    "bg-transparent text-stone-600 hover:bg-[#F1F5F9] hover:text-[#0F172A]",
   outline:
-    "bg-white border border-[#E3DDD4] text-[#1C1A18] shadow-[0_1px_1px_rgba(45,42,38,0.04)] hover:border-[#9E5A44]/40 hover:bg-[#FAF2EC] active:bg-[#F5F4F0]",
+    "bg-white border border-[#CBD5E1] text-[#0F172A] shadow-[0_1px_1px_rgba(15,23,42,0.04)] hover:border-[#2563EB]/40 hover:bg-[#EFF6FF] active:bg-[#F1F5F9]",
   danger:
     "bg-[#8E3232] text-white hover:bg-[#6B2626]",
 };
@@ -54,7 +54,7 @@ export const PremiumButton = forwardRef<
       ref={ref}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex items-center justify-center font-medium rounded-md transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9E5A44]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-45 disabled:pointer-events-none disabled:grayscale-[0.3] whitespace-nowrap select-none",
+        "inline-flex items-center justify-center font-medium rounded-md transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-45 disabled:pointer-events-none disabled:grayscale-[0.3] whitespace-nowrap select-none",
         VARIANTS[variant],
         SIZES[size],
         className

@@ -59,7 +59,7 @@ function Field({
     <div className="space-y-1.5">
       <Label className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500 flex items-center gap-1">
         {label}
-        {required && <span className="text-[#9E5A44]">*</span>}
+        {required && <span className="text-[#2563EB]">*</span>}
       </Label>
       {children}
     </div>
@@ -203,7 +203,7 @@ export default function Curriculum() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
-              className="bg-[#9E5A44] hover:bg-[#854B38]"
+              className="bg-[#2563EB] hover:bg-[#1D4ED8]"
             >
               Delete
             </AlertDialogAction>
@@ -238,17 +238,17 @@ function ProgramCard({
   );
 
   return (
-    <div className="surface-premium border border-[#EAE6DF] rounded-lg elevate-sm overflow-hidden">
+    <div className="surface-premium border border-[#E2E8F0] rounded-lg elevate-sm overflow-hidden">
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between gap-4 p-5 text-left"
       >
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-display text-lg font-semibold text-[#1C1A18]">
+            <h3 className="font-display text-lg font-semibold text-[#0F172A]">
               {program.name}
             </h3>
-            <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#9E5A44] bg-[#9E5A44]/8 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-[#2563EB] bg-[#2563EB]/8 px-2 py-0.5 rounded-full">
               {program.level}
             </span>
           </div>
@@ -282,7 +282,7 @@ function ProgramCard({
                   e.stopPropagation();
                   onEdit();
                 }}
-                className="p-2 rounded-md hover:bg-[#FAF2EC] text-stone-400 hover:text-[#9E5A44] transition"
+                className="p-2 rounded-md hover:bg-[#EFF6FF] text-stone-400 hover:text-[#2563EB] transition"
                 title="Edit program"
               >
                 <Pencil className="w-4 h-4" />
@@ -308,7 +308,7 @@ function ProgramCard({
       </button>
 
       {expanded && (
-        <div className="border-t border-[#EAE6DF] bg-[#FAF2EC] p-5 space-y-3">
+        <div className="border-t border-[#E2E8F0] bg-[#EFF6FF] p-5 space-y-3">
           {program.units.length === 0 ? (
             <p className="text-sm text-stone-400 italic">
               No units of competency added yet.
@@ -370,10 +370,10 @@ function UnitCard({
     .filter(Boolean);
 
   return (
-    <div className="bg-white border border-[#EAE6DF] rounded-md p-4">
+    <div className="bg-white border border-[#E2E8F0] rounded-md p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-[#1C1A18]">
+          <p className="text-sm font-semibold text-[#0F172A]">
             {unit.code ? <span className="text-stone-400">{unit.code} · </span> : null}
             {unit.title}
           </p>
@@ -387,7 +387,7 @@ function UnitCard({
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => setEditOpen(true)}
-              className="p-1.5 rounded-md hover:bg-[#FAF2EC] text-stone-400 hover:text-[#9E5A44] transition"
+              className="p-1.5 rounded-md hover:bg-[#EFF6FF] text-stone-400 hover:text-[#2563EB] transition"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
@@ -409,7 +409,7 @@ function UnitCard({
           <ul className="space-y-1">
             {outcomes.map((o, i) => (
               <li key={i} className="text-sm text-stone-600 flex gap-2">
-                <span className="text-[#9E5A44] mt-0.5">•</span> {o}
+                <span className="text-[#2563EB] mt-0.5">•</span> {o}
               </li>
             ))}
           </ul>
@@ -424,7 +424,7 @@ function UnitCard({
           <ul className="space-y-1">
             {criteria.map((c, i) => (
               <li key={i} className="text-sm text-stone-600 flex gap-2">
-                <span className="text-[#9E5A44] mt-0.5">•</span> {c}
+                <span className="text-[#2563EB] mt-0.5">•</span> {c}
               </li>
             ))}
           </ul>
@@ -518,7 +518,7 @@ function ProgramFormDialog({
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               placeholder="Bespoke Tailoring Apprenticeship"
-              className="h-10 bg-white border-[#EAE6DF] rounded-md"
+              className="h-10 bg-white border-[#E2E8F0] rounded-md"
             />
           </Field>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -527,7 +527,7 @@ function ProgramFormDialog({
                 value={form.level}
                 onChange={(e) => set("level", e.target.value)}
                 placeholder="e.g. Beginner, NVTI Grade II, GTQF Level 3"
-                className="h-10 bg-white border-[#EAE6DF] rounded-md"
+                className="h-10 bg-white border-[#E2E8F0] rounded-md"
               />
             </Field>
             <Field label="Duration (weeks)" required>
@@ -537,7 +537,7 @@ function ProgramFormDialog({
                 step="1"
                 value={form.durationWeeks}
                 onChange={(e) => set("durationWeeks", e.target.value)}
-                className="h-10 bg-white border-[#EAE6DF] rounded-md tabular-nums"
+                className="h-10 bg-white border-[#E2E8F0] rounded-md tabular-nums"
               />
             </Field>
           </div>
@@ -546,7 +546,7 @@ function ProgramFormDialog({
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
               placeholder="What this program covers and who it's for."
-              className="bg-white border-[#EAE6DF] rounded-md min-h-[80px]"
+              className="bg-white border-[#E2E8F0] rounded-md min-h-[80px]"
             />
           </Field>
           <DialogFooter>
@@ -654,7 +654,7 @@ function UnitFormDialog({
                 value={form.title}
                 onChange={(e) => set("title", e.target.value)}
                 placeholder="Pattern Drafting Fundamentals"
-                className="h-10 bg-white border-[#EAE6DF] rounded-md"
+                className="h-10 bg-white border-[#E2E8F0] rounded-md"
               />
             </Field>
             <Field label="Unit code">
@@ -662,7 +662,7 @@ function UnitFormDialog({
                 value={form.code}
                 onChange={(e) => set("code", e.target.value)}
                 placeholder="CU-01"
-                className="h-10 bg-white border-[#EAE6DF] rounded-md"
+                className="h-10 bg-white border-[#E2E8F0] rounded-md"
               />
             </Field>
             <Field label="Nominal hrs">
@@ -671,7 +671,7 @@ function UnitFormDialog({
                 min="0"
                 value={form.nominalHours}
                 onChange={(e) => set("nominalHours", e.target.value)}
-                className="h-10 bg-white border-[#EAE6DF] rounded-md tabular-nums"
+                className="h-10 bg-white border-[#E2E8F0] rounded-md tabular-nums"
               />
             </Field>
           </div>
@@ -680,7 +680,7 @@ function UnitFormDialog({
               value={form.learningOutcomes}
               onChange={(e) => set("learningOutcomes", e.target.value)}
               placeholder={"Draft a basic bodice block from measurements\nAdjust darts for fit"}
-              className="bg-white border-[#EAE6DF] rounded-md min-h-[90px]"
+              className="bg-white border-[#E2E8F0] rounded-md min-h-[90px]"
             />
           </Field>
           <Field label="Assessment criteria" required>
@@ -688,7 +688,7 @@ function UnitFormDialog({
               value={form.assessmentCriteria}
               onChange={(e) => set("assessmentCriteria", e.target.value)}
               placeholder={"Block matches measurements within 0.5cm\nDarts sit correctly on the stand"}
-              className="bg-white border-[#EAE6DF] rounded-md min-h-[90px]"
+              className="bg-white border-[#E2E8F0] rounded-md min-h-[90px]"
             />
           </Field>
           <DialogFooter>

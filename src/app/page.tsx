@@ -44,11 +44,11 @@ function CurrentView() {
   if (menuKey && enabledMenus?.[menuKey] === false) {
     return (
       <div className="p-5 md:p-8 max-w-md mx-auto w-full">
-        <div className="surface-premium border border-[#EAE6DF] rounded-lg elevate-sm p-8 text-center">
-          <div className="w-14 h-14 rounded-full bg-[#9E5A44]/8 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-6 h-6 text-[#9E5A44]" />
+        <div className="surface-premium border border-[#E2E8F0] rounded-lg elevate-sm p-8 text-center">
+          <div className="w-14 h-14 rounded-full bg-[#2563EB]/8 flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-6 h-6 text-[#2563EB]" />
           </div>
-          <h2 className="font-display text-xl font-semibold text-[#1C1A18]">
+          <h2 className="font-display text-xl font-semibold text-[#0F172A]">
             {menu?.label ?? "This feature"} is unavailable
           </h2>
           <p className="text-sm text-stone-500 mt-2 leading-relaxed">
@@ -126,11 +126,11 @@ function GuardView({
   if (isTrainee && !permitted) {
     return (
       <div className="p-5 md:p-8 max-w-md mx-auto w-full">
-        <div className="surface-premium border border-[#EAE6DF] rounded-lg elevate-sm p-8 text-center">
-          <div className="w-14 h-14 rounded-full bg-[#9E5A44]/8 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-6 h-6 text-[#9E5A44]" />
+        <div className="surface-premium border border-[#E2E8F0] rounded-lg elevate-sm p-8 text-center">
+          <div className="w-14 h-14 rounded-full bg-[#2563EB]/8 flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-6 h-6 text-[#2563EB]" />
           </div>
-          <h2 className="font-display text-xl font-semibold text-[#1C1A18]">
+          <h2 className="font-display text-xl font-semibold text-[#0F172A]">
             Access not yet granted
           </h2>
           <p className="text-sm text-stone-500 mt-2 leading-relaxed">
@@ -140,7 +140,7 @@ function GuardView({
           </p>
           <button
             onClick={() => go("dashboard")}
-            className="mt-5 inline-flex items-center gap-2 px-4 py-2 bg-[#9E5A44] text-white text-sm font-medium rounded-md hover:bg-[#854B38] transition"
+            className="mt-5 inline-flex items-center gap-2 px-4 py-2 bg-[#2563EB] text-white text-sm font-medium rounded-md hover:bg-[#1D4ED8] transition"
           >
             Back to dashboard
           </button>
@@ -156,13 +156,13 @@ function FullScreenLoader() {
     <div
       role="status"
       aria-label="Loading"
-      className="min-h-dvh flex flex-col items-center justify-center bg-[#FAFAF7]"
+      className="min-h-dvh flex flex-col items-center justify-center bg-[#F8FAFC]"
     >
-      <div className="flex size-11 items-center justify-center rounded-md bg-[#9E5A44]">
+      <div className="flex size-11 items-center justify-center rounded-md bg-[#2563EB]">
         <Scissors className="size-5 text-white" strokeWidth={2} />
       </div>
-      <div className="mt-6 h-0.5 w-24 overflow-hidden rounded-full bg-[#EAE6DF]">
-        <div className="h-full w-1/2 animate-[loader-slide_1.1s_ease-in-out_infinite] rounded-full bg-[#9E5A44]" />
+      <div className="mt-6 h-0.5 w-24 overflow-hidden rounded-full bg-[#E2E8F0]">
+        <div className="h-full w-1/2 animate-[loader-slide_1.1s_ease-in-out_infinite] rounded-full bg-[#2563EB]" />
       </div>
     </div>
   );

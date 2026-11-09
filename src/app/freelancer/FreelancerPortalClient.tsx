@@ -48,8 +48,8 @@ export function FreelancerPortalClient() {
 
   if (checking) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-[#FAFAF7]">
-        <Loader2 className="w-6 h-6 animate-spin text-[#9E5A44]" />
+      <div className="min-h-dvh flex items-center justify-center bg-[#F8FAFC]">
+        <Loader2 className="w-6 h-6 animate-spin text-[#2563EB]" />
       </div>
     );
   }
@@ -81,7 +81,7 @@ function serverMessage(err: unknown, fallback: string): string {
 const SPECIALTIES = ["Beader", "Embroiderer", "Cutter", "Tailor", "Designer", "Photographer", "Other"];
 
 const INPUT_CLASS =
-  "w-full h-10 px-3 rounded-md border border-[#EAE6DF] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9E5A44]/20 focus:border-[#9E5A44]/50";
+  "w-full h-10 px-3 rounded-md border border-[#E2E8F0] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]/50";
 
 function FreelancerAuth({
   onLoggedIn,
@@ -143,13 +143,13 @@ function FreelancerAuth({
   }
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FAFAF7] px-6 py-10 pt-safe pb-safe">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#F8FAFC] px-6 py-10 pt-safe pb-safe">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#9E5A44] to-[#854B38] flex items-center justify-center text-white shadow-sm mb-4">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] flex items-center justify-center text-white shadow-sm mb-4">
             <Scissors className="w-5 h-5" />
           </div>
-          <h1 className="font-display font-semibold text-[#1C1A18] text-2xl">
+          <h1 className="font-display font-semibold text-[#0F172A] text-2xl">
             {registering ? "Create your freelancer account" : "Freelancer sign in"}
           </h1>
           <p className="text-sm text-stone-500 mt-1 text-center">
@@ -258,7 +258,7 @@ function FreelancerAuth({
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-10 rounded-md bg-[#9E5A44] hover:bg-[#854B38] text-white text-sm font-medium transition-colors disabled:opacity-60"
+              className="w-full h-10 rounded-md bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-medium transition-colors disabled:opacity-60"
             >
               {loading
                 ? registering
@@ -276,7 +276,7 @@ function FreelancerAuth({
           <button
             type="button"
             onClick={() => switchMode(registering ? "login" : "register")}
-            className="font-medium text-[#9E5A44] underline-offset-4 hover:underline"
+            className="font-medium text-[#2563EB] underline-offset-4 hover:underline"
           >
             {registering ? "Sign in" : "Create an account"}
           </button>
@@ -326,7 +326,7 @@ function FreelancerDashboard({
   }
 
   return (
-    <div className="min-h-dvh bg-[#FAFAF7]">
+    <div className="min-h-dvh bg-[#F8FAFC]">
       <div className="max-w-2xl mx-auto px-5 py-8 sm:py-12">
         <div className="flex items-start justify-between gap-4 mb-2">
           <PageHeader
@@ -340,7 +340,7 @@ function FreelancerDashboard({
           />
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#9E5A44] transition-colors mt-1 shrink-0"
+            className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#2563EB] transition-colors mt-1 shrink-0"
           >
             <LogOut className="w-3.5 h-3.5" /> Sign out
           </button>
@@ -348,7 +348,7 @@ function FreelancerDashboard({
 
         {loading ? (
           <div className="py-16 flex justify-center">
-            <Loader2 className="w-5 h-5 animate-spin text-[#9E5A44]" />
+            <Loader2 className="w-5 h-5 animate-spin text-[#2563EB]" />
           </div>
         ) : jobs.length === 0 ? (
           <SectionCard>
@@ -374,7 +374,7 @@ function FreelancerDashboard({
                         {j.shop.name}
                       </p>
                     )}
-                    <p className="font-medium text-[#1C1A18] text-sm">
+                    <p className="font-medium text-[#0F172A] text-sm">
                       {j.taskDescription}
                     </p>
                   </div>
@@ -405,7 +405,7 @@ function FreelancerDashboard({
                   value={j.status}
                   onChange={(e) => handleStatusChange(j.id, e.target.value)}
                   disabled={updatingId === j.id}
-                  className="h-9 px-2.5 rounded-md border border-[#EAE6DF] bg-white text-sm disabled:opacity-60"
+                  className="h-9 px-2.5 rounded-md border border-[#E2E8F0] bg-white text-sm disabled:opacity-60"
                 >
                   {JOB_STATUSES.map((s) => (
                     <option key={s} value={s}>

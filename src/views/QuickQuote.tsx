@@ -170,7 +170,7 @@ export default function QuickQuote() {
         title="Quick Quote"
         subtitle="Estimate a garment price in seconds."
         actions={
-          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#9E5A44]/8 border border-[#9E5A44]/15 text-[#9E5A44]">
+          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#2563EB]/8 border border-[#2563EB]/15 text-[#2563EB]">
             <Zap className="w-4 h-4" />
           </span>
         }
@@ -287,7 +287,7 @@ export default function QuickQuote() {
 
           <div className="flex items-center justify-between gap-3">
             <div className="grid gap-0.5">
-              <Label htmlFor="qq-rush" className="text-[#1C1A18]">
+              <Label htmlFor="qq-rush" className="text-[#0F172A]">
                 2-Week Rush
               </Label>
               <p className="text-xs text-stone-500">
@@ -335,19 +335,19 @@ export default function QuickQuote() {
 
             <Separator />
 
-            <div className="mt-1 p-4 rounded-md border border-[#9E5A44]/15 bg-gradient-to-br from-[#9E5A44]/5 to-transparent">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[#9E5A44]">
+            <div className="mt-1 p-4 rounded-md border border-[#2563EB]/15 bg-gradient-to-br from-[#2563EB]/5 to-transparent">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[#2563EB]">
                 Total
               </p>
               <p
-                className="font-display font-semibold text-[#9E5A44] leading-tight tabular-nums"
+                className="font-display font-semibold text-[#2563EB] leading-tight tabular-nums"
                 style={{ fontSize: "clamp(28px, 3vw, 40px)" }}
               >
                 <AnimatedNumber value={calc.total} format="currency" />
               </p>
               <div className="mt-2 flex items-center justify-between text-xs text-stone-500">
                 <span>50% deposit</span>
-                <span className="font-medium text-[#1C1A18] tabular-nums">
+                <span className="font-medium text-[#0F172A] tabular-nums">
                   {formatCurrency(calc.suggestedDeposit)}
                 </span>
               </div>
@@ -399,7 +399,7 @@ function LineItem({
         className={cn(
           "text-sm",
           accent ? "text-amber-700" : "text-stone-500",
-          emphasized && "text-[#1C1A18] font-medium"
+          emphasized && "text-[#0F172A] font-medium"
         )}
       >
         {label}
@@ -407,7 +407,7 @@ function LineItem({
       <span
         className={cn(
           "text-sm tabular-nums",
-          accent ? "text-amber-700 font-medium" : "text-[#1C1A18]",
+          accent ? "text-amber-700 font-medium" : "text-[#0F172A]",
           emphasized && "font-semibold"
         )}
       >

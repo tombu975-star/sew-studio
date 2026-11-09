@@ -29,8 +29,8 @@ export function PremiumMetric({
   return (
     <div
       className={cn(
-        "@container relative bg-white border border-[#EAE6DF] rounded-lg p-4 sm:p-5 overflow-hidden group shadow-[0_1px_2px_rgba(45,42,38,0.04),0_8px_24px_-16px_rgba(45,42,38,0.10)]",
-        accent && "border-[#9E5A44]/25 bg-[linear-gradient(180deg,#FFFFFF_0%,#FCF8F6_100%)]",
+        "@container relative bg-white border border-[#E2E8F0] rounded-lg p-4 sm:p-5 overflow-hidden group shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-16px_rgba(15,23,42,0.10)]",
+        accent && "border-[#2563EB]/25 bg-[linear-gradient(180deg,#FFFFFF_0%,#EFF6FF_100%)]",
         className
       )}
     >
@@ -39,14 +39,14 @@ export function PremiumMetric({
           {label}
         </span>
         {Icon && (
-          <Icon className={cn("w-4 h-4", accent ? "text-[#9E5A44]" : "text-stone-300")} />
+          <Icon className={cn("w-4 h-4", accent ? "text-[#2563EB]" : "text-stone-300")} />
         )}
       </div>
       <div className="relative mt-3 flex flex-wrap items-end gap-x-2 gap-y-1.5">
         <div
           className={cn(
             "font-display font-semibold leading-none tabular-nums",
-            accent ? "text-[#9E5A44]" : "text-[#1C1A18]"
+            accent ? "text-[#2563EB]" : "text-[#0F172A]"
           )}
           style={{ fontSize: "clamp(22px, 12cqw, 38px)" }}
         >
@@ -96,7 +96,7 @@ export function Sparkline({
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ");
-  const color = accent ? "#9E5A44" : "#7A746E";
+  const color = accent ? "#2563EB" : "#64748B";
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}

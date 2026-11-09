@@ -39,95 +39,86 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* Radii — set directly (not derived from a single --radius calc) so each
-     step lands exactly on the reference spec: 2px micro chips, 4px inputs/
-     buttons/tags, 8px cards/modals, 12px for occasional larger surfaces. */
-  --radius-sm: 0.125rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
 
-  /* Elevation — per the reference spec: low-contrast hairline outlines +
-     warm, diffused ambient shadows (no synthetic drop-shadows). */
-  --shadow-xs: 0 1px 2px 0 rgb(45 42 38 / 0.03);
-  --shadow-sm: 0 2px 8px -2px rgb(45 42 38 / 0.03), 0 1px 3px -1px rgb(45 42 38 / 0.02);
-  --shadow-md: 0 12px 28px -6px rgb(45 42 38 / 0.06), 0 4px 10px -2px rgb(45 42 38 / 0.03);
-  --shadow-lg: 0 24px 48px -12px rgb(28 26 24 / 0.12), 0 8px 16px -4px rgb(28 26 24 / 0.04);
-  --shadow-burgundy: 0 4px 12px rgb(158 90 68 / 0.2);
+  --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.05);
+  --shadow-md: 0 8px 20px -8px rgb(15 23 42 / 0.12), 0 2px 6px -2px rgb(15 23 42 / 0.06);
+  --shadow-lg: 0 20px 40px -16px rgb(15 23 42 / 0.18), 0 6px 12px -6px rgb(15 23 42 / 0.08);
+  --shadow-blue: 0 4px 12px rgb(37 99 235 / 0.2);
 }
 
 :root {
-  /* Madam Studio palette — "Haute Atelier": warm alabaster canvas, primary
-     terracotta, sage/crimson status colors, architectural (tight) radii. */
   --font-body: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
-  --radius: 0.25rem;
-  --background: #FAFAF7;
-  --foreground: #1c1a18;
+  --font-display: var(--font-body);
+  --radius: 0.625rem;
+  --background: #F8FAFC;
+  --foreground: #0F172A;
   --card: #ffffff;
-  --card-foreground: #1c1a18;
+  --card-foreground: #0F172A;
   --popover: #ffffff;
-  --popover-foreground: #1c1a18;
-  --primary: #9E5A44;
+  --popover-foreground: #0F172A;
+  --primary: #2563EB;
   --primary-foreground: #ffffff;
-  --secondary: #F5F4F0;
-  --secondary-foreground: #1c1a18;
-  --muted: #F5F4F0;
-  --muted-foreground: #7A746E;
-  --accent: #F9EFEB;
-  --accent-foreground: #9E5A44;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #EFF6FF;
+  --accent-foreground: #2563EB;
   --destructive: #8E3232;
   --destructive-foreground: #FAF0F0;
-  --border: #EAE6DF;
-  --input: #EAE6DF;
-  --ring: #9E5A44;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #2563EB;
   --gold: #b45309;
   --green: #4A6B53;
-  --chart-1: #9E5A44;
+  --chart-1: #2563EB;
   --chart-2: #b45309;
   --chart-3: #4A6B53;
   --chart-4: #0e7490;
   --chart-5: #8E3232;
-  /* Sidebar is deep espresso — a dark, quiet frame around the warm-paper
-     workspace so the content reads as the brightest thing on screen. */
-  --sidebar: #211C19;
-  --sidebar-foreground: #F3EDE6;
-  --sidebar-primary: #E0A48C;
-  --sidebar-primary-foreground: #211C19;
-  --sidebar-accent: rgba(255, 255, 255, 0.08);
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: #352E29;
-  --sidebar-ring: #9E5A44;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #334155;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EFF6FF;
+  --sidebar-accent-foreground: #1D4ED8;
+  --sidebar-border: #E2E8F0;
+  --sidebar-ring: #2563EB;
 }
 
 .dark {
-  --background: #1c1a18;
-  --foreground: #F5F4F0;
-  --card: #292524;
-  --card-foreground: #F5F4F0;
-  --popover: #292524;
-  --popover-foreground: #F5F4F0;
-  --primary: #9E5A44;
-  --primary-foreground: #1c1a18;
-  --secondary: #2D2A26;
-  --secondary-foreground: #F5F4F0;
-  --muted: #2D2A26;
-  --muted-foreground: #B8B2AA;
-  --accent: #2D2A26;
-  --accent-foreground: #F5F4F0;
+  --background: #0B1120;
+  --foreground: #F1F5F9;
+  --card: #1E293B;
+  --card-foreground: #F1F5F9;
+  --popover: #1E293B;
+  --popover-foreground: #F1F5F9;
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --secondary: #334155;
+  --secondary-foreground: #F1F5F9;
+  --muted: #334155;
+  --muted-foreground: #94A3B8;
+  --accent: #334155;
+  --accent-foreground: #F1F5F9;
   --destructive: #8E3232;
   --destructive-foreground: #FAF0F0;
-  --border: #2D2A26;
-  --input: #2D2A26;
-  --ring: #9E5A44;
-  --sidebar: #292524;
-  --sidebar-foreground: #F5F4F0;
-  --sidebar-primary: #9E5A44;
-  --sidebar-primary-foreground: #1c1a18;
-  --sidebar-accent: #2D2A26;
-  --sidebar-accent-foreground: #F5F4F0;
-  --sidebar-border: #2D2A26;
-  --sidebar-ring: #9E5A44;
+  --border: #334155;
+  --input: #334155;
+  --ring: #2563EB;
+  --sidebar: #1E293B;
+  --sidebar-foreground: #F1F5F9;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #F1F5F9;
+  --sidebar-border: #334155;
+  --sidebar-ring: #2563EB;
 }
 
 @layer base {
@@ -142,21 +133,14 @@
   }
   body {
     @apply text-foreground;
-    background-color: #FAFAF7;
-    background-image:
-      radial-gradient(circle at 18% 8%, rgba(146, 64, 14, 0.022), transparent 50%),
-      radial-gradient(circle at 88% 78%, rgba(180, 83, 9, 0.016), transparent 45%),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .24 0 0 0 0 .2 0 0 0 0 .17 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-color: var(--background);
+    background-image: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Safe-area insets are handled per-surface (header, bottom nav, login,
        main) via .pt-safe/.pb-safe/.pl-safe/.pr-safe. Padding the body as
        well doubled them up on notched phones and pushed the header down. */
     overflow-x: hidden;
-    /* background-attachment: fixed was here, but it forces a full
-       background repaint on every scroll frame on mobile Safari/Chrome —
-       a well-known source of scroll jank. The texture is subtle enough
-       that scrolling with the page (the default) is visually identical. */
   }
   html {
     /* Removes the ~300ms tap delay on touch devices and stops the
@@ -166,7 +150,7 @@
   }
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.012em;
+    letter-spacing: -0.025em;
   }
   /* Premium focus rings */
   *:focus-visible {
@@ -217,7 +201,7 @@
   .elevate-sm { box-shadow: var(--shadow-sm); }
   .elevate-md { box-shadow: var(--shadow-md); }
   .elevate-lg { box-shadow: var(--shadow-lg); }
-  .elevate-burgundy { box-shadow: var(--shadow-burgundy); }
+  .elevate-burgundy { box-shadow: var(--shadow-blue); }
   /* Hover-only elevation bump for interactive surfaces — a real :hover
      selector rather than Tailwind's hover: variant, since these are plain
      utility classes (not registered via @utility) and won't pick up
@@ -233,7 +217,7 @@
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
   }
   .lift:hover {
-    border-color: #D8C2BB;
+    border-color: #BFDBFE;
     box-shadow: var(--shadow-sm);
   }
   /* Subtle shimmer for skeletons */
@@ -242,7 +226,7 @@
     100% { background-position: 1000px 0; }
   }
   .shimmer {
-    background: linear-gradient(90deg, #F5F4F0 0%, #EAE6DF 50%, #F5F4F0 100%);
+    background: linear-gradient(90deg, #F1F5F9 0%, #E2E8F0 50%, #F1F5F9 100%);
     background-size: 1000px 100%;
     animation: shimmer 2.2s infinite linear;
   }
@@ -270,19 +254,19 @@
     background: transparent;
   }
   .scroll-slim::-webkit-scrollbar-thumb {
-    background: #D8C2BB;
+    background: #BFDBFE;
     border-radius: 9999px;
   }
   .scroll-slim::-webkit-scrollbar-thumb:hover {
-    background: #B8B2AA;
+    background: #94A3B8;
   }
   /* Premium gradient text */
   .text-gradient-burgundy {
-    color: #9E5A44;
+    color: #2563EB;
   }
   /* Premium surface for elevated panels */
   .surface-premium {
-    background: #ffffff;
+    background: #FFFFFF;
   }
 }
 
@@ -291,9 +275,37 @@
   h1, h2, h3 { text-wrap: balance; letter-spacing: -0.005em; }
   /* Figures line up in columns everywhere money / measurements appear. */
   table, dl, .tabular-nums { font-variant-numeric: tabular-nums; }
-  :focus-visible { outline: 2px solid #9E5A44; outline-offset: 2px; }
+  :focus-visible { outline: 2px solid #2563EB; outline-offset: 2px; }
   input:focus-visible, textarea:focus-visible, select:focus-visible, [role="combobox"]:focus-visible { outline-offset: 0; }
-  ::selection { background: rgb(158 90 68 / 0.18); }
+}
+
+@layer base {
+  body { font-size: 14px; }
+  button, input, select, textarea { font: inherit; }
+  button:not(:disabled) { cursor: pointer; }
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    border-radius: 0.5rem;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: #94A3B8;
+  }
+  ::selection { background: rgb(37 99 235 / 0.16); }
+  table thead th {
+    color: #64748B;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  table tbody tr {
+    transition: background-color 120ms ease;
+  }
+  table tbody tr:hover {
+    background-color: #F8FAFC;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

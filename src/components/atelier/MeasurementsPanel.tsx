@@ -71,12 +71,12 @@ export function MeasurementsPanel({
 
   if (sorted.length === 0) {
     return (
-      <section className="rounded-lg border border-[#EAE6DF] bg-white">
+      <section className="rounded-lg border border-[#E2E8F0] bg-white">
         <div className="grid gap-8 px-6 py-10 sm:grid-cols-[180px_1fr] sm:items-center sm:py-14">
           <BodyDiagram variant={diagramVariant} className="mx-auto max-w-[160px] sm:max-w-none" />
           <div className="text-center sm:text-left">
             <Ruler className="mx-auto size-6 text-stone-300 sm:mx-0" strokeWidth={1.5} />
-            <h2 className="mt-4 font-display text-lg font-semibold text-[#1C1A18]">No measurements on file</h2>
+            <h2 className="mt-4 font-display text-lg font-semibold text-[#0F172A]">No measurements on file</h2>
             <p className="mt-1.5 max-w-sm text-sm text-stone-500 mx-auto sm:mx-0">
               Record a full set once and every future order for this client starts from it.
             </p>
@@ -84,7 +84,7 @@ export function MeasurementsPanel({
               <button
                 type="button"
                 onClick={onUpdate}
-                className="mt-6 h-10 rounded-md bg-[#9E5A44] px-5 text-sm font-medium text-white transition-colors hover:bg-[#854B38]"
+                className="mt-6 h-10 rounded-md bg-[#2563EB] px-5 text-sm font-medium text-white transition-colors hover:bg-[#1D4ED8]"
               >
                 Record measurements
               </button>
@@ -96,14 +96,14 @@ export function MeasurementsPanel({
   }
 
   return (
-    <section className="rounded-lg border border-[#EAE6DF] bg-white">
+    <section className="rounded-lg border border-[#E2E8F0] bg-white">
       {/* Header */}
-      <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[#EAE6DF] px-5 py-4 sm:px-6">
+      <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[#E2E8F0] px-5 py-4 sm:px-6">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">
             Body measurement record
           </p>
-          <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-[#1C1A18]">
+          <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-[#0F172A]">
             {isLatest ? "Current measurements" : `Measurements — ${formatDate(current.dateTaken)}`}
           </h2>
           <p className="mt-1 text-xs text-stone-500">
@@ -111,7 +111,7 @@ export function MeasurementsPanel({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div role="group" aria-label="Measurement unit" className="inline-flex rounded-md border border-[#EAE6DF] p-0.5 text-xs">
+          <div role="group" aria-label="Measurement unit" className="inline-flex rounded-md border border-[#E2E8F0] p-0.5 text-xs">
             {(["cm", "in"] as const).map((u) => (
               <button
                 key={u}
@@ -120,7 +120,7 @@ export function MeasurementsPanel({
                 aria-pressed={unit === u}
                 className={cn(
                   "h-7 min-w-9 rounded px-2.5 font-medium transition-colors",
-                  unit === u ? "bg-[#1C1A18] text-white" : "text-stone-500 hover:text-[#1C1A18]"
+                  unit === u ? "bg-[#0F172A] text-white" : "text-stone-500 hover:text-[#0F172A]"
                 )}
               >
                 {u}
@@ -131,7 +131,7 @@ export function MeasurementsPanel({
             <button
               type="button"
               onClick={onUpdate}
-              className="h-9 rounded-md bg-[#9E5A44] px-4 text-sm font-medium text-white transition-colors hover:bg-[#854B38]"
+              className="h-9 rounded-md bg-[#2563EB] px-4 text-sm font-medium text-white transition-colors hover:bg-[#1D4ED8]"
             >
               New session
             </button>
@@ -140,7 +140,7 @@ export function MeasurementsPanel({
       </header>
 
       {/* Session strip */}
-      <div className="flex items-center gap-2 overflow-x-auto border-b border-[#EAE6DF] px-5 py-2.5 sm:px-6" role="tablist" aria-label="Measurement sessions">
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-[#E2E8F0] px-5 py-2.5 sm:px-6" role="tablist" aria-label="Measurement sessions">
         {sorted.map((m, i) => (
           <button
             key={m.id}
@@ -151,8 +151,8 @@ export function MeasurementsPanel({
             className={cn(
               "shrink-0 rounded-full border px-3 py-1 text-xs tabular-nums transition-colors",
               i === index
-                ? "border-[#9E5A44] bg-[#9E5A44]/5 font-medium text-[#9E5A44]"
-                : "border-[#EAE6DF] text-stone-500 hover:border-stone-300 hover:text-[#1C1A18]"
+                ? "border-[#2563EB] bg-[#2563EB]/5 font-medium text-[#2563EB]"
+                : "border-[#E2E8F0] text-stone-500 hover:border-stone-300 hover:text-[#0F172A]"
             )}
           >
             {formatDate(m.dateTaken)}
@@ -162,7 +162,7 @@ export function MeasurementsPanel({
       </div>
 
       {/* Summary facts */}
-      <dl className="grid grid-cols-2 divide-x divide-y divide-[#EAE6DF] border-b border-[#EAE6DF] text-sm sm:grid-cols-4 sm:divide-y-0">
+      <dl className="grid grid-cols-2 divide-x divide-y divide-[#E2E8F0] border-b border-[#E2E8F0] text-sm sm:grid-cols-4 sm:divide-y-0">
         <Fact label="Measured on" value={formatDate(current.dateTaken)} />
         <Fact label="Measured by" value={current.staff?.fullName ?? "—"} />
         <Fact label="Stature" value={cmOf(current, "height") != null ? `${formatValue(cmOf(current, "height"), unit)} ${unit}` : "—"} />
@@ -171,9 +171,9 @@ export function MeasurementsPanel({
 
       {/* Indicative size */}
       {size && (
-        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-[#EAE6DF] bg-[#FAF2EC] px-5 py-3 sm:px-6">
+        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-[#E2E8F0] bg-[#EFF6FF] px-5 py-3 sm:px-6">
           <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">Indicative size</p>
-          <p className="text-sm tabular-nums text-[#1C1A18]">
+          <p className="text-sm tabular-nums text-[#0F172A]">
             <span className="font-semibold">EU {size.row.eu}</span>
             <span className="mx-2 text-stone-300">/</span>UK {size.row.uk}
             <span className="mx-2 text-stone-300">/</span>US {size.row.us}
@@ -189,7 +189,7 @@ export function MeasurementsPanel({
       {/* Diagram + dimensions by group */}
       <div className="grid gap-x-8 gap-y-7 px-5 py-6 sm:px-6 md:grid-cols-[190px_1fr]">
         <div className="hidden md:block">
-          <div className="sticky top-4 rounded-lg border border-[#EAE6DF] bg-[#FAF2EC] p-4">
+          <div className="sticky top-4 rounded-lg border border-[#E2E8F0] bg-[#EFF6FF] p-4">
             <BodyDiagram variant={diagramVariant} />
             <p className="mt-3 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-stone-400">
               {diagramVariant === "female" ? "Women's" : "Men's"} reference
@@ -202,14 +202,14 @@ export function MeasurementsPanel({
           const fields = MEASUREMENT_FIELDS.filter((f) => f.group === group);
           return (
             <div key={group}>
-              <h3 className="border-b border-[#1C1A18] pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1C1A18]">
+              <h3 className="border-b border-[#0F172A] pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0F172A]">
                 {group}
               </h3>
               <table className="w-full text-sm">
                 <thead className="sr-only">
                   <tr><th>Dimension</th><th>Value</th><th>Change since previous</th></tr>
                 </thead>
-                <tbody className="divide-y divide-[#FAF2EC]">
+                <tbody className="divide-y divide-[#EFF6FF]">
                   {fields.map((f) => {
                     const cm = cmOf(current, f.key);
                     const isKg = f.unitOverride === "kg";
@@ -218,14 +218,14 @@ export function MeasurementsPanel({
                     const suffix = cm == null ? "" : isKg ? " kg" : ` ${unit}`;
                     return (
                       <tr key={f.key} title={f.how}>
-                        <td className={cn("py-2 pr-3", f.core ? "font-medium text-[#1C1A18]" : "text-stone-500")}>{f.label}</td>
-                        <td className={cn("py-2 text-right tabular-nums", cm == null ? "text-stone-300" : "font-semibold text-[#1C1A18]")}>
+                        <td className={cn("py-2 pr-3", f.core ? "font-medium text-[#0F172A]" : "text-stone-500")}>{f.label}</td>
+                        <td className={cn("py-2 text-right tabular-nums", cm == null ? "text-stone-300" : "font-semibold text-[#0F172A]")}>
                           {shown}
                           <span className="font-normal text-stone-400">{suffix}</span>
                         </td>
                         <td className="w-16 py-2 pl-3 text-right text-[11px] tabular-nums">
                           {d != null && d !== 0 ? (
-                            <span className={cn(Math.abs(d) >= 2 ? "font-medium text-[#9E5A44]" : "text-stone-400")}>
+                            <span className={cn(Math.abs(d) >= 2 ? "font-medium text-[#2563EB]" : "text-stone-400")}>
                               {d > 0 ? "+" : "−"}
                               {formatValue(Math.abs(d), unit)}
                             </span>
@@ -243,32 +243,32 @@ export function MeasurementsPanel({
       </div>
 
       {current.notes && (
-        <div className="border-t border-[#EAE6DF] px-5 py-4 sm:px-6">
+        <div className="border-t border-[#E2E8F0] px-5 py-4 sm:px-6">
           <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">Fitting notes</p>
           <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-stone-600">{current.notes}</p>
         </div>
       )}
 
       {previous && (
-        <p className="border-t border-[#EAE6DF] px-5 py-2.5 text-[11px] text-stone-400 sm:px-6">
+        <p className="border-t border-[#E2E8F0] px-5 py-2.5 text-[11px] text-stone-400 sm:px-6">
           Change column compares with the session on {formatDate(previous.dateTaken)}. Shifts of 2 cm or more are highlighted.
         </p>
       )}
 
       {/* Method */}
-      <div className="border-t border-[#EAE6DF]">
+      <div className="border-t border-[#E2E8F0]">
         <button
           type="button"
           onClick={() => setShowGuide((v) => !v)}
           aria-expanded={showGuide}
-          className="flex w-full items-center justify-between px-5 py-3 text-left text-sm font-medium text-[#1C1A18] hover:bg-[#FAF2EC] sm:px-6"
+          className="flex w-full items-center justify-between px-5 py-3 text-left text-sm font-medium text-[#0F172A] hover:bg-[#EFF6FF] sm:px-6"
         >
           How to take these measurements
           <ChevronDown className={cn("size-4 text-stone-400 transition-transform", showGuide && "rotate-180")} />
         </button>
         {showGuide && (
           <div className="px-5 pb-5 sm:px-6">
-            <div className="mb-5 rounded-lg border border-[#EAE6DF] bg-[#FAF2EC] p-4 md:hidden">
+            <div className="mb-5 rounded-lg border border-[#E2E8F0] bg-[#EFF6FF] p-4 md:hidden">
               <BodyDiagram variant={diagramVariant} className="mx-auto max-w-[180px]" />
               <p className="mt-3 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-stone-400">
                 {diagramVariant === "female" ? "Women's" : "Men's"} reference
@@ -282,7 +282,7 @@ export function MeasurementsPanel({
               </p>
               {MEASUREMENT_FIELDS.filter((f) => f.core).map((f) => (
                 <p key={f.key}>
-                  <span className="font-semibold text-[#1C1A18]">{f.label}. </span>
+                  <span className="font-semibold text-[#0F172A]">{f.label}. </span>
                   {f.how}
                 </p>
               ))}
@@ -298,7 +298,7 @@ function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="px-5 py-3 sm:px-6">
       <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">{label}</dt>
-      <dd className="mt-0.5 truncate font-medium text-[#1C1A18]">{value}</dd>
+      <dd className="mt-0.5 truncate font-medium text-[#0F172A]">{value}</dd>
     </div>
   );
 }

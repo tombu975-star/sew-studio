@@ -23,7 +23,7 @@ export function StatusStepper({
                 <div
                   className={cn(
                     "w-2.5 h-2.5 rounded-full border",
-                    done && "bg-[#9E5A44] border-[#9E5A44]",
+                    done && "bg-[#2563EB] border-[#2563EB]",
                     active &&
                       "bg-[#B45309] border-[#B45309] ring-4 ring-[#B45309]/15",
                     !done && !active && "bg-white border-stone-300"
@@ -35,7 +35,7 @@ export function StatusStepper({
                     active
                       ? "text-[#B45309]"
                       : done
-                        ? "text-[#1C1A18]"
+                        ? "text-[#0F172A]"
                         : "text-stone-400"
                   )}
                 >
@@ -46,7 +46,7 @@ export function StatusStepper({
                 <div
                   className={cn(
                     "flex-1 h-px mx-1 mb-4",
-                    i < idx ? "bg-[#9E5A44]" : "bg-stone-200"
+                    i < idx ? "bg-[#2563EB]" : "bg-stone-200"
                   )}
                 />
               )}

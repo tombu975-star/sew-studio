@@ -1,18 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import "@fontsource/playfair-display/400.css";
-import "@fontsource/playfair-display/500.css";
-import "@fontsource/playfair-display/600.css";
-import "@fontsource/playfair-display/700.css";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
-// Playfair Display (display serif, self-hosted via @fontsource — no
-// build-time fetch to Google Fonts) + Plus Jakarta Sans (UI text, local
-// woff2 via next/font/local). Only the weights the UI actually uses are
-// shipped, matching the reference "Haute Atelier" type spec.
+// Plus Jakarta Sans is self-hosted and used consistently across the product.
 const jakarta = localFont({
   src: [
     { path: "../fonts/plus-jakarta-sans/plus-jakarta-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
@@ -65,7 +58,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: "#9E5A44",
+  themeColor: "#2563EB",
 };
 
 export default function RootLayout({

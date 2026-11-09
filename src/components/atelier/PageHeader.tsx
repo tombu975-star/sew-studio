@@ -22,22 +22,22 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col items-center text-center md:flex-row md:items-end md:justify-between md:text-left gap-4 md:gap-8 mb-6 md:mb-8 md:pb-6 md:border-b md:border-[#EAE6DF]", className)}>
+    <div className={cn("flex flex-col items-start text-left md:flex-row md:items-end md:justify-between gap-4 md:gap-8 mb-5 md:mb-6 md:pb-5 md:border-b md:border-[#E2E8F0]", className)}>
       <div className="animate-fade-in-up min-w-0 w-full md:w-auto">
         {eyebrow && (
-          <p className="text-[10.5px] font-medium uppercase tracking-[0.2em] text-[#9E5A44] mb-3 flex items-center justify-center md:justify-start gap-2.5">
-            {Icon ? <Icon className="w-3.5 h-3.5" /> : <span aria-hidden="true" className="hidden md:block h-px w-6 bg-[#9E5A44]/60" />}
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#2563EB] mb-2 flex items-center gap-2">
+            {Icon ? <Icon className="w-3.5 h-3.5" /> : null}
             {eyebrow}
           </p>
         )}
         <h1
-          className="font-display font-semibold text-[#1C1A18] leading-[1.05]"
-          style={{ fontSize: "clamp(30px, 3.4vw, 46px)" }}
+          className="font-display font-semibold text-[#0F172A] leading-tight"
+          style={{ fontSize: "clamp(26px, 3vw, 34px)" }}
         >
           {title}
         </h1>
         {subtitle && (
-          <p className="text-[15px] leading-relaxed text-stone-500 mt-3 max-w-2xl mx-auto md:mx-0">{subtitle}</p>
+          <p className="text-sm leading-relaxed text-stone-500 mt-2 max-w-2xl">{subtitle}</p>
         )}
       </div>
       {actions && <div className="flex flex-wrap items-center justify-center gap-2 md:shrink-0 animate-fade-in w-full md:w-auto">{actions}</div>}

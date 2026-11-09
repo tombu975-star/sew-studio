@@ -278,7 +278,7 @@ export default function Settings() {
         className="mt-6"
       >
         <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] items-start">
-          <nav aria-label="Settings sections" className="lg:sticky lg:top-6 flex lg:flex-col gap-1 overflow-x-auto rounded-xl border border-[#EAE6DF] bg-white p-1.5">
+          <nav aria-label="Settings sections" className="lg:sticky lg:top-6 flex lg:flex-col gap-1 overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white p-1.5">
             {SETTINGS_TABS.map((t) => (
               <button
                 key={t.key}
@@ -287,7 +287,7 @@ export default function Settings() {
                 aria-current={tab === t.key ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm whitespace-nowrap transition",
-                  tab === t.key ? "bg-[#9E5A44] text-white font-medium" : "text-stone-600 hover:bg-stone-50"
+                  tab === t.key ? "bg-[#2563EB] text-white font-medium" : "text-stone-600 hover:bg-stone-50"
                 )}
               >
                 <t.icon className="w-4 h-4 shrink-0" />
@@ -299,7 +299,7 @@ export default function Settings() {
           <div className="min-w-0">
           <div hidden={tab !== "general"} className="grid gap-5">
             <div className="pb-1">
-              <h2 className="font-display font-semibold text-[#1C1A18] text-xl leading-tight">General & business details</h2>
+              <h2 className="font-display font-semibold text-[#0F172A] text-xl leading-tight">General & business details</h2>
               <p className="text-sm text-stone-500 mt-1 max-w-xl">Studio identity, contact information and the registration details printed on invoices.</p>
             </div>
         <SectionCard title="Studio identity" action={<Store className="w-4 h-4 text-stone-400" />}>
@@ -348,7 +348,7 @@ export default function Settings() {
               The owner role is automatically shown as &ldquo;Madam&rdquo; or &ldquo;Master&rdquo; across the app based on this.
             </p>
 
-            <div className="h-px bg-[#EAE6DF]" />
+            <div className="h-px bg-[#E2E8F0]" />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="grid gap-1.5">
@@ -418,7 +418,7 @@ export default function Settings() {
           </div>
           <div hidden={tab !== "costing"} className="grid gap-5">
             <div className="pb-1">
-              <h2 className="font-display font-semibold text-[#1C1A18] text-xl leading-tight">Costing & overhead</h2>
+              <h2 className="font-display font-semibold text-[#0F172A] text-xl leading-tight">Costing & overhead</h2>
               <p className="text-sm text-stone-500 mt-1 max-w-xl">Monthly overheads and the overhead recovery rate applied to every order (as a percentage of non-labour cost).</p>
             </div>
         <SectionCard title="Overhead breakdown" action={<Coins className="w-4 h-4 text-stone-400" />}>
@@ -430,10 +430,10 @@ export default function Settings() {
             </p>
 
             {overheadItems.length > 0 && (
-              <div className="rounded-lg border border-[#EAE6DF] divide-y divide-[#EAE6DF] overflow-hidden bg-white">
+              <div className="rounded-lg border border-[#E2E8F0] divide-y divide-[#E2E8F0] overflow-hidden bg-white">
                 {overheadItems.map((it) => (
                   <div key={it.id} className="flex items-center gap-3 px-3.5 py-2.5">
-                    <span className="text-sm text-[#1C1A18] flex-1 truncate">{it.name}</span>
+                    <span className="text-sm text-[#0F172A] flex-1 truncate">{it.name}</span>
                     <span className="text-sm font-medium tabular-nums text-stone-600">
                       {formatCurrency(it.amount)}
                     </span>
@@ -447,11 +447,11 @@ export default function Settings() {
                     </button>
                   </div>
                 ))}
-                <div className="flex items-center gap-3 px-3.5 py-2.5 bg-[#FAF2EC]">
+                <div className="flex items-center gap-3 px-3.5 py-2.5 bg-[#EFF6FF]">
                   <span className="text-xs font-semibold uppercase tracking-wide text-stone-500 flex-1">
                     Monthly total
                   </span>
-                  <span className="text-sm font-semibold tabular-nums text-[#9E5A44]">
+                  <span className="text-sm font-semibold tabular-nums text-[#2563EB]">
                     {formatCurrency(overheadItemsTotal)}
                   </span>
                   <span className="w-6 h-6 shrink-0" />
@@ -493,11 +493,11 @@ export default function Settings() {
               </PremiumButton>
             </div>
 
-            <div className="h-px bg-[#EAE6DF]" />
+            <div className="h-px bg-[#E2E8F0]" />
 
-            <div className="rounded-lg border border-[#EAE6DF] bg-[#FAF2EC] p-4 grid gap-3">
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#EFF6FF] p-4 grid gap-3">
               <div>
-                <p className="text-sm font-semibold text-[#1C1A18]">Overhead recovery rate</p>
+                <p className="text-sm font-semibold text-[#0F172A]">Overhead recovery rate</p>
                 <p className="text-xs text-stone-500 mt-0.5">
                   The standard way to make every order carry its fair share of overhead: divide your
                   monthly overhead by your average monthly direct costs (fabric &amp; materials —
@@ -516,12 +516,12 @@ export default function Settings() {
                   onChange={(e) => setOverheadRecoveryBasis(Math.max(0, Number(e.target.value) || 0))}
                 />
               </div>
-              <div className="flex items-center justify-between gap-4 rounded-md bg-white border border-[#EAE6DF] px-3 py-2.5">
+              <div className="flex items-center justify-between gap-4 rounded-md bg-white border border-[#E2E8F0] px-3 py-2.5">
                 <span className="text-xs font-medium text-stone-500">
                   {formatCurrency(effectiveOverheadPerOrder, currency)} overhead ÷{" "}
                   {overheadRecoveryBasis > 0 ? formatCurrency(overheadRecoveryBasis, currency) : "direct costs"}
                 </span>
-                <span className="text-sm font-semibold text-[#9E5A44] tabular-nums">
+                <span className="text-sm font-semibold text-[#2563EB] tabular-nums">
                   {overheadRecoveryBasis > 0 ? `${recoveryRate.toFixed(1)}%` : "Not set"}
                 </span>
               </div>
@@ -564,11 +564,11 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 rounded-lg bg-[#FAF2EC] border border-[#EAE6DF] px-4 py-3">
+            <div className="flex items-center justify-between gap-4 rounded-lg bg-[#EFF6FF] border border-[#E2E8F0] px-4 py-3">
               <span className="text-xs font-medium text-stone-500">
                 Total monthly overhead right now
               </span>
-              <span className="text-sm font-semibold text-[#9E5A44] tabular-nums">
+              <span className="text-sm font-semibold text-[#2563EB] tabular-nums">
                 {formatCurrency(effectiveOverheadPerOrder)}
               </span>
             </div>
@@ -577,7 +577,7 @@ export default function Settings() {
           </div>
           <div hidden={tab !== "operations"} className="grid gap-5">
             <div className="pb-1">
-              <h2 className="font-display font-semibold text-[#1C1A18] text-xl leading-tight">Operations & alerts</h2>
+              <h2 className="font-display font-semibold text-[#0F172A] text-xl leading-tight">Operations & alerts</h2>
               <p className="text-sm text-stone-500 mt-1 max-w-xl">Capacity and outstanding-balance alerts used by the dashboard.</p>
             </div>
         <SectionCard title="Alerts &amp; capacity" action={<Gauge className="w-4 h-4 text-stone-400" />}>
@@ -615,7 +615,7 @@ export default function Settings() {
           </div>
           <div hidden={tab !== "policies"} className="grid gap-5">
             <div className="pb-1">
-              <h2 className="font-display font-semibold text-[#1C1A18] text-xl leading-tight">Pricing policies & terms</h2>
+              <h2 className="font-display font-semibold text-[#0F172A] text-xl leading-tight">Pricing policies & terms</h2>
               <p className="text-sm text-stone-500 mt-1 max-w-xl">Deposits, rush fees, fittings and the client-facing terms shown on quotes and invoices.</p>
             </div>
         <SectionCard
@@ -658,11 +658,11 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="h-px bg-[#EAE6DF]" />
+            <div className="h-px bg-[#E2E8F0]" />
 
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-[#1C1A18]">Full balance before pickup</p>
+                <p className="text-sm font-medium text-[#0F172A]">Full balance before pickup</p>
                 <p className="text-xs text-stone-500 mt-0.5">
                   The garment is only released once it&apos;s fully paid.
                 </p>
@@ -752,7 +752,7 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border border-[#EAE6DF] bg-white px-4 py-3 sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-4 z-20 shadow-sm">
+        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-4 z-20 shadow-sm">
           <p className="text-xs text-stone-500 text-center sm:text-left">Changes across all sections are saved together.</p>
           <PremiumButton type="submit" loading={saveMutation.isPending} size="lg">
             <Save className="w-4 h-4" />

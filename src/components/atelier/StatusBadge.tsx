@@ -5,21 +5,17 @@ import { cn } from "@/lib/utils";
 /**
  * Refined status badge.
  *
- * Every hue below is drawn from a single curated palette tied to the
- * atelier's own brand colors (terracotta, amber, sage, crimson) plus a
- * small set of muted, fashion-editorial supporting tones — rather than
- * reaching for whatever stock Tailwind shade happens to be nearby. Each
+ * Status colors use a consistent semantic palette with clear contrast. Each
  * status maps to one of a handful of *semantic* families so the meaning
  * stays legible at a glance: neutral · pending · info · progress · active ·
  * alteration flag · positive · final · financial.
  */
 const HUE = {
-  neutral: "#7A746E", // tailor's slate — not yet started / low priority
+  neutral: "#64748B", // tailor's slate — not yet started / low priority
   pending: "#B45309", // warm amber — awaiting action, scheduled, learning
-  info: "#55677D", // dusty slate — early-stage, informational
-  progress: "#3D5166", // deeper slate — confirmed, actively underway
-  active: "#9E5A44", // primary terracotta — "In Fitting / Drafting" per the
-  // Haute Atelier spec: production, fitting, priority, role.
+  info: "#475569", // dusty slate — early-stage, informational
+  progress: "#1D4ED8", // deeper slate — confirmed, actively underway
+  active: "#2563EB",
   alteration: "#8E3232", // vintage crimson — the spec's "Alteration Flag /
   // Urgent": needs hands-on rework, rejected, declined.
   positive: "#4A6B53", // sage olive — the spec's "Ready for Review / Completed".

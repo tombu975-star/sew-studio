@@ -76,8 +76,8 @@ export function AdminPortalClient() {
 
   if (checking) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-[#FAFAF7]">
-        <Loader2 className="w-6 h-6 animate-spin text-[#9E5A44]" />
+      <div className="min-h-dvh flex items-center justify-center bg-[#F8FAFC]">
+        <Loader2 className="w-6 h-6 animate-spin text-[#2563EB]" />
       </div>
     );
   }
@@ -111,13 +111,13 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (a: AdminProfile) => void }) {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FAFAF7] px-6">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#F8FAFC] px-6">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1C1A18] to-[#3a3632] flex items-center justify-center text-white shadow-sm mb-4">
+          <div className="w-12 h-12 rounded-xl bg-[#2563EB] flex items-center justify-center text-white shadow-sm mb-4">
             <ShieldCheck className="w-5 h-5" />
           </div>
-          <h1 className="font-display font-semibold text-[#1C1A18] text-2xl">
+          <h1 className="font-display font-semibold text-[#0F172A] text-2xl">
             Platform admin
           </h1>
           <p className="text-sm text-stone-500 mt-1 text-center">
@@ -134,7 +134,7 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (a: AdminProfile) => void }) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border border-[#E7E5E4] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9E5A44]/20"
+                className="w-full h-10 px-3 rounded-md border border-[#E2E8F0] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20"
                 autoFocus
               />
             </div>
@@ -145,7 +145,7 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (a: AdminProfile) => void }) {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border border-[#E7E5E4] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9E5A44]/20"
+                className="w-full h-10 px-3 rounded-md border border-[#E2E8F0] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20"
               />
             </div>
             {error && (
@@ -156,7 +156,7 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (a: AdminProfile) => void }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-10 rounded-md bg-[#1C1A18] hover:bg-[#3a3632] text-white text-sm font-medium transition-colors disabled:opacity-60"
+              className="w-full h-10 rounded-md bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-medium transition-colors disabled:opacity-60"
             >
               {loading ? "Signing in…" : "Sign in"}
             </button>
@@ -203,7 +203,7 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
   const totalMembers = shops.reduce((sum, s) => sum + s.userCount, 0);
 
   return (
-    <div className="min-h-dvh bg-[#FAFAF7]">
+    <div className="min-h-dvh bg-[#F8FAFC]">
       <div className="max-w-5xl mx-auto px-5 py-8 sm:py-12">
         <div className="flex items-start justify-between gap-4 mb-6">
           <PageHeader
@@ -213,19 +213,19 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
           />
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#9E5A44] transition-colors mt-1 shrink-0"
+            className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#2563EB] transition-colors mt-1 shrink-0"
           >
             <LogOut className="w-3.5 h-3.5" /> Sign out
           </button>
         </div>
 
-        <div className="flex items-center gap-2 mb-6 border-b border-[#EAE6DF]">
+        <div className="flex items-center gap-2 mb-6 border-b border-[#E2E8F0]">
           <button
             onClick={() => { setSection("shops"); setSelectedId(null); }}
             className={`px-3 py-2 text-sm border-b-2 transition-colors ${
               section === "shops"
-                ? "border-[#9E5A44] text-[#1C1A18] font-medium"
-                : "border-transparent text-stone-500 hover:text-[#1C1A18]"
+                ? "border-[#2563EB] text-[#0F172A] font-medium"
+                : "border-transparent text-stone-500 hover:text-[#0F172A]"
             }`}
           >
             Studios
@@ -234,8 +234,8 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
             onClick={() => { setSection("menus"); setSelectedId(null); }}
             className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm border-b-2 transition-colors ${
               section === "menus"
-                ? "border-[#9E5A44] text-[#1C1A18] font-medium"
-                : "border-transparent text-stone-500 hover:text-[#1C1A18]"
+                ? "border-[#2563EB] text-[#0F172A] font-medium"
+                : "border-transparent text-stone-500 hover:text-[#0F172A]"
             }`}
           >
             <ListChecks className="w-4 h-4" /> System menus
@@ -251,35 +251,35 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
             </div>
 
             <SectionCard className="!p-0" title={`All studios · ${totalMembers} members total`}>
-          <div className="px-5 py-3 border-b border-[#EAE6DF]/70">
+          <div className="px-5 py-3 border-b border-[#E2E8F0]/70">
             <div className="relative max-w-xs">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search studios…"
-                className="w-full h-8 pl-8 pr-3 rounded-md border border-[#E7E5E4] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9E5A44]/20"
+                className="w-full h-8 pl-8 pr-3 rounded-md border border-[#E2E8F0] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20"
               />
             </div>
           </div>
 
           {loading ? (
             <div className="py-16 flex justify-center">
-              <Loader2 className="w-5 h-5 animate-spin text-[#9E5A44]" />
+              <Loader2 className="w-5 h-5 animate-spin text-[#2563EB]" />
             </div>
           ) : filtered.length === 0 ? (
             <p className="text-center text-sm text-stone-500 py-12">No studios match that search.</p>
           ) : (
-            <div className="divide-y divide-[#EAE6DF]/70">
+            <div className="divide-y divide-[#E2E8F0]/70">
               {filtered.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setSelectedId(s.id)}
-                  className="w-full flex items-center justify-between gap-4 px-5 py-3.5 text-left hover:bg-[#FAFAF7] transition-colors"
+                  className="w-full flex items-center justify-between gap-4 px-5 py-3.5 text-left hover:bg-[#F8FAFC] transition-colors"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-[#1C1A18] text-sm truncate">{s.name}</p>
+                      <p className="font-medium text-[#0F172A] text-sm truncate">{s.name}</p>
                       {s.suspendedAt && (
                         <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
                           Suspended
@@ -376,14 +376,14 @@ function MenuManagement() {
       )}
       {loading ? (
         <div className="py-16 flex justify-center">
-          <Loader2 className="w-5 h-5 animate-spin text-[#9E5A44]" />
+          <Loader2 className="w-5 h-5 animate-spin text-[#2563EB]" />
         </div>
       ) : (
-        <div className="divide-y divide-[#EAE6DF]/70">
+        <div className="divide-y divide-[#E2E8F0]/70">
           {orderedMenus.map((menu) => (
             <div key={menu.key} className="flex items-center justify-between gap-4 px-5 py-4">
               <div>
-                <p className="text-sm font-medium text-[#1C1A18]">{menu.label}</p>
+                <p className="text-sm font-medium text-[#0F172A]">{menu.label}</p>
                 <p className="text-xs text-stone-500">{menu.section}</p>
               </div>
               <button
@@ -420,14 +420,14 @@ function StatCard({
   tone?: "good" | "bad";
 }) {
   return (
-    <div className="bg-white border border-[#EAE6DF] rounded-lg p-4 elevate-sm">
+    <div className="bg-white border border-[#E2E8F0] rounded-lg p-4 elevate-sm">
       <div className="flex items-center gap-2 text-stone-400 mb-1.5">
         <Icon className="w-3.5 h-3.5" />
         <span className="text-[10px] uppercase tracking-[0.14em]">{label}</span>
       </div>
       <p
         className={`font-display font-semibold text-2xl tabular-nums ${
-          tone === "good" ? "text-emerald-700" : tone === "bad" ? "text-red-700" : "text-[#1C1A18]"
+          tone === "good" ? "text-emerald-700" : tone === "bad" ? "text-red-700" : "text-[#0F172A]"
         }`}
       >
         {value}
@@ -507,11 +507,11 @@ function ShopDetailPanel({
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
       <div
-        className="h-full w-full max-w-lg bg-[#FAFAF7] overflow-y-auto shadow-xl animate-fade-in-up"
+        className="h-full w-full max-w-lg bg-[#F8FAFC] overflow-y-auto shadow-xl animate-fade-in-up"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-[#FAFAF7]/95 backdrop-blur-sm border-b border-[#EAE6DF] px-5 py-4 flex items-center justify-between">
-          <h2 className="font-display font-semibold text-lg text-[#1C1A18] truncate">
+        <div className="sticky top-0 bg-[#F8FAFC]/95 backdrop-blur-sm border-b border-[#E2E8F0] px-5 py-4 flex items-center justify-between">
+          <h2 className="font-display font-semibold text-lg text-[#0F172A] truncate">
             {shop?.name || "Loading…"}
           </h2>
           <button onClick={onClose} className="p-1.5 rounded-md hover:bg-black/5 shrink-0">
@@ -521,7 +521,7 @@ function ShopDetailPanel({
 
         {loading || !shop ? (
           <div className="py-16 flex justify-center">
-            <Loader2 className="w-5 h-5 animate-spin text-[#9E5A44]" />
+            <Loader2 className="w-5 h-5 animate-spin text-[#2563EB]" />
           </div>
         ) : (
           <div className="p-5 space-y-5">
@@ -548,8 +548,8 @@ function ShopDetailPanel({
                 </button>
               </div>
             ) : (
-              <div className="rounded-md border border-[#EAE6DF] bg-white p-4">
-                <p className="text-sm font-medium text-[#1C1A18] mb-2">Suspend this studio</p>
+              <div className="rounded-md border border-[#E2E8F0] bg-white p-4">
+                <p className="text-sm font-medium text-[#0F172A] mb-2">Suspend this studio</p>
                 <p className="text-xs text-stone-500 mb-3">
                   Every member is signed out immediately and can&apos;t log back in until reinstated.
                 </p>
@@ -557,7 +557,7 @@ function ShopDetailPanel({
                   value={suspendReason}
                   onChange={(e) => setSuspendReason(e.target.value)}
                   placeholder="Reason (shown to the owner)"
-                  className="w-full h-9 px-3 mb-3 rounded-md border border-[#E7E5E4] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#9E5A44]/20"
+                  className="w-full h-9 px-3 mb-3 rounded-md border border-[#E2E8F0] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20"
                 />
                 <button
                   onClick={() => toggleSuspend(true)}
@@ -569,14 +569,14 @@ function ShopDetailPanel({
               </div>
             )}
 
-            <form onSubmit={saveDetails} className="rounded-md border border-[#EAE6DF] bg-white p-4 space-y-3">
-              <p className="text-sm font-medium text-[#1C1A18]">Studio details</p>
+            <form onSubmit={saveDetails} className="rounded-md border border-[#E2E8F0] bg-white p-4 space-y-3">
+              <p className="text-sm font-medium text-[#0F172A]">Studio details</p>
               <div>
                 <label className="text-xs font-medium text-stone-500 mb-1 block">Name</label>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-9 px-3 rounded-md border border-[#E7E5E4] bg-white text-sm"
+                  className="w-full h-9 px-3 rounded-md border border-[#E2E8F0] bg-white text-sm"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -585,7 +585,7 @@ function ShopDetailPanel({
                   <select
                     value={plan}
                     onChange={(e) => setPlan(e.target.value)}
-                    className="w-full h-9 px-2.5 rounded-md border border-[#E7E5E4] bg-white text-sm"
+                    className="w-full h-9 px-2.5 rounded-md border border-[#E2E8F0] bg-white text-sm"
                   >
                     <option value="trial">Trial</option>
                     <option value="pro">Pro</option>
@@ -598,28 +598,28 @@ function ShopDetailPanel({
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value.toUpperCase())}
                     maxLength={3}
-                    className="w-full h-9 px-3 rounded-md border border-[#E7E5E4] bg-white text-sm uppercase"
+                    className="w-full h-9 px-3 rounded-md border border-[#E2E8F0] bg-white text-sm uppercase"
                   />
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={saving}
-                className="h-9 px-4 rounded-md bg-[#1C1A18] hover:bg-[#3a3632] text-white text-sm font-medium disabled:opacity-60"
+                className="h-9 px-4 rounded-md bg-[#0F172A] hover:bg-[#3a3632] text-white text-sm font-medium disabled:opacity-60"
               >
                 Save changes
               </button>
             </form>
 
-            <div className="rounded-md border border-[#EAE6DF] bg-white p-4">
-              <p className="text-sm font-medium text-[#1C1A18] mb-3">
+            <div className="rounded-md border border-[#E2E8F0] bg-white p-4">
+              <p className="text-sm font-medium text-[#0F172A] mb-3">
                 Members · {shop.members.length}
               </p>
               <div className="space-y-2">
                 {shop.members.map((m) => (
                   <div key={m.id} className="flex items-center justify-between text-sm">
                     <div className="min-w-0">
-                      <p className="text-[#1C1A18] truncate">{m.fullName}</p>
+                      <p className="text-[#0F172A] truncate">{m.fullName}</p>
                       <p className="text-xs text-stone-500 truncate">{m.email}</p>
                     </div>
                     <span className="text-[10px] uppercase tracking-wide text-stone-500 shrink-0 ml-2">
@@ -630,8 +630,8 @@ function ShopDetailPanel({
               </div>
             </div>
 
-            <div className="rounded-md border border-[#EAE6DF] bg-white p-4">
-              <p className="text-sm font-medium text-[#1C1A18] mb-3">
+            <div className="rounded-md border border-[#E2E8F0] bg-white p-4">
+              <p className="text-sm font-medium text-[#0F172A] mb-3">
                 Recent orders · {shop.customerCount} customers total
               </p>
               {shop.recentOrders.length === 0 ? (
@@ -641,7 +641,7 @@ function ShopDetailPanel({
                   {shop.recentOrders.map((o) => (
                     <div key={o.id} className="flex items-center justify-between text-sm">
                       <div className="min-w-0">
-                        <p className="text-[#1C1A18] truncate">{o.garmentDesign}</p>
+                        <p className="text-[#0F172A] truncate">{o.garmentDesign}</p>
                         <p className="text-xs text-stone-500 truncate">{o.customerName || "—"}</p>
                       </div>
                       <div className="text-right shrink-0 ml-2">

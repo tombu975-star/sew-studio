@@ -27,14 +27,14 @@ export function EmptyState({
     >
       {Icon && (
         <div className="relative mb-5" aria-hidden="true">
-          <span className="absolute inset-0 -m-3 rounded-full border border-dashed border-[#9E5A44]/25" />
-          <span className="absolute inset-0 -m-1.5 rounded-full bg-[#9E5A44]/[0.05]" />
-          <div className="relative w-14 h-14 rounded-full bg-[linear-gradient(160deg,#FFFFFF_0%,#FAF2EC_100%)] border border-[#EAE6DF] shadow-[0_6px_16px_-8px_rgba(158,90,68,0.35)] flex items-center justify-center">
-            <Icon className="w-[22px] h-[22px] text-[#9E5A44]" />
+          <span className="absolute inset-0 -m-3 rounded-full border border-dashed border-[#2563EB]/25" />
+          <span className="absolute inset-0 -m-1.5 rounded-full bg-[#2563EB]/[0.05]" />
+          <div className="relative w-14 h-14 rounded-full bg-[linear-gradient(160deg,#FFFFFF_0%,#EFF6FF_100%)] border border-[#E2E8F0] shadow-[0_6px_16px_-8px_rgba(37,99,235,0.35)] flex items-center justify-center">
+            <Icon className="w-[22px] h-[22px] text-[#2563EB]" />
           </div>
         </div>
       )}
-      <p className="font-display text-lg font-semibold text-[#1C1A18] leading-snug">{title}</p>
+      <p className="font-display text-lg font-semibold text-[#0F172A] leading-snug">{title}</p>
       {description && (
         <p className="text-[13px] leading-relaxed text-stone-500 mt-1.5 max-w-sm">{description}</p>
       )}
@@ -50,7 +50,7 @@ export function SkeletonCard({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "border border-[#EAE6DF] rounded-lg p-5 space-y-3",
+        "border border-[#E2E8F0] rounded-lg p-5 space-y-3",
         className
       )}
     >
@@ -76,7 +76,7 @@ export function SkeletonRow({ className }: { className?: string }) {
 
 export function SkeletonList({ rows = 4 }: { rows?: number }) {
   return (
-    <div className="divide-y divide-[#EAE6DF]/60">
+    <div className="divide-y divide-[#E2E8F0]/60">
       {Array.from({ length: rows }).map((_, i) => (
         <SkeletonRow key={i} />
       ))}

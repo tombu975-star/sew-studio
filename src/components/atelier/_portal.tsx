@@ -16,13 +16,13 @@ export function PageHeader({
   return (
     <div className="mb-6 animate-fade-in-up">
       {eyebrow && (
-        <p className="text-[10px] uppercase tracking-[0.22em] text-stone-400 mb-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600 mb-2">
           {eyebrow}
         </p>
       )}
       <h1
-        className="font-display font-semibold text-[#1C1A18] leading-[1.05]"
-        style={{ fontSize: "clamp(28px, 5vw, 38px)" }}
+        className="font-display font-semibold text-[#0F172A] leading-tight"
+        style={{ fontSize: "clamp(26px, 3vw, 34px)" }}
       >
         {title}
       </h1>
@@ -45,13 +45,13 @@ export function SectionCard({
   return (
     <div
       className={cn(
-        "bg-white border border-[#EAE6DF] rounded-lg elevate-sm",
+        "bg-white border border-[#E2E8F0] rounded-xl shadow-sm",
         className
       )}
     >
       {title && (
-        <div className="px-5 pt-4 pb-3 border-b border-[#EAE6DF]/70">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+        <div className="px-5 pt-4 pb-3 border-b border-[#E2E8F0]">
+          <h3 className="text-sm font-semibold tracking-tight text-slate-800">
             {title}
           </h3>
           {description && <p className="text-xs text-stone-500 mt-1">{description}</p>}
