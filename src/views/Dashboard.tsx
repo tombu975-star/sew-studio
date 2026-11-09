@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   AreaChart,
@@ -61,6 +61,8 @@ import type {
 import { useNav } from "@/stores/nav";
 import { useRole } from "@/stores/role";
 import { useAuth } from "@/stores/auth";
+import { getPlanEntitlements } from "@/lib/plans";
+import { GettingStartedDialog } from "@/components/atelier/GettingStartedDialog";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -182,6 +184,7 @@ export default function Dashboard() {
 
 function MainDashboard() {
   const { go } = useNav();
+  const { user } = useAuth();
   const {
     ownerLabel,
     isStaff,
@@ -450,6 +453,36 @@ function MainDashboard() {
     }
   };
 
+  /* ----- Getting started pop-up (trial plan only) ----- */
+  const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
+  const shop = user?.shop;
+  const shopId = shop?.id;
+  const onActiveTrial =
+    !!shop &&
+    shop.plan === "trial" &&
+    !getPlanEntitlements(shop.plan, shop.trial_ends_at).trialExpired;
+  const ordersCount = m?.orders.length;
+  useEffect(() => {
+    if (!owner || !onActiveTrial || !shopId || ordersCount !== 0) return;
+    let dismissed = false;
+    try {
+      dismissed = localStorage.getItem(`getting-started-dismissed:${shopId}`) === "1";
+    } catch {
+      /* storage unavailable: show it */
+    }
+    if (!dismissed) setGettingStartedOpen(true);
+  }, [owner, onActiveTrial, shopId, ordersCount]);
+  const handleGettingStartedChange = (open: boolean) => {
+    setGettingStartedOpen(open);
+    if (!open && shopId) {
+      try {
+        localStorage.setItem(`getting-started-dismissed:${shopId}`, "1");
+      } catch {
+        /* ignore */
+      }
+    }
+  };
+
   /* ----- loading + error guards ----- */
   if (isLoading || !m) {
     return (
@@ -554,68 +587,15 @@ function MainDashboard() {
         }
       />
 
-      {owner && m.orders.length === 0 && (
-        <section
-          aria-labelledby="getting-started-title"
-          className="mb-5 rounded-lg border border-[#D8DEE7] bg-white p-5 md:p-6"
-        >
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-2xl">
-              <p className="text-xs font-medium text-slate-500">
-                Getting started
-              </p>
-              <h2
-                id="getting-started-title"
-                className="mt-1 text-lg font-semibold tracking-tight text-[#17263C]"
-              >
-                Recommended first steps
-              </h2>
-              <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
-                Add a customer, then create an order for the garment they want.
-                You can add measurements, prices and a delivery date as you go.
-              </p>
-              <ol className="mt-4 grid gap-3 sm:grid-cols-3">
-                <li className="flex items-start gap-2.5">
-                  <span className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${m.customers.length > 0 ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
-                    {m.customers.length > 0 ? <Check className="size-3.5" /> : "1"}
-                  </span>
-                  <span>
-                    <span className="block text-sm font-medium text-[#17263C]">Add a customer</span>
-                    <span className="block text-xs leading-relaxed text-stone-500">Save their name and contact details.</span>
-                  </span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${m.customers.length > 0 ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"}`}>
-                    2
-                  </span>
-                  <span>
-                    <span className="block text-sm font-medium text-[#17263C]">Create an order</span>
-                    <span className="block text-xs leading-relaxed text-stone-500">Choose the customer and describe the garment.</span>
-                  </span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
-                    3
-                  </span>
-                  <span>
-                    <span className="block text-sm font-medium text-[#17263C]">Track the order</span>
-                    <span className="block text-xs leading-relaxed text-stone-500">Update sewing, fittings and payments.</span>
-                  </span>
-                </li>
-              </ol>
-            </div>
-            <PremiumButton
-              variant="primary"
-              size="md"
-              className="shrink-0"
-              onClick={() => go(m.customers.length > 0 ? "new-order" : "customers")}
-            >
-              <Plus className="size-4" />
-              {m.customers.length > 0 ? "Create your first order" : "Add your first customer"}
-            </PremiumButton>
-          </div>
-        </section>
-      )}
+      <GettingStartedDialog
+        open={gettingStartedOpen}
+        onOpenChange={handleGettingStartedChange}
+        hasCustomers={m.customers.length > 0}
+        onStart={() => {
+          handleGettingStartedChange(false);
+          go(m.customers.length > 0 ? "new-order" : "customers");
+        }}
+      />
 
       {/* ---------- Money row (Madam only) ---------- */}
       {!staff && (

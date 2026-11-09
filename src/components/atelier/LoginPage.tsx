@@ -38,7 +38,7 @@ function extractApiError(err: unknown, fallback: string): string {
 }
 
 const inputClass =
-  "h-[52px] w-full rounded-xl border border-[#e7dfd8] bg-white px-4 text-base text-[#292321] outline-none transition placeholder:text-[#aa9e96] focus:border-[#8a3b50] focus:ring-4 focus:ring-[#8a3b50]/10 sm:text-sm";
+  "h-12 w-full rounded-xl border border-[#e7dfd8] bg-white px-4 text-base text-[#292321] outline-none transition placeholder:text-[#aa9e96] focus:border-[#8a3b50] focus:ring-4 focus:ring-[#8a3b50]/10 sm:h-[52px] sm:text-sm";
 
 export function LoginPage() {
   const { login, register, hydrate, status } = useAuth();
@@ -123,17 +123,17 @@ export function LoginPage() {
     <>
       {mode === "login" ? (
         <section key="login" className="animate-fade-in">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a3b50]">
+          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a3b50] sm:block">
             Your studio, in good hands
           </p>
-          <h2 className="mt-3 font-serif text-4xl font-medium tracking-tight text-[#302623] sm:text-[42px]">
+          <h2 className="font-serif text-[28px] font-medium tracking-tight text-[#302623] sm:mt-3 sm:text-[42px]">
             Sign in
           </h2>
-          <p className="mt-2 text-sm leading-6 text-[#756a64]">
+          <p className="mt-1 text-[13px] leading-5 text-[#756a64] [@media(max-height:700px)]:hidden sm:mt-2 sm:text-sm sm:leading-6">
             Pick up where you left off. Your workroom is waiting.
           </p>
 
-          <form onSubmit={submitLogin} className="mt-8 space-y-5">
+          <form onSubmit={submitLogin} className="mt-4 space-y-3.5 [@media(max-height:700px)]:mt-3 [@media(max-height:700px)]:space-y-2.5 sm:mt-8 sm:space-y-5">
             <Field label="Email address" htmlFor="email">
               <input
                 id="email"
@@ -185,14 +185,14 @@ export function LoginPage() {
               type="submit"
               size="lg"
               loading={submitting}
-              className="h-[52px] w-full rounded-xl bg-[#782f43] text-white shadow-[0_8px_18px_rgba(120,47,67,0.2)] hover:bg-[#632638]"
+              className="h-12 w-full rounded-xl bg-[#782f43] text-white shadow-[0_8px_18px_rgba(120,47,67,0.2)] hover:bg-[#632638] sm:h-[52px]"
             >
               {submitting ? "Signing in…" : "Sign in"}
             </PremiumButton>
           </form>
 
-          <div className="mt-8 border-t border-[#eee7e1] pt-6">
-              <p className="text-sm leading-6 text-[#756a64]">
+          <div className="mt-4 border-t border-[#eee7e1] pt-4 sm:mt-8 sm:pt-6">
+              <p className="text-[13px] leading-5 text-[#756a64] [@media(max-height:700px)]:hidden sm:text-sm sm:leading-6">
                 New to Madam Studio? Create a shop account to set up your workspace.
               </p>
             <button
@@ -202,7 +202,7 @@ export function LoginPage() {
             >
               Create a shop account <span aria-hidden="true">→</span>
             </button>
-            <p className="mt-5 text-sm leading-6 text-[#756a64]">
+            <p className="mt-2.5 text-[13px] leading-5 text-[#756a64] sm:mt-5 sm:text-sm sm:leading-6">
               Work with studios as a freelancer?{" "}
               <a
                 href="/freelancer?mode=register"
@@ -215,17 +215,17 @@ export function LoginPage() {
         </section>
       ) : (
         <section key="register" className="animate-fade-in">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a3b50]">
+          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a3b50] sm:block">
             Start creating
           </p>
-          <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-[#302623] sm:text-4xl">
+          <h2 className="font-serif text-2xl font-medium tracking-tight text-[#302623] sm:mt-3 sm:text-4xl">
             Create your studio account
           </h2>
-          <p className="mt-2 text-sm leading-6 text-[#756a64]">
+          <p className="mt-1 text-[13px] leading-5 text-[#756a64] [@media(max-height:700px)]:hidden sm:mt-2 sm:text-sm sm:leading-6">
             Set up your studio account to start adding customers and orders.
           </p>
 
-          <form onSubmit={submitRegister} className="mt-8 space-y-5">
+          <form onSubmit={submitRegister} className="mt-4 space-y-3 [@media(max-height:700px)]:mt-3 [@media(max-height:700px)]:space-y-2 sm:mt-8 sm:space-y-5">
             <Field label="Shop name" htmlFor="shopName" required>
               <input
                 id="shopName"
@@ -288,7 +288,7 @@ export function LoginPage() {
               <Select value={gender} onValueChange={setGender}>
                 <SelectTrigger
                   id="gender"
-                  className="h-[52px] w-full rounded-xl border-[#e7dfd8] bg-white text-base font-normal text-[#292321] focus:border-[#8a3b50] focus:ring-4 focus:ring-[#8a3b50]/10 sm:text-sm"
+                  className="h-12 w-full rounded-xl border-[#e7dfd8] bg-white text-base font-normal sm:h-[52px] text-[#292321] focus:border-[#8a3b50] focus:ring-4 focus:ring-[#8a3b50]/10 sm:text-sm"
                 >
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
@@ -306,13 +306,13 @@ export function LoginPage() {
               type="submit"
               size="lg"
               loading={submitting}
-              className="h-[52px] w-full rounded-xl bg-[#782f43] text-white shadow-[0_8px_18px_rgba(120,47,67,0.2)] hover:bg-[#632638]"
+              className="h-12 w-full rounded-xl bg-[#782f43] text-white shadow-[0_8px_18px_rgba(120,47,67,0.2)] hover:bg-[#632638] sm:h-[52px]"
             >
               {submitting ? "Creating your shop…" : "Create shop"}
             </PremiumButton>
           </form>
 
-          <p className="mt-7 border-t border-[#eee7e1] pt-6 text-sm text-[#756a64]">
+          <p className="mt-4 border-t border-[#eee7e1] pt-4 text-sm text-[#756a64] [@media(max-height:700px)]:mt-3 [@media(max-height:700px)]:pt-3 sm:mt-7 sm:pt-6">
             Already have a studio?{" "}
             <button
               type="button"
@@ -345,12 +345,12 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="mb-2 block text-[13px] font-semibold text-[#403632]">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-semibold text-[#403632] sm:mb-2">
         {label}
         {required && <span className="ml-0.5 text-[#8a3b50]" aria-hidden="true">*</span>}
       </label>
       {children}
-      {hint && <p className="mt-1.5 text-xs leading-relaxed text-stone-400">{hint}</p>}
+      {hint && <p className="mt-1.5 hidden text-xs leading-relaxed text-stone-400 sm:block">{hint}</p>}
     </div>
   );
 }

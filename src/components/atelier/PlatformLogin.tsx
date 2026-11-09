@@ -9,11 +9,11 @@ export function PlatformLogin() {
   const settings = usePlatformSettings();
   return (
     <main
-      className="min-h-dvh bg-[#f5f0e9] p-0 text-[#292321] sm:p-4 lg:p-6"
+      className="h-dvh overflow-hidden bg-[#f5f0e9] p-0 text-[#292321] sm:h-auto sm:min-h-dvh sm:overflow-visible sm:p-4 lg:p-6"
       style={{ backgroundColor: settings.backgroundColor }}
     >
-      <div className="mx-auto grid min-h-dvh w-full max-w-[1440px] overflow-hidden bg-[#fbfaf8] sm:rounded-[24px] sm:shadow-[0_24px_80px_rgba(54,34,29,0.12)] lg:min-h-[calc(100dvh-48px)] lg:grid-cols-[1.05fr_.95fr]">
-        <aside className="relative isolate min-h-[280px] overflow-hidden bg-[#42252d] sm:min-h-[340px] lg:min-h-[720px]">
+      <div className="mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-[#fbfaf8] sm:h-auto sm:min-h-dvh sm:grid-rows-none sm:rounded-[24px] sm:shadow-[0_24px_80px_rgba(54,34,29,0.12)] lg:min-h-[calc(100dvh-48px)] lg:grid-cols-[1.05fr_.95fr]">
+        <aside className="relative isolate overflow-hidden bg-[#42252d] sm:min-h-[340px] lg:min-h-[720px]">
           <Image
             src="/atelier-login.jpg"
             alt=""
@@ -23,7 +23,7 @@ export function PlatformLogin() {
             className="object-cover object-[center_38%]"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#21171a]/55 via-[#392027]/10 to-[#21171a]/75" />
-          <div className="relative z-10 flex min-h-[280px] flex-col justify-between p-6 text-white sm:min-h-[340px] sm:p-9 lg:min-h-[720px] lg:p-12">
+          <div className="relative z-10 flex flex-col justify-between px-5 py-4 [@media(max-height:700px)]:py-3 text-white sm:min-h-[340px] sm:p-9 lg:min-h-[720px] lg:p-12">
             <header className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-white/25 bg-white/15 backdrop-blur-md">
@@ -40,7 +40,7 @@ export function PlatformLogin() {
               </span>
             </header>
 
-            <div className="max-w-[540px] pt-10">
+            <div className="hidden max-w-[540px] pt-10 sm:block">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/75">
                 Made for the art of making
               </p>
@@ -58,13 +58,13 @@ export function PlatformLogin() {
           </div>
         </aside>
 
-        <section className="flex items-center justify-center px-6 py-10 sm:px-10 sm:py-12 lg:px-12 xl:px-[72px]">
-          <div className="w-full max-w-[420px]">
+        <section className="flex min-h-0 overflow-y-auto px-6 py-5 [@media(max-height:700px)]:py-3 sm:overflow-visible sm:px-10 sm:py-12 lg:px-12 xl:px-[72px]">
+          <div className="m-auto w-full max-w-[420px]">
             <LoginPage />
-            <footer className="mt-8 text-center text-xs leading-relaxed text-[#8b7f78]">
+            <footer className="mt-4 text-center text-xs leading-relaxed text-[#8b7f78] [@media(max-height:700px)]:hidden sm:mt-8">
               <p>{settings.loginFooter}</p>
               {settings.releaseNotes && (
-                <p className="mx-auto mt-2 max-w-[360px]" aria-label="Latest release notes">
+                <p className="mx-auto mt-2 hidden max-w-[360px] sm:block" aria-label="Latest release notes">
                   Version {settings.appVersion}: {settings.releaseNotes}
                 </p>
               )}
