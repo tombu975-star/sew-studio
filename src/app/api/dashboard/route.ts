@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/db/session";
+import { getPool } from "@/lib/db/pool";
 import {
   serializeOrder,
   serializePayment,
@@ -20,6 +21,13 @@ export async function GET() {
   try {
     const ctx = await getTenant();
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { rows: menuRows } = await getPool().query(
+      "select menu_key, enabled from public.system_menu_settings"
+    );
+    const menuEnabled = new Map<string, boolean>(
+      menuRows.map((row) => [row.menu_key, row.enabled])
+    );
 
     const [
       ordersRes,
@@ -86,17 +94,19 @@ export async function GET() {
     }
 
     return Response.json({
-      orders: (ordersRes.data ?? []).map(serializeOrder),
-      payments: (paymentsRes.data ?? []).map(serializePayment),
-      fittings: (fittingsRes.data ?? []).map((f) => ({
+      orders: menuEnabled.get("orders") === false ? [] : (ordersRes.data ?? []).map(serializeOrder),
+      payments: menuEnabled.get("orders") === false ? [] : (paymentsRes.data ?? []).map(serializePayment),
+      fittings: menuEnabled.get("fittings") === false ? [] : (fittingsRes.data ?? []).map((f) => ({
         ...serializeFitting(f),
         order: f.order ? serializeOrder(f.order) : null,
       })),
-      tasks: (tasksRes.data ?? []).map(serializeTask),
-      users: (usersRes.data ?? []).map(serializeUser),
-      customers: (customersRes.data ?? []).map(serializeCustomer),
-      settings: serializeSettings(settings),
-      styleConcepts: (styleConceptsRes.data ?? []).map(serializeStyleConcept),
+      tasks: menuEnabled.get("tasks") === false ? [] : (tasksRes.data ?? []).map(serializeTask),
+      users: menuEnabled.get("team") === false ? [] : (usersRes.data ?? []).map(serializeUser),
+      customers: menuEnabled.get("customers") === false ? [] : (customersRes.data ?? []).map(serializeCustomer),
+      settings: menuEnabled.get("settings") === false ? null : serializeSettings(settings),
+      styleConcepts: menuEnabled.get("style-assist") === false
+        ? []
+        : (styleConceptsRes.data ?? []).map(serializeStyleConcept),
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -25,10 +25,13 @@ import {
   Settings as SettingsIcon,
   BookOpen,
   UserRound,
+  AlertCircle,
 } from "lucide-react";
 import { useRole, type Role } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
 import { useAuth } from "@/stores/auth";
+import { useMenuSettings } from "@/stores/menu-settings";
+import { menuForView } from "@/lib/menu-config";
 import { cn } from "@/lib/utils";
 
 type IconType = React.ComponentType<{ className?: string; strokeWidth?: number }>;
@@ -255,7 +258,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { role, studioName } = useRole();
   const { view, go } = useNav();
   const { user, logout } = useAuth();
+  const { enabled, error: menuSettingsError, load: loadMenuSettings } = useMenuSettings();
   const [moreOpen, setMoreOpen] = useState(false);
+
+  useEffect(() => {
+    void loadMenuSettings();
+  }, [loadMenuSettings]);
 
   const shopDisplayName = user?.shop?.name || studioName;
   const roleAccent = ROLE_ACCENT[role] || ROLE_ACCENT.staff;
@@ -274,12 +282,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   // Build the effective sections for the current role.
   const baseSections = SECTIONS[role] || SECTIONS.staff;
-  const sections: NavSection[] =
+  const roleSections: NavSection[] =
     role === "trainee"
       ? baseSections.map((s) =>
           s.label === "Studio" ? { ...s, items: traineeStudioItems } : s
         )
       : baseSections;
+  const sections = roleSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        const key = menuForView(item.to);
+        return !key || enabled?.[key] !== false;
+      }),
+    }))
+    .filter((section) => section.items.length > 0);
 
   const allItems = sections.flatMap((s) => s.items);
 
@@ -450,6 +467,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ─── Main ────────────────────────────────────────────────── */}
       <main className="flex-1 md:pl-[72px] lg:pl-64 pl-safe pr-safe pb-mobile-nav md:pb-0 flex flex-col min-w-0 overflow-x-clip">
+        {menuSettingsError && (
+          <div
+            role="alert"
+            className="mx-4 mt-4 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 md:mx-8"
+          >
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            Menu availability could not be loaded. Some features may be unavailable.
+          </div>
+        )}
         <div key={view} className="w-full max-w-[1480px] mx-auto flex-1 flex flex-col min-w-0 animate-fade-in">
           {children}
         </div>

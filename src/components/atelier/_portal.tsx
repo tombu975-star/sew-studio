@@ -33,10 +33,12 @@ export function PageHeader({
 
 export function SectionCard({
   title,
+  description,
   children,
   className,
 }: {
   title?: string;
+  description?: string;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -52,6 +54,7 @@ export function SectionCard({
           <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
             {title}
           </h3>
+          {description && <p className="text-xs text-stone-500 mt-1">{description}</p>}
         </div>
       )}
       <div className="p-5">{children}</div>

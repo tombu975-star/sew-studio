@@ -10,6 +10,8 @@ import { useNav } from "@/stores/nav";
 import { setOnSessionExpired } from "@/lib/api";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { Scissors, Lock } from "lucide-react";
+import { menuForView, MENU_DEFINITIONS } from "@/lib/menu-config";
+import { useMenuSettings } from "@/stores/menu-settings";
 
 // Load all views lazily so each is a separate client bundle.
 const Dashboard = dynamic(() => import("@/views/Dashboard").then((m) => m.default), { ssr: false });
@@ -36,6 +38,26 @@ const UserProfile = dynamic(() => import("@/views/UserProfile").then((m) => m.de
 
 function CurrentView() {
   const { view } = useNav();
+  const enabledMenus = useMenuSettings((state) => state.enabled);
+  const menuKey = menuForView(view);
+  const menu = menuKey ? MENU_DEFINITIONS.find((item) => item.key === menuKey) : undefined;
+  if (menuKey && enabledMenus?.[menuKey] === false) {
+    return (
+      <div className="p-5 md:p-8 max-w-md mx-auto w-full">
+        <div className="surface-premium border border-[#EAE6DF] rounded-lg elevate-sm p-8 text-center">
+          <div className="w-14 h-14 rounded-full bg-[#9E5A44]/8 flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-6 h-6 text-[#9E5A44]" />
+          </div>
+          <h2 className="font-display text-xl font-semibold text-[#1C1A18]">
+            {menu?.label ?? "This feature"} is unavailable
+          </h2>
+          <p className="text-sm text-stone-500 mt-2 leading-relaxed">
+            This feature has been disabled by the platform administrator.
+          </p>
+        </div>
+      </div>
+    );
+  }
   switch (view) {
     case "dashboard":
       return <Dashboard />;

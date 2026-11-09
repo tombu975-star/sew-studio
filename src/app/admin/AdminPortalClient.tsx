@@ -13,10 +13,14 @@ import {
   CheckCircle2,
   X,
   Search,
+  ListChecks,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import { PageHeader, SectionCard } from "@/components/atelier/_portal";
 import { apiGet, apiPost, apiPatch, apiErrorMessage } from "@/lib/api";
 import { formatDate, formatCurrency } from "@/lib/format";
+import { MENU_DEFINITIONS, type MenuKey } from "@/lib/menu-config";
 
 interface AdminProfile {
   id: string;
@@ -168,6 +172,7 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [section, setSection] = useState<"shops" | "menus">("shops");
 
   function reload() {
     setLoading(true);
@@ -214,13 +219,38 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <StatCard icon={Building2} label="Studios" value={shops.length} />
-          <StatCard icon={CheckCircle2} label="Active" value={activeCount} tone="good" />
-          <StatCard icon={Ban} label="Suspended" value={suspendedCount} tone={suspendedCount ? "bad" : undefined} />
+        <div className="flex items-center gap-2 mb-6 border-b border-[#EAE6DF]">
+          <button
+            onClick={() => { setSection("shops"); setSelectedId(null); }}
+            className={`px-3 py-2 text-sm border-b-2 transition-colors ${
+              section === "shops"
+                ? "border-[#9E5A44] text-[#1C1A18] font-medium"
+                : "border-transparent text-stone-500 hover:text-[#1C1A18]"
+            }`}
+          >
+            Studios
+          </button>
+          <button
+            onClick={() => { setSection("menus"); setSelectedId(null); }}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm border-b-2 transition-colors ${
+              section === "menus"
+                ? "border-[#9E5A44] text-[#1C1A18] font-medium"
+                : "border-transparent text-stone-500 hover:text-[#1C1A18]"
+            }`}
+          >
+            <ListChecks className="w-4 h-4" /> System menus
+          </button>
         </div>
 
-        <SectionCard className="!p-0" title={`All studios · ${totalMembers} members total`}>
+        {section === "shops" && (
+          <>
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <StatCard icon={Building2} label="Studios" value={shops.length} />
+              <StatCard icon={CheckCircle2} label="Active" value={activeCount} tone="good" />
+              <StatCard icon={Ban} label="Suspended" value={suspendedCount} tone={suspendedCount ? "bad" : undefined} />
+            </div>
+
+            <SectionCard className="!p-0" title={`All studios · ${totalMembers} members total`}>
           <div className="px-5 py-3 border-b border-[#EAE6DF]/70">
             <div className="relative max-w-xs">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
@@ -273,7 +303,11 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
               ))}
             </div>
           )}
-        </SectionCard>
+            </SectionCard>
+          </>
+        )}
+
+        {section === "menus" && <MenuManagement />}
       </div>
 
       {selectedId && (
@@ -284,6 +318,93 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
         />
       )}
     </div>
+  );
+}
+
+interface MenuSetting {
+  key: MenuKey;
+  label: string;
+  section: string;
+  enabled: boolean;
+}
+
+function MenuManagement() {
+  const [menus, setMenus] = useState<MenuSetting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingKey, setSavingKey] = useState<MenuKey | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    apiGet<MenuSetting[]>("/api/admin/menus")
+      .then(setMenus)
+      .catch((err) => setError(apiErrorMessage(err, "Could not load system menus.")))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function toggleMenu(menu: MenuSetting) {
+    setSavingKey(menu.key);
+    setError("");
+    try {
+      const updated = await apiPatch<{ key: MenuKey; enabled: boolean }>("/api/admin/menus", {
+        key: menu.key,
+        enabled: !menu.enabled,
+      });
+      setMenus((items) =>
+        items.map((item) => item.key === updated.key ? { ...item, enabled: updated.enabled } : item)
+      );
+    } catch (err) {
+      setError(apiErrorMessage(err, "Could not update this menu."));
+    } finally {
+      setSavingKey(null);
+    }
+  }
+
+  const orderedMenus = MENU_DEFINITIONS.map(
+    (definition) => menus.find((menu) => menu.key === definition.key)
+  ).filter((menu): menu is MenuSetting => Boolean(menu));
+
+  return (
+    <SectionCard
+      className="!p-0"
+      title="System menus"
+      description="Enable or disable features for every studio and account on the platform."
+    >
+      {error && (
+        <div className="mx-5 mt-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+        </div>
+      )}
+      {loading ? (
+        <div className="py-16 flex justify-center">
+          <Loader2 className="w-5 h-5 animate-spin text-[#9E5A44]" />
+        </div>
+      ) : (
+        <div className="divide-y divide-[#EAE6DF]/70">
+          {orderedMenus.map((menu) => (
+            <div key={menu.key} className="flex items-center justify-between gap-4 px-5 py-4">
+              <div>
+                <p className="text-sm font-medium text-[#1C1A18]">{menu.label}</p>
+                <p className="text-xs text-stone-500">{menu.section}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void toggleMenu(menu)}
+                disabled={savingKey !== null}
+                aria-pressed={menu.enabled}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors disabled:opacity-50 ${
+                  menu.enabled
+                    ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                }`}
+              >
+                {menu.enabled ? <Power className="w-3.5 h-3.5" /> : <PowerOff className="w-3.5 h-3.5" />}
+                {savingKey === menu.key ? "Saving…" : menu.enabled ? "Enabled" : "Disabled"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </SectionCard>
   );
 }
 

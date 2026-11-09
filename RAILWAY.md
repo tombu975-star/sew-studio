@@ -36,6 +36,13 @@ service. There is no other hosted backend.
 `railway.json` runs `npm run db:migrate` as the pre-deploy command. It applies
 any new files in `db/migrations/` once each (recorded in
 `private.schema_migrations`) and does nothing when the database is current.
+The startup command also runs migrations before serving requests. Migration
+`016_system_menu_settings.sql` initializes the platform-wide menu controls.
+
+Platform admins can open **System menus** in `/admin` to enable or disable
+features for every studio. Disabled features are removed from app navigation,
+their API routes are blocked, and the freelancer portal is unavailable when
+its menu is disabled.
 
 ## First-time setup
 
