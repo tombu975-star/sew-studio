@@ -8,6 +8,7 @@
 type Nullable<T> = T | null;
 
 export interface Database {
+  __InternalSupabase: { PostgrestVersion: "12" };
   public: {
     Tables: {
       shops: {
@@ -73,7 +74,29 @@ export interface Database {
           shop_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "profiles_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profiles_mentor_id_fkey";
+            columns: ["mentor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profiles_program_id_fkey";
+            columns: ["program_id"];
+            isOneToOne: false;
+            referencedRelation: "training_programs";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       freelancer_profiles: {
         Row: {
@@ -110,7 +133,22 @@ export interface Database {
           freelancer_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["freelancer_shop_links"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "freelancer_shop_links_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "freelancer_shop_links_freelancer_id_fkey";
+            columns: ["freelancer_id"];
+            isOneToOne: false;
+            referencedRelation: "freelancer_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       freelance_jobs: {
         Row: {
@@ -131,7 +169,22 @@ export interface Database {
           task_description: string;
         };
         Update: Partial<Database["public"]["Tables"]["freelance_jobs"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "freelance_jobs_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "freelance_jobs_freelancer_id_fkey";
+            columns: ["freelancer_id"];
+            isOneToOne: false;
+            referencedRelation: "freelancer_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       customers: {
         Row: {
@@ -171,7 +224,15 @@ export interface Database {
           name: string;
         };
         Update: Partial<Database["public"]["Tables"]["customers"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "customers_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       measurement_sets: {
         Row: {
@@ -214,7 +275,29 @@ export interface Database {
           customer_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["measurement_sets"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "measurement_sets_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "measurement_sets_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "measurement_sets_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       customer_feedback: {
         Row: {
@@ -231,7 +314,22 @@ export interface Database {
           customer_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["customer_feedback"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "customer_feedback_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_feedback_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       orders: {
         Row: {
@@ -259,7 +357,29 @@ export interface Database {
           order_date: string;
         };
         Update: Partial<Database["public"]["Tables"]["orders"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "orders_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "orders_assigned_staff_id_fkey";
+            columns: ["assigned_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       payments: {
         Row: {
@@ -276,7 +396,15 @@ export interface Database {
           amount: number;
         };
         Update: Partial<Database["public"]["Tables"]["payments"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "payments_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       fittings: {
         Row: {
@@ -292,7 +420,15 @@ export interface Database {
           date: string;
         };
         Update: Partial<Database["public"]["Tables"]["fittings"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "fittings_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       tasks: {
         Row: {
@@ -319,7 +455,43 @@ export interface Database {
           title: string;
         };
         Update: Partial<Database["public"]["Tables"]["tasks"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "tasks_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tasks_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tasks_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tasks_graded_by_id_fkey";
+            columns: ["graded_by_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tasks_competency_unit_id_fkey";
+            columns: ["competency_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "competency_units";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       training_programs: {
         Row: {
@@ -341,7 +513,22 @@ export interface Database {
           created_by_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["training_programs"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "training_programs_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_programs_created_by_id_fkey";
+            columns: ["created_by_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       competency_units: {
         Row: {
@@ -365,7 +552,22 @@ export interface Database {
           assessment_criteria: string;
         };
         Update: Partial<Database["public"]["Tables"]["competency_units"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "competency_units_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "competency_units_program_id_fkey";
+            columns: ["program_id"];
+            isOneToOne: false;
+            referencedRelation: "training_programs";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       style_concepts: {
         Row: {
@@ -405,7 +607,22 @@ export interface Database {
           concept_name: string;
         };
         Update: Partial<Database["public"]["Tables"]["style_concepts"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "style_concepts_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "style_concepts_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       settings: {
         Row: {
@@ -441,7 +658,15 @@ export interface Database {
           shop_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["settings"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "settings_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: true;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       community_posts: {
         Row: {
@@ -464,7 +689,22 @@ export interface Database {
           body: string;
         };
         Update: Partial<Database["public"]["Tables"]["community_posts"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "community_posts_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       community_comments: {
         Row: {
@@ -481,7 +721,22 @@ export interface Database {
           body: string;
         };
         Update: Partial<Database["public"]["Tables"]["community_comments"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_post_id_fkey";
+            columns: ["post_id"];
+            isOneToOne: false;
+            referencedRelation: "community_posts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "community_comments_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       community_likes: {
         Row: {
@@ -494,7 +749,22 @@ export interface Database {
           post_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["community_likes"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "community_likes_post_id_fkey";
+            columns: ["post_id"];
+            isOneToOne: false;
+            referencedRelation: "community_posts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "community_likes_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       training_logs: {
         Row: {
@@ -516,7 +786,29 @@ export interface Database {
           title: string;
         };
         Update: Partial<Database["public"]["Tables"]["training_logs"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "training_logs_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_logs_trainee_id_fkey";
+            columns: ["trainee_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_logs_mentor_id_fkey";
+            columns: ["mentor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       certificates: {
         Row: {
@@ -540,7 +832,29 @@ export interface Database {
           certificate_no: string;
         };
         Update: Partial<Database["public"]["Tables"]["certificates"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "certificates_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certificates_trainee_id_fkey";
+            columns: ["trainee_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certificates_issued_by_id_fkey";
+            columns: ["issued_by_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       customer_notifications: {
         Row: {
@@ -569,10 +883,34 @@ export interface Database {
           body: string;
         };
         Update: Partial<Database["public"]["Tables"]["customer_notifications"]["Row"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "customer_notifications_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_notifications_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_notifications_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 }

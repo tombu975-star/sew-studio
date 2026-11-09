@@ -412,7 +412,7 @@ function Card({
       {/* Style picture */}
       <div className="mt-2.5 h-24 w-full rounded-md overflow-hidden bg-[#FAF2EC] border border-[#EAE6DF] flex items-center justify-center">
         {order.designImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
+           
           <img
             src={order.designImage}
             alt={`${order.garmentDesign} style`}
