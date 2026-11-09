@@ -1,29 +1,108 @@
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "crypto";
+import { promisify } from "util";
 import { cookies } from "next/headers";
-import { Client } from "pg";
+import { Pool } from "pg";
 
+const scrypt = promisify(scryptCallback);
 export const RAILWAY_SESSION_COOKIE = "madam_session";
+const SESSION_DAYS = 7;
+const REMEMBERED_SESSION_DAYS = 30;
+
+type IdentityType = "shop" | "freelancer" | "system_admin";
+
+export interface RailwayShopIdentity {
+  identityType: "shop";
+  id: string;
+  email: string;
+  fullName: string;
+  role: "madam" | "staff" | "trainer" | "trainee";
+  gender: string | null;
+  phone: string | null;
+  avatarUrl: string | null;
+  shopId: string;
+  canAccessOrders: boolean;
+  canAccessBoard: boolean;
+  canManageFreelancers: boolean;
+  shop: { id: string; name: string; slug: string; currency: string };
+}
+
+interface CredentialRecord {
+  identity_type: IdentityType;
+  identity_id: string;
+  email: string;
+  password_hash: string;
+}
+
+let pool: Pool | undefined;
 
 export function isRailwayAuthEnabled(): boolean {
   return process.env.USE_RAILWAY_AUTH === "1" || process.env.USE_RAILWAY_AUTH === "true";
 }
 
-export function getRailwayDatabaseUrl(): string | undefined {
-  return process.env.DATABASE_URL || process.env.RAILWAY_DATABASE_URL;
+function getPool(): Pool {
+  const connectionString = process.env.DATABASE_URL || process.env.RAILWAY_DATABASE_URL;
+  if (!connectionString) throw new Error("DATABASE_URL is not configured");
+  pool ??= new Pool({ connectionString, max: 5, idleTimeoutMillis: 10_000, connectionTimeoutMillis: 5_000 });
+  return pool;
 }
 
-export async function hashRailwayToken(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
+export function hashRailwayToken(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
 export function createRailwaySessionToken(): string {
   return randomBytes(32).toString("base64url");
 }
 
-export async function setRailwaySessionCookie(token: string, maxAgeSeconds = 60 * 60 * 24 * 30) {
+/** Store password hashes as scrypt$salt$digest. Never store plaintext passwords. */
+export async function hashRailwayPassword(password: string): Promise<string> {
+  if (password.length < 8) throw new Error("Password must contain at least 8 characters");
+  const salt = randomBytes(16);
+  const key = (await scrypt(password, salt, 64)) as Buffer;
+  return `scrypt$${salt.toString("base64url")}$${key.toString("base64url")}`;
+}
+
+export async function verifyRailwayPassword(password: string, encoded: string): Promise<boolean> {
+  const [algorithm, saltText, keyText, extra] = encoded.split("$");
+  if (algorithm !== "scrypt" || !saltText || !keyText || extra !== undefined) return false;
+  try {
+    const salt = Buffer.from(saltText, "base64url");
+    const expected = Buffer.from(keyText, "base64url");
+    if (salt.length !== 16 || expected.length !== 64) return false;
+    const actual = (await scrypt(password, salt, expected.length)) as Buffer;
+    return timingSafeEqual(actual, expected);
+  } catch {
+    return false;
+  }
+}
+
+export async function findRailwayCredential(email: string): Promise<CredentialRecord | null> {
+  const result = await getPool().query<CredentialRecord>(
+    `select identity_type, identity_id, email, password_hash
+       from public.app_credentials
+      where lower(email) = lower($1)
+      limit 1`,
+    [email.trim()]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function createRailwaySession(args: {
+  identityType: IdentityType;
+  identityId: string;
+  rememberMe?: boolean;
+}): Promise<{ token: string; expiresAt: Date }> {
+  const token = createRailwaySessionToken();
+  const expiresAt = new Date(Date.now() + (args.rememberMe ? REMEMBERED_SESSION_DAYS : SESSION_DAYS) * 86_400_000);
+  await getPool().query(
+    `insert into public.app_sessions (token_hash, identity_type, identity_id, expires_at, last_seen_at)
+     values ($1, $2, $3, $4, now())`,
+    [hashRailwayToken(token), args.identityType, args.identityId, expiresAt]
+  );
+  return { token, expiresAt };
+}
+
+export async function setRailwaySessionCookie(token: string, maxAgeSeconds = SESSION_DAYS * 86_400) {
   const cookieStore = await cookies();
   cookieStore.set(RAILWAY_SESSION_COOKIE, token, {
     httpOnly: true,
@@ -45,107 +124,58 @@ export async function clearRailwaySessionCookie() {
   });
 }
 
-export async function getRailwaySessionContext(): Promise<any | null> {
-  if (!isRailwayAuthEnabled()) return null;
-  const dbUrl = getRailwayDatabaseUrl();
-  if (!dbUrl) return null;
-
-  const cookieStore = await cookies();
-  const cookieValue = cookieStore.get(RAILWAY_SESSION_COOKIE)?.value;
-  if (!cookieValue) return null;
-
-  try {
-    const client = new Client({ connectionString: dbUrl });
-    await client.connect();
-
-    try {
-      const tokenHash = await hashRailwayToken(cookieValue);
-      const result = await client.query(
-        `
-          select p.id as user_id,
-                 p.shop_id,
-                 p.role,
-                 p.email,
-                 p.can_manage_freelancers,
-                 p.is_active,
-                 p.shop_id as tenant_id,
-                 s.identity_type,
-                 s.expires_at
-          from public.app_sessions s
-          left join public.profiles p on p.id = s.identity_id
-          where s.token_hash = $1
-            and s.expires_at > now()
-          limit 1;
-        `,
-        [tokenHash]
-      );
-
-      const row = result.rows[0];
-      if (!row) return null;
-
-      const profile = {
-        id: row.user_id,
-        shop_id: row.shop_id,
-        role: row.role,
-        email: row.email,
-        can_manage_freelancers: row.can_manage_freelancers,
-        is_active: row.is_active,
-      };
-
-      if (profile.is_active === false) return null;
-
-      return {
-        supabase: null,
-        userId: profile.id,
-        shopId: profile.shop_id,
-        role: profile.role,
-        email: profile.email,
-        canManageFreelancers: Boolean(profile.can_manage_freelancers),
-      };
-    } finally {
-      await client.end();
-    }
-  } catch {
-    return null;
-  }
+export async function revokeRailwaySession(token: string): Promise<void> {
+  await getPool().query("delete from public.app_sessions where token_hash = $1", [hashRailwayToken(token)]);
 }
 
-export async function issueRailwaySessionTokenForUser(args: {
-  identityType: "shop" | "freelancer" | "system_admin";
-  identityId: string;
-  userEmail?: string;
-  rememberMe?: boolean;
-}): Promise<{ token: string; expiresAt: Date } | null> {
+/** Returns the shop-member profile for a valid Railway session, otherwise null. */
+export async function getRailwayShopSession(): Promise<RailwayShopIdentity | null> {
   if (!isRailwayAuthEnabled()) return null;
-  const dbUrl = getRailwayDatabaseUrl();
-  if (!dbUrl) return null;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(RAILWAY_SESSION_COOKIE)?.value;
+  if (!token) return null;
 
-  try {
-    const token = createRailwaySessionToken();
-    const tokenHash = await hashRailwayToken(token);
-    const expiresAt = new Date(Date.now() + (args.rememberMe ? 30 : 7) * 24 * 60 * 60 * 1000);
+  const result = await getPool().query<RailwayShopIdentity>(
+    `select p.id,
+            p.email,
+            p.full_name as "fullName",
+            p.role,
+            p.gender,
+            p.phone,
+            p.avatar_url as "avatarUrl",
+            p.shop_id as "shopId",
+            p.can_access_orders as "canAccessOrders",
+            p.can_access_board as "canAccessBoard",
+            p.can_manage_freelancers as "canManageFreelancers",
+            s.id as "shop.id",
+            s.name as "shop.name",
+            s.slug as "shop.slug",
+            s.currency as "shop.currency",
+            c.identity_type as "identityType"
+       from public.app_sessions session
+       join public.app_credentials c
+         on c.identity_type = session.identity_type and c.identity_id = session.identity_id
+       join public.profiles p on p.id = session.identity_id
+       join public.shops s on s.id = p.shop_id
+      where session.token_hash = $1
+        and session.identity_type = 'shop'
+        and session.expires_at > now()
+        and coalesce(p.is_active, true) = true
+        and s.suspended_at is null
+      limit 1`,
+    [hashRailwayToken(token)]
+  );
+  const row = result.rows[0] as (RailwayShopIdentity & Record<string, unknown>) | undefined;
+  if (!row) return null;
 
-    const client = new Client({ connectionString: dbUrl });
-    await client.connect();
-    try {
-      await client.query(
-        `
-          insert into public.app_sessions (token_hash, identity_type, identity_id, expires_at, last_seen_at)
-          values ($1, $2, $3, $4, now())
-          on conflict (token_hash)
-          do update set identity_type = excluded.identity_type,
-                        identity_id = excluded.identity_id,
-                        expires_at = excluded.expires_at,
-                        last_seen_at = now();
-        `,
-        [tokenHash, args.identityType, args.identityId, expiresAt]
-      );
-    } finally {
-      await client.end();
-    }
-
-    return { token, expiresAt };
-  } catch {
-    return null;
-  }
+  // PostgreSQL column aliases containing dots are returned as literal keys.
+  return {
+    ...row,
+    shop: {
+      id: row["shop.id"] as string,
+      name: row["shop.name"] as string,
+      slug: row["shop.slug"] as string,
+      currency: row["shop.currency"] as string,
+    },
+  };
 }
