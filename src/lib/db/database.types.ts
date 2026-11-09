@@ -1,17 +1,9 @@
-// Hand-written to match the full migration chain in supabase/*.sql
-// (0001 through 0010 — this file had drifted and was missing profiles/
-// freelancer_profiles.avatar_url and settings.overhead_recovery_basis from
-// 0008, which made every `.select()` touching those columns fail to
-// type-check). Once the Supabase project is live, prefer regenerating with:
-//   npx supabase gen types typescript --project-id <ref> > src/lib/supabase/database.types.ts
-// which will be exactly correct; this file is a faithful-effort stand-in so
-// the app has type safety in the meantime.
+// Hand-written to match the schema in db/migrations/*.sql. Keep this in sync
+// with the migration chain so query results remain correctly typed.
 //
 // Every table also carries `Relationships: []` and the schema carries empty
 // `Views`/`Functions` maps — required by the GenericTable/GenericSchema
-// shape in newer @supabase/postgrest-js versions; without them every query
-// silently typed as `never`, masking real errors under hundreds of false
-// "Property does not exist on type 'never'" ones.
+// shape used by the app's typed query layer.
 
 type Nullable<T> = T | null;
 

@@ -1,13 +1,11 @@
--- Madam Studio — Supabase-native schema (replaces prisma/schema.prisma)
--- Run in the Supabase SQL editor, or via `supabase db push`, in this order:
---   0001_tables.sql -> 0002_functions.sql -> 0003_rls.sql -> 0004_triggers.sql
+-- Madam Studio PostgreSQL schema, applied by scripts/migrate.mjs after
+-- 001_compat.sql.
 --
 -- Design notes:
---  * Every table uses uuid ids (gen_random_uuid()), matching Supabase convention.
+--  * Every table uses uuid ids (gen_random_uuid()).
 --  * `profiles` and `freelancer_profiles` are 1:1 extensions of auth.users —
---    their id IS the auth.users id. This is how Supabase Auth carries our
---    custom fields (role, shop_id, etc.) since auth.users itself is managed
---    by Supabase and shouldn't be altered directly.
+--    their id IS the auth.users id. The app-owned auth layer creates those
+--    identities and stores custom fields (role, shop_id, etc.) separately.
 --  * All shop-owned tables carry shop_id for tenant scoping, enforced by RLS
 --    (see 0003_rls.sql) — the same boundary the app used to enforce in code
 --    via getTenant()/tenantWhere(), now enforced by Postgres itself.
@@ -26,9 +24,8 @@ create table public.shops (
 );
 
 -- ─── People ────────────────────────────────────────────────────────
--- Extends auth.users 1:1. Created by our own server code right after
--- supabase.auth.admin.createUser() (registration) or .signUp() — never by
--- a raw trigger, so we control shop creation atomically. See auth routes.
+-- Extends auth.users 1:1. Created by our own server code during registration,
+-- never by a raw trigger, so we control shop creation atomically.
 create table public.profiles (
   id         uuid primary key references auth.users (id) on delete cascade,
   email      text not null unique,

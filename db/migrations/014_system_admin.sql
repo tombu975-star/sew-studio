@@ -20,7 +20,7 @@ alter table public.system_admins enable row level security;
 -- An admin may read ONLY their own row (that is how the app confirms who they
 -- are right after sign-in). There are deliberately no insert/update/delete
 -- policies: nobody can make themselves an admin from the app. Admins are
--- created with `npm run create-admin` or in the Supabase SQL editor.
+-- created with `npm run create-admin`.
 drop policy if exists "system admins read own row" on public.system_admins;
 create policy "system admins read own row"
   on public.system_admins for select
