@@ -1,5 +1,6 @@
 import { getTenant } from "@/lib/db/session";
 import { createAdminClient } from "@/lib/db/adminClient";
+import type { PoolClient } from "pg";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 export async function GET() {
@@ -62,10 +63,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return Response.json({ error: "A valid member request is required." }, { status: 400 });
+    }
     const { fullName, email, role, gender, phone, password, mentorId } = body || {};
     if (!fullName || !email) {
       return Response.json({ error: "Name and email are required." }, { status: 400 });
+    }
+    const name = String(fullName).trim();
+    if (name.length > 120) {
+      return Response.json({ error: "Name must be 120 characters or fewer." }, { status: 400 });
     }
     const validRoles = ["madam", "staff", "trainer", "trainee"];
     let finalRole = validRoles.includes(role) ? role : "staff";
@@ -77,6 +85,10 @@ export async function POST(req: Request) {
 
     if (phone && !isPlausiblePhone(phone)) {
       return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
+    }
+    const memberPassword = typeof password === "string" && password ? password : "atelier2025";
+    if (memberPassword.length < 6) {
+      return Response.json({ error: "Password must be at least 6 characters." }, { status: 400 });
     }
     // One account per email (Gmail aliases included) and per phone number.
     const conflict = await findIdentityConflict(admin, { email: emailNorm, phone });
@@ -98,8 +110,27 @@ export async function POST(req: Request) {
 
     const { data: authData, error: authError } = await admin.auth.admin.createUser({
       email: emailNorm,
-      password: String(password || "atelier2025"),
+      password: memberPassword,
       email_confirm: true,
+      provision: async (client: PoolClient, user) => {
+        const result = await client.query(
+          `insert into public.profiles
+            (id, shop_id, full_name, email, role, gender, phone, mentor_id)
+           values ($1, $2, $3, $4, $5, $6, $7, $8)
+           returning id, email, full_name, role, gender, phone, shop_id, mentor_id, created_at, updated_at`,
+          [
+            user.id,
+            ctx.shopId,
+            name,
+            emailNorm,
+            finalRole,
+            gender || null,
+            phone ? String(phone).trim().slice(0, 40) : null,
+            finalMentorId,
+          ]
+        );
+        return result.rows[0];
+      },
     });
     if (authError || !authData.user) {
       const message = authError?.message ?? "";
@@ -112,24 +143,8 @@ export async function POST(req: Request) {
       throw authError ?? new Error("Could not create the member's account.");
     }
     createdAuthUserId = authData.user.id;
-
-    const { data: profile, error: profileError } = await admin
-      .from("profiles")
-      .insert({
-        id: createdAuthUserId,
-        shop_id: ctx.shopId,
-        full_name: String(fullName).trim(),
-        email: emailNorm,
-        role: finalRole,
-        gender: gender || null,
-        phone: phone || null,
-        mentor_id: finalMentorId,
-      })
-      .select(
-        "id, email, full_name, role, gender, phone, shop_id, mentor_id, created_at, updated_at"
-      )
-      .single();
-    if (profileError || !profile) throw profileError ?? new Error("Could not create the profile.");
+    const profile = authData.provisioned;
+    if (!profile) throw new Error("Account was created without a member profile.");
 
     return Response.json({
       id: profile.id,
@@ -145,7 +160,8 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     if (createdAuthUserId) {
-      await admin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
+      const { error: cleanupError } = await admin.auth.admin.deleteUser(createdAuthUserId);
+      if (cleanupError) console.error("[users/create] auth cleanup failed", cleanupError);
     }
     const friendly = identityErrorMessage(err);
     if (friendly) return Response.json({ error: friendly }, { status: 409 });

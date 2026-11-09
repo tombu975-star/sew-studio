@@ -19,13 +19,32 @@ const t = async (name: string, fn: () => Promise<void>) => {
 };
 
 async function mkShop(admin: AppClient, name: string, email: string) {
-  const u = await admin.auth.admin.createUser({ email, password: "Passw0rd!!", email_confirm: true });
+  const slug = name.toLowerCase() + Math.random().toString(36).slice(2, 6);
+  const u = await admin.auth.admin.createUser({
+    email,
+    password: "Passw0rd!!",
+    email_confirm: true,
+    provision: async (client, user) => {
+      const shop = await client.query(
+        `insert into public.shops (name, slug) values ($1, $2) returning id`,
+        [name, slug]
+      );
+      const shopId = shop.rows[0].id as string;
+      await client.query(
+        `insert into public.settings (shop_id, studio_name) values ($1, $2)`,
+        [shopId, name]
+      );
+      await client.query(
+        `insert into public.profiles (id, email, full_name, role, shop_id)
+         values ($1, $2, $3, 'madam', $4)`,
+        [user.id, email, name + " Owner", shopId]
+      );
+      return { userId: user.id, shopId };
+    },
+  });
   assert.ifError(u.error);
-  const shop = await admin.from("shops").insert({ name, slug: name.toLowerCase() + Math.random().toString(36).slice(2, 6) }).select("*").single();
-  assert.ifError(shop.error);
-  const prof = await admin.from("profiles").insert({ id: u.data.user!.id, email, full_name: name + " Owner", role: "madam", shop_id: shop.data.id });
-  assert.ifError(prof.error);
-  return { userId: u.data.user!.id, shopId: shop.data.id as string };
+  assert.ok(u.data.provisioned);
+  return u.data.provisioned!;
 }
 
 (async () => {
@@ -37,6 +56,88 @@ async function mkShop(admin: AppClient, name: string, email: string) {
   await t("duplicate email is rejected with 'already'", async () => {
     const r = await admin.auth.admin.createUser({ email: `A-${tag}@t.com`, password: "x12345678" });
     assert.ok(r.error && /already/i.test(r.error.message));
+  });
+
+  await t("account and profile provision together and the new account can sign in", async () => {
+    const email = `freelancer-${tag}@t.com`;
+    const created = await admin.auth.admin.createUser({
+      email,
+      password: "Passw0rd!!",
+      provision: async (client, user) => {
+        await client.query(
+          `insert into public.freelancer_profiles (id, email, full_name)
+           values ($1, $2, $3)`,
+          [user.id, email, "Test Freelancer"]
+        );
+      },
+    });
+    assert.ifError(created.error);
+    assert.ok(created.data.user);
+
+    const login = new AppClient("authenticated", cookies, { ip: "5.6.7.8" });
+    assert.ifError((await login.auth.signInWithPassword({ email, password: "Passw0rd!!" })).error);
+    const profile = await login
+      .from("freelancer_profiles")
+      .select("id, full_name")
+      .eq("id", created.data.user.id)
+      .single();
+    assert.ifError(profile.error);
+    assert.equal(profile.data.full_name, "Test Freelancer");
+  });
+
+  await t("failed account provisioning rolls back both auth and profile rows", async () => {
+    const email = `rollback-${tag}@t.com`;
+    const created = await admin.auth.admin.createUser({
+      email,
+      password: "Passw0rd!!",
+      provision: async (client, user) => {
+        await client.query(
+          `insert into public.freelancer_profiles (id, email, full_name)
+           values ($1, $2, $3)`,
+          [user.id, email, "Should Roll Back"]
+        );
+        throw new Error("force transaction rollback");
+      },
+    });
+    assert.ok(created.error);
+    const rows = await getPool().query(
+      `select
+         (select count(*)::int from auth.users where email = $1) as users,
+         (select count(*)::int from public.freelancer_profiles where email = $1) as profiles`,
+      [email]
+    );
+    assert.equal(rows.rows[0].users, 0);
+    assert.equal(rows.rows[0].profiles, 0);
+  });
+
+  await t("a shop owner can create a staff login in the same shop", async () => {
+    const email = `staff-${tag}@t.com`;
+    const member = await admin.auth.admin.createUser({
+      email,
+      password: "Passw0rd!!",
+      provision: async (client, user) => {
+        const result = await client.query(
+          `insert into public.profiles (id, email, full_name, role, shop_id)
+           values ($1, $2, $3, 'staff', $4)
+           returning id, shop_id`,
+          [user.id, email, "Test Staff", A.shopId]
+        );
+        return result.rows[0];
+      },
+    });
+    assert.ifError(member.error);
+    assert.ok(member.data.provisioned);
+
+    const staff = new AppClient("authenticated", cookies, { ip: "9.8.7.6" });
+    assert.ifError((await staff.auth.signInWithPassword({ email, password: "Passw0rd!!" })).error);
+    const profile = await staff
+      .from("profiles")
+      .select("id, role, shop_id")
+      .eq("id", member.data.user!.id)
+      .single();
+    assert.ifError(profile.error);
+    assert.equal(profile.data.role, "staff");
+    assert.equal(profile.data.shop_id, A.shopId);
   });
 
   // sign in as Alpha owner through the cookie flow

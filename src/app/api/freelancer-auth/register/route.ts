@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { PoolClient } from "pg";
 import { createAdminClient } from "@/lib/db/adminClient";
 import { createRequestClient } from "@/lib/db/requestClient";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
@@ -18,7 +19,11 @@ export async function POST(req: Request) {
   let createdAuthUserId: string | null = null;
 
   try {
-    const { fullName, email, password, phone, specialty, skills } = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "A valid registration request is required." }, { status: 400 });
+    }
+    const { fullName, email, password, phone, specialty, skills } = body;
 
     const name = String(fullName ?? "").trim();
     const emailNorm = String(email ?? "").toLowerCase().trim();
@@ -40,6 +45,9 @@ export async function POST(req: Request) {
     if (phone && !isPlausiblePhone(phone)) {
       return NextResponse.json({ error: MESSAGES.badPhone }, { status: 400 });
     }
+    if (name.length > 120 || emailNorm.length > 254) {
+      return NextResponse.json({ error: "Name or email is too long." }, { status: 400 });
+    }
 
     // One account per email and per phone number, across the whole app.
     const conflict = await findIdentityConflict(admin, { email: emailNorm, phone });
@@ -56,6 +64,23 @@ export async function POST(req: Request) {
       email: emailNorm,
       password: String(password),
       email_confirm: true,
+      provision: async (client: PoolClient, user) => {
+        const result = await client.query(
+          `insert into public.freelancer_profiles
+            (id, email, full_name, phone, specialty, skills)
+           values ($1, $2, $3, $4, $5, $6)
+           returning id, email, full_name, phone, specialty, skills`,
+          [
+            user.id,
+            emailNorm,
+            name,
+            phone ? String(phone).trim().slice(0, 40) : null,
+            specialtyClean,
+            skills ? String(skills).trim().slice(0, 300) : null,
+          ]
+        );
+        return result.rows[0];
+      },
     });
     if (authError || !authData.user) {
       if ((authError?.message ?? "").toLowerCase().includes("already")) {
@@ -70,23 +95,10 @@ export async function POST(req: Request) {
       throw authError ?? new Error("Could not create the account.");
     }
     createdAuthUserId = authData.user.id;
+    const profile = authData.provisioned;
+    if (!profile) throw new Error("Account was created without a freelancer profile.");
 
-    // 2. The freelancer profile (same id as the sign-in).
-    const { data: profile, error: profileError } = await admin
-      .from("freelancer_profiles")
-      .insert({
-        id: createdAuthUserId,
-        email: emailNorm,
-        full_name: name.slice(0, 120),
-        phone: phone ? String(phone).trim().slice(0, 40) : null,
-        specialty: specialtyClean,
-        skills: skills ? String(skills).trim().slice(0, 300) : null,
-      })
-      .select("id, email, full_name, phone, specialty, skills")
-      .single();
-    if (profileError || !profile) throw profileError ?? new Error("Could not create the profile.");
-
-    // 3. Sign them in so they land straight in their portal.
+    // Sign them in so they land straight in their portal.
     const db = await createRequestClient();
     const { error: signInError } = await db.auth.signInWithPassword({
       email: emailNorm,
@@ -108,7 +120,8 @@ export async function POST(req: Request) {
     console.error("[freelancer-auth/register]", error);
     // Don't leave a sign-in behind with no profile.
     if (createdAuthUserId) {
-      await admin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
+      const { error: cleanupError } = await admin.auth.admin.deleteUser(createdAuthUserId);
+      if (cleanupError) console.error("[freelancer-auth/register] auth cleanup failed", cleanupError);
     }
     const friendly = identityErrorMessage(error);
     if (friendly) return NextResponse.json({ error: friendly }, { status: 409 });

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * App-owned authentication on Railway Postgres: Argon2id passwords, random
  * HttpOnly session cookies (only a SHA-256 digest is stored), and one-time
@@ -8,6 +7,7 @@
  */
 import { createHash, randomBytes } from "crypto";
 import { hash as argonHash, verify as argonVerify } from "@node-rs/argon2";
+import type { PoolClient } from "pg";
 import { getPool } from "./pool";
 import { sendEmail } from "../mailer";
 
@@ -66,16 +66,14 @@ export class AuthApi {
     );
     // opportunistic cleanup of expired rows
     getPool().query(`delete from private.sessions where expires_at < now()`).catch(() => {});
-    try {
-      this.cookies?.set(SESSION_COOKIE, token, {
+    if (this.cookies) {
+      this.cookies.set(SESSION_COOKIE, token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
         ...(persistent ? { maxAge: Math.floor(ttlMs / 1000) } : {}),
       });
-    } catch {
-      /* cookies can't be written from a Server Component render; routes can */
     }
   }
 
@@ -213,24 +211,27 @@ export class AuthApi {
   // ----- admin (service-level) -----
 
   admin = {
-    createUser: async (a: {
+    createUser: async <T = undefined>(a: {
       email: string;
       password: string;
       email_confirm?: boolean;
       user_metadata?: object;
-    }): Promise<{ data: { user: AuthUser | null }; error: AuthError | null }> => {
+      provision?: (client: PoolClient, user: AuthUser) => Promise<T>;
+    }): Promise<{ data: { user: AuthUser | null; provisioned?: T }; error: AuthError | null }> => {
       const email = String(a.email || "").toLowerCase().trim();
       const client = await getPool().connect();
       try {
         const passwordHash = await argonHash(String(a.password));
         await client.query("begin");
         const u = await client.query(`insert into auth.users (email) values ($1) returning id, email`, [email]);
+        const user = { id: u.rows[0].id, email: u.rows[0].email };
         await client.query(`insert into private.credentials (user_id, password_hash) values ($1, $2)`, [
-          u.rows[0].id,
+          user.id,
           passwordHash,
         ]);
+        const provisioned = a.provision ? await a.provision(client, user) : undefined;
         await client.query("commit");
-        return { data: { user: { id: u.rows[0].id, email: u.rows[0].email } }, error: null };
+        return { data: { user, provisioned }, error: null };
       } catch (e: any) {
         await client.query("rollback").catch(() => {});
         if (e?.code === "23505") {

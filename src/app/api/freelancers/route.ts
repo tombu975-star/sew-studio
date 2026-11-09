@@ -2,6 +2,9 @@ import { getTenant, canManageFreelancers } from "@/lib/db/session";
 import { createAdminClient } from "@/lib/db/adminClient";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, normalizeEmail, MESSAGES } from "@/lib/identity";
 import type { AppClient } from "@/lib/db/appClient";
+import type { PoolClient } from "pg";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // GET /api/freelancers — this shop's linked freelancers (their own
 // rate notes/status here, plus the freelancer's shared identity fields).
@@ -53,7 +56,6 @@ export async function GET() {
 // it links them (see db/schema/0003_rls.sql).
 export async function POST(req: Request) {
   const admin = createAdminClient();
-  let createdAuthUserId: string | null = null;
 
   try {
     const ctx = await getTenant();
@@ -70,12 +72,35 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
-    const { fullName, email, phone, specialty, skills, rateNotes, status, password } = body || {};
-    if (!fullName || !email) {
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return Response.json({ error: "A valid freelancer request is required." }, { status: 400 });
+    }
+
+    const { fullName, email, phone, specialty, skills, rateNotes, status, password } = body;
+    const name = String(fullName ?? "").trim();
+    const normalizedEmail = String(email ?? "").toLowerCase().trim();
+    if (!name || !normalizedEmail) {
       return Response.json({ error: "Name and email are required." }, { status: 400 });
     }
-    const normalizedEmail = String(email).toLowerCase().trim();
+    if (!EMAIL_RE.test(normalizedEmail)) {
+      return Response.json({ error: "Please enter a valid email address." }, { status: 400 });
+    }
+    if (name.length > 120 || normalizedEmail.length > 254) {
+      return Response.json({ error: "Name or email is too long." }, { status: 400 });
+    }
+    if (phone && !isPlausiblePhone(phone)) {
+      return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
+    }
+    if (password !== undefined && String(password).length < 6) {
+      return Response.json({ error: "Password must be at least 6 characters." }, { status: 400 });
+    }
+    const passwordValue = String(password || "freelancer2025");
+    const phoneValue = phone ? String(phone).trim().slice(0, 40) : null;
+    const specialtyValue = specialty ? String(specialty).trim().slice(0, 80) : null;
+    const skillsValue = skills ? String(skills).trim().slice(0, 300) : null;
+    const rateNotesValue = rateNotes ? String(rateNotes).trim().slice(0, 500) : null;
+    const statusValue = status ? String(status).trim().slice(0, 40) : "Available";
 
     // Find the freelancer by their normalised email, so a Gmail alias
     // (jo.hn+x@gmail.com) links to the account that already exists instead of
@@ -97,63 +122,86 @@ export async function POST(req: Request) {
       freelancer = exact.data;
     }
 
+    let link: {
+      id: string;
+      rate_notes: string | null;
+      status: string;
+      created_at: string;
+    } | null = null;
+
     if (!freelancer) {
-      if (phone && !isPlausiblePhone(phone)) {
-        return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
-      }
       // A brand-new account: its email/phone must not belong to anyone else
       // (a shop owner, a team member or another freelancer).
-      const conflict = await findIdentityConflict(admin, { email: normalizedEmail, phone });
+      const conflict = await findIdentityConflict(admin, { email: normalizedEmail, phone: phoneValue });
       if (conflict) return Response.json({ error: conflict.message }, { status: 409 });
 
       const { data: authData, error: authError } = await admin.auth.admin.createUser({
         email: normalizedEmail,
-        password: String(password || "freelancer2025"),
+        password: passwordValue,
         email_confirm: true,
+        provision: async (client: PoolClient, user) => {
+          const { rows: profileRows } = await client.query(
+            `insert into public.freelancer_profiles
+              (id, email, full_name, phone, specialty, skills)
+             values ($1, $2, $3, $4, $5, $6)
+             returning id, full_name, email, phone, specialty, skills`,
+            [user.id, normalizedEmail, name, phoneValue, specialtyValue, skillsValue]
+          );
+          const { rows: linkRows } = await client.query(
+            `insert into public.freelancer_shop_links
+              (shop_id, freelancer_id, rate_notes, status)
+             values ($1, $2, $3, $4)
+             returning id, rate_notes, status, created_at`,
+            [ctx.shopId, user.id, rateNotesValue, statusValue]
+          );
+          return { profile: profileRows[0], link: linkRows[0] };
+        },
       });
       if (authError || !authData.user) throw authError ?? new Error("Could not create freelancer account.");
-      createdAuthUserId = authData.user.id;
+      if (!authData.provisioned) {
+        throw new Error("Freelancer account was created without its shop link.");
+      }
+      freelancer = authData.provisioned.profile;
+      link = authData.provisioned.link;
+    }
 
-      const { data: created, error: createError } = await admin
-        .from("freelancer_profiles")
+    if (!link) {
+      const { data: existingLink } = await admin
+        .from("freelancer_shop_links")
+        .select("id")
+        .eq("shop_id", ctx.shopId)
+        .eq("freelancer_id", freelancer.id)
+        .maybeSingle();
+      if (existingLink) {
+        return Response.json(
+          { error: "This freelancer is already linked to your shop." },
+          { status: 409 }
+        );
+      }
+
+      const { data: createdLink, error: linkError } = await admin
+        .from("freelancer_shop_links")
         .insert({
-          id: createdAuthUserId,
-          email: normalizedEmail,
-          full_name: String(fullName).trim(),
-          phone: phone || null,
-          specialty: specialty || null,
-          skills: skills || null,
+          shop_id: ctx.shopId,
+          freelancer_id: freelancer.id,
+          rate_notes: rateNotesValue,
+          status: statusValue,
         })
         .select("*")
         .single();
-      if (createError) throw createError;
-      freelancer = created;
+      if (linkError?.code === "23505") {
+        return Response.json(
+          { error: "This freelancer is already linked to your shop." },
+          { status: 409 }
+        );
+      }
+      if (linkError) throw linkError;
+      link = createdLink;
     }
 
-    const { data: existingLink } = await admin
-      .from("freelancer_shop_links")
-      .select("id")
-      .eq("shop_id", ctx.shopId)
-      .eq("freelancer_id", freelancer.id)
-      .maybeSingle();
-    if (existingLink) {
-      return Response.json(
-        { error: "This freelancer is already linked to your shop." },
-        { status: 409 }
-      );
+    if (!freelancer || !link) {
+      throw new Error("Freelancer account was not fully linked to the shop.");
     }
-
-    const { data: link, error: linkError } = await admin
-      .from("freelancer_shop_links")
-      .insert({
-        shop_id: ctx.shopId,
-        freelancer_id: freelancer.id,
-        rate_notes: rateNotes || null,
-        status: status || "Available",
-      })
-      .select("*")
-      .single();
-    if (linkError) throw linkError;
 
     return Response.json({
       linkId: link.id,
@@ -168,9 +216,6 @@ export async function POST(req: Request) {
       createdAt: link.created_at,
     });
   } catch (err) {
-    if (createdAuthUserId) {
-      await admin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
-    }
     const friendly = identityErrorMessage(err);
     if (friendly) return Response.json({ error: friendly }, { status: 409 });
     const msg = err instanceof Error ? err.message : "Unknown error";
