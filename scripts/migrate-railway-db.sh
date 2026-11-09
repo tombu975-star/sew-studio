@@ -11,9 +11,8 @@ command -v psql >/dev/null 2>&1 || {
   exit 1
 }
 
-# Apply explicitly selected migration files in lexical order. This script
-# intentionally does not auto-run in production deployments until the app
-# migration has been tested and its database backup is verified.
+# This runner is intentionally for explicitly reviewed SQL files only. It does
+# not run automatically during a production deploy.
 shopt -s nullglob
 migrations=(railway/migrations/*.sql)
 if (( ${#migrations[@]} == 0 )); then

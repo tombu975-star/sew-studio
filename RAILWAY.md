@@ -1,30 +1,34 @@
 # Deploying Madam Studio on Railway
 
-> **Migration status:** the app still depends on Supabase for its data-access
-> and authentication code. Railway Postgres has an initial auth schema under
-> `railway/migrations/`, but the application has not been fully converted and
-> this guide is not a production cutover recipe yet. See `RAILWAY_MIGRATION.md`.
-> Keep the current Supabase project and variables until the full migration,
-> data copy, and verification are complete.
+> **Migration status:** the production application still uses Supabase for its
+> data access, authentication, and uploads. The branch includes an initial
+> Railway database bootstrap, but the app has not yet been converted and data
+> has not been copied. Do not remove Supabase configuration or switch
+> production traffic until the migration is complete and verified. See
+> `RAILWAY_MIGRATION.md`.
 
-## Target setup
+## Target architecture
 
-The target is a Next.js app service and a PostgreSQL service in the same Railway
-project. The app will connect to Postgres through a private, server-only
-`DATABASE_URL`. Do not expose database credentials in browser variables.
+Run the Next.js app and PostgreSQL services in one Railway project. The app
+will use the private, server-only `DATABASE_URL`; never expose it to browser
+code or use a `NEXT_PUBLIC_` prefix.
 
-## Railway project setup (when app conversion is ready)
+## Database bootstrap (new empty database only)
 
-1. Create a Railway project and deploy this repository as a service.
-2. Add a PostgreSQL service to the same Railway project.
-3. Configure the app's private `DATABASE_URL` from the Railway Postgres
-   connection reference.
-4. Take a database backup before applying schema migrations.
-5. Apply only the reviewed Railway migrations from a trusted environment.
-6. Configure `NEXT_PUBLIC_APP_URL` to the public Railway/custom domain and
-   redeploy.
-7. Complete the login, registration, data-integrity, tenant-isolation, uploads,
-   and recovery smoke tests before any production cutover.
+1. Add a Railway PostgreSQL service to the project.
+2. Make its private `DATABASE_URL` available to a trusted shell with `psql`.
+3. For a **new, empty database only**, run `bash scripts/bootstrap-railway-db.sh`.
+4. Back up the database and verify the schema before deploying app code that
+   uses it.
 
-The current `npm run start` deployment still requires the existing Supabase
-variables because production routes have not yet been converted.
+The bootstrap refuses to run if the `public` schema already contains tables.
+It does not copy production data or migrate Supabase accounts. The current app
+still needs its existing Supabase variables, so this database is not yet a
+replacement backend.
+
+## App service
+
+Deploy the GitHub repository as a Railway service. `railway.json` configures the
+start command and health endpoint. Do not remove Supabase variables until the
+application code, data, auth, uploads, and all integrations have been migrated
+and smoke-tested.
