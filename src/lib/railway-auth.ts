@@ -5,8 +5,8 @@ import { Pool } from "pg";
 
 const scrypt = promisify(scryptCallback);
 export const RAILWAY_SESSION_COOKIE = "madam_session";
-const SESSION_DAYS = 7;
-const REMEMBERED_SESSION_DAYS = 30;
+const SESSION_SECONDS = 7 * 24 * 60 * 60;
+const REMEMBERED_SESSION_SECONDS = 30 * 24 * 60 * 60;
 
 type IdentityType = "shop" | "freelancer" | "system_admin";
 
@@ -56,7 +56,6 @@ export function createRailwaySessionToken(): string {
 
 /** Store password hashes as scrypt$salt$digest. Never store plaintext passwords. */
 export async function hashRailwayPassword(password: string): Promise<string> {
-  if (password.length < 8) throw new Error("Password must contain at least 8 characters");
   const salt = randomBytes(16);
   const key = (await scrypt(password, salt, 64)) as Buffer;
   return `scrypt$${salt.toString("base64url")}$${key.toString("base64url")}`;
@@ -93,7 +92,7 @@ export async function createRailwaySession(args: {
   rememberMe?: boolean;
 }): Promise<{ token: string; expiresAt: Date }> {
   const token = createRailwaySessionToken();
-  const expiresAt = new Date(Date.now() + (args.rememberMe ? REMEMBERED_SESSION_DAYS : SESSION_DAYS) * 86_400_000);
+  const expiresAt = new Date(Date.now() + (args.rememberMe ? REMEMBERED_SESSION_SECONDS : SESSION_SECONDS) * 1000);
   await getPool().query(
     `insert into public.app_sessions (token_hash, identity_type, identity_id, expires_at, last_seen_at)
      values ($1, $2, $3, $4, now())`,
@@ -102,7 +101,7 @@ export async function createRailwaySession(args: {
   return { token, expiresAt };
 }
 
-export async function setRailwaySessionCookie(token: string, maxAgeSeconds = SESSION_DAYS * 86_400) {
+export async function setRailwaySessionCookie(token: string, maxAgeSeconds = SESSION_SECONDS) {
   const cookieStore = await cookies();
   cookieStore.set(RAILWAY_SESSION_COOKIE, token, {
     httpOnly: true,
@@ -135,7 +134,7 @@ export async function getRailwayShopSession(): Promise<RailwayShopIdentity | nul
   const token = cookieStore.get(RAILWAY_SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const result = await getPool().query<RailwayShopIdentity>(
+  const result = await getPool().query<Record<string, unknown>>(
     `select p.id,
             p.email,
             p.full_name as "fullName",
@@ -147,14 +146,11 @@ export async function getRailwayShopSession(): Promise<RailwayShopIdentity | nul
             p.can_access_orders as "canAccessOrders",
             p.can_access_board as "canAccessBoard",
             p.can_manage_freelancers as "canManageFreelancers",
-            s.id as "shop.id",
-            s.name as "shop.name",
-            s.slug as "shop.slug",
-            s.currency as "shop.currency",
-            c.identity_type as "identityType"
+            s.id as shop_id,
+            s.name as shop_name,
+            s.slug as shop_slug,
+            s.currency as shop_currency
        from public.app_sessions session
-       join public.app_credentials c
-         on c.identity_type = session.identity_type and c.identity_id = session.identity_id
        join public.profiles p on p.id = session.identity_id
        join public.shops s on s.id = p.shop_id
       where session.token_hash = $1
@@ -165,17 +161,27 @@ export async function getRailwayShopSession(): Promise<RailwayShopIdentity | nul
       limit 1`,
     [hashRailwayToken(token)]
   );
-  const row = result.rows[0] as (RailwayShopIdentity & Record<string, unknown>) | undefined;
+  const row = result.rows[0];
   if (!row) return null;
 
-  // PostgreSQL column aliases containing dots are returned as literal keys.
   return {
-    ...row,
+    identityType: "shop",
+    id: String(row.id),
+    email: String(row.email),
+    fullName: String(row.fullName),
+    role: row.role as RailwayShopIdentity["role"],
+    gender: row.gender as string | null,
+    phone: row.phone as string | null,
+    avatarUrl: row.avatarUrl as string | null,
+    shopId: String(row.shopId),
+    canAccessOrders: Boolean(row.canAccessOrders),
+    canAccessBoard: Boolean(row.canAccessBoard),
+    canManageFreelancers: Boolean(row.canManageFreelancers),
     shop: {
-      id: row["shop.id"] as string,
-      name: row["shop.name"] as string,
-      slug: row["shop.slug"] as string,
-      currency: row["shop.currency"] as string,
+      id: String(row.shop_id),
+      name: String(row.shop_name),
+      slug: String(row.shop_slug),
+      currency: String(row.shop_currency),
     },
   };
 }
