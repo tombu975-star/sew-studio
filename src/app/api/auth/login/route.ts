@@ -1,20 +1,60 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import {
+  authenticateRailwayShop,
+  isRailwayAuthEnabled,
+  setRailwaySessionCookie,
+} from "@/lib/railway-auth";
 
 export async function POST(req: Request) {
   try {
     const { email, password, rememberMe } = await req.json();
-    if (!email || !password) {
+    const normalizedEmail = String(email ?? "").trim().toLowerCase();
+    const normalizedPassword = typeof password === "string" ? password : "";
+
+    if (!normalizedEmail || !normalizedPassword) {
       return NextResponse.json(
         { error: "Email and password are required." },
         { status: 400 }
       );
     }
 
+    if (isRailwayAuthEnabled()) {
+      const result = await authenticateRailwayShop(
+        normalizedEmail,
+        normalizedPassword,
+        rememberMe === true
+      );
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error }, { status: result.status });
+      }
+
+      await setRailwaySessionCookie(result.token, result.maxAgeSeconds);
+      const profile = result.user;
+      return NextResponse.json({
+        user: {
+          id: profile.id,
+          email: profile.email,
+          fullName: profile.fullName,
+          role: profile.role,
+          gender: profile.gender,
+          phone: profile.phone,
+          avatarUrl: profile.avatarUrl,
+          shopId: profile.shopId,
+          shop: profile.shop,
+          canAccessOrders: profile.canAccessOrders,
+          canAccessBoard: profile.canAccessBoard,
+          canManageFreelancers: profile.canManageFreelancers,
+        },
+      });
+    }
+
+    // Existing Supabase flow remains the default until Railway data access and
+    // tenant authorization have been migrated and verified.
     const supabase = await createServerSupabaseClient({ rememberMe: rememberMe === true });
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: String(email).toLowerCase().trim(),
-      password: String(password),
+      email: normalizedEmail,
+      password: normalizedPassword,
     });
     if (error || !data.user) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
@@ -29,9 +69,6 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (!profile) {
-      // Auth user exists but has no shop profile — most likely this email
-      // belongs to a freelancer account instead. Sign them back out of this
-      // session (they're not a shop member) and say so clearly.
       await supabase.auth.signOut();
       return NextResponse.json(
         { error: "No shop account found for that email. Freelancers should sign in at /freelancer." },
