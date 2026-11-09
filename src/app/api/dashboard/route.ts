@@ -1,4 +1,4 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 import {
   serializeOrder,
   serializePayment,
@@ -8,7 +8,7 @@ import {
   serializeCustomer,
   serializeStyleConcept,
   serializeSettings,
-} from "@/lib/supabase/serializers";
+} from "@/lib/db/serializers";
 
 // Payload is deliberately lean: the dashboard already receives payments and
 // fittings as their own top-level lists, so embedding them again inside every
@@ -31,43 +31,43 @@ export async function GET() {
       styleConceptsRes,
       settingsRes,
     ] = await Promise.all([
-      ctx.supabase
+      ctx.db
         .from("orders")
         .select(ORDER_SELECT)
         .eq("shop_id", ctx.shopId)
         .order("created_at", { ascending: false }),
-      ctx.supabase
+      ctx.db
         .from("payments")
         .select("*, order:orders!inner(shop_id)")
         .eq("order.shop_id", ctx.shopId)
         .order("date", { ascending: false }),
-      ctx.supabase
+      ctx.db
         .from("fittings")
         .select("*, order:orders!inner(id, shop_id, garment_design, customer:customers(id, name))")
         .eq("order.shop_id", ctx.shopId)
         .order("date", { ascending: true }),
-      ctx.supabase
+      ctx.db
         .from("tasks")
         .select("*, order:orders(id, garment_design)")
         .eq("shop_id", ctx.shopId)
         .order("created_at", { ascending: false }),
-      ctx.supabase
+      ctx.db
         .from("profiles")
         .select("*")
         .eq("shop_id", ctx.shopId)
         .order("created_at", { ascending: true }),
-      ctx.supabase
+      ctx.db
         .from("customers")
         .select("*")
         .eq("shop_id", ctx.shopId)
         .order("created_at", { ascending: false }),
-      ctx.supabase
+      ctx.db
         .from("style_concepts")
         .select("*, customer:customers(id, name)")
         .eq("shop_id", ctx.shopId)
         .order("created_at", { ascending: false })
         .limit(100),
-      ctx.supabase.from("settings").select("*").eq("shop_id", ctx.shopId).maybeSingle(),
+      ctx.db.from("settings").select("*").eq("shop_id", ctx.shopId).maybeSingle(),
     ]);
 
     for (const res of [ordersRes, paymentsRes, fittingsRes, tasksRes, usersRes, customersRes, styleConceptsRes]) {
@@ -76,7 +76,7 @@ export async function GET() {
 
     let settings = settingsRes.data;
     if (!settings) {
-      const { data: created, error } = await ctx.supabase
+      const { data: created, error } = await ctx.db
         .from("settings")
         .insert({ shop_id: ctx.shopId, owner_gender: "Madam", studio_name: "Madam Studio" })
         .select("*")

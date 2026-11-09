@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
-import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { createAdminClient } from "@/lib/db/adminClient";
+import { createRequestClient } from "@/lib/db/requestClient";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 const SPECIALTIES = ["Beader", "Embroiderer", "Cutter", "Tailor", "Designer", "Photographer", "Other"];
@@ -14,7 +14,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // their email (Team → Freelancers → Add Freelancer), which reuses this
 // profile instead of creating a second one.
 export async function POST(req: Request) {
-  const admin = createAdminSupabaseClient();
+  const admin = createAdminClient();
   let createdAuthUserId: string | null = null;
 
   try {
@@ -87,8 +87,8 @@ export async function POST(req: Request) {
     if (profileError || !profile) throw profileError ?? new Error("Could not create the profile.");
 
     // 3. Sign them in so they land straight in their portal.
-    const supabase = await createServerSupabaseClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const db = await createRequestClient();
+    const { error: signInError } = await db.auth.signInWithPassword({
       email: emailNorm,
       password: String(password),
     });

@@ -1,6 +1,6 @@
-import { getTenant } from "@/lib/supabase/session";
-import type { Database } from "@/lib/supabase/database.types";
-import { serializeTrainingProgram } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import type { Database } from "@/lib/db/database.types";
+import { serializeTrainingProgram } from "@/lib/db/serializers";
 
 export async function GET(
   req: Request,
@@ -11,7 +11,7 @@ export async function GET(
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { data: program } = await ctx.supabase
+    const { data: program } = await ctx.db
       .from("training_programs")
       .select(
         "*, units:competency_units(*), created_by:profiles!training_programs_created_by_id_fkey(id, full_name), trainees:profiles!profiles_program_id_fkey(*)"
@@ -47,7 +47,7 @@ export async function PATCH(
       );
     }
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("training_programs")
       .select("id")
       .eq("id", id)
@@ -63,7 +63,7 @@ export async function PATCH(
     if (body.description !== undefined)
       data.description = body.description ? String(body.description) : null;
 
-    const { data: updated, error } = await ctx.supabase
+    const { data: updated, error } = await ctx.db
       .from("training_programs")
       .update(data)
       .eq("id", id)
@@ -92,7 +92,7 @@ export async function DELETE(
       );
     }
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("training_programs")
       .select("id")
       .eq("id", id)
@@ -101,8 +101,8 @@ export async function DELETE(
     if (!existing) return Response.json({ error: "Program not found" }, { status: 404 });
 
     // Enrolled trainees fall back to no program (program_id -> NULL — see
-    // "on delete set null" in supabase/schema/0001_tables.sql).
-    await ctx.supabase.from("training_programs").delete().eq("id", id);
+    // "on delete set null" in db/schema/0001_tables.sql).
+    await ctx.db.from("training_programs").delete().eq("id", id);
     return Response.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { createRequestClient } from "@/lib/db/requestClient";
 
 export async function POST(req: Request) {
   try {
@@ -11,8 +11,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const db = await createRequestClient();
+    const { data, error } = await db.auth.signInWithPassword({
       email: String(email).toLowerCase().trim(),
       password: String(password),
     });
@@ -42,20 +42,20 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
       }
 
-      // Everything below is NOT a wrong password: the request to Supabase
+      // Everything below is NOT a wrong password: the request to the database
       // itself failed. Say what kind of failure, and point at the status page.
       const name = (error as { name?: string } | null)?.name ?? "";
       const detail = code || name || "unknown error";
       const status = error?.status;
       let reason: string;
       if (code === "email_provider_disabled" || /email.*(disabled|not enabled)/i.test(msg)) {
-        reason = "Email sign-in is switched off in your Supabase project (Authentication → Providers → Email).";
+        reason = "Email sign-in is switched off in your database (Authentication → Providers → Email).";
       } else if (code === "invalid_api_key" || /invalid api key|apikey/i.test(msg) || status === 401 || status === 403) {
-        reason = "Supabase rejected the API key this site uses (wrong key, or one from a different project).";
+        reason = "The database rejected the API key this site uses (wrong key, or one from a different project).";
       } else if (name === "AuthRetryableFetchError" || !status || status >= 500) {
-        reason = "The site couldn't connect to Supabase (wrong URL, or the project is paused).";
+        reason = "The site couldn't connect to the database (wrong URL, or the project is paused).";
       } else {
-        reason = "Supabase returned an unexpected error.";
+        reason = "The database returned an unexpected error.";
       }
       return NextResponse.json(
         { error: `${reason} [${detail}] Open /api/admin-auth/status on this site for exact steps.` },
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data: admin } = await supabase
+    const { data: admin } = await db
       .from("system_admins")
       .select("id, email, full_name")
       .eq("id", data.user.id)
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     if (!admin) {
       // This login works for shop members and freelancers too — a correct
       // password for one of those doesn't make them a system admin.
-      await supabase.auth.signOut();
+      await db.auth.signOut();
       return NextResponse.json(
         { error: "No system admin account found for that email." },
         { status: 401 }

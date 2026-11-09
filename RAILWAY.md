@@ -1,53 +1,59 @@
-# Deploying Madam Studio on Railway
+# Madam Studio on Railway
 
-Only the Next.js app moves to Railway. **Supabase stays exactly as it is** —
-database, auth, storage and all your data are untouched.
+Everything runs in one Railway project: the Next.js app and a PostgreSQL
+service. There is no other hosted backend.
 
-## 1. Push the code to GitHub
-Never commit `.env*` files (the repo's `.gitignore` already blocks them).
+## How it fits together
 
-## 2. Create the Railway service
-Railway → **New Project → Deploy from GitHub repo** → pick this repo.
-`railway.json` supplies the start command, health check and restart policy;
-the build (`npm run build`) is detected automatically.
+- **Database:** Railway Postgres. The app connects over Railway's private
+  network with `DATABASE_URL` (a reference to the Postgres service, never
+  exposed to the browser).
+- **Tenant isolation:** unchanged. Row-level-security policies in the database
+  decide what each signed-in user can see. For every query the app switches to
+  the `authenticated` role and sets the caller's id, which the policies read
+  through `auth.uid()` (`db/migrations/001_compat.sql`).
+- **Sign-in:** the app owns it. Passwords are Argon2id hashes in
+  `private.credentials`; sessions are random HttpOnly cookies and only a
+  SHA-256 digest is stored (`private.sessions`). The `private` schema is not
+  reachable by the request roles. Failed logins are rate-limited per email+IP.
+- **Pictures:** stored in the `uploads` table and served from `/api/files/<id>`.
+- **Password reset emails** go out through the Google Apps Script web app set
+  in `GOOGLE_APPS_SCRIPT_URL` / `GOOGLE_APPS_SCRIPT_SECRET` (the same one used
+  for customer notifications). Without it, reset links cannot be delivered.
 
-## 3. Set variables — *before* the first deploy
-Service → **Variables**. See `.env.example` for the full list.
+## Variables on the app service
 
-| Variable | Required | Notes |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | yes | `https://<project-ref>.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Supabase → Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | yes | Server-only secret. Never `NEXT_PUBLIC_`. |
-| `NEXT_PUBLIC_APP_URL` | recommended | The public Railway/custom domain (builds password-reset links) |
-| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | optional | Style Assist (AI) |
-| `GOOGLE_APPS_SCRIPT_URL` / `_SECRET` | optional | Customer notification relay |
+| Variable | Value |
+| --- | --- |
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
+| `NODE_ENV` | `production` |
+| `NEXT_PUBLIC_APP_URL` | the public https address of the app (used in reset links) |
+| `GOOGLE_APPS_SCRIPT_URL`, `GOOGLE_APPS_SCRIPT_SECRET` | optional, for email/WhatsApp/SMS |
+| `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` | optional, for Style Assist |
 
-`NEXT_PUBLIC_*` values are baked into the browser bundle **at build time** —
-if you change one, trigger a **redeploy**, not just a restart.
+## Deploys
 
-## 4. Public domain
-Service → **Settings → Networking → Generate Domain** (or add a custom domain).
-Then set `NEXT_PUBLIC_APP_URL` to that URL and redeploy.
+`railway.json` runs `npm run db:migrate` as the pre-deploy command. It applies
+any new files in `db/migrations/` once each (recorded in
+`private.schema_migrations`) and does nothing when the database is current.
 
-## 5. Tell Supabase about the new domain
-Supabase → **Authentication → URL Configuration**
-- **Site URL**: your Railway/custom domain
-- **Redirect URLs**: add `https://<your-domain>/**`
+## First-time setup
 
-Without this, password-reset emails will not redirect back to the app.
+1. Deploy. The migration creates the schema.
+2. Create the platform admin from your machine:
+   `railway run npm run create-admin -- you@example.com "a-strong-password" "Your Name"`
+   (check it with `--check`).
+3. Open `/api/admin-auth/status` to confirm the app reaches the database.
 
-## 6. Verify
-1. `https://<domain>/api/health` → `{"ok":true,…}` (the app is up)
-2. `https://<domain>/api/admin-auth/status` → `"ok": true` (Supabase reachable, keys valid)
-3. Sign in at `/`, `/freelancer` and `/admin`.
+## Adding a migration
 
-## Good to know
-- **Region:** the Supabase project is in eu-west-1 (Ireland). Choose Railway's
-  **EU West (Amsterdam)** region for the lowest latency.
-- **Everyone signs in again** on the new domain — session cookies don't carry
-  across domains. Anyone who installed the PWA from the old URL must re-install it.
-- **Vercel:** once Railway works, disconnect/delete the Vercel project so two
-  deployments aren't serving the same app. `vercel.json` is harmless and can be removed.
-- The health check intentionally makes no database call, so a Supabase hiccup
-  can't cause Railway to restart a healthy app.
+Add the next numbered file to `db/migrations/` (plain SQL). Never edit one
+that has already been applied.
+
+## Tests
+
+With a throwaway migrated database:
+
+```bash
+DATABASE_URL=postgresql://... npx tsx tests/db-layer.test.ts
+```

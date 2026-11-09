@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTenant } from "@/lib/supabase/session";
-import { serializeMeasurementSet } from "@/lib/supabase/serializers";
-import { buildMeasurementData } from "@/lib/supabase/measurement-input";
+import { getTenant } from "@/lib/db/session";
+import { serializeMeasurementSet } from "@/lib/db/serializers";
+import { buildMeasurementData } from "@/lib/db/measurement-input";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -17,7 +17,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
 
-  const { data: existing } = await ctx.supabase
+  const { data: existing } = await ctx.db
     .from("measurement_sets")
     .select("id")
     .eq("id", id)
@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
   }
 
-  const { data: updated, error } = await ctx.supabase
+  const { data: updated, error } = await ctx.db
     .from("measurement_sets")
     .update(built.data)
     .eq("id", id)
@@ -57,7 +57,7 @@ export async function DELETE(_req: NextRequest, { params }: Ctx) {
   }
 
   const { id } = await params;
-  const { data: deleted, error } = await ctx.supabase
+  const { data: deleted, error } = await ctx.db
     .from("measurement_sets")
     .delete()
     .eq("id", id)

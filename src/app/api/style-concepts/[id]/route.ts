@@ -1,6 +1,6 @@
-import { getTenant } from "@/lib/supabase/session";
-import type { Database } from "@/lib/supabase/database.types";
-import { serializeStyleConcept } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import type { Database } from "@/lib/db/database.types";
+import { serializeStyleConcept } from "@/lib/db/serializers";
 
 const CAMEL_TO_SNAKE: Record<string, string> = {
   garmentType: "garment_type",
@@ -35,7 +35,7 @@ export async function PATCH(
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("style_concepts")
       .select("id")
       .eq("id", id)
@@ -52,7 +52,7 @@ export async function PATCH(
     if ("matchPercent" in body)
       data.match_percent = body.matchPercent == null ? null : Number(body.matchPercent) || null;
     if ("customerId" in body && body.customerId) {
-      const { data: customer } = await ctx.supabase
+      const { data: customer } = await ctx.db
         .from("customers")
         .select("id")
         .eq("id", String(body.customerId))
@@ -61,7 +61,7 @@ export async function PATCH(
       if (customer) data.customer_id = String(body.customerId);
     }
 
-    const { data: concept, error } = await ctx.supabase
+    const { data: concept, error } = await ctx.db
       .from("style_concepts")
       .update(data)
       .eq("id", id)

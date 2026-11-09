@@ -53,6 +53,9 @@ server.log
 # Skills directory
 /skills/
 
-# local SQLite database (dev only — Supabase used in production)
+# Supabase CLI local state retained outside version control
+/supabase/.temp/
+
+# local SQLite database (development only)
 /db/*.db
 /db/*.db-journal

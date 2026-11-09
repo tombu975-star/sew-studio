@@ -1,5 +1,5 @@
-import { getTenant } from "@/lib/supabase/session";
-import { serializeCertificate } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import { serializeCertificate } from "@/lib/db/serializers";
 
 const CERT_SELECT =
   "*, trainee:profiles!certificates_trainee_id_fkey(id, full_name, email, gender), issued_by:profiles!certificates_issued_by_id_fkey(id, full_name)";
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     // else's certificates by passing a different traineeId.
     const traineeId = ctx.role === "trainee" ? ctx.userId : requestedTraineeId;
 
-    let query = ctx.supabase.from("certificates").select(CERT_SELECT).eq("shop_id", ctx.shopId);
+    let query = ctx.db.from("certificates").select(CERT_SELECT).eq("shop_id", ctx.shopId);
     if (traineeId) query = query.eq("trainee_id", traineeId);
 
     const { data: certs, error } = await query.order("issued_at", { ascending: false });
@@ -42,14 +42,14 @@ export async function POST(req: Request) {
     }
 
     const [{ data: trainee }, { data: issuer }] = await Promise.all([
-      ctx.supabase.from("profiles").select("id").eq("id", String(traineeId)).eq("shop_id", ctx.shopId).maybeSingle(),
-      ctx.supabase.from("profiles").select("id").eq("id", String(issuedById)).eq("shop_id", ctx.shopId).maybeSingle(),
+      ctx.db.from("profiles").select("id").eq("id", String(traineeId)).eq("shop_id", ctx.shopId).maybeSingle(),
+      ctx.db.from("profiles").select("id").eq("id", String(issuedById)).eq("shop_id", ctx.shopId).maybeSingle(),
     ]);
     if (!trainee || !issuer) {
       return Response.json({ error: "Trainee or issuer not found in this shop." }, { status: 404 });
     }
 
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("certificates")
       .select("id")
       .eq("trainee_id", traineeId)
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     }
 
     const certNo = `MS-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
-    const { data: cert, error } = await ctx.supabase
+    const { data: cert, error } = await ctx.db
       .from("certificates")
       .insert({
         shop_id: ctx.shopId,

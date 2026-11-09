@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { createRequestClient } from "@/lib/db/requestClient";
 
 // POST /api/auth/change-password — for a user who is already signed in and
 // knows their current password (distinct from the forgot/reset-password
@@ -20,15 +20,15 @@ export async function POST(req: Request) {
   }
 
   try {
-    const supabase = await createServerSupabaseClient();
+    const db = await createRequestClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await db.auth.getUser();
     if (!user?.email) {
       return NextResponse.json({ error: "Your session has expired. Sign in again." }, { status: 401 });
     }
 
-    const { error: verifyError } = await supabase.auth.signInWithPassword({
+    const { error: verifyError } = await db.auth.signInWithPassword({
       email: user.email,
       password: currentPassword,
     });
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Your current password is incorrect." }, { status: 401 });
     }
 
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { error } = await db.auth.updateUser({ password: newPassword });
     if (error) {
       return NextResponse.json({ error: "Could not update your password. Try again." }, { status: 400 });
     }

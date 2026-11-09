@@ -1,4 +1,4 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 
 // GET /api/portfolio?staffId=ID — portfolio of completed work.
 // Without staffId: studio-wide portfolio (all completed/collected orders with images).
@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const staffId = url.searchParams.get("staffId");
 
-    let query = ctx.supabase
+    let query = ctx.db
       .from("orders")
       .select(
         "*, customer:customers(id, name), assigned_staff:profiles!orders_assigned_staff_id_fkey(id, full_name)"

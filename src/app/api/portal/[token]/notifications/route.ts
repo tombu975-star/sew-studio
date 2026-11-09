@@ -1,4 +1,4 @@
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import { createAdminClient } from "@/lib/db/adminClient";
 
 // GET /api/portal/[token]/notifications — customer's alert timeline (public).
 export async function GET(
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { token } = await params;
-    const admin = createAdminSupabaseClient();
+    const admin = createAdminClient();
 
     const { data: customer } = await admin
       .from("customers")
@@ -59,7 +59,7 @@ export async function PATCH(
 ) {
   try {
     const { token } = await params;
-    const admin = createAdminSupabaseClient();
+    const admin = createAdminClient();
 
     const { data: customer } = await admin
       .from("customers")

@@ -1,16 +1,35 @@
 import { NextResponse } from "next/server";
-import { diagnoseSupabase } from "@/lib/supabaseDiagnostics";
+import { getPool } from "@/lib/db/pool";
 
-// GET /api/admin-auth/status — open it in a browser to see why sign-in can't
-// reach Supabase. Shows only yes/no answers, the public project address and
-// hints; never any key. Delete this file once sign-in works if you prefer.
+// GET /api/admin-auth/status — quick check that the app can reach its
+// Railway Postgres database and that the schema is in place. Reports only
+// yes/no answers and plain-English hints; never a connection string or secret.
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const result = await diagnoseSupabase({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  });
-  return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
+  const hints: string[] = [];
+  const out = { configured: !!process.env.DATABASE_URL, reachable: false, schemaReady: false, adminExists: false, hints };
+  if (!out.configured) {
+    hints.push("DATABASE_URL is not set. Link the Railway Postgres service to this app.");
+    return NextResponse.json(out, { headers: { "Cache-Control": "no-store" } });
+  }
+  try {
+    const pool = getPool();
+    await pool.query("select 1");
+    out.reachable = true;
+    const t = await pool.query(
+      `select to_regclass('public.profiles') is not null as profiles,
+              to_regclass('private.credentials') is not null as creds`
+    );
+    out.schemaReady = !!(t.rows[0]?.profiles && t.rows[0]?.creds);
+    if (!out.schemaReady) hints.push("The database is empty. Run the schema setup (npm run db:migrate).");
+    else {
+      const a = await pool.query(`select count(*)::int as n from system_admins`);
+      out.adminExists = a.rows[0].n > 0;
+      if (!out.adminExists) hints.push("No platform admin yet. Run: npm run create-admin");
+    }
+  } catch (e) {
+    hints.push(`Could not reach the database: ${(e as Error).message}`);
+  }
+  return NextResponse.json(out, { headers: { "Cache-Control": "no-store" } });
 }

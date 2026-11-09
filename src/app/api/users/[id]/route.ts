@@ -1,6 +1,6 @@
-import { getTenant } from "@/lib/supabase/session";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
-import type { Database } from "@/lib/supabase/database.types";
+import { getTenant } from "@/lib/db/session";
+import { createAdminClient } from "@/lib/db/adminClient";
+import type { Database } from "@/lib/db/database.types";
 import { findIdentityConflict, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 export async function GET(
@@ -11,7 +11,7 @@ export async function GET(
   if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { data: profile } = await ctx.supabase
+  const { data: profile } = await ctx.db
     .from("profiles")
     .select("id, email, full_name, role, gender, phone, avatar_url, shop_id, mentor_id, training_duration_weeks, training_started_at, program_id, created_at")
     .eq("id", id)
@@ -62,7 +62,7 @@ export async function PATCH(
 
     const { id } = await params;
 
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("profiles")
       .select("id, role, mentor_id")
       .eq("id", id)
@@ -97,7 +97,7 @@ export async function PATCH(
     const data: Database["public"]["Tables"]["profiles"]["Update"] = {};
     if (mentorId !== undefined) {
       if (mentorId) {
-        const { data: mentor } = await ctx.supabase
+        const { data: mentor } = await ctx.db
           .from("profiles")
           .select("id")
           .eq("id", String(mentorId))
@@ -114,7 +114,7 @@ export async function PATCH(
       data.training_started_at = trainingStartedAt ? new Date(trainingStartedAt).toISOString() : null;
     if (programId !== undefined) {
       if (programId) {
-        const { data: program } = await ctx.supabase
+        const { data: program } = await ctx.db
           .from("training_programs")
           .select("id")
           .eq("id", String(programId))
@@ -132,7 +132,7 @@ export async function PATCH(
         if (!isPlausiblePhone(phone)) {
           return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
         }
-        const conflict = await findIdentityConflict(createAdminSupabaseClient(), {
+        const conflict = await findIdentityConflict(createAdminClient(), {
           phone,
           excludeId: id,
         });
@@ -161,7 +161,7 @@ export async function PATCH(
     if (canManageFreelancers !== undefined)
       data.can_manage_freelancers = Boolean(canManageFreelancers);
 
-    const { data: updated, error } = await ctx.supabase
+    const { data: updated, error } = await ctx.db
       .from("profiles")
       .update(data)
       .eq("id", id)
@@ -218,7 +218,7 @@ export async function DELETE(
       return Response.json({ error: "You can't remove yourself." }, { status: 400 });
     }
 
-    const { data: target } = await ctx.supabase
+    const { data: target } = await ctx.db
       .from("profiles")
       .select("id, role")
       .eq("id", id)
@@ -229,7 +229,7 @@ export async function DELETE(
       return Response.json({ error: "The studio owner can't be removed." }, { status: 400 });
     }
 
-    const admin = createAdminSupabaseClient();
+    const admin = createAdminClient();
     const nowIso = new Date().toISOString();
 
     // 1. Mark inactive. If migration 0012 hasn't been run, this column is missing.
@@ -242,7 +242,7 @@ export async function DELETE(
       return Response.json(
         {
           error:
-            "Couldn't remove this member. Make sure migration 0012_member_removal.sql has been run in Supabase. (" +
+            "Couldn't remove this member. Make sure migration 0012_member_removal.sql has been run in the database. (" +
             flagError.message +
             ")",
         },

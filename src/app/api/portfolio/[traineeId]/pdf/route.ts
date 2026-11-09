@@ -1,4 +1,4 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 import { buildPortfolioPdf } from "@/lib/portfolio-pdf";
 
 // GET /api/portfolio/[traineeId]/pdf
@@ -25,16 +25,16 @@ export async function GET(
       );
     }
 
-    const { data: shop } = await ctx.supabase
+    const { data: shop } = await ctx.db
       .from("shops")
       .select("name")
       .eq("id", ctx.shopId)
       .maybeSingle();
 
-    const { data: trainee } = await ctx.supabase
+    const { data: trainee } = await ctx.db
       .from("profiles")
       .select(
-        "*, mentor:profiles!profiles_mentor_id_fkey(full_name), program:training_programs(name, level)"
+        "*, mentor:profiles!profiles_mentor_id_fkey(full_name), program:training_programs!profiles_program_id_fkey(name, level)"
       )
       .eq("id", traineeId)
       .eq("shop_id", ctx.shopId)
@@ -44,20 +44,20 @@ export async function GET(
     }
 
     const [tasksRes, logsRes, certRes] = await Promise.all([
-      ctx.supabase
+      ctx.db
         .from("tasks")
         .select("*, competency_unit:competency_units(title)")
         .eq("shop_id", ctx.shopId)
         .eq("staff_id", traineeId)
         .eq("status", "Done")
         .order("updated_at", { ascending: false }),
-      ctx.supabase
+      ctx.db
         .from("training_logs")
         .select("*")
         .eq("shop_id", ctx.shopId)
         .eq("trainee_id", traineeId)
         .order("date", { ascending: false }),
-      ctx.supabase
+      ctx.db
         .from("certificates")
         .select("*, issued_by:profiles!certificates_issued_by_id_fkey(full_name)")
         .eq("shop_id", ctx.shopId)

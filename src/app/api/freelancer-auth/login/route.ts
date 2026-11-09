@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { createRequestClient } from "@/lib/db/requestClient";
 
 export async function POST(req: Request) {
   try {
@@ -11,8 +11,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const db = await createRequestClient();
+    const { data, error } = await db.auth.signInWithPassword({
       email: String(email).toLowerCase().trim(),
       password: String(password),
     });
@@ -20,14 +20,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
-    const { data: freelancer } = await supabase
+    const { data: freelancer } = await db
       .from("freelancer_profiles")
       .select("id, email, full_name, phone, specialty, skills")
       .eq("id", data.user.id)
       .maybeSingle();
 
     if (!freelancer) {
-      await supabase.auth.signOut();
+      await db.auth.signOut();
       return NextResponse.json(
         { error: "No freelancer account found for that email." },
         { status: 401 }

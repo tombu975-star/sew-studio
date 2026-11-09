@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 import ZAI from "@/lib/ai-client";
 
 export const dynamic = "force-dynamic";

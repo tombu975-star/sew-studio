@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Database } from "@/lib/supabase/database.types";
-import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/db/database.types";
+import { getTenant } from "@/lib/db/session";
 import {
   serializeCustomer,
   serializeOrder,
   serializeMeasurementSet,
   serializeCustomerFeedback,
   serializeStyleConcept,
-} from "@/lib/supabase/serializers";
+} from "@/lib/db/serializers";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 
   const { id } = await params;
 
-  const { data: customer } = await ctx.supabase
+  const { data: customer } = await ctx.db
     .from("customers")
     .select("*")
     .eq("id", id)
@@ -27,26 +27,26 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   if (!customer) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
 
   const [ordersRes, measurementsRes, feedbackRes, styleConceptsRes] = await Promise.all([
-    ctx.supabase
+    ctx.db
       .from("orders")
       .select("*, assigned_staff:profiles!orders_assigned_staff_id_fkey(*)")
       .eq("customer_id", id)
       .eq("shop_id", ctx.shopId)
       .order("order_date", { ascending: false }),
-    ctx.supabase
+    ctx.db
       .from("measurement_sets")
       .select("*, staff:profiles(id, full_name)")
       .eq("customer_id", id)
       .eq("shop_id", ctx.shopId)
       .order("date_taken", { ascending: false })
       .limit(60),
-    ctx.supabase
+    ctx.db
       .from("customer_feedback")
       .select("*")
       .eq("customer_id", id)
       .eq("shop_id", ctx.shopId)
       .order("date", { ascending: false }),
-    ctx.supabase
+    ctx.db
       .from("style_concepts")
       .select("*")
       .eq("customer_id", id)
@@ -82,7 +82,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const { id } = await params;
   const body: Record<string, unknown> = await req.json().catch(() => ({}));
 
-  const { data: existing } = await ctx.supabase
+  const { data: existing } = await ctx.db
     .from("customers")
     .select("id")
     .eq("id", id)
@@ -134,7 +134,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     data.loyalty_points = v === null || v === "" || v === undefined ? 0 : Number(v);
   }
 
-  const { data: updated, error } = await ctx.supabase
+  const { data: updated, error } = await ctx.db
     .from("customers")
     .update(data)
     .eq("id", id)
@@ -161,7 +161,7 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
   }
 
   const { id } = await params;
-  const { data: existing } = await ctx.supabase
+  const { data: existing } = await ctx.db
     .from("customers")
     .select("id")
     .eq("id", id)
@@ -169,14 +169,14 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
     .maybeSingle();
   if (!existing) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
 
-  const { error: ordersError } = await ctx.supabase
+  const { error: ordersError } = await ctx.db
     .from("orders")
     .delete()
     .eq("customer_id", id)
     .eq("shop_id", ctx.shopId);
   if (ordersError) return NextResponse.json({ error: ordersError.message }, { status: 500 });
 
-  const { error } = await ctx.supabase
+  const { error } = await ctx.db
     .from("customers")
     .delete()
     .eq("id", id)

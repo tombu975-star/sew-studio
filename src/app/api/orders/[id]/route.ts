@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Database } from "@/lib/supabase/database.types";
-import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/db/database.types";
+import { getTenant } from "@/lib/db/session";
 import { notifyCustomer, statusChangeMessage } from "@/lib/notify";
-import { serializeOrder, serializeTask } from "@/lib/supabase/serializers";
+import { serializeOrder, serializeTask } from "@/lib/db/serializers";
 
 const ORDER_SELECT =
   "*, customer:customers(*), assigned_staff:profiles!orders_assigned_staff_id_fkey(*), payments(*), fittings(*), tasks(*, staff:profiles!tasks_staff_id_fkey(*))";
@@ -34,7 +34,7 @@ export async function GET(
 
   const { id } = await params;
   const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
-  let query = ctx.supabase.from("orders").select(ORDER_SELECT).eq("id", id).eq("shop_id", ctx.shopId);
+  let query = ctx.db.from("orders").select(ORDER_SELECT).eq("id", id).eq("shop_id", ctx.shopId);
   if (!canSeeAll) {
     query = query.or(`assigned_staff_id.eq.${ctx.userId},assigned_staff_id.is.null`);
   }
@@ -55,7 +55,7 @@ export async function PATCH(
 
   const { id } = await params;
   const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
-  let existingQuery = ctx.supabase
+  let existingQuery = ctx.db
     .from("orders")
     .select("id, status, customer_id, garment_design")
     .eq("id", id)
@@ -86,7 +86,7 @@ export async function PATCH(
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.assignedStaffId !== undefined) {
     if (body.assignedStaffId) {
-      const { data: staff } = await ctx.supabase
+      const { data: staff } = await ctx.db
         .from("profiles")
         .select("id")
         .eq("id", body.assignedStaffId)
@@ -98,7 +98,7 @@ export async function PATCH(
     }
   }
   if (body.customerId !== undefined) {
-    const { data: customer } = await ctx.supabase
+    const { data: customer } = await ctx.db
       .from("customers")
       .select("id")
       .eq("id", body.customerId)
@@ -107,7 +107,7 @@ export async function PATCH(
     if (customer) data.customer_id = body.customerId;
   }
 
-  const { data: updated, error } = await ctx.supabase
+  const { data: updated, error } = await ctx.db
     .from("orders")
     .update(data)
     .eq("id", id)
@@ -123,7 +123,7 @@ export async function PATCH(
         : updated.status === "Collected/Delivered" || updated.status === "Completed"
           ? "delivered"
           : "status_change";
-    await notifyCustomer(ctx.supabase, {
+    await notifyCustomer(ctx.db, {
       shopId: ctx.shopId,
       customerId: existing.customer_id,
       orderId: id,
@@ -154,7 +154,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const { data: existing } = await ctx.supabase
+  const { data: existing } = await ctx.db
     .from("orders")
     .select("id")
     .eq("id", id)
@@ -162,7 +162,7 @@ export async function DELETE(
     .maybeSingle();
   if (!existing) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
-  const { error } = await ctx.supabase
+  const { error } = await ctx.db
     .from("orders")
     .delete()
     .eq("id", id)

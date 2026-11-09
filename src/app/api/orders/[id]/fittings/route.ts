@@ -1,6 +1,6 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 import { notifyCustomer } from "@/lib/notify";
-import { serializeFitting } from "@/lib/supabase/serializers";
+import { serializeFitting } from "@/lib/db/serializers";
 
 export async function POST(
   req: Request,
@@ -13,7 +13,7 @@ export async function POST(
     const { id } = await params;
     const body = await req.json();
 
-    const { data: order } = await ctx.supabase
+    const { data: order } = await ctx.db
       .from("orders")
       .select("id, customer_id, garment_design")
       .eq("id", id)
@@ -23,7 +23,7 @@ export async function POST(
 
     const fittingDate = body.date ? new Date(body.date) : new Date();
     const fittingStatus = body.status ? String(body.status) : "Scheduled";
-    const { data: fitting, error } = await ctx.supabase
+    const { data: fitting, error } = await ctx.db
       .from("fittings")
       .insert({
         order_id: id,
@@ -41,7 +41,7 @@ export async function POST(
         day: "numeric",
         month: "long",
       });
-      await notifyCustomer(ctx.supabase, {
+      await notifyCustomer(ctx.db, {
         shopId: ctx.shopId,
         customerId: order.customer_id,
         orderId: id,

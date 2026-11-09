@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Database } from "@/lib/supabase/database.types";
-import { getTenant } from "@/lib/supabase/session";
-import { serializeCustomer } from "@/lib/supabase/serializers";
+import type { Database } from "@/lib/db/database.types";
+import { getTenant } from "@/lib/db/session";
+import { serializeCustomer } from "@/lib/db/serializers";
 
 // GET /api/customers → Customer[] (each with computed _orderCount)
 export async function GET(req: NextRequest) {
   const ctx = await getTenant();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: customers, error } = await ctx.supabase
+  const { data: customers, error } = await ctx.db
     .from("customers")
     .select("*, orders(count)")
     .eq("shop_id", ctx.shopId)
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     if (!Number.isNaN(lp)) data.loyalty_points = lp;
   }
 
-  const { data: customer, error } = await ctx.supabase
+  const { data: customer, error } = await ctx.db
     .from("customers")
     .insert(data)
     .select("*")

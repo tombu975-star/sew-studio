@@ -1,6 +1,6 @@
-import type { Database } from "@/lib/supabase/database.types";
-import { getTenant } from "@/lib/supabase/session";
-import { serializeStyleConcept } from "@/lib/supabase/serializers";
+import type { Database } from "@/lib/db/database.types";
+import { getTenant } from "@/lib/db/session";
+import { serializeStyleConcept } from "@/lib/db/serializers";
 
 export async function GET(req: Request) {
   try {
@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const customerId = url.searchParams.get("customerId");
 
-    let query = ctx.supabase
+    let query = ctx.db
       .from("style_concepts")
       .select("*, customer:customers(*)")
       .eq("shop_id", ctx.shopId);
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { data: customer } = await ctx.supabase
+    const { data: customer } = await ctx.db
       .from("customers")
       .select("id")
       .eq("id", String(body.customerId))
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     if (body.rejectionReason) data.rejection_reason = String(body.rejectionReason);
     if (body.dataConfidence) data.data_confidence = String(body.dataConfidence);
 
-    const { data: concept, error } = await ctx.supabase
+    const { data: concept, error } = await ctx.db
       .from("style_concepts")
       .insert(data)
       .select("*, customer:customers(*)")

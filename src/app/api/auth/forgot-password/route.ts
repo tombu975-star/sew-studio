@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { createRequestClient } from "@/lib/db/requestClient";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
@@ -7,9 +7,9 @@ export async function POST(req: Request) {
 
   if (email) {
     try {
-      const supabase = await createServerSupabaseClient();
+      const db = await createRequestClient();
       const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin).replace(/\/$/, "");
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await db.auth.resetPasswordForEmail(email, {
         redirectTo: `${appUrl}/auth/callback?next=/reset-password`,
       });
       if (error) console.warn("[auth/forgot-password] Recovery email request failed.");

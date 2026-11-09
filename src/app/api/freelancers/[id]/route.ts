@@ -1,6 +1,6 @@
-import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
-import type { Database } from "@/lib/supabase/database.types";
+import { getTenant, canManageFreelancers } from "@/lib/db/session";
+import { createAdminClient } from "@/lib/db/adminClient";
+import type { Database } from "@/lib/db/database.types";
 import { findIdentityConflict, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 const PERMISSION_ERROR = {
@@ -26,7 +26,7 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("freelancer_shop_links")
       .select("id, freelancer_id")
       .eq("id", id)
@@ -49,7 +49,7 @@ export async function PATCH(
       specialty !== undefined ||
       skills !== undefined;
     if (touchesProfile) {
-      const admin = createAdminSupabaseClient();
+      const admin = createAdminClient();
       const { count: otherStudios } = await admin
         .from("freelancer_shop_links")
         .select("id", { count: "exact", head: true })
@@ -100,19 +100,19 @@ export async function PATCH(
       "*, freelancer:freelancer_profiles(id, full_name, email, phone, specialty, skills)";
     const { data: updated, error } =
       Object.keys(data).length > 0
-        ? await ctx.supabase
+        ? await ctx.db
             .from("freelancer_shop_links")
             .update(data)
             .eq("id", id)
             .select(linkSelect)
             .single()
-        : await ctx.supabase
+        : await ctx.db
             .from("freelancer_shop_links")
             .select(linkSelect)
             .eq("id", id)
             .single();
     if (error) throw error;
-    // Joined-select rows are loosely typed by the generated Supabase types.
+    // Joined-select rows are loosely typed by the generated database types.
     const row = updated as any;
 
     return Response.json({
@@ -149,7 +149,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("freelancer_shop_links")
       .select("id")
       .eq("id", id)
@@ -158,7 +158,7 @@ export async function DELETE(
     if (!existing) {
       return Response.json({ error: "Freelancer not found" }, { status: 404 });
     }
-    await ctx.supabase.from("freelancer_shop_links").delete().eq("id", id);
+    await ctx.db.from("freelancer_shop_links").delete().eq("id", id);
     return Response.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

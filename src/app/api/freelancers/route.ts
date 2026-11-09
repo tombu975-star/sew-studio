@@ -1,12 +1,12 @@
-import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import { getTenant, canManageFreelancers } from "@/lib/db/session";
+import { createAdminClient } from "@/lib/db/adminClient";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, normalizeEmail, MESSAGES } from "@/lib/identity";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AppClient } from "@/lib/db/appClient";
 
 // GET /api/freelancers — this shop's linked freelancers (their own
 // rate notes/status here, plus the freelancer's shared identity fields).
 // A shop only ever sees freelancers IT has linked — never another
-// shop's roster, and never the freelancer's password (Supabase Auth
+// shop's roster, and never the freelancer's password (the app's sign-in
 // manages that entirely separately now).
 export async function GET() {
   try {
@@ -15,7 +15,7 @@ export async function GET() {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: links, error } = await ctx.supabase
+    const { data: links, error } = await ctx.db
       .from("freelancer_shop_links")
       .select("*, freelancer:freelancer_profiles(id, full_name, email, phone, specialty, skills)")
       .eq("shop_id", ctx.shopId)
@@ -47,12 +47,12 @@ export async function GET() {
 // duplicate identity. Only a brand-new email creates a brand-new login.
 //
 // Uses the admin client throughout (after the permission check): finding
-// or creating a freelancer_profiles row and its Supabase Auth user, and
+// or creating a freelancer_profiles row and its sign-in, and
 // reading it back, all need to happen outside this shop's RLS — a shop
 // legitimately has no read access to a freelancer's profile until AFTER
-// it links them (see supabase/schema/0003_rls.sql).
+// it links them (see db/schema/0003_rls.sql).
 export async function POST(req: Request) {
-  const admin = createAdminSupabaseClient();
+  const admin = createAdminClient();
   let createdAuthUserId: string | null = null;
 
   try {
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     // hasn't been applied yet.
     const emailKey = normalizeEmail(normalizedEmail);
     // email_key comes from migration 0013, so it isn't in the generated types.
-    const untyped = admin as unknown as SupabaseClient;
+    const untyped = admin as AppClient;
     const byKey = emailKey
       ? await untyped.from("freelancer_profiles").select("*").eq("email_key", emailKey).maybeSingle()
       : null;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFreelancerSession } from "@/lib/supabase/session";
+import { getFreelancerSession } from "@/lib/db/session";
 
 const VALID_STATUSES = ["Commissioned", "In Progress", "Delivered", "Paid"];
 
@@ -15,7 +15,7 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const { data: existing } = await ctx.supabase
+  const { data: existing } = await ctx.db
     .from("freelance_jobs")
     .select("id")
     .eq("id", id)
@@ -30,7 +30,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid status." }, { status: 400 });
   }
 
-  const { data: updated, error } = await ctx.supabase
+  const { data: updated, error } = await ctx.db
     .from("freelance_jobs")
     .update({ status: body.status })
     .eq("id", id)

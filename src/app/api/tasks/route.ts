@@ -1,6 +1,6 @@
-import type { Database } from "@/lib/supabase/database.types";
-import { getTenant } from "@/lib/supabase/session";
-import { serializeTask } from "@/lib/supabase/serializers";
+import type { Database } from "@/lib/db/database.types";
+import { getTenant } from "@/lib/db/session";
+import { serializeTask } from "@/lib/db/serializers";
 
 const TASK_SELECT =
   "*, order:orders(*, customer:customers(*)), staff:profiles!tasks_staff_id_fkey(*), graded_by:profiles!tasks_graded_by_id_fkey(id, full_name)";
@@ -18,9 +18,9 @@ export async function GET() {
     const ctx = await getTenant();
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    let query = ctx.supabase.from("tasks").select(TASK_SELECT).eq("shop_id", ctx.shopId);
+    let query = ctx.db.from("tasks").select(TASK_SELECT).eq("shop_id", ctx.shopId);
     if (ctx.role === "trainer") {
-      const { data: mentees, error: menteeErr } = await ctx.supabase
+      const { data: mentees, error: menteeErr } = await ctx.db
         .from("profiles")
         .select("id")
         .eq("shop_id", ctx.shopId)
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       priority: body.priority ? String(body.priority) : "Medium",
     };
     if (body.orderId) {
-      const { data: order } = await ctx.supabase
+      const { data: order } = await ctx.db
         .from("orders")
         .select("id")
         .eq("id", String(body.orderId))
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
       data.order_id = String(body.orderId);
     }
     if (body.staffId) {
-      const { data: staff } = await ctx.supabase
+      const { data: staff } = await ctx.db
         .from("profiles")
         .select("id, role, mentor_id")
         .eq("id", String(body.staffId))
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     if (body.dueDate) data.due_date = new Date(body.dueDate).toISOString();
     if (body.notes) data.notes = String(body.notes);
 
-    const { data: task, error } = await ctx.supabase
+    const { data: task, error } = await ctx.db
       .from("tasks")
       .insert(data)
       .select("*, order:orders(*, customer:customers(*)), staff:profiles!tasks_staff_id_fkey(*)")

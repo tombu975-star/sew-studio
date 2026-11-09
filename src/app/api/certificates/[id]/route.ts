@@ -1,4 +1,4 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 
 export async function DELETE(
   req: Request,
@@ -9,7 +9,7 @@ export async function DELETE(
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("certificates")
       .select("id")
       .eq("id", id)
@@ -17,7 +17,7 @@ export async function DELETE(
       .maybeSingle();
     if (!existing) return Response.json({ error: "Certificate not found" }, { status: 404 });
 
-    await ctx.supabase.from("certificates").delete().eq("id", id);
+    await ctx.db.from("certificates").delete().eq("id", id);
     return Response.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

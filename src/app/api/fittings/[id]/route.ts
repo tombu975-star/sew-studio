@@ -1,6 +1,6 @@
-import { getTenant } from "@/lib/supabase/session";
-import type { Database } from "@/lib/supabase/database.types";
-import { serializeFitting } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import type { Database } from "@/lib/db/database.types";
+import { serializeFitting } from "@/lib/db/serializers";
 
 export async function PATCH(
   req: Request,
@@ -16,7 +16,7 @@ export async function PATCH(
     const body = await req.json();
 
     // Verify ownership via the parent order.
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("fittings")
       .select("id, order:orders!inner(shop_id)")
       .eq("id", id)
@@ -31,7 +31,7 @@ export async function PATCH(
     if ("status" in body && body.status) data.status = String(body.status);
     if ("notes" in body) data.notes = body.notes ? String(body.notes) : null;
 
-    const { data: fitting, error } = await ctx.supabase
+    const { data: fitting, error } = await ctx.db
       .from("fittings")
       .update(data)
       .eq("id", id)
@@ -64,7 +64,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("fittings")
       .select("id, order:orders!inner(shop_id)")
       .eq("id", id)
@@ -74,7 +74,7 @@ export async function DELETE(
       return Response.json({ error: "Fitting not found" }, { status: 404 });
     }
 
-    const { error } = await ctx.supabase.from("fittings").delete().eq("id", id);
+    const { error } = await ctx.db.from("fittings").delete().eq("id", id);
     if (error) throw error;
 
     return Response.json({ ok: true });

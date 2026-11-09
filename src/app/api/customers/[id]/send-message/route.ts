@@ -1,4 +1,4 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 import { detectChannel } from "@/lib/notify";
 
 // POST /api/customers/[id]/send-message — studio manually sends a message to a customer.
@@ -17,7 +17,7 @@ export async function POST(
       return Response.json({ error: "Message body is required." }, { status: 400 });
     }
 
-    const { data: customer } = await ctx.supabase
+    const { data: customer } = await ctx.db
       .from("customers")
       .select("id, whatsapp, phone, email")
       .eq("id", id)
@@ -39,7 +39,7 @@ export async function POST(
         }
       : detectChannel(customer);
 
-    const { data: notification, error } = await ctx.supabase
+    const { data: notification, error } = await ctx.db
       .from("customer_notifications")
       .insert({
         shop_id: ctx.shopId,

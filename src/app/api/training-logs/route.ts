@@ -1,5 +1,5 @@
-import { getTenant } from "@/lib/supabase/session";
-import { serializeTrainingLog } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import { serializeTrainingLog } from "@/lib/db/serializers";
 
 const LOG_SELECT =
   "*, trainee:profiles!training_logs_trainee_id_fkey(id, full_name, role), mentor:profiles!training_logs_mentor_id_fkey(id, full_name)";
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     // it to see the whole shop.
     const traineeId = ctx.role === "trainee" ? ctx.userId : requestedTraineeId;
 
-    let query = ctx.supabase.from("training_logs").select(LOG_SELECT).eq("shop_id", ctx.shopId);
+    let query = ctx.db.from("training_logs").select(LOG_SELECT).eq("shop_id", ctx.shopId);
     if (traineeId) query = query.eq("trainee_id", traineeId);
 
     const { data: logs, error } = await query.order("date", { ascending: false });
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "Trainee and title are required." }, { status: 400 });
     }
 
-    const { data: trainee } = await ctx.supabase
+    const { data: trainee } = await ctx.db
       .from("profiles")
       .select("id")
       .eq("id", String(traineeId))
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     let finalMentorId: string | null = null;
     if (mentorId) {
-      const { data: mentor } = await ctx.supabase
+      const { data: mentor } = await ctx.db
         .from("profiles")
         .select("id")
         .eq("id", String(mentorId))
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       ? status
       : "Learning";
 
-    const { data: log, error } = await ctx.supabase
+    const { data: log, error } = await ctx.db
       .from("training_logs")
       .insert({
         shop_id: ctx.shopId,

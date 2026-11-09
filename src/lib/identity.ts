@@ -1,9 +1,9 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AppClient } from "@/lib/db/appClient";
 
 /**
  * One account per email address and one account per phone number.
  *
- * The database enforces this (supabase/0013_unique_email_phone.sql); this file
+ * The database enforces this (db/0013_unique_email_phone.sql); this file
  * mirrors its normalisation so the API can give a friendly message BEFORE it
  * creates a sign-in, instead of failing half-way through.
  *
@@ -70,7 +70,7 @@ export type IdentityConflict = { field: "email" | "phone"; message: string };
  * so the app keeps working until it's run.
  */
 export async function findIdentityConflict(
-  admin: SupabaseClient,
+  admin: AppClient,
   opts: { email?: unknown; phone?: unknown; excludeId?: string }
 ): Promise<IdentityConflict | null> {
   const emailKey = opts.email !== undefined ? normalizeEmail(opts.email) : null;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFreelancerSession } from "@/lib/supabase/session";
+import { getFreelancerSession } from "@/lib/db/session";
 
 export async function GET() {
   const ctx = await getFreelancerSession();
@@ -7,7 +7,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: freelancer } = await ctx.supabase
+  const { data: freelancer } = await ctx.db
     .from("freelancer_profiles")
     .select("id, email, full_name, phone, specialty, skills")
     .eq("id", ctx.freelancerId)

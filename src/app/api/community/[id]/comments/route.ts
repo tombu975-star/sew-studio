@@ -1,5 +1,5 @@
-import { getTenant } from "@/lib/supabase/session";
-import { serializeCommunityComment } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import { serializeCommunityComment } from "@/lib/db/serializers";
 
 export async function POST(
   req: Request,
@@ -10,7 +10,7 @@ export async function POST(
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { data: post } = await ctx.supabase
+    const { data: post } = await ctx.db
       .from("community_posts")
       .select("id")
       .eq("id", id)
@@ -23,7 +23,7 @@ export async function POST(
       return Response.json({ error: "Author and comment are required." }, { status: 400 });
     }
 
-    const { data: comment, error } = await ctx.supabase
+    const { data: comment, error } = await ctx.db
       .from("community_comments")
       .insert({ post_id: id, author_id: authorId || null, author_name: authorName, body: String(body) })
       .select("*")

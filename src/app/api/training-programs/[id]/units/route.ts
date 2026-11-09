@@ -1,5 +1,5 @@
-import { getTenant } from "@/lib/supabase/session";
-import { serializeCompetencyUnit } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import { serializeCompetencyUnit } from "@/lib/db/serializers";
 
 // POST /api/training-programs/[id]/units — add a unit of competency
 // (curriculum module) to a program. Trainer/madam only.
@@ -17,7 +17,7 @@ export async function POST(
       );
     }
     const { id: programId } = await params;
-    const { data: program } = await ctx.supabase
+    const { data: program } = await ctx.db
       .from("training_programs")
       .select("id")
       .eq("id", programId)
@@ -29,12 +29,12 @@ export async function POST(
     const title = String(body?.title ?? "").trim();
     if (!title) return Response.json({ error: "title is required." }, { status: 400 });
 
-    const { count: lastOrder } = await ctx.supabase
+    const { count: lastOrder } = await ctx.db
       .from("competency_units")
       .select("id", { count: "exact", head: true })
       .eq("program_id", programId);
 
-    const { data: unit, error } = await ctx.supabase
+    const { data: unit, error } = await ctx.db
       .from("competency_units")
       .insert({
         shop_id: ctx.shopId,

@@ -1,9 +1,9 @@
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
-import { serializePayment, serializeFitting, serializeShopPolicies } from "@/lib/supabase/serializers";
+import { createAdminClient } from "@/lib/db/adminClient";
+import { serializePayment, serializeFitting, serializeShopPolicies } from "@/lib/db/serializers";
 
 // GET /api/portal/[token] — public customer portal.
 // Returns the customer + their orders + the shop's contact info.
-// No Supabase session here — the token IS the credential, so this uses
+// No session here — the token IS the credential, so this uses
 // the service-role client and does its own authorization (the token
 // lookup below), same as the old cookie-auth version did.
 export async function GET(
@@ -12,7 +12,7 @@ export async function GET(
 ) {
   try {
     const { token } = await params;
-    const admin = createAdminSupabaseClient();
+    const admin = createAdminClient();
 
     const { data: customer } = await admin
       .from("customers")

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSystemAdminSession } from "@/lib/supabase/session";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import { getSystemAdminSession } from "@/lib/db/session";
+import { createAdminClient } from "@/lib/db/adminClient";
 
 // GET /api/admin/shops — every shop on the platform, with summary stats.
 // Uses the service-role client deliberately: this is meant to cross shop
@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const admin = createAdminSupabaseClient();
+  const admin = createAdminClient();
 
   const { data: shops, error } = await admin
     .from("shops")

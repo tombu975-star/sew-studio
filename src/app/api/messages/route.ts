@@ -1,4 +1,4 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 
 // GET /api/messages — studio outbox: all messages sent to customers in this shop.
 // Optional ?customerId= filter.
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const customerId = url.searchParams.get("customerId");
 
-    let query = ctx.supabase
+    let query = ctx.db
       .from("customer_notifications")
       .select(
         "*, customer:customers(id, name, phone, email, whatsapp), order:orders(id, garment_design)"

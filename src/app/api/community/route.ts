@@ -1,5 +1,5 @@
-import { getTenant } from "@/lib/supabase/session";
-import { serializeCommunityPost, serializeCommunityComment } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import { serializeCommunityPost, serializeCommunityComment } from "@/lib/db/serializers";
 
 // Aliased embeds are required here — PostgREST resolves an embed by the
 // actual related table name (or an explicit `alias:table` pair), and
@@ -13,7 +13,7 @@ export async function GET() {
     const ctx = await getTenant();
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: posts, error } = await ctx.supabase
+    const { data: posts, error } = await ctx.db
       .from("community_posts")
       .select(POST_SELECT)
       .eq("shop_id", ctx.shopId)
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     const validTypes = ["update", "question", "inspiration", "announcement", "showcase"];
     const finalType = validTypes.includes(type) ? type : "update";
 
-    const { data: post, error } = await ctx.supabase
+    const { data: post, error } = await ctx.db
       .from("community_posts")
       .insert({
         shop_id: ctx.shopId,

@@ -1,5 +1,5 @@
-import { getTenant } from "@/lib/supabase/session";
-import { serializeMeasurementSet, serializeUser } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import { serializeMeasurementSet, serializeUser } from "@/lib/db/serializers";
 
 export async function GET(
   req: Request,
@@ -11,7 +11,7 @@ export async function GET(
 
     const { id } = await params;
 
-    const { data: customer } = await ctx.supabase
+    const { data: customer } = await ctx.db
       .from("customers")
       .select("id")
       .eq("id", id)
@@ -19,7 +19,7 @@ export async function GET(
       .maybeSingle();
     if (!customer) return Response.json({ error: "Customer not found" }, { status: 404 });
 
-    const { data: measurements, error } = await ctx.supabase
+    const { data: measurements, error } = await ctx.db
       .from("measurement_sets")
       .select("*, staff:profiles(*)")
       .eq("customer_id", id)

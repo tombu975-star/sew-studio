@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { createRequestClient } from "@/lib/db/requestClient";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
@@ -9,13 +9,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: authData } = await supabase.auth.getUser();
+    const db = await createRequestClient();
+    const { data: authData } = await db.auth.getUser();
     if (!authData.user) {
       return NextResponse.json({ error: "This reset link has expired. Request a new one." }, { status: 401 });
     }
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await db.auth.updateUser({ password });
     if (error) {
       return NextResponse.json({ error: "Could not update your password. Request a new reset link." }, { status: 400 });
     }

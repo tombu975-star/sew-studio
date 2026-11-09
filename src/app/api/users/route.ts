@@ -1,5 +1,5 @@
-import { getTenant } from "@/lib/supabase/session";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import { getTenant } from "@/lib/db/session";
+import { createAdminClient } from "@/lib/db/adminClient";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 export async function GET() {
@@ -12,7 +12,7 @@ export async function GET() {
     // a single layer for tenant isolation.
     const columns = "id, email, full_name, role, gender, phone, shop_id, mentor_id, training_duration_weeks, training_started_at, can_access_orders, can_access_board, created_at, updated_at";
     const listMembers = (activeOnly: boolean) => {
-      let q = ctx.supabase.from("profiles").select(columns).eq("shop_id", ctx.shopId);
+      let q = ctx.db.from("profiles").select(columns).eq("shop_id", ctx.shopId);
       if (activeOnly) q = q.eq("is_active", true);
       return q.order("created_at", { ascending: true });
     };
@@ -46,10 +46,10 @@ export async function GET() {
 }
 
 // Invite a new studio member (staff / trainer / trainee / madam). Creates
-// their Supabase Auth user (admin API — this is an admin action on someone
+// their sign-in (admin API — this is an admin action on someone
 // else's behalf, not a self-signup) then their profile.
 export async function POST(req: Request) {
-  const admin = createAdminSupabaseClient();
+  const admin = createAdminClient();
   let createdAuthUserId: string | null = null;
 
   try {
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
     // trainer/madam in the same shop.
     let finalMentorId: string | null = null;
     if (finalRole === "trainee" && mentorId) {
-      const { data: mentor } = await ctx.supabase
+      const { data: mentor } = await ctx.db
         .from("profiles")
         .select("id")
         .eq("id", String(mentorId))

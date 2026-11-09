@@ -1,6 +1,6 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 import { notifyCustomer } from "@/lib/notify";
-import { serializePayment } from "@/lib/supabase/serializers";
+import { serializePayment } from "@/lib/db/serializers";
 
 export async function POST(
   req: Request,
@@ -13,7 +13,7 @@ export async function POST(
     const { id } = await params;
     const body = await req.json();
 
-    const { data: order } = await ctx.supabase
+    const { data: order } = await ctx.db
       .from("orders")
       .select("id, customer_id, garment_design")
       .eq("id", id)
@@ -22,7 +22,7 @@ export async function POST(
     if (!order) return Response.json({ error: "Order not found" }, { status: 404 });
 
     const amount = Number(body.amount) || 0;
-    const { data: payment, error } = await ctx.supabase
+    const { data: payment, error } = await ctx.db
       .from("payments")
       .insert({
         order_id: id,
@@ -35,7 +35,7 @@ export async function POST(
       .single();
     if (error) throw error;
 
-    await notifyCustomer(ctx.supabase, {
+    await notifyCustomer(ctx.db, {
       shopId: ctx.shopId,
       customerId: order.customer_id,
       orderId: id,

@@ -1,4 +1,4 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 import { ensurePortalToken } from "@/lib/notify";
 
 // POST /api/customers/[id]/portal-token — generate (or return existing) portal token
@@ -12,7 +12,7 @@ export async function POST(
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { data: customer } = await ctx.supabase
+    const { data: customer } = await ctx.db
       .from("customers")
       .select("id, name")
       .eq("id", id)
@@ -20,7 +20,7 @@ export async function POST(
       .maybeSingle();
     if (!customer) return Response.json({ error: "Customer not found" }, { status: 404 });
 
-    const token = await ensurePortalToken(ctx.supabase, id);
+    const token = await ensurePortalToken(ctx.db, id);
     return Response.json({ token, url: `/portal?token=${token}` });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

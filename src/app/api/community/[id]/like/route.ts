@@ -1,4 +1,4 @@
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 
 export async function POST(
   req: Request,
@@ -9,7 +9,7 @@ export async function POST(
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { data: post } = await ctx.supabase
+    const { data: post } = await ctx.db
       .from("community_posts")
       .select("id")
       .eq("id", id)
@@ -20,7 +20,7 @@ export async function POST(
     const { authorId } = await req.json().catch(() => ({}));
     if (!authorId) return Response.json({ error: "authorId is required." }, { status: 400 });
 
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("community_likes")
       .select("id")
       .eq("post_id", id)
@@ -28,10 +28,10 @@ export async function POST(
       .maybeSingle();
 
     if (existing) {
-      await ctx.supabase.from("community_likes").delete().eq("id", existing.id);
+      await ctx.db.from("community_likes").delete().eq("id", existing.id);
       return Response.json({ liked: false });
     }
-    await ctx.supabase.from("community_likes").insert({ post_id: id, author_id: authorId });
+    await ctx.db.from("community_likes").insert({ post_id: id, author_id: authorId });
     return Response.json({ liked: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

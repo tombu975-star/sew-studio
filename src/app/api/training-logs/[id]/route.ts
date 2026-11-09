@@ -1,6 +1,6 @@
-import { getTenant } from "@/lib/supabase/session";
-import type { Database } from "@/lib/supabase/database.types";
-import { serializeTrainingLog } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import type { Database } from "@/lib/db/database.types";
+import { serializeTrainingLog } from "@/lib/db/serializers";
 
 const LOG_SELECT =
   "*, trainee:profiles!training_logs_trainee_id_fkey(id, full_name, role), mentor:profiles!training_logs_mentor_id_fkey(id, full_name)";
@@ -14,7 +14,7 @@ export async function PATCH(
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("training_logs")
       .select("id")
       .eq("id", id)
@@ -31,7 +31,7 @@ export async function PATCH(
     if (["Learning", "Practicing", "Proficient"].includes(status)) data.status = status;
     if (mentorId !== undefined) {
       if (mentorId) {
-        const { data: mentor } = await ctx.supabase
+        const { data: mentor } = await ctx.db
           .from("profiles")
           .select("id")
           .eq("id", String(mentorId))
@@ -43,7 +43,7 @@ export async function PATCH(
       }
     }
 
-    const { data: updated, error } = await ctx.supabase
+    const { data: updated, error } = await ctx.db
       .from("training_logs")
       .update(data)
       .eq("id", id)
@@ -67,7 +67,7 @@ export async function DELETE(
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("training_logs")
       .select("id")
       .eq("id", id)
@@ -75,7 +75,7 @@ export async function DELETE(
       .maybeSingle();
     if (!existing) return Response.json({ error: "Training log not found" }, { status: 404 });
 
-    await ctx.supabase.from("training_logs").delete().eq("id", id);
+    await ctx.db.from("training_logs").delete().eq("id", id);
     return Response.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

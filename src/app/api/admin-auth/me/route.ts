@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSystemAdminSession } from "@/lib/supabase/session";
+import { getSystemAdminSession } from "@/lib/db/session";
 
 export async function GET() {
   const ctx = await getSystemAdminSession();
@@ -7,7 +7,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: admin } = await ctx.supabase
+  const { data: admin } = await ctx.db
     .from("system_admins")
     .select("id, email, full_name")
     .eq("id", ctx.adminId)

@@ -1,6 +1,6 @@
-import { getTenant } from "@/lib/supabase/session";
-import type { Database } from "@/lib/supabase/database.types";
-import { serializeTask } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import type { Database } from "@/lib/db/database.types";
+import { serializeTask } from "@/lib/db/serializers";
 
 export async function PATCH(
   req: Request,
@@ -13,7 +13,7 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("tasks")
       .select("id, staff_id, staff:profiles!tasks_staff_id_fkey(role, mentor_id)")
       .eq("id", id)
@@ -44,7 +44,7 @@ export async function PATCH(
     if ("notes" in body) data.notes = body.notes ? String(body.notes) : null;
     if ("orderId" in body) {
       if (body.orderId) {
-        const { data: order } = await ctx.supabase
+        const { data: order } = await ctx.db
           .from("orders")
           .select("id")
           .eq("id", String(body.orderId))
@@ -57,7 +57,7 @@ export async function PATCH(
     }
     if ("staffId" in body) {
       if (body.staffId) {
-        const { data: staff } = await ctx.supabase
+        const { data: staff } = await ctx.db
           .from("profiles")
           .select("id, role, mentor_id")
           .eq("id", String(body.staffId))
@@ -106,7 +106,7 @@ export async function PATCH(
     if ("feedback" in body) data.feedback = body.feedback ? String(body.feedback) : null;
     if ("competencyUnitId" in body) {
       if (body.competencyUnitId) {
-        const { data: unit } = await ctx.supabase
+        const { data: unit } = await ctx.db
           .from("competency_units")
           .select("id")
           .eq("id", String(body.competencyUnitId))
@@ -123,7 +123,7 @@ export async function PATCH(
       data.graded_at = new Date().toISOString();
     }
 
-    const { data: task, error } = await ctx.supabase
+    const { data: task, error } = await ctx.db
       .from("tasks")
       .update(data)
       .eq("id", id)
@@ -152,7 +152,7 @@ export async function DELETE(
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { data: existingRow } = await ctx.supabase
+    const { data: existingRow } = await ctx.db
       .from("tasks")
       .select("id, staff_id, staff:profiles!tasks_staff_id_fkey(role, mentor_id)")
       .eq("id", id)
@@ -173,7 +173,7 @@ export async function DELETE(
       );
     }
 
-    const { error } = await ctx.supabase
+    const { error } = await ctx.db
       .from("tasks")
       .delete()
       .eq("id", id)

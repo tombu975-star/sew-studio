@@ -1,6 +1,6 @@
-import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
-import type { Database } from "@/lib/supabase/database.types";
-import { serializeFreelanceJob } from "@/lib/supabase/serializers";
+import { getTenant, canManageFreelancers } from "@/lib/db/session";
+import type { Database } from "@/lib/db/database.types";
+import { serializeFreelanceJob } from "@/lib/db/serializers";
 
 const PERMISSION_ERROR = {
   error: "Only the studio owner, or someone granted freelancer access, can manage this.",
@@ -20,7 +20,7 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("freelance_jobs")
       .select("id")
       .eq("id", id)
@@ -38,7 +38,7 @@ export async function PATCH(
     if (dueDate !== undefined) data.due_date = dueDate ? new Date(dueDate).toISOString() : null;
     if (status !== undefined) data.status = status;
 
-    const { data: updated, error } = await ctx.supabase
+    const { data: updated, error } = await ctx.db
       .from("freelance_jobs")
       .update(data)
       .eq("id", id)
@@ -67,7 +67,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("freelance_jobs")
       .select("id")
       .eq("id", id)
@@ -76,7 +76,7 @@ export async function DELETE(
     if (!existing) {
       return Response.json({ error: "Job not found" }, { status: 404 });
     }
-    await ctx.supabase.from("freelance_jobs").delete().eq("id", id);
+    await ctx.db.from("freelance_jobs").delete().eq("id", id);
     return Response.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

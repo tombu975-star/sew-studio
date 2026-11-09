@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 
 export async function GET() {
   try {
     const ctx = await getTenant();
     if (!ctx) return NextResponse.json({ user: null }, { status: 200 });
 
-    const { data: profile } = await ctx.supabase
+    const { data: profile } = await ctx.db
       .from("profiles")
       .select(
         "id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, shop:shops(id, name, slug, currency)"

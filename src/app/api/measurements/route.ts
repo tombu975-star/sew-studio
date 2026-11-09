@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTenant } from "@/lib/supabase/session";
-import { serializeMeasurementSet } from "@/lib/supabase/serializers";
-import { buildMeasurementData } from "@/lib/supabase/measurement-input";
+import { getTenant } from "@/lib/db/session";
+import { serializeMeasurementSet } from "@/lib/db/serializers";
+import { buildMeasurementData } from "@/lib/db/measurement-input";
 
 // POST /api/measurements → MeasurementSet
 export async function POST(req: NextRequest) {
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "customerId is required" }, { status: 400 });
   }
 
-  const { data: customer } = await ctx.supabase
+  const { data: customer } = await ctx.db
     .from("customers")
     .select("id")
     .eq("id", body.customerId)
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     unit: "cm", // always stored in centimetres; client converts before sending
   };
 
-  const { data: measurement, error } = await ctx.supabase
+  const { data: measurement, error } = await ctx.db
     .from("measurement_sets")
     .insert(data)
     .select("*")

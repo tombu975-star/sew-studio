@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { createRequestClient } from "@/lib/db/requestClient";
 
 export async function POST(req: Request) {
   try {
@@ -11,8 +11,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = await createServerSupabaseClient({ rememberMe: rememberMe === true });
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const db = await createRequestClient({ rememberMe: rememberMe === true });
+    const { data, error } = await db.auth.signInWithPassword({
       email: String(email).toLowerCase().trim(),
       password: String(password),
     });
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    const { data: profile } = await db
       .from("profiles")
       .select(
         "id, email, full_name, role, gender, phone, avatar_url, shop_id, can_access_orders, can_access_board, can_manage_freelancers, shop:shops(id, name, slug, currency, suspended_at, suspended_reason)"
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       // Auth user exists but has no shop profile — most likely this email
       // belongs to a freelancer account instead. Sign them back out of this
       // session (they're not a shop member) and say so clearly.
-      await supabase.auth.signOut();
+      await db.auth.signOut();
       return NextResponse.json(
         { error: "No shop account found for that email. Freelancers should sign in at /freelancer." },
         { status: 401 }
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
     const shop = profile.shop as { suspended_at: string | null; suspended_reason: string | null } | null;
     if (shop?.suspended_at) {
-      await supabase.auth.signOut();
+      await db.auth.signOut();
       return NextResponse.json(
         {
           error: shop.suspended_reason

@@ -1,8 +1,6 @@
-import { randomUUID } from "crypto";
-import { getTenant } from "@/lib/supabase/session";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import { getTenant } from "@/lib/db/session";
+import { createAdminClient } from "@/lib/db/adminClient";
 
-const BUCKET = "uploads";
 const MAX_BYTES = 5 * 1024 * 1024;
 const TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -42,31 +40,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const admin = createAdminSupabaseClient();
-    const path = `${ctx.shopId}/${kind}/${randomUUID()}.${ext}`;
-    const bytes = new Uint8Array(await file.arrayBuffer());
-
-    const put = () =>
-      admin.storage.from(BUCKET).upload(path, bytes, {
-        contentType: file.type,
-        cacheControl: "31536000",
-        upsert: false,
-      });
-
-    let { error } = await put();
-    if (error && /bucket.*not found/i.test(error.message)) {
-      // First upload on a project where the storage migration hasn't run yet.
-      await admin.storage.createBucket(BUCKET, {
-        public: true,
-        fileSizeLimit: MAX_BYTES,
-        allowedMimeTypes: Object.keys(TYPES),
-      });
-      ({ error } = await put());
-    }
-    if (error) throw error;
-
-    const { data } = admin.storage.from(BUCKET).getPublicUrl(path);
-    return Response.json({ url: data.publicUrl });
+    const admin = createAdminClient();
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const { data, error } = await admin
+      .from("uploads")
+      .insert({ shop_id: ctx.shopId, kind, content_type: file.type, bytes })
+      .select("id")
+      .single();
+    if (error || !data) throw error ?? new Error("Upload failed");
+    return Response.json({ url: `/api/files/${data.id}` });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Upload failed";
     return Response.json({ error: msg }, { status: 500 });

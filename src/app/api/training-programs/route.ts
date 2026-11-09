@@ -1,5 +1,5 @@
-import { getTenant } from "@/lib/supabase/session";
-import { serializeTrainingProgram } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import { serializeTrainingProgram } from "@/lib/db/serializers";
 
 const PROGRAM_SELECT =
   "*, units:competency_units(*), created_by:profiles!training_programs_created_by_id_fkey(id, full_name), trainees:profiles!profiles_program_id_fkey(count)";
@@ -12,7 +12,7 @@ export async function GET() {
     const ctx = await getTenant();
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: programs, error } = await ctx.supabase
+    const { data: programs, error } = await ctx.db
       .from("training_programs")
       .select(PROGRAM_SELECT)
       .eq("shop_id", ctx.shopId)
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     const units = Array.isArray(body?.units) ? body.units : [];
 
-    const { data: program, error } = await ctx.supabase
+    const { data: program, error } = await ctx.db
       .from("training_programs")
       .insert({
         shop_id: ctx.shopId,
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     if (error) throw error;
 
     if (units.length > 0) {
-      const { error: unitsError } = await ctx.supabase.from("competency_units").insert(
+      const { error: unitsError } = await ctx.db.from("competency_units").insert(
         units.map(
           (
             u: {
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       if (unitsError) throw unitsError;
     }
 
-    const { data: withUnits, error: refetchError } = await ctx.supabase
+    const { data: withUnits, error: refetchError } = await ctx.db
       .from("training_programs")
       .select("*, units:competency_units(*)")
       .eq("id", program.id)

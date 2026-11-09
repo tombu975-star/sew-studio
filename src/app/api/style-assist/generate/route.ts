@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTenant } from "@/lib/supabase/session";
+import { getTenant } from "@/lib/db/session";
 import ZAI from "@/lib/ai-client";
 
 export const dynamic = "force-dynamic";
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
     }
 
     // Verify the customer belongs to the tenant before building the profile.
-    const { data: customer } = await ctx.supabase
+    const { data: customer } = await ctx.db
       .from("customers")
       .select("*")
       .eq("id", customerId)
@@ -120,28 +120,28 @@ export async function POST(req: Request) {
 
     const [measurementSetsRes, ordersRes, feedbackRes, styleConceptsRes] =
       await Promise.all([
-        ctx.supabase
+        ctx.db
           .from("measurement_sets")
           .select("*")
           .eq("customer_id", customerId)
           .eq("shop_id", ctx.shopId)
           .order("date_taken", { ascending: false })
           .limit(1),
-        ctx.supabase
+        ctx.db
           .from("orders")
           .select("garment_design, status")
           .eq("customer_id", customerId)
           .eq("shop_id", ctx.shopId)
           .order("order_date", { ascending: false })
           .limit(10),
-        ctx.supabase
+        ctx.db
           .from("customer_feedback")
           .select("rating, feedback, type")
           .eq("customer_id", customerId)
           .eq("shop_id", ctx.shopId)
           .order("date", { ascending: false })
           .limit(10),
-        ctx.supabase
+        ctx.db
           .from("style_concepts")
           .select("concept_name, silhouette, fabric, colour, status, rejection_reason")
           .eq("customer_id", customerId)

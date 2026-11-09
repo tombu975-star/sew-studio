@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
-import { createServerSupabaseClient } from "@/lib/supabase/serverClient";
+import { createAdminClient } from "@/lib/db/adminClient";
+import { createRequestClient } from "@/lib/db/requestClient";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 function slugify(name: string): string {
@@ -23,7 +23,7 @@ function slugify(name: string): string {
 // bootstrap sequence has to run outside RLS. Once created, the owner signs
 // in normally and every subsequent request is RLS-scoped as usual.
 export async function POST(req: Request) {
-  const admin = createAdminSupabaseClient();
+  const admin = createAdminClient();
   let createdAuthUserId: string | null = null;
 
   try {
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     const ownerGender = gender || "Female";
     const ownerLabel = ownerGender === "Male" ? "Master" : "Madam";
 
-    // 1. Create the Supabase Auth user (pre-confirmed — this app has no
+    // 1. Create the sign-in (pre-confirmed — this app has no
     //    email-verification flow, matching its previous demo-auth behaviour).
     const { data: authData, error: authError } = await admin.auth.admin.createUser({
       email: emailNorm,
@@ -110,10 +110,10 @@ export async function POST(req: Request) {
     if (settingsError) throw settingsError;
     if (profileError || !profile) throw profileError ?? new Error("Could not create the profile.");
 
-    // 4. Sign the new owner in for real (sets the Supabase session cookies
+    // 4. Sign the new owner in for real (sets the session cookies
     //    via the request-bound server client) so they land straight in the app.
-    const supabase = await createServerSupabaseClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const db = await createRequestClient();
+    const { error: signInError } = await db.auth.signInWithPassword({
       email: emailNorm,
       password: String(password),
     });

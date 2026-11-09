@@ -1,6 +1,6 @@
-import { getTenant } from "@/lib/supabase/session";
-import type { Database } from "@/lib/supabase/database.types";
-import { serializeCompetencyUnit } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import type { Database } from "@/lib/db/database.types";
+import { serializeCompetencyUnit } from "@/lib/db/serializers";
 
 export async function PATCH(
   req: Request,
@@ -16,7 +16,7 @@ export async function PATCH(
       );
     }
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("competency_units")
       .select("id")
       .eq("id", id)
@@ -35,7 +35,7 @@ export async function PATCH(
       data.nominal_hours = body.nominalHours != null ? Number(body.nominalHours) : null;
     if (body.order !== undefined) data.order_index = Number(body.order);
 
-    const { data: updated, error } = await ctx.supabase
+    const { data: updated, error } = await ctx.db
       .from("competency_units")
       .update(data)
       .eq("id", id)
@@ -64,7 +64,7 @@ export async function DELETE(
       );
     }
     const { id } = await params;
-    const { data: existing } = await ctx.supabase
+    const { data: existing } = await ctx.db
       .from("competency_units")
       .select("id")
       .eq("id", id)
@@ -74,7 +74,7 @@ export async function DELETE(
 
     // Tasks that referenced this unit just lose the reference (SET NULL),
     // their history/grades are untouched.
-    await ctx.supabase.from("competency_units").delete().eq("id", id);
+    await ctx.db.from("competency_units").delete().eq("id", id);
     return Response.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

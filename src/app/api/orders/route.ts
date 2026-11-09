@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Database } from "@/lib/supabase/database.types";
-import { getTenant } from "@/lib/supabase/session";
-import { serializeOrder } from "@/lib/supabase/serializers";
+import type { Database } from "@/lib/db/database.types";
+import { getTenant } from "@/lib/db/session";
+import { serializeOrder } from "@/lib/db/serializers";
 
 const ORDER_SELECT =
   "*, customer:customers(*), assigned_staff:profiles!orders_assigned_staff_id_fkey(*), payments(*), fittings(*)";
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const canSeeAll = ctx.role === "madam" || ctx.role === "trainer";
-  let query = ctx.supabase
+  let query = ctx.db
     .from("orders")
     .select(ORDER_SELECT)
     .eq("shop_id", ctx.shopId);
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
 
-  const { data: customer } = await ctx.supabase
+  const { data: customer } = await ctx.db
     .from("customers")
     .select("id")
     .eq("id", body.customerId)
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
   };
 
   if (body.assignedStaffId) {
-    const { data: staff } = await ctx.supabase
+    const { data: staff } = await ctx.db
       .from("profiles")
       .select("id")
       .eq("id", body.assignedStaffId)
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
     if (staff) data.assigned_staff_id = body.assignedStaffId;
   }
 
-  const { data: created, error } = await ctx.supabase
+  const { data: created, error } = await ctx.db
     .from("orders")
     .insert(data)
     .select(ORDER_SELECT)

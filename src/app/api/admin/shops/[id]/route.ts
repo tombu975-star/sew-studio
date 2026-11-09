@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSystemAdminSession } from "@/lib/supabase/session";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import { getSystemAdminSession } from "@/lib/db/session";
+import { createAdminClient } from "@/lib/db/adminClient";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
-  const admin = createAdminSupabaseClient();
+  const admin = createAdminClient();
 
   const { data: shop } = await admin.from("shops").select("*").eq("id", id).maybeSingle();
   if (!shop) {
@@ -73,7 +73,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
   }
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const admin = createAdminSupabaseClient();
+  const admin = createAdminClient();
 
   const { data: existing } = await admin.from("shops").select("id").eq("id", id).maybeSingle();
   if (!existing) {

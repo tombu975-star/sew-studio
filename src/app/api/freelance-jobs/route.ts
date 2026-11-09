@@ -1,5 +1,5 @@
-import { getTenant, canManageFreelancers } from "@/lib/supabase/session";
-import { serializeFreelanceJob } from "@/lib/supabase/serializers";
+import { getTenant, canManageFreelancers } from "@/lib/db/session";
+import { serializeFreelanceJob } from "@/lib/db/serializers";
 
 // GET /api/freelance-jobs — this shop's freelance jobs (its own
 // bookkeeping view — includes orderId, unlike the freelancer-facing API).
@@ -10,7 +10,7 @@ export async function GET() {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: jobs, error } = await ctx.supabase
+    const { data: jobs, error } = await ctx.db
       .from("freelance_jobs")
       .select("*, freelancer:freelancer_profiles(id, full_name)")
       .eq("shop_id", ctx.shopId)
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     }
 
     // Must be a freelancer this shop has actually linked.
-    const { data: link } = await ctx.supabase
+    const { data: link } = await ctx.db
       .from("freelancer_shop_links")
       .select("id")
       .eq("shop_id", ctx.shopId)
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     // orderId, if given, must belong to this shop too.
     let finalOrderId: string | null = null;
     if (orderId) {
-      const { data: order } = await ctx.supabase
+      const { data: order } = await ctx.db
         .from("orders")
         .select("id")
         .eq("id", String(orderId))
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       if (order) finalOrderId = order.id;
     }
 
-    const { data: job, error } = await ctx.supabase
+    const { data: job, error } = await ctx.db
       .from("freelance_jobs")
       .insert({
         shop_id: ctx.shopId,

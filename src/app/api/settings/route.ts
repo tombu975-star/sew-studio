@@ -1,20 +1,20 @@
-import { getTenant } from "@/lib/supabase/session";
-import type { Database } from "@/lib/supabase/database.types";
-import { serializeSettings } from "@/lib/supabase/serializers";
+import { getTenant } from "@/lib/db/session";
+import type { Database } from "@/lib/db/database.types";
+import { serializeSettings } from "@/lib/db/serializers";
 
 export async function GET() {
   try {
     const ctx = await getTenant();
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    let { data: settings } = await ctx.supabase
+    let { data: settings } = await ctx.db
       .from("settings")
       .select("*")
       .eq("shop_id", ctx.shopId)
       .maybeSingle();
 
     if (!settings) {
-      const { data: created, error } = await ctx.supabase
+      const { data: created, error } = await ctx.db
         .from("settings")
         .insert({ shop_id: ctx.shopId, owner_gender: "Madam", studio_name: "Madam Studio" })
         .select("*")
@@ -36,13 +36,13 @@ export async function PATCH(req: Request) {
 
     const body = await req.json();
 
-    let { data: settings } = await ctx.supabase
+    let { data: settings } = await ctx.db
       .from("settings")
       .select("id")
       .eq("shop_id", ctx.shopId)
       .maybeSingle();
     if (!settings) {
-      const { data: created, error } = await ctx.supabase
+      const { data: created, error } = await ctx.db
         .from("settings")
         .insert({ shop_id: ctx.shopId, owner_gender: "Madam", studio_name: "Madam Studio" })
         .select("id")
@@ -148,7 +148,7 @@ export async function PATCH(req: Request) {
       if (key in body) data[column] = typeof body[key] === "string" ? body[key].trim().slice(0, 300) : "";
     }
 
-    const { data: updated, error } = await ctx.supabase
+    const { data: updated, error } = await ctx.db
       .from("settings")
       .update(data)
       .eq("id", settings.id)
@@ -162,7 +162,7 @@ export async function PATCH(req: Request) {
     // Keep the two in sync whenever the owner changes it here — otherwise
     // the session would keep reporting the shop's old currency forever.
     if ("currency" in body && body.currency != null) {
-      await ctx.supabase
+      await ctx.db
         .from("shops")
         .update({ currency: String(body.currency) })
         .eq("id", ctx.shopId);

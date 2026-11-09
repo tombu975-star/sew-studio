@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import type { Database } from "@/lib/supabase/database.types";
-import { getTenant } from "@/lib/supabase/session";
+import type { Database } from "@/lib/db/database.types";
+import { getTenant } from "@/lib/db/session";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
-import { createAdminSupabaseClient } from "@/lib/supabase/adminClient";
+import { createAdminClient } from "@/lib/db/adminClient";
 
 export async function PATCH(req: Request) {
   const ctx = await getTenant();
@@ -33,14 +33,14 @@ export async function PATCH(req: Request) {
     if (!isPlausiblePhone(data.phone)) {
       return NextResponse.json({ error: MESSAGES.badPhone }, { status: 400 });
     }
-    const conflict = await findIdentityConflict(createAdminSupabaseClient(), {
+    const conflict = await findIdentityConflict(createAdminClient(), {
       phone: data.phone,
       excludeId: ctx.userId,
     });
     if (conflict) return NextResponse.json({ error: conflict.message }, { status: 409 });
   }
 
-  const { data: profile, error } = await ctx.supabase
+  const { data: profile, error } = await ctx.db
     .from("profiles")
     .update(data)
     .eq("id", ctx.userId)

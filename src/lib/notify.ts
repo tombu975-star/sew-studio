@@ -1,7 +1,6 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { AppClient } from "@/lib/db/appClient";
 
-type Client = SupabaseClient<Database>;
+type Client = AppClient;
 
 interface CustomerContact {
   id: string;
@@ -87,11 +86,11 @@ async function sendViaGoogleAppsScript(payload: {
  *   - "logged_only" — no GOOGLE_APPS_SCRIPT_URL configured, or channel is
  *                     in-app-only; nothing external was attempted
  *
- * Pass `ctx.supabase` from a shop-session route, or the admin client from a
+ * Pass `ctx.db` from a shop-session route, or the admin client from a
  * token-authenticated portal route (the customer has no session of their own).
  */
 export async function notifyCustomer(
-  supabase: Client,
+  db: Client,
   opts: {
     shopId: string;
     customerId: string;
@@ -113,7 +112,7 @@ export async function notifyCustomer(
   }
 ) {
   try {
-    const { data: customer } = await supabase
+    const { data: customer } = await db
       .from("customers")
       .select("id, name, whatsapp, phone, email")
       .eq("id", opts.customerId)
@@ -141,7 +140,7 @@ export async function notifyCustomer(
     const deliveryStatus =
       delivered === null ? "logged_only" : delivered ? "sent" : "failed";
 
-    await supabase.from("customer_notifications").insert({
+    await db.from("customer_notifications").insert({
       shop_id: opts.shopId,
       customer_id: opts.customerId,
       order_id: opts.orderId || null,
@@ -163,8 +162,8 @@ export async function notifyCustomer(
 }
 
 /** Generate (or return the existing) portal token for a customer. */
-export async function ensurePortalToken(supabase: Client, customerId: string): Promise<string> {
-  const { data: existing } = await supabase
+export async function ensurePortalToken(db: Client, customerId: string): Promise<string> {
+  const { data: existing } = await db
     .from("customers")
     .select("portal_token")
     .eq("id", customerId)
@@ -173,7 +172,7 @@ export async function ensurePortalToken(supabase: Client, customerId: string): P
 
   const token =
     Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
-  await supabase.from("customers").update({ portal_token: token }).eq("id", customerId);
+  await db.from("customers").update({ portal_token: token }).eq("id", customerId);
   return token;
 }
 
