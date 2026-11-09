@@ -16,6 +16,10 @@ import {
   ListChecks,
   Power,
   PowerOff,
+  Clock3,
+  UserRoundX,
+  ArrowRight,
+  Activity,
 } from "lucide-react";
 import { PageHeader, SectionCard } from "@/components/atelier/_portal";
 import { apiGet, apiPost, apiPatch, apiErrorMessage } from "@/lib/api";
@@ -201,6 +205,22 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
   const activeCount = shops.filter((s) => !s.suspendedAt).length;
   const suspendedCount = shops.length - activeCount;
   const totalMembers = shops.reduce((sum, s) => sum + s.userCount, 0);
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  const newStudios = shops.filter((s) => {
+    const created = Date.parse(s.createdAt);
+    return Number.isFinite(created) && now - created >= 0 && now - created <= 7 * day;
+  });
+  const setupFollowUps = shops.filter((s) => {
+    const created = Date.parse(s.createdAt);
+    return (
+      !s.suspendedAt &&
+      s.orderCount === 0 &&
+      Number.isFinite(created) &&
+      now - created > 14 * day
+    );
+  });
+  const missingOwners = shops.filter((s) => !s.ownerName || !s.ownerEmail);
 
   return (
     <div className="min-h-dvh bg-[#F8FAFC]">
@@ -249,6 +269,65 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
               <StatCard icon={CheckCircle2} label="Active" value={activeCount} tone="good" />
               <StatCard icon={Ban} label="Suspended" value={suspendedCount} tone={suspendedCount ? "bad" : undefined} />
             </div>
+
+            <SectionCard
+              className="mb-6"
+              title="Recommended activities"
+              description="Operational checks based on current studio records."
+            >
+              <div className="divide-y divide-[#E4E8EE]">
+                {missingOwners.length > 0 && (
+                  <Recommendation
+                    icon={UserRoundX}
+                    title="Review studio owner records"
+                    description="Some studios do not have a complete owner name and email on file."
+                    count={missingOwners.length}
+                    actionLabel="Review studio"
+                    onClick={() => setSelectedId(missingOwners[0].id)}
+                  />
+                )}
+                {suspendedCount > 0 && (
+                  <Recommendation
+                    icon={Ban}
+                    title="Review suspended studios"
+                    description="Check suspension reasons and restore access where appropriate."
+                    count={suspendedCount}
+                    actionLabel="Review studio"
+                    onClick={() => setSelectedId(shops.find((s) => s.suspendedAt)?.id ?? null)}
+                  />
+                )}
+                {setupFollowUps.length > 0 && (
+                  <Recommendation
+                    icon={Activity}
+                    title="Review studio setup progress"
+                    description="These active studios are over 14 days old and have not recorded an order."
+                    count={setupFollowUps.length}
+                    actionLabel="Review studio"
+                    onClick={() => setSelectedId(setupFollowUps[0].id)}
+                  />
+                )}
+                {newStudios.length > 0 && (
+                  <Recommendation
+                    icon={Clock3}
+                    title="Review recent registrations"
+                    description="Check new studio records and confirm their initial setup is complete."
+                    count={newStudios.length}
+                    actionLabel="Review studio"
+                    onClick={() => setSelectedId(newStudios[0].id)}
+                  />
+                )}
+                <Recommendation
+                  icon={ListChecks}
+                  title="Check platform feature availability"
+                  description="Review which system menus are currently enabled for studios."
+                  actionLabel="Review menus"
+                  onClick={() => {
+                    setSection("menus");
+                    setSelectedId(null);
+                  }}
+                />
+              </div>
+            </SectionCard>
 
             <SectionCard className="!p-0" title={`All studios · ${totalMembers} members total`}>
           <div className="px-5 py-3 border-b border-[#E2E8F0]/70">
@@ -317,6 +396,49 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
           onChanged={reload}
         />
       )}
+    </div>
+  );
+}
+
+function Recommendation({
+  icon: Icon,
+  title,
+  description,
+  count,
+  actionLabel,
+  onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  count?: number;
+  actionLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-[#D8DEE7] bg-[#F4F6F8] text-slate-600">
+        <Icon className="size-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-medium text-[#17263C]">{title}</p>
+          {count !== undefined && (
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+              {count}
+            </span>
+          )}
+        </div>
+        <p className="mt-1 text-sm leading-relaxed text-slate-600">{description}</p>
+      </div>
+      <button
+        type="button"
+        onClick={onClick}
+        className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 self-start rounded-md border border-[#B8C2CF] bg-white px-3 text-xs font-medium text-[#243247] hover:border-[#1D4ED8] hover:bg-[#F8FAFC] sm:self-center"
+      >
+        {actionLabel}
+        <ArrowRight className="size-3.5" />
+      </button>
     </div>
   );
 }
