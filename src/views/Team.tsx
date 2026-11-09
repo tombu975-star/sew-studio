@@ -27,6 +27,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   LayoutGrid,
+  Copy,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
@@ -158,6 +159,8 @@ export default function Team() {
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [addTraineeOpen, setAddTraineeOpen] = useState(false);
   const [addFreelancerOpen, setAddFreelancerOpen] = useState(false);
+  const [createdFreelancerCredentials, setCreatedFreelancerCredentials] =
+    useState<{ email: string; password: string } | null>(null);
   const [editMember, setEditMember] = useState<User | null>(null);
   const [removeMember, setRemoveMember] = useState<User | null>(null);
 
@@ -351,7 +354,68 @@ export default function Team() {
         open={addFreelancerOpen}
         onOpenChange={setAddFreelancerOpen}
         onDone={() => qc.invalidateQueries({ queryKey: ["freelancers"] })}
+        onAccountCreated={setCreatedFreelancerCredentials}
       />
+      <Dialog
+        open={!!createdFreelancerCredentials}
+        onOpenChange={(open) => {
+          if (!open) setCreatedFreelancerCredentials(null);
+        }}
+      >
+        <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Freelancer login created</DialogTitle>
+            <DialogDescription>
+              Share these sign-in details with the freelancer. The password is
+              shown only now.
+            </DialogDescription>
+          </DialogHeader>
+          {createdFreelancerCredentials && (
+            <div className="space-y-3 rounded-lg border border-[#E2E8F0] bg-slate-50 p-4 text-sm">
+              <div>
+                <p className="text-xs text-stone-500 mb-1">Login email</p>
+                <p className="font-medium text-[#0F172A] break-all">
+                  {createdFreelancerCredentials.email}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-500 mb-1">Initial password</p>
+                <code className="block rounded bg-white border border-[#E2E8F0] p-2 text-[#0F172A] break-all select-all">
+                  {createdFreelancerCredentials.password}
+                </code>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <PremiumButton
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={async () => {
+                if (!createdFreelancerCredentials) return;
+                try {
+                  await navigator.clipboard.writeText(
+                    `Email: ${createdFreelancerCredentials.email}\nPassword: ${createdFreelancerCredentials.password}`
+                  );
+                  toast.success("Login details copied.");
+                } catch {
+                  toast.error("Could not copy login details. Select and copy them manually.");
+                }
+              }}
+            >
+              <Copy className="w-4 h-4" /> Copy login details
+            </PremiumButton>
+            <PremiumButton
+              type="button"
+              variant="primary"
+              size="md"
+              onClick={() => setCreatedFreelancerCredentials(null)}
+            >
+              Done
+            </PremiumButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -1754,16 +1818,18 @@ function AddFreelancerDialog({
   open,
   onOpenChange,
   onDone,
+  onAccountCreated,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onDone: () => void;
+  onAccountCreated: (credentials: { email: string; password: string }) => void;
 }) {
   const [form, setForm] = useState<FreelancerForm>(EMPTY_FREELANCER);
 
   const createMutation = useMutation({
     mutationFn: (body: FreelancerForm) =>
-      apiPost<Freelancer>("/api/freelancers", {
+      apiPost<Freelancer & { accountCreated: boolean; temporaryPassword?: string }>("/api/freelancers", {
         fullName: body.name,
         specialty: body.specialty,
         skills: body.skills || null,
@@ -1773,10 +1839,15 @@ function AddFreelancerDialog({
         status: body.status,
         password: body.password || undefined,
       }),
-    onSuccess: (f) => {
+    onSuccess: (f, body) => {
       toast.success(`${f.name} added to your freelancer roster.`, {
-        description: f.specialty ? `${f.specialty} · ${f.status}` : f.status,
+        description: f.accountCreated
+          ? "A new login was created."
+          : "Their existing freelancer login was linked.",
       });
+      if (f.accountCreated && f.temporaryPassword) {
+        onAccountCreated({ email: f.email || body.email, password: f.temporaryPassword });
+      }
       onDone();
       setForm(EMPTY_FREELANCER);
       onOpenChange(false);
@@ -1880,19 +1951,20 @@ function AddFreelancerDialog({
             </Field>
           </div>
 
-          <Field label="Password (optional)">
+          <Field label="Initial password (optional)">
             <Input
               type="password"
               value={form.password}
               onChange={(e) => set("password", e.target.value)}
-              placeholder="Leave blank to use the default starter password"
+              placeholder="Leave blank to generate a secure password"
               className="h-10 bg-white border-[#E2E8F0] rounded-md"
+              minLength={8}
               autoComplete="new-password"
             />
             <p className="text-xs text-stone-400 mt-1">
-              Only used if this is a brand-new freelancer. If they already
-              have an account with another shop, their existing password
-              stays as-is.
+              Leave blank to generate a secure temporary password. You can
+              share it with them after creation. Existing accounts keep their
+              current password.
             </p>
           </Field>
 

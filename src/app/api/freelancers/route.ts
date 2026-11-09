@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/db/adminClient";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, normalizeEmail, MESSAGES } from "@/lib/identity";
 import type { AppClient } from "@/lib/db/appClient";
 import type { PoolClient } from "pg";
+import { randomBytes } from "crypto";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -92,10 +93,10 @@ export async function POST(req: Request) {
     if (phone && !isPlausiblePhone(phone)) {
       return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
     }
-    if (password !== undefined && String(password).length < 6) {
-      return Response.json({ error: "Password must be at least 6 characters." }, { status: 400 });
+    if (password && String(password).length < 8) {
+      return Response.json({ error: "Password must be at least 8 characters." }, { status: 400 });
     }
-    const passwordValue = String(password || "freelancer2025");
+    const passwordValue = password ? String(password) : randomBytes(18).toString("base64url");
     const phoneValue = phone ? String(phone).trim().slice(0, 40) : null;
     const specialtyValue = specialty ? String(specialty).trim().slice(0, 80) : null;
     const skillsValue = skills ? String(skills).trim().slice(0, 300) : null;
@@ -104,24 +105,38 @@ export async function POST(req: Request) {
 
     // Find the freelancer by their normalised email, so a Gmail alias
     // (jo.hn+x@gmail.com) links to the account that already exists instead of
-    // creating a second one. Falls back to the exact email if migration 0013
-    // hasn't been applied yet.
+    // creating a second one. Fall back to an exact email match when older
+    // profile rows don't have a populated normalized key.
     const emailKey = normalizeEmail(normalizedEmail);
     // email_key comes from migration 0013, so it isn't in the generated types.
     const untyped = admin as AppClient;
-    const byKey = emailKey
-      ? await untyped.from("freelancer_profiles").select("*").eq("email_key", emailKey).maybeSingle()
-      : null;
-    let freelancer = byKey && !byKey.error ? byKey.data : null;
-    if (byKey?.error) {
+    let freelancer: {
+      id: string;
+      full_name: string;
+      email: string;
+      phone: string | null;
+      specialty: string | null;
+      skills: string | null;
+    } | null = null;
+    if (emailKey) {
+      const byKey = await untyped
+        .from("freelancer_profiles")
+        .select("*")
+        .eq("email_key", emailKey)
+        .maybeSingle();
+      if (!byKey.error) freelancer = byKey.data;
+    }
+    if (!freelancer) {
       const exact = await admin
         .from("freelancer_profiles")
         .select("*")
         .eq("email", normalizedEmail)
         .maybeSingle();
+      if (exact.error) throw exact.error;
       freelancer = exact.data;
     }
 
+    let accountCreated = false;
     let link: {
       id: string;
       rate_notes: string | null;
@@ -157,12 +172,28 @@ export async function POST(req: Request) {
           return { profile: profileRows[0], link: linkRows[0] };
         },
       });
-      if (authError || !authData.user) throw authError ?? new Error("Could not create freelancer account.");
+      if (authError || !authData.user) {
+        if (authError?.code === "email_exists") {
+          return Response.json(
+            {
+              error:
+                "This email already belongs to another account. Ask the freelancer to use their existing freelancer account email, or provide an unused email address.",
+            },
+            { status: 409 }
+          );
+        }
+        throw authError ?? new Error("Could not create freelancer account.");
+      }
       if (!authData.provisioned) {
         throw new Error("Freelancer account was created without its shop link.");
       }
       freelancer = authData.provisioned.profile;
       link = authData.provisioned.link;
+      accountCreated = true;
+    }
+
+    if (!freelancer) {
+      throw new Error("Freelancer account could not be found or created.");
     }
 
     if (!link) {
@@ -199,7 +230,7 @@ export async function POST(req: Request) {
       link = createdLink;
     }
 
-    if (!freelancer || !link) {
+    if (!link) {
       throw new Error("Freelancer account was not fully linked to the shop.");
     }
 
@@ -214,6 +245,8 @@ export async function POST(req: Request) {
       rateNotes: link.rate_notes,
       status: link.status,
       createdAt: link.created_at,
+      accountCreated,
+      ...(accountCreated ? { temporaryPassword: passwordValue } : {}),
     });
   } catch (err) {
     const friendly = identityErrorMessage(err);
