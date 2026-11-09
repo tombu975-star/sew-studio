@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/migrate.mjs && next start",
     "lint": "eslint .",
     "create-admin": "node scripts/create-system-admin.mjs",
     "db:migrate": "node scripts/migrate.mjs",
