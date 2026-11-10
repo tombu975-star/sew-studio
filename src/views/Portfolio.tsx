@@ -20,6 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Image as ImageIcon, Scissors, CalendarDays, User } from "lucide-react";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
+import { LearningTabs } from "@/components/atelier/LearningTabs";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumMetric } from "@/components/atelier/PremiumMetric";
 import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
@@ -125,6 +126,7 @@ export default function Portfolio() {
           ) : null
         }
       />
+      <LearningTabs current="portfolio" />
 
       {/* Premium stat strip */}
       <div className="grid grid-cols-3 gap-3 md:gap-4 mb-6 animate-fade-in-up">

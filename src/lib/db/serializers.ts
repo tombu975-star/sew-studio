@@ -122,6 +122,10 @@ export function serializeTask(t: Record<string, any>) {
     gradedBy: t.graded_by ? serializeUser(t.graded_by) : undefined,
     gradedAt: t.graded_at,
     feedback: t.feedback,
+    competencyUnitId: t.competency_unit_id,
+    competencyUnit: t.module
+      ? { id: t.module.id, title: t.module.title, programId: t.module.program_id }
+      : undefined,
     moduleId: t.competency_unit_id,
     module: t.module
       ? {

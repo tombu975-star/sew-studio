@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
+import { LearningTabs } from "@/components/atelier/LearningTabs";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { EmptyState, SkeletonCard } from "@/components/atelier/EmptyState";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
@@ -163,6 +164,7 @@ function TraineeCertificate({ traineeId }: { traineeId: string }) {
         title="My Certificate"
         subtitle="Your official certificate of apprenticeship completion."
       />
+      <LearningTabs current="certificate" />
 
       {certsQ.isLoading ? (
         <div className="grid gap-4">
@@ -260,6 +262,7 @@ function OwnerCertificate() {
           ) : undefined
         }
       />
+      <LearningTabs current="certificate" />
 
       {/* Trainee picker */}
       <SectionCard

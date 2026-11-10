@@ -1,4 +1,5 @@
 import { getTenant } from "@/lib/db/session";
+import { serializeUser } from "@/lib/db/serializers";
 import { createAdminClient } from "@/lib/db/adminClient";
 import { getPool } from "@/lib/db/pool";
 import type { PoolClient } from "pg";
@@ -13,7 +14,7 @@ export async function GET() {
     // RLS already scopes this to ctx.shopId — the explicit .eq is defense
     // in depth, matching the app's existing convention of never relying on
     // a single layer for tenant isolation.
-    const columns = "id, email, full_name, role, gender, phone, shop_id, mentor_id, training_duration_weeks, training_started_at, can_access_orders, can_access_board, created_at, updated_at";
+    const columns = "id, email, full_name, role, gender, phone, avatar_url, shop_id, mentor_id, training_duration_weeks, training_started_at, program_id, can_access_orders, can_access_board, can_manage_freelancers, created_at, updated_at";
     const listMembers = (activeOnly: boolean) => {
       let q = ctx.db.from("profiles").select(columns).eq("shop_id", ctx.shopId);
       if (activeOnly) q = q.eq("is_active", true);
@@ -24,24 +25,7 @@ export async function GET() {
     if (error) ({ data: users, error } = await listMembers(false));
     if (error || !users) throw error ?? new Error("Could not load team");
 
-    return Response.json(
-      users.map((u) => ({
-        id: u.id,
-        email: u.email,
-        fullName: u.full_name,
-        role: u.role,
-        gender: u.gender,
-        phone: u.phone,
-        shopId: u.shop_id,
-        mentorId: u.mentor_id,
-        trainingDurationWeeks: u.training_duration_weeks,
-        trainingStartedAt: u.training_started_at,
-        canAccessOrders: u.can_access_orders,
-        canAccessBoard: u.can_access_board,
-        createdAt: u.created_at,
-        updatedAt: u.updated_at,
-      }))
-    );
+    return Response.json(users.map(serializeUser));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: msg }, { status: 500 });

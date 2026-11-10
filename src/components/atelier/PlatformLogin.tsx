@@ -9,20 +9,30 @@ export function PlatformLogin() {
   const settings = usePlatformSettings();
   return (
     <main
-      className="h-dvh overflow-hidden bg-[#f5f0e9] p-0 text-[#292321] sm:h-auto sm:min-h-dvh sm:overflow-visible sm:p-4 lg:p-6"
-      style={{ backgroundColor: settings.backgroundColor }}
+      className="h-dvh overflow-hidden bg-[#a52b40] p-0 text-[#292321] sm:h-auto sm:min-h-dvh sm:overflow-visible sm:bg-[var(--login-bg)] sm:p-4 lg:p-6"
+      style={{ "--login-bg": settings.backgroundColor } as React.CSSProperties}
     >
-      <div className="mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-[#fbfaf8] sm:h-auto sm:min-h-dvh sm:grid-rows-none sm:rounded-[24px] sm:shadow-[0_24px_80px_rgba(54,34,29,0.12)] lg:min-h-[calc(100dvh-48px)] lg:grid-cols-[1.05fr_.95fr]">
-        <aside className="relative isolate overflow-hidden bg-[#42252d] sm:min-h-[340px] lg:min-h-[720px]">
+      <div className="mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-[#a52b40] sm:bg-[#fbfaf8] sm:h-auto sm:min-h-dvh sm:grid-rows-none sm:rounded-[24px] sm:shadow-[0_24px_80px_rgba(54,34,29,0.12)] lg:min-h-[calc(100dvh-48px)] lg:grid-cols-[1.05fr_.95fr]">
+        <aside className="relative isolate h-[31dvh] max-h-[380px] min-h-[150px] overflow-hidden bg-[#42252d] [@media(min-height:760px)]:h-[40dvh] sm:h-auto sm:max-h-none sm:min-h-[340px] lg:min-h-[720px]">
           <Image
             src="/atelier-login.jpg"
             alt=""
             fill
             priority
             sizes="(max-width: 1023px) 100vw, 55vw"
-            className="object-cover object-[center_38%]"
+            className="object-cover object-[center_22%] sm:object-[center_38%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#21171a]/55 via-[#392027]/10 to-[#21171a]/75" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#21171a]/55 via-[#392027]/10 to-[#21171a]/75 max-sm:hidden" />
+          {/* Phones: red-tinted photo that melts into the panel, like the reference */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#7a1a2b]/45 via-[#a52b40]/55 to-[#a52b40] sm:hidden" />
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 390 64"
+            preserveAspectRatio="none"
+            className="absolute -bottom-px left-0 z-[5] h-9 w-full sm:hidden"
+          >
+            <path d="M0 64V30C58 6 128 -2 196 14c66 16 130 34 194 2V64Z" fill="#a52b40" />
+          </svg>
           <div className="relative z-10 flex flex-col justify-between px-5 py-4 [@media(max-height:700px)]:py-3 text-white sm:min-h-[340px] sm:p-9 lg:min-h-[720px] lg:p-12">
             <header className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
@@ -58,10 +68,10 @@ export function PlatformLogin() {
           </div>
         </aside>
 
-        <section className="flex min-h-0 overflow-y-auto px-6 py-5 [@media(max-height:700px)]:py-3 sm:overflow-visible sm:px-10 sm:py-12 lg:px-12 xl:px-[72px]">
+        <section className="flex min-h-0 overflow-y-auto px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-1 text-white sm:overflow-visible sm:pb-12 sm:pt-12 sm:text-inherit sm:px-10 sm:py-12 lg:px-12 xl:px-[72px]">
           <div className="m-auto w-full max-w-[420px]">
             <LoginPage />
-            <footer className="mt-4 text-center text-xs leading-relaxed text-[#8b7f78] [@media(max-height:700px)]:hidden sm:mt-8">
+            <footer className="mt-4 text-center text-xs leading-relaxed text-white/70 [@media(max-height:700px)]:hidden sm:mt-8 sm:text-[#8b7f78]">
               <p>{settings.loginFooter}</p>
               {settings.releaseNotes && (
                 <p className="mx-auto mt-2 hidden max-w-[360px] sm:block" aria-label="Latest release notes">

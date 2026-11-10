@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
+import { LearningTabs } from "@/components/atelier/LearningTabs";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumMetric } from "@/components/atelier/PremiumMetric";
 import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
@@ -199,6 +200,7 @@ function TraineeProgress({ traineeId }: { traineeId: string }) {
         title="My Progress"
         subtitle="Your skill journey at the atelier."
       />
+      <LearningTabs current="progress" />
       <ProgressBody traineeId={traineeId} viewerRole="trainee" />
     </div>
   );
@@ -262,6 +264,7 @@ function OwnerProgress() {
           ) : undefined
         }
       />
+      <LearningTabs current="progress" />
 
       {/* Trainee picker */}
       <SectionCard
