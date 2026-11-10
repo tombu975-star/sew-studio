@@ -6,6 +6,7 @@ import { Scissors, LogOut, Loader2, AlertCircle, CalendarDays, Banknote } from "
 import { PageHeader, SectionCard } from "@/components/atelier/_portal";
 import { apiGet, apiPost, apiPatch } from "@/lib/api";
 import { formatDate } from "@/lib/format";
+import { OpenJobsPanel } from "./OpenJobsPanel";
 
 interface FreelancerProfile {
   id: string;
@@ -300,6 +301,7 @@ function FreelancerDashboard({
   const [jobs, setJobs] = useState<FreelanceJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"mine" | "open">("mine");
 
   useEffect(() => {
     apiGet<FreelanceJob[]>("/api/freelancer/jobs")
@@ -346,7 +348,23 @@ function FreelancerDashboard({
           </button>
         </div>
 
-        {loading ? (
+        <div className="flex gap-2 mb-4">
+          {([["mine", "My jobs"], ["open", "Open jobs"]] as const).map(([k, label]) => (
+            <button
+              key={k}
+              onClick={() => setTab(k)}
+              className={`h-9 px-4 rounded-full text-xs font-medium border ${
+                tab === k ? "bg-[#2563EB] text-white border-[#2563EB]" : "bg-white text-stone-600 border-[#E2E8F0]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "open" ? (
+          <OpenJobsPanel />
+        ) : loading ? (
           <div className="py-16 flex justify-center">
             <Loader2 className="w-5 h-5 animate-spin text-[#2563EB]" />
           </div>
@@ -358,8 +376,8 @@ function FreelancerDashboard({
                 work.
               </p>
               <p className="text-xs text-stone-400 mt-3 max-w-xs mx-auto">
-                New here? Give a studio the email you signed up with ({profile.email}) and
-                they can add you from their Team page.
+                Browse the Open jobs tab to apply for work — studios can also find you
+                in their freelancer directory.
               </p>
             </div>
           </SectionCard>

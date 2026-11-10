@@ -32,6 +32,7 @@ import {
 
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
+import { FreelancerMarketplace } from "@/views/FreelancerMarketplace";
 import { PremiumMetric } from "@/components/atelier/PremiumMetric";
 import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
 import { EmptyState, SkeletonList } from "@/components/atelier/EmptyState";
@@ -328,6 +329,7 @@ export default function Team() {
             onAdd={() => setAddFreelancerOpen(true)}
             canAdd={canAddFreelancers}
           />
+          {(role.isOwner() || owner?.canManageFreelancers === true) && <FreelancerMarketplace />}
           <FreelanceJobsSection freelancers={freelancers} />
         </TabsContent>
       </Tabs>
