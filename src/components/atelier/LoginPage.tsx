@@ -20,7 +20,7 @@ type Mode = "login" | "register";
  * api.ts throws errors like `"409 Conflict — {"error":"..."}"`.
  * Pull a clean user-facing message out of that payload.
  */
-function extractApiError(err: unknown, fallback: string): string {
+export function extractApiError(err: unknown, fallback: string): string {
   if (err instanceof Error) {
     const m = err.message;
     const idx = m.indexOf("—");
@@ -38,12 +38,12 @@ function extractApiError(err: unknown, fallback: string): string {
   return fallback;
 }
 
-const inputClass =
+export const inputClass =
   "h-12 w-full rounded-xl border border-[#e7dfd8] bg-white px-4 text-base text-[#292321] outline-none transition placeholder:text-[#aa9e96] focus:border-[#8a3b50] focus:ring-4 focus:ring-[#8a3b50]/10 sm:h-[52px] sm:text-sm " +
   // phones: white pill with an icon on the left, as in the reference design
   "max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(60,8,18,0.22)] max-sm:placeholder:text-[#8a7a7d] max-sm:focus:ring-white/35";
 
-const phoneButton =
+export const phoneButton =
   "max-sm:rounded-full max-sm:bg-white max-sm:text-[#a52b40] max-sm:shadow-[0_8px_20px_rgba(60,8,18,0.3)] max-sm:hover:bg-rose-50 max-sm:focus-visible:ring-white/60 max-sm:focus-visible:ring-offset-[#a52b40]";
 
 export function LoginPage() {
@@ -212,10 +212,10 @@ export function LoginPage() {
             <p className="mt-2.5 text-[13px] leading-5 text-[#756a64] max-sm:mt-0 max-sm:text-white/85 sm:mt-5 sm:text-sm sm:leading-6">
               Work with studios as a freelancer?{" "}
               <a
-                href="/freelancer?mode=register"
+                href="/freelancer"
                 className="font-medium text-[#81384b] underline-offset-4 hover:underline max-sm:text-white max-sm:underline"
               >
-                Create a freelancer account
+                Freelancer sign in
               </a>
             </p>
           </div>
@@ -338,7 +338,7 @@ export function LoginPage() {
 
 /* ---------- small pieces ---------- */
 
-function Field({
+export function Field({
   label,
   htmlFor,
   required,
@@ -371,7 +371,7 @@ function Field({
   );
 }
 
-function PasswordInput({
+export function PasswordInput({
   id,
   value,
   onChange,
@@ -413,7 +413,7 @@ function PasswordInput({
   );
 }
 
-function ErrorNote({ children }: { children: React.ReactNode }) {
+export function ErrorNote({ children }: { children: React.ReactNode }) {
   return (
     <p role="alert" className="rounded-xl border border-[#a3333d]/20 bg-[#a3333d]/5 px-3.5 py-2.5 text-sm text-[#8f2933] max-sm:rounded-2xl max-sm:border-0 max-sm:bg-white max-sm:py-2 max-sm:text-[13px]">
       {children}
@@ -422,7 +422,7 @@ function ErrorNote({ children }: { children: React.ReactNode }) {
 }
 
 /** Sign in / Sign up tabs shown on phones only (desktop keeps its headings and links). */
-function PhoneTabs({ mode, onSwitch }: { mode: Mode; onSwitch: (m: Mode) => void }) {
+export function PhoneTabs({ mode, onSwitch }: { mode: Mode; onSwitch: (m: Mode) => void }) {
   const tab = (m: Mode, label: string) => (
     <button
       type="button"

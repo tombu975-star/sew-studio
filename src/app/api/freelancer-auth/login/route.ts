@@ -3,7 +3,7 @@ import { createRequestClient } from "@/lib/db/requestClient";
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, rememberMe } = await req.json();
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email and password are required." },
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const db = await createRequestClient();
+    const db = await createRequestClient({ rememberMe: rememberMe === true });
     const { data, error } = await db.auth.signInWithPassword({
       email: String(email).toLowerCase().trim(),
       password: String(password),

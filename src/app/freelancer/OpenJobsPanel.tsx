@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Banknote, CalendarDays, Search } from "lucide-react";
+import { toast } from "sonner";
 import { SectionCard } from "@/components/atelier/_portal";
-import { apiGet, apiPost, apiDelete, apiErrorMessage } from "@/lib/api";
+import { EmptyState } from "@/components/atelier/EmptyState";
+import { PremiumButton } from "@/components/atelier/PremiumButton";
+import { StatusBadge } from "@/components/atelier/StatusBadge";
+import { apiDelete, apiErrorMessage, apiGet, apiPost } from "@/lib/api";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 interface OpenJob {
   id: string;
@@ -15,7 +20,7 @@ interface OpenJob {
   myApplication: { status: string; message?: string | null; proposedCost?: number | null } | null;
 }
 
-const input = "w-full h-10 px-3 rounded-md border border-[#E2E8F0] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20";
+const input = "h-10 w-full rounded-md border border-[#D8DEE7] bg-white px-3 text-sm outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15";
 
 /** Freelancer-side: jobs shops have posted that nobody is assigned to yet. */
 export function OpenJobsPanel() {
@@ -26,77 +31,90 @@ export function OpenJobsPanel() {
   const [cost, setCost] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
 
-  const load = () =>
-    apiGet<OpenJob[]>("/api/freelancer/open-jobs")
-      .then(setJobs)
-      .catch((e) => setError(apiErrorMessage(e, "Could not load open jobs.")));
-  useEffect(() => { load(); }, []);
+  const load = useCallback(
+    () =>
+      apiGet<OpenJob[]>("/api/freelancer/open-jobs")
+        .then((j) => { setJobs(j); setError(""); })
+        .catch((e) => { setError(apiErrorMessage(e, "Could not load open jobs.")); setJobs((j) => j ?? []); }),
+    []
+  );
+  useEffect(() => { load(); }, [load]);
 
   async function apply(id: string) {
     setBusy(id);
-    setError("");
     try {
       await apiPost(`/api/freelancer/open-jobs/${id}/apply`, { message, proposedCost: cost });
+      toast.success("Application sent. The studio will be in touch.");
       setOpenId(null); setMessage(""); setCost("");
       await load();
     } catch (e) {
-      setError(apiErrorMessage(e, "Could not send your application."));
+      toast.error(apiErrorMessage(e, "Could not send your application."));
     } finally {
       setBusy(null);
     }
   }
   async function withdraw(id: string) {
     setBusy(id);
-    try { await apiDelete(`/api/freelancer/open-jobs/${id}/apply`); await load(); }
-    catch (e) { setError(apiErrorMessage(e, "Could not withdraw.")); }
+    try { await apiDelete(`/api/freelancer/open-jobs/${id}/apply`); toast.success("Application withdrawn."); await load(); }
+    catch (e) { toast.error(apiErrorMessage(e, "Could not withdraw.")); }
     finally { setBusy(null); }
   }
 
   if (!jobs) {
-    return <div className="py-16 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#2563EB]" /></div>;
+    return (
+      <div className="space-y-3" aria-busy="true">
+        {[0, 1, 2].map((i) => <div key={i} className="h-32 animate-pulse rounded-lg border border-[#E2E8F0] bg-white" />)}
+      </div>
+    );
   }
   return (
     <div className="space-y-3">
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {jobs.length === 0 && (
+      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+      {jobs.length === 0 && !error && (
         <SectionCard>
-          <p className="text-center text-sm text-stone-500 py-8">No open jobs right now. Check back soon.</p>
+          <EmptyState icon={Search} title="No open jobs right now" description="When studios post work you can apply for, it will show up here." />
         </SectionCard>
       )}
       {jobs.map((j) => (
         <SectionCard key={j.id}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-blue-600">{j.shop.name}</p>
-          <p className="text-sm text-stone-800 mt-1">{j.taskDescription}</p>
-          <p className="text-xs text-stone-500 mt-1">
-            {j.budget !== null ? `Budget ${j.budget.toLocaleString()}` : "Budget open"}
-            {j.dueDate ? ` · due ${new Date(j.dueDate).toLocaleDateString()}` : ""}
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-blue-600">{j.shop.name}</p>
+              <p className="mt-0.5 text-sm text-stone-800">{j.taskDescription}</p>
+            </div>
+            {j.myApplication && <StatusBadge status={j.myApplication.status} className="shrink-0" />}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500">
+            <span className="inline-flex items-center gap-1 tabular-nums">
+              <Banknote className="size-3.5" /> {j.budget !== null ? `Budget ${formatCurrency(j.budget, "GHS")}` : "Budget open"}
+            </span>
+            {j.dueDate && <span className="inline-flex items-center gap-1"><CalendarDays className="size-3.5" /> Due {formatDate(j.dueDate)}</span>}
+          </div>
 
           {j.myApplication ? (
             <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="text-xs font-medium text-stone-600">Your application: {j.myApplication.status}</span>
+              <p className="text-xs text-stone-500">
+                {j.myApplication.proposedCost != null ? `Your price: ${formatCurrency(j.myApplication.proposedCost, "GHS")}` : "You applied for this job."}
+              </p>
               {j.myApplication.status === "Pending" && (
-                <button className="text-xs text-stone-500 hover:text-red-600" disabled={busy === j.id} onClick={() => withdraw(j.id)}>
-                  Withdraw
-                </button>
+                <PremiumButton variant="ghost" size="sm" loading={busy === j.id} onClick={() => withdraw(j.id)}>Withdraw</PremiumButton>
               )}
             </div>
           ) : openId === j.id ? (
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 space-y-2.5">
               <textarea rows={3} maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)}
-                placeholder="Why you're a good fit (optional)" className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm" />
-              <input className={input} type="number" min="0" placeholder="Your price (optional)" value={cost} onChange={(e) => setCost(e.target.value)} />
+                placeholder="Why you're a good fit (optional)"
+                className="w-full rounded-md border border-[#D8DEE7] bg-white px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15" />
+              <input className={input} type="number" min="0" inputMode="decimal" placeholder="Your price in GHS (optional)" value={cost} onChange={(e) => setCost(e.target.value)} />
               <div className="flex gap-2">
-                <button className="h-9 px-4 rounded-md text-xs font-medium bg-[#2563EB] text-white disabled:opacity-50" disabled={busy === j.id} onClick={() => apply(j.id)}>
-                  {busy === j.id ? "Sending…" : "Send application"}
-                </button>
-                <button className="h-9 px-3 text-xs text-stone-500" onClick={() => setOpenId(null)}>Cancel</button>
+                <PremiumButton size="sm" loading={busy === j.id} onClick={() => apply(j.id)}>Send application</PremiumButton>
+                <PremiumButton size="sm" variant="ghost" onClick={() => setOpenId(null)}>Cancel</PremiumButton>
               </div>
             </div>
           ) : (
-            <button className="mt-3 h-9 px-4 rounded-md text-xs font-medium border border-[#2563EB] text-[#2563EB]" onClick={() => { setOpenId(j.id); setMessage(""); setCost(""); }}>
+            <PremiumButton className="mt-3" size="sm" variant="outline" onClick={() => { setOpenId(j.id); setMessage(""); setCost(""); }}>
               Apply
-            </button>
+            </PremiumButton>
           )}
         </SectionCard>
       ))}

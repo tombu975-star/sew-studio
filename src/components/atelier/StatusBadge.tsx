@@ -54,6 +54,15 @@ const STATUS_HUE: Record<string, keyof typeof HUE> = {
   Learning: "pending",
   Practicing: "info",
   Proficient: "positive",
+  Commissioned: "neutral",
+  Delivered: "final",
+  Paid: "financial",
+  Pending: "pending",
+  Accepted: "positive",
+  Declined: "alteration",
+  Open: "active",
+  Filled: "positive",
+  Closed: "neutral",
   // Role chip — trainee
   Trainee: "active",
 };

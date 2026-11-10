@@ -28,3 +28,16 @@ Added (migration 023):
   with Apply (message + optional price) and Withdraw.
 - Routes: /api/freelancers/directory, /api/freelance-job-posts(/[id]),
   /api/freelancer/open-jobs(/[id]/apply). Owner or freelancer-access members manage; all server-checked.
+
+---
+# Freelancer portal redesign
+
+- Sign-in/sign-up now uses the studio login's split layout, photo and form components
+  (PlatformLogin/LoginPage pieces are exported and reused): remember-me, show/hide password,
+  forgot-password link, mobile tabs, consistent errors and toasts.
+- Portal rebuilt with the app's own components: sticky header + mobile bottom nav,
+  metric cards (active, overdue, awaiting payment, earned), filters, status badges,
+  skeleton loaders, empty states, overdue highlighting, GHS formatting.
+- New Profile tab (edit name/phone/specialty/skills, change password, sign out) backed by
+  PATCH /api/freelancer-auth/me; idle sign-out after 20 minutes and session-expiry handling,
+  matching the studio app.

@@ -5,7 +5,21 @@ import { Scissors, Sparkles } from "lucide-react";
 import { LoginPage } from "@/components/atelier/LoginPage";
 import { usePlatformSettings } from "@/components/atelier/PlatformExperience";
 
-export function PlatformLogin() {
+export function PlatformLogin({
+  children,
+  eyebrow,
+  heading,
+  description,
+  subtitle,
+  tagline,
+}: {
+  children?: React.ReactNode;
+  eyebrow?: string;
+  heading?: string;
+  description?: string;
+  subtitle?: string;
+  tagline?: string;
+} = {}) {
   const settings = usePlatformSettings();
   return (
     <main
@@ -41,7 +55,7 @@ export function PlatformLogin() {
                 </span>
                 <div className="min-w-0">
                   <p className="truncate text-base font-semibold tracking-wide">{settings.brandName}</p>
-                  <p className="text-xs text-white/75">Atelier management</p>
+                  <p className="text-xs text-white/75">{subtitle ?? "Atelier management"}</p>
                 </div>
               </div>
               <span className="hidden items-center gap-1.5 rounded-full border border-white/25 bg-black/15 px-3 py-1.5 text-xs text-white/90 backdrop-blur sm:inline-flex">
@@ -52,17 +66,17 @@ export function PlatformLogin() {
 
             <div className="hidden max-w-[540px] pt-10 sm:block">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/75">
-                Made for the art of making
+                {eyebrow ?? "Made for the art of making"}
               </p>
               <h1 className="mt-3 font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
-                {settings.loginHeading}
+                {heading ?? settings.loginHeading}
               </h1>
               <p className="mt-4 max-w-md text-sm leading-6 text-white/85 sm:text-base sm:leading-7">
-                {settings.loginDescription}
+                {description ?? settings.loginDescription}
               </p>
               <div className="mt-8 hidden items-center gap-3 text-xs tracking-wide text-white/80 sm:flex">
                 <span className="h-px w-9 bg-white/55" />
-                Thoughtfully made for your everyday craft
+                {tagline ?? "Thoughtfully made for your everyday craft"}
               </div>
             </div>
           </div>
@@ -70,7 +84,7 @@ export function PlatformLogin() {
 
         <section className="flex min-h-0 overflow-y-auto px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-1 text-white sm:overflow-visible sm:pb-12 sm:pt-12 sm:text-inherit sm:px-10 sm:py-12 lg:px-12 xl:px-[72px]">
           <div className="m-auto w-full max-w-[420px]">
-            <LoginPage />
+            {children ?? <LoginPage />}
             <footer className="mt-4 text-center text-xs leading-relaxed text-white/70 [@media(max-height:700px)]:hidden sm:mt-8 sm:text-[#8b7f78]">
               <p>{settings.loginFooter}</p>
               {settings.releaseNotes && (
