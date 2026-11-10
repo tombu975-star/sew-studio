@@ -35,6 +35,7 @@ import { useAuth } from "@/stores/auth";
 import { useMenuSettings } from "@/stores/menu-settings";
 import { menuForView } from "@/lib/menu-config";
 import { cn } from "@/lib/utils";
+import { ForcePasswordChange } from "@/components/atelier/ForcePasswordChange";
 import { getPlanEntitlements } from "@/lib/plans";
 
 type IconType = React.ComponentType<{ className?: string; strokeWidth?: number }>;
@@ -326,6 +327,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh flex flex-col md:flex-row">
+      <ForcePasswordChange />
       {/* ─── Desktop navigation ──────────────────────────────────
           md–lg: a 72px icon rail so tablets keep their width for content.
           lg+:   the full sectioned sidebar. */}

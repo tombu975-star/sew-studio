@@ -55,7 +55,10 @@ export async function GET(
       orders: orders.map((o) => ({
         id: o.id,
         garmentDesign: o.garment_design,
-        designImage: o.design_image,
+        designImage:
+          o.design_image && String(o.design_image).startsWith("/api/files/")
+            ? `${String(o.design_image).split("?")[0]}?t=${encodeURIComponent(token)}`
+            : o.design_image,
         orderDate: o.order_date,
         deliveryDate: o.delivery_date,
         status: o.status,

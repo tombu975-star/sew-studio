@@ -26,20 +26,46 @@ export interface CookieAdapter {
 type AuthError = { message: string; status?: number; code?: string };
 type AuthUser = { id: string; email: string };
 
-// ---- very small in-memory limiter: slows password guessing per email+IP ----
-const attempts = new Map<string, { n: number; reset: number }>();
-function tooMany(key: string, max = 8, windowMs = 15 * 60 * 1000): boolean {
-  const now = Date.now();
-  const a = attempts.get(key);
-  if (!a || a.reset < now) {
-    attempts.set(key, { n: 1, reset: now + windowMs });
+// ---- persistent, shared login throttling (Postgres) ----
+// Keyed separately per account and per IP so one attacker can't lock a victim
+// out from many addresses without also tripping the IP limit, and a single IP
+// can't spray many accounts. Only FAILED attempts count. If the limiter table
+// is unavailable we fail open (and log) rather than lock everyone out.
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_LIMITS = { account: 8, ip: 30 };
+
+async function isThrottled(keys: { key: string; max: number }[]): Promise<boolean> {
+  try {
+    const { rows } = await getPool().query(
+      `select key, failures from private.login_attempts where key = any($1) and reset_at > now()`,
+      [keys.map((k) => k.key)]
+    );
+    return rows.some((r) => r.failures >= (keys.find((k) => k.key === r.key)?.max ?? Infinity));
+  } catch (e) {
+    console.error("[auth] rate-limit check failed", e);
     return false;
   }
-  a.n += 1;
-  return a.n > max;
 }
-function clearAttempts(key: string) {
-  attempts.delete(key);
+
+async function recordFailure(keys: string[]) {
+  try {
+    await getPool().query(
+      `insert into private.login_attempts (key, failures, reset_at)
+       select k, 1, now() + ($2 || ' milliseconds')::interval from unnest($1::text[]) as k
+       on conflict (key) do update set
+         failures = case when private.login_attempts.reset_at < now() then 1 else private.login_attempts.failures + 1 end,
+         reset_at = case when private.login_attempts.reset_at < now() then now() + ($2 || ' milliseconds')::interval else private.login_attempts.reset_at end`,
+      [keys, String(LOGIN_WINDOW_MS)]
+    );
+    // opportunistic cleanup
+    getPool().query(`delete from private.login_attempts where reset_at < now() - interval '1 day'`).catch(() => {});
+  } catch (e) {
+    console.error("[auth] rate-limit record failed", e);
+  }
+}
+
+async function clearAttempts(key: string) {
+  await getPool().query(`delete from private.login_attempts where key = $1`, [key]).catch(() => {});
 }
 
 // A real hash to verify against when the email is unknown, so "no such
@@ -95,8 +121,14 @@ export class AuthApi {
     const password = String(creds.password || "");
     if (!email || !password) return fail();
 
-    const key = `${email}|${this.opts.ip ?? ""}`;
-    if (tooMany(key)) return fail("Too many attempts. Please wait a few minutes and try again.", 429);
+    const acctKey = `acct:${email}`;
+    const ipKey = this.opts.ip ? `ip:${this.opts.ip}` : null;
+    const limits = [{ key: acctKey, max: LOGIN_LIMITS.account }];
+    if (ipKey) limits.push({ key: ipKey, max: LOGIN_LIMITS.ip });
+    if (await isThrottled(limits)) {
+      return fail("Too many attempts. Please wait a few minutes and try again.", 429);
+    }
+    const failKeys = ipKey ? [acctKey, ipKey] : [acctKey];
 
     const { rows } = await getPool().query(
       `select u.id, u.email, u.banned_until, c.password_hash
@@ -107,13 +139,17 @@ export class AuthApi {
     const row = rows[0];
     if (!row) {
       await argonVerify(await getDummy(), password).catch(() => false);
+      await recordFailure(failKeys);
       return fail();
     }
     const ok = await argonVerify(row.password_hash, password).catch(() => false);
-    if (!ok) return fail();
+    if (!ok) {
+      await recordFailure(failKeys);
+      return fail();
+    }
     if (row.banned_until && new Date(row.banned_until) > new Date()) return fail("This account has been deactivated.", 400);
 
-    clearAttempts(key);
+    await clearAttempts(acctKey);
     const remember = this.opts.rememberMe === true;
     await this.createSession(row.id, remember ? 30 * DAY : DAY, remember);
     this.onUser?.(row.id);
@@ -216,6 +252,7 @@ export class AuthApi {
       password: string;
       email_confirm?: boolean;
       user_metadata?: object;
+      mustChangePassword?: boolean;
       provision?: (client: PoolClient, user: AuthUser) => Promise<T>;
     }): Promise<{ data: { user: AuthUser | null; provisioned?: T }; error: AuthError | null }> => {
       const email = String(a.email || "").toLowerCase().trim();
@@ -225,10 +262,10 @@ export class AuthApi {
         await client.query("begin");
         const u = await client.query(`insert into auth.users (email) values ($1) returning id, email`, [email]);
         const user = { id: u.rows[0].id, email: u.rows[0].email };
-        await client.query(`insert into private.credentials (user_id, password_hash) values ($1, $2)`, [
-          user.id,
-          passwordHash,
-        ]);
+        await client.query(
+          `insert into private.credentials (user_id, password_hash, must_change_password) values ($1, $2, $3)`,
+          [user.id, passwordHash, a.mustChangePassword === true]
+        );
         const provisioned = a.provision ? await a.provision(client, user) : undefined;
         await client.query("commit");
         return { data: { user, provisioned }, error: null };
@@ -284,7 +321,7 @@ async function setPassword(userId: string, password: string) {
   const h = await argonHash(String(password));
   await getPool().query(
     `insert into private.credentials (user_id, password_hash) values ($1, $2)
-       on conflict (user_id) do update set password_hash = excluded.password_hash, updated_at = now()`,
+       on conflict (user_id) do update set password_hash = excluded.password_hash, must_change_password = false, updated_at = now()`,
     [userId, h]
   );
 }

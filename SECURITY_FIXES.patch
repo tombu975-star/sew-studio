@@ -1,0 +1,865 @@
+diff -ruN orig/sew-studio-main/RAILWAY_MIGRATION.md sew-studio-main/RAILWAY_MIGRATION.md
+--- orig/sew-studio-main/RAILWAY_MIGRATION.md	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/RAILWAY_MIGRATION.md	2026-11-10 11:36:28.421198232 +0000
+@@ -1,45 +1,18 @@
+-# Railway-owned PostgreSQL migration
++# Railway migration — history
+ 
+-## Safety/status
+-
+-The production application still uses Supabase for route-level PostgREST
+-queries, auth outside the shop login/me/logout endpoints, and file uploads.
+-This branch is migration work in progress, not a production cutover. The
+-bootstrap creates the app schema on a **new, empty** Railway database; it does
+-not migrate existing records. Keep Supabase services and secrets active until
+-all routes and tenant checks are converted and verified.
+-
+-The shop `login`, `me`, and `logout` endpoints have an opt-in Railway auth path
+-when `USE_RAILWAY_AUTH=1` and a populated Railway database is available. This
+-is not sufficient to run the authenticated application on Railway: protected
+-API routes still use Supabase session/RLS, while the Railway cookie is not a
+-Supabase session. Keep the flag unset in production until the application data
+-access layer and every authenticated route have been migrated together.
+-
+-## Bootstrap an empty Railway database
+-
+-Never run the bootstrap against a database containing production data. Create
+-a new Railway PostgreSQL service, make its private `DATABASE_URL` available to
+-a trusted shell, install `psql`, then run:
+-
+-```bash
+-DATABASE_URL='postgresql://…' bash scripts/bootstrap-railway-db.sh
+-```
+-
+-The script refuses to run when the `public` schema already contains tables. It
+-uses the current base table SQL, changing the Supabase `auth.users` foreign-key
+-dependencies to standalone UUID identities, then installs app credential and
+-session/reset-token tables and schema extensions used by later migrations. It
+-does not apply Supabase RLS/functions or create Supabase Storage objects.
+-
+-## Still required before cutover
+-
+-- Transfer and verify existing app data; existing users need a planned
+-  credential import or password-reset process.
+-- Migrate registration, invites, freelancer/system-admin auth, profile updates,
+-  password recovery, uploads, notifications, and every authenticated data API.
+-- Replace Supabase query/RLS behavior with parameterized PostgreSQL access and
+-  explicit, tested tenant/role authorization.
+-- Add login rate limiting and CSRF protections for state-changing endpoints.
+-- Run build, integration tests, cross-tenant authorization tests, backup/restore
+-  tests, and production smoke tests before removing Supabase.
++**Status: complete.** The application runs fully on Railway PostgreSQL with
++app-owned authentication (`src/lib/db/auth.ts`: Argon2id passwords, HttpOnly
++session cookies, DB-backed login throttling) and uploads stored in the
++`public.uploads` table. Supabase is no longer used at runtime. See
++[`RAILWAY.md`](./RAILWAY.md) for deployment, variables, migrations and tests.
++
++Notes for anyone reading older history:
++
++- Migrations live in `db/migrations/` and are applied by `scripts/migrate.mjs`
++  (the Railway pre-deploy command). `railway/migrations/` and
++  `scripts/bootstrap-railway-db.sh` are legacy bootstrap helpers for an empty
++  database and are not part of the normal deploy.
++- `src/lib/db/database.types.ts` and `scripts/ensure-prisma-schema.js` still
++  mention Supabase in names/comments only; they contain no Supabase calls.
++- Existing data from a former Supabase deployment must be imported separately;
++  the bootstrap scripts do not migrate records.
+diff -ruN orig/sew-studio-main/db/migrations/020_login_rate_limit.sql sew-studio-main/db/migrations/020_login_rate_limit.sql
+--- orig/sew-studio-main/db/migrations/020_login_rate_limit.sql	1970-01-01 00:00:00.000000000 +0000
++++ sew-studio-main/db/migrations/020_login_rate_limit.sql	2026-11-10 11:32:28.311689635 +0000
+@@ -0,0 +1,8 @@
++-- Shared, persistent login throttling (replaces the per-process in-memory map).
++-- One row per throttle key (e.g. "acct:<email>" or "ip:<address>").
++create table if not exists private.login_attempts (
++  key        text primary key,
++  failures   integer     not null default 0,
++  reset_at   timestamptz not null
++);
++create index if not exists login_attempts_reset_at_idx on private.login_attempts (reset_at);
+diff -ruN orig/sew-studio-main/db/migrations/021_force_password_change.sql sew-studio-main/db/migrations/021_force_password_change.sql
+--- orig/sew-studio-main/db/migrations/021_force_password_change.sql	1970-01-01 00:00:00.000000000 +0000
++++ sew-studio-main/db/migrations/021_force_password_change.sql	2026-11-10 11:36:22.269024489 +0000
+@@ -0,0 +1,3 @@
++-- Temporary passwords issued by an owner must be replaced at first sign-in.
++alter table private.credentials
++  add column if not exists must_change_password boolean not null default false;
+diff -ruN orig/sew-studio-main/db/migrations/022_rotate_weak_portal_tokens.sql sew-studio-main/db/migrations/022_rotate_weak_portal_tokens.sql
+--- orig/sew-studio-main/db/migrations/022_rotate_weak_portal_tokens.sql	1970-01-01 00:00:00.000000000 +0000
++++ sew-studio-main/db/migrations/022_rotate_weak_portal_tokens.sql	2026-11-10 11:36:28.419853400 +0000
+@@ -0,0 +1,6 @@
++-- Portal tokens issued before the switch to crypto-random generation were
++-- ~16 chars from Math.random(). Clear them so they are re-issued securely the
++-- next time the owner shares a link. (New tokens are 43 chars.)
++update public.customers
++   set portal_token = null
++ where portal_token is not null and length(portal_token) < 40;
+diff -ruN orig/sew-studio-main/src/app/api/auth/login/route.ts sew-studio-main/src/app/api/auth/login/route.ts
+--- orig/sew-studio-main/src/app/api/auth/login/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/auth/login/route.ts	2026-11-10 11:36:22.270979965 +0000
+@@ -1,6 +1,19 @@
+ import { NextResponse } from "next/server";
++import { getPool } from "@/lib/db/pool";
+ import { createRequestClient } from "@/lib/db/requestClient";
+ 
++async function needsPasswordChange(userId: string): Promise<boolean> {
++  try {
++    const { rows } = await getPool().query(
++      "select must_change_password from private.credentials where user_id = $1",
++      [userId]
++    );
++    return rows[0]?.must_change_password === true;
++  } catch {
++    return false; // column missing until migration 021 is applied
++  }
++}
++
+ export async function POST(req: Request) {
+   try {
+     const { email, password, rememberMe } = await req.json();
+@@ -55,6 +68,7 @@
+       );
+     }
+ 
++    const mustChangePassword = await needsPasswordChange(data.user.id);
+     return NextResponse.json({
+       user: {
+         id: profile.id,
+@@ -69,6 +83,7 @@
+         canAccessOrders: profile.can_access_orders,
+         canAccessBoard: profile.can_access_board,
+         canManageFreelancers: profile.can_manage_freelancers,
++        mustChangePassword,
+       },
+     });
+   } catch (error) {
+diff -ruN orig/sew-studio-main/src/app/api/auth/me/route.ts sew-studio-main/src/app/api/auth/me/route.ts
+--- orig/sew-studio-main/src/app/api/auth/me/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/auth/me/route.ts	2026-11-10 11:36:22.271090733 +0000
+@@ -1,6 +1,19 @@
+ import { NextResponse } from "next/server";
++import { getPool } from "@/lib/db/pool";
+ import { getTenant } from "@/lib/db/session";
+ 
++async function needsPasswordChange(userId: string): Promise<boolean> {
++  try {
++    const { rows } = await getPool().query(
++      "select must_change_password from private.credentials where user_id = $1",
++      [userId]
++    );
++    return rows[0]?.must_change_password === true;
++  } catch {
++    return false; // column missing until migration 021 is applied
++  }
++}
++
+ export async function GET() {
+   try {
+     const ctx = await getTenant();
+@@ -15,6 +28,7 @@
+       .maybeSingle();
+     if (!profile) return NextResponse.json({ user: null }, { status: 200 });
+ 
++    const mustChangePassword = await needsPasswordChange(profile.id);
+     return NextResponse.json({
+       user: {
+         id: profile.id,
+@@ -29,6 +43,7 @@
+         canAccessOrders: profile.can_access_orders,
+         canAccessBoard: profile.can_access_board,
+         canManageFreelancers: profile.can_manage_freelancers,
++        mustChangePassword,
+       },
+     });
+   } catch {
+diff -ruN orig/sew-studio-main/src/app/api/auth/register/route.ts sew-studio-main/src/app/api/auth/register/route.ts
+--- orig/sew-studio-main/src/app/api/auth/register/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/auth/register/route.ts	2026-11-10 11:32:12.994280307 +0000
+@@ -52,8 +52,8 @@
+     if (!EMAIL_RE.test(emailNorm)) {
+       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
+     }
+-    if (password.length < 6) {
+-      return NextResponse.json({ error: "Password must be at least 6 characters." }, { status: 400 });
++    if (password.length < 8) {
++      return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
+     }
+     if (body.phone && !isPlausiblePhone(body.phone)) {
+       return NextResponse.json({ error: MESSAGES.badPhone }, { status: 400 });
+diff -ruN orig/sew-studio-main/src/app/api/customers/[id]/portal-token/route.ts sew-studio-main/src/app/api/customers/[id]/portal-token/route.ts
+--- orig/sew-studio-main/src/app/api/customers/[id]/portal-token/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/customers/[id]/portal-token/route.ts	2026-11-10 11:36:22.272179528 +0000
+@@ -1,5 +1,6 @@
+ import { getTenant } from "@/lib/db/session";
+ import { ensurePortalToken } from "@/lib/notify";
++import { generatePortalToken } from "@/lib/security";
+ 
+ // POST /api/customers/[id]/portal-token — generate (or return existing) portal token
+ // so the owner can share a tracking link with the customer.
+@@ -27,3 +28,32 @@
+     return Response.json({ error: msg }, { status: 500 });
+   }
+ }
++
++// DELETE /api/customers/[id]/portal-token — revoke the current link. The old
++// URL stops working immediately; the next POST issues a fresh token.
++// PUT    /api/customers/[id]/portal-token — rotate: revoke and issue a new token.
++async function revoke(id: string, rotate: boolean) {
++  const ctx = await getTenant();
++  if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
++  if (ctx.role !== "madam" && ctx.role !== "staff") {
++    return Response.json({ error: "Not allowed." }, { status: 403 });
++  }
++  const { data: customer } = await ctx.db
++    .from("customers")
++    .select("id")
++    .eq("id", id)
++    .eq("shop_id", ctx.shopId)
++    .maybeSingle();
++  if (!customer) return Response.json({ error: "Customer not found" }, { status: 404 });
++  const token = rotate ? generatePortalToken() : null;
++  const { error } = await ctx.db.from("customers").update({ portal_token: token }).eq("id", id);
++  if (error) return Response.json({ error: error.message }, { status: 500 });
++  return Response.json(rotate ? { token, url: `/portal?token=${token}` } : { ok: true });
++}
++
++export async function PUT(_req: Request, { params }: { params: Promise<{ id: string }> }) {
++  return revoke((await params).id, true);
++}
++export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
++  return revoke((await params).id, false);
++}
+diff -ruN orig/sew-studio-main/src/app/api/files/[id]/route.ts sew-studio-main/src/app/api/files/[id]/route.ts
+--- orig/sew-studio-main/src/app/api/files/[id]/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/files/[id]/route.ts	2026-11-10 11:36:22.271880848 +0000
+@@ -1,19 +1,50 @@
+ import { getPool } from "@/lib/db/pool";
++import { getTenant } from "@/lib/db/session";
+ 
+-// GET /api/files/<id> — serves an uploaded picture. The id is an unguessable
+-// UUID, same as the public links the old storage bucket handed out.
++// GET /api/files/<id> — serves an uploaded picture.
++// Access rules (the UUID alone is NOT a credential):
++//   1. a signed-in, active member of the shop that owns the upload; or
++//   2. a customer-portal visitor presenting ?t=<portal token>, but only for
++//      pictures attached to that customer's own orders.
+ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
++const notFound = () => new Response("Not found", { status: 404 });
+ 
+-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
++export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+   const { id } = await params;
+-  if (!UUID.test(id)) return new Response("Not found", { status: 404 });
+-  const { rows } = await getPool().query(`select content_type, bytes from public.uploads where id = $1`, [id]);
++  if (!UUID.test(id)) return notFound();
++  const pool = getPool();
++  const { rows } = await pool.query(
++    `select shop_id, content_type, bytes from public.uploads where id = $1`,
++    [id]
++  );
+   const row = rows[0];
+-  if (!row) return new Response("Not found", { status: 404 });
++  if (!row) return notFound();
++
++  let allowed = false;
++  const ctx = await getTenant();
++  if (ctx && ctx.shopId === row.shop_id) allowed = true;
++
++  if (!allowed) {
++    const token = new URL(req.url).searchParams.get("t");
++    if (token && token.length >= 20 && token.length <= 128) {
++      const { rows: hit } = await pool.query(
++        `select 1
++           from public.customers c
++           join public.orders o on o.customer_id = c.id
++          where c.portal_token = $1 and c.shop_id = $2
++            and o.design_image like $3
++          limit 1`,
++        [token, row.shop_id, `/api/files/${id}%`]
++      );
++      allowed = hit.length > 0;
++    }
++  }
++  if (!allowed) return notFound(); // don't reveal whether the file exists
++
+   return new Response(new Uint8Array(row.bytes), {
+     headers: {
+       "Content-Type": row.content_type,
+-      "Cache-Control": "public, max-age=31536000, immutable",
++      "Cache-Control": "private, max-age=3600",
+       "X-Content-Type-Options": "nosniff",
+     },
+   });
+diff -ruN orig/sew-studio-main/src/app/api/fittings/[id]/route.ts sew-studio-main/src/app/api/fittings/[id]/route.ts
+--- orig/sew-studio-main/src/app/api/fittings/[id]/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/fittings/[id]/route.ts	2026-11-10 11:36:22.274498427 +0000
+@@ -11,6 +11,9 @@
+     if (!ctx) {
+       return Response.json({ error: "Unauthorized" }, { status: 401 });
+     }
++    if (ctx.role !== "madam" && ctx.role !== "staff") {
++      return Response.json({ error: "Not allowed to edit fittings." }, { status: 403 });
++    }
+ 
+     const { id } = await params;
+     const body = await req.json();
+diff -ruN orig/sew-studio-main/src/app/api/freelancer-auth/register/route.ts sew-studio-main/src/app/api/freelancer-auth/register/route.ts
+--- orig/sew-studio-main/src/app/api/freelancer-auth/register/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/freelancer-auth/register/route.ts	2026-11-10 11:32:12.994526342 +0000
+@@ -36,9 +36,9 @@
+     if (!EMAIL_RE.test(emailNorm)) {
+       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
+     }
+-    if (String(password).length < 6) {
++    if (String(password).length < 8) {
+       return NextResponse.json(
+-        { error: "Password must be at least 6 characters." },
++        { error: "Password must be at least 8 characters." },
+         { status: 400 }
+       );
+     }
+diff -ruN orig/sew-studio-main/src/app/api/orders/[id]/fittings/route.ts sew-studio-main/src/app/api/orders/[id]/fittings/route.ts
+--- orig/sew-studio-main/src/app/api/orders/[id]/fittings/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/orders/[id]/fittings/route.ts	2026-11-10 11:36:22.272622272 +0000
+@@ -9,6 +9,9 @@
+   try {
+     const ctx = await getTenant();
+     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
++    if (ctx.role !== "madam" && ctx.role !== "staff") {
++      return Response.json({ error: "Not allowed to schedule fittings." }, { status: 403 });
++    }
+ 
+     const { id } = await params;
+     const body = await req.json();
+diff -ruN orig/sew-studio-main/src/app/api/orders/[id]/payments/route.ts sew-studio-main/src/app/api/orders/[id]/payments/route.ts
+--- orig/sew-studio-main/src/app/api/orders/[id]/payments/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/orders/[id]/payments/route.ts	2026-11-10 11:36:22.272467451 +0000
+@@ -9,6 +9,9 @@
+   try {
+     const ctx = await getTenant();
+     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
++    if (ctx.role !== "madam") {
++      return Response.json({ error: "Only the studio owner can record payments." }, { status: 403 });
++    }
+ 
+     const { id } = await params;
+     const body = await req.json();
+diff -ruN orig/sew-studio-main/src/app/api/orders/[id]/route.ts sew-studio-main/src/app/api/orders/[id]/route.ts
+--- orig/sew-studio-main/src/app/api/orders/[id]/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/orders/[id]/route.ts	2026-11-10 11:36:22.272312226 +0000
+@@ -68,7 +68,16 @@
+   const { data: existing } = await existingQuery.maybeSingle();
+   if (!existing) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+ 
+-  const body = await req.json();
++  const body = await req.json().catch(() => null);
++  if (!body || typeof body !== "object") {
++    return NextResponse.json({ error: "A valid update is required." }, { status: 400 });
++  }
++  // Production roles (staff/trainer/trainee) move orders along; money, customer,
++  // assignment, scheduling and priority stay owner-only. Enforced here, not just in the UI.
++  if (ctx.role !== "madam") {
++    const allowed = new Set(["status", "notes", "designImage"]);
++    for (const k of Object.keys(body)) if (!allowed.has(k)) delete (body as Record<string, unknown>)[k];
++  }
+   const statusChanged = body.status !== undefined && body.status !== existing.status;
+ 
+   const data: Database["public"]["Tables"]["orders"]["Update"] = {};
+diff -ruN orig/sew-studio-main/src/app/api/orders/route.ts sew-studio-main/src/app/api/orders/route.ts
+--- orig/sew-studio-main/src/app/api/orders/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/orders/route.ts	2026-11-10 11:32:12.995519436 +0000
+@@ -60,8 +60,15 @@
+ export async function POST(req: NextRequest) {
+   const ctx = await getTenant();
+   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
++  // Mirrors the UI rule (canCreateOrders): only the studio owner creates orders.
++  if (ctx.role !== "madam") {
++    return NextResponse.json({ error: "Only the studio owner can create orders." }, { status: 403 });
++  }
+ 
+-  const body = await req.json();
++  const body = await req.json().catch(() => null);
++  if (!body || typeof body !== "object") {
++    return NextResponse.json({ error: "A valid order is required." }, { status: 400 });
++  }
+ 
+   const { data: customer } = await ctx.db
+     .from("customers")
+diff -ruN orig/sew-studio-main/src/app/api/portal/[token]/route.ts sew-studio-main/src/app/api/portal/[token]/route.ts
+--- orig/sew-studio-main/src/app/api/portal/[token]/route.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/api/portal/[token]/route.ts	2026-11-10 11:36:22.272042394 +0000
+@@ -55,7 +55,10 @@
+       orders: orders.map((o) => ({
+         id: o.id,
+         garmentDesign: o.garment_design,
+-        designImage: o.design_image,
++        designImage:
++          o.design_image && String(o.design_image).startsWith("/api/files/")
++            ? `${String(o.design_image).split("?")[0]}?t=${encodeURIComponent(token)}`
++            : o.design_image,
+         orderDate: o.order_date,
+         deliveryDate: o.delivery_date,
+         status: o.status,
+diff -ruN orig/sew-studio-main/src/app/api/users/route.ts sew-studio-main/src/app/api/users/route.ts
+--- orig/sew-studio-main/src/app/api/users/route.ts	2026-11-10 10:27:07.000000000 +0000
++++ sew-studio-main/src/app/api/users/route.ts	2026-11-10 11:36:22.270159268 +0000
+@@ -5,6 +5,7 @@
+ import type { PoolClient } from "pg";
+ import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
+ import { getPlanEntitlements } from "@/lib/plans";
++import { MIN_PASSWORD_LENGTH, PASSWORD_TOO_SHORT, generateTempPassword } from "@/lib/security";
+ 
+ export async function GET() {
+   try {
+@@ -92,9 +93,12 @@
+     if (phone && !isPlausiblePhone(phone)) {
+       return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
+     }
+-    const memberPassword = typeof password === "string" && password ? password : "atelier2025";
+-    if (memberPassword.length < 6) {
+-      return Response.json({ error: "Password must be at least 6 characters." }, { status: 400 });
++    // No shared fallback password: if the owner doesn't type one, generate a
++    // unique random temporary password and show it to them once.
++    const providedPassword = typeof password === "string" && password ? password : null;
++    const memberPassword = providedPassword ?? generateTempPassword();
++    if (memberPassword.length < MIN_PASSWORD_LENGTH) {
++      return Response.json({ error: PASSWORD_TOO_SHORT }, { status: 400 });
+     }
+     // One account per email (Gmail aliases included) and per phone number.
+     const conflict = await findIdentityConflict(admin, { email: emailNorm, phone });
+@@ -118,6 +122,8 @@
+       email: emailNorm,
+       password: memberPassword,
+       email_confirm: true,
++      // Generated (or owner-typed) passwords are temporary: force a change at first sign-in.
++      mustChangePassword: true,
+       provision: async (client: PoolClient, user) => {
+         await client.query("select pg_advisory_xact_lock(hashtext($1))", [ctx.shopId]);
+         const { rows: memberRows } = await client.query(
+@@ -179,6 +185,8 @@
+       mentorId: profile.mentor_id,
+       createdAt: profile.created_at,
+       updatedAt: profile.updated_at,
++      // Returned once, only when the server generated it.
++      ...(providedPassword ? {} : { temporaryPassword: memberPassword }),
+     });
+   } catch (err) {
+     if (createdAuthUserId) {
+diff -ruN orig/sew-studio-main/src/app/freelancer/FreelancerPortalClient.tsx sew-studio-main/src/app/freelancer/FreelancerPortalClient.tsx
+--- orig/sew-studio-main/src/app/freelancer/FreelancerPortalClient.tsx	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/app/freelancer/FreelancerPortalClient.tsx	2026-11-10 11:32:12.995203296 +0000
+@@ -113,7 +113,7 @@
+     setError("");
+     if (registering) {
+       if (!fullName.trim()) return setError("Please enter your name.");
+-      if (password.length < 6) return setError("Password must be at least 6 characters.");
++      if (password.length < 8) return setError("Password must be at least 8 characters.");
+     }
+     setLoading(true);
+     try {
+@@ -240,14 +240,14 @@
+               <input
+                 type="password"
+                 required
+-                minLength={registering ? 6 : undefined}
++                minLength={registering ? 8 : undefined}
+                 value={password}
+                 onChange={(e) => setPassword(e.target.value)}
+                 className={INPUT_CLASS}
+                 autoComplete={registering ? "new-password" : "current-password"}
+               />
+               {registering && (
+-                <p className="text-[11px] text-stone-400 mt-1">At least 6 characters.</p>
++                <p className="text-[11px] text-stone-400 mt-1">At least 8 characters.</p>
+               )}
+             </div>
+             {error && (
+diff -ruN orig/sew-studio-main/src/components/atelier/AppShell.tsx sew-studio-main/src/components/atelier/AppShell.tsx
+--- orig/sew-studio-main/src/components/atelier/AppShell.tsx	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/components/atelier/AppShell.tsx	2026-11-10 11:36:22.271696958 +0000
+@@ -35,6 +35,7 @@
+ import { useMenuSettings } from "@/stores/menu-settings";
+ import { menuForView } from "@/lib/menu-config";
+ import { cn } from "@/lib/utils";
++import { ForcePasswordChange } from "@/components/atelier/ForcePasswordChange";
+ import { getPlanEntitlements } from "@/lib/plans";
+ 
+ type IconType = React.ComponentType<{ className?: string; strokeWidth?: number }>;
+@@ -326,6 +327,7 @@
+ 
+   return (
+     <div className="min-h-dvh flex flex-col md:flex-row">
++      <ForcePasswordChange />
+       {/* ─── Desktop navigation ──────────────────────────────────
+           md–lg: a 72px icon rail so tablets keep their width for content.
+           lg+:   the full sectioned sidebar. */}
+diff -ruN orig/sew-studio-main/src/components/atelier/ForcePasswordChange.tsx sew-studio-main/src/components/atelier/ForcePasswordChange.tsx
+--- orig/sew-studio-main/src/components/atelier/ForcePasswordChange.tsx	1970-01-01 00:00:00.000000000 +0000
++++ sew-studio-main/src/components/atelier/ForcePasswordChange.tsx	2026-11-10 11:36:22.271779803 +0000
+@@ -0,0 +1,63 @@
++"use client";
++
++import { useState } from "react";
++import { useAuth } from "@/stores/auth";
++import { apiPost } from "@/lib/api";
++
++/**
++ * Blocking overlay shown after signing in with an owner-issued temporary
++ * password. Disappears once the member sets their own password.
++ */
++export function ForcePasswordChange() {
++  const user = useAuth((s) => s.user);
++  const hydrate = useAuth((s) => s.hydrate);
++  const logout = useAuth((s) => s.logout);
++  const [current, setCurrent] = useState("");
++  const [next, setNext] = useState("");
++  const [confirm, setConfirm] = useState("");
++  const [error, setError] = useState("");
++  const [busy, setBusy] = useState(false);
++
++  if (!user?.mustChangePassword) return null;
++
++  const submit = async (e: React.FormEvent) => {
++    e.preventDefault();
++    setError("");
++    if (next.length < 8) return setError("Use a new password with at least 8 characters.");
++    if (next !== confirm) return setError("The new passwords don't match.");
++    if (next === current) return setError("Choose a password different from the temporary one.");
++    setBusy(true);
++    try {
++      await apiPost("/api/auth/change-password", { currentPassword: current, newPassword: next });
++      await hydrate();
++    } catch (err) {
++      setError(err instanceof Error ? err.message : "Could not update your password.");
++    } finally {
++      setBusy(false);
++    }
++  };
++
++  const input = "h-11 w-full rounded-md border border-[#E2E8F0] px-3 text-sm outline-none focus:border-[#2563EB]";
++  return (
++    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true">
++      <form onSubmit={submit} className="w-full max-w-sm space-y-3 rounded-xl bg-white p-6 shadow-xl">
++        <h2 className="text-lg font-semibold">Set your own password</h2>
++        <p className="text-sm text-stone-500">
++          You signed in with a temporary password. Choose a new one to continue.
++        </p>
++        <input type="password" autoComplete="current-password" placeholder="Temporary password" required
++          value={current} onChange={(e) => setCurrent(e.target.value)} className={input} />
++        <input type="password" autoComplete="new-password" placeholder="New password (8+ characters)" minLength={8} required
++          value={next} onChange={(e) => setNext(e.target.value)} className={input} />
++        <input type="password" autoComplete="new-password" placeholder="Confirm new password" minLength={8} required
++          value={confirm} onChange={(e) => setConfirm(e.target.value)} className={input} />
++        {error && <p className="text-sm text-red-600">{error}</p>}
++        <button type="submit" disabled={busy}
++          className="h-11 w-full rounded-md bg-[#2563EB] text-sm font-medium text-white disabled:opacity-60">
++          {busy ? "Saving…" : "Save password"}
++        </button>
++        <button type="button" onClick={() => logout()} className="w-full text-xs text-stone-400">Sign out</button>
++      </form>
++    </div>
++  );
++}
+diff -ruN orig/sew-studio-main/src/components/atelier/LoginPage.tsx sew-studio-main/src/components/atelier/LoginPage.tsx
+--- orig/sew-studio-main/src/components/atelier/LoginPage.tsx	2026-11-10 10:31:16.000000000 +0000
++++ sew-studio-main/src/components/atelier/LoginPage.tsx	2026-11-10 11:32:12.994891973 +0000
+@@ -92,8 +92,8 @@
+     e.preventDefault();
+     setError("");
+ 
+-    if (password.length < 6) {
+-      const msg = "Password must be at least 6 characters.";
++    if (password.length < 8) {
++      const msg = "Password must be at least 8 characters.";
+       setError(msg);
+       toast.error(msg);
+       return;
+@@ -275,7 +275,7 @@
+               />
+             </Field>
+ 
+-            <Field label="Password" htmlFor="reg-password" required hint="At least 6 characters" icon={Lock}>
++            <Field label="Password" htmlFor="reg-password" required hint="At least 8 characters" icon={Lock}>
+               <PasswordInput
+                 id="reg-password"
+                 value={password}
+@@ -283,7 +283,7 @@
+                 show={showPassword}
+                 onToggle={() => setShowPassword((v) => !v)}
+                 autoComplete="new-password"
+-                minLength={6}
++                minLength={8}
+               />
+             </Field>
+ 
+diff -ruN orig/sew-studio-main/src/lib/db/auth.ts sew-studio-main/src/lib/db/auth.ts
+--- orig/sew-studio-main/src/lib/db/auth.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/lib/db/auth.ts	2026-11-10 11:36:22.269959925 +0000
+@@ -26,20 +26,46 @@
+ type AuthError = { message: string; status?: number; code?: string };
+ type AuthUser = { id: string; email: string };
+ 
+-// ---- very small in-memory limiter: slows password guessing per email+IP ----
+-const attempts = new Map<string, { n: number; reset: number }>();
+-function tooMany(key: string, max = 8, windowMs = 15 * 60 * 1000): boolean {
+-  const now = Date.now();
+-  const a = attempts.get(key);
+-  if (!a || a.reset < now) {
+-    attempts.set(key, { n: 1, reset: now + windowMs });
++// ---- persistent, shared login throttling (Postgres) ----
++// Keyed separately per account and per IP so one attacker can't lock a victim
++// out from many addresses without also tripping the IP limit, and a single IP
++// can't spray many accounts. Only FAILED attempts count. If the limiter table
++// is unavailable we fail open (and log) rather than lock everyone out.
++const LOGIN_WINDOW_MS = 15 * 60 * 1000;
++const LOGIN_LIMITS = { account: 8, ip: 30 };
++
++async function isThrottled(keys: { key: string; max: number }[]): Promise<boolean> {
++  try {
++    const { rows } = await getPool().query(
++      `select key, failures from private.login_attempts where key = any($1) and reset_at > now()`,
++      [keys.map((k) => k.key)]
++    );
++    return rows.some((r) => r.failures >= (keys.find((k) => k.key === r.key)?.max ?? Infinity));
++  } catch (e) {
++    console.error("[auth] rate-limit check failed", e);
+     return false;
+   }
+-  a.n += 1;
+-  return a.n > max;
+ }
+-function clearAttempts(key: string) {
+-  attempts.delete(key);
++
++async function recordFailure(keys: string[]) {
++  try {
++    await getPool().query(
++      `insert into private.login_attempts (key, failures, reset_at)
++       select k, 1, now() + ($2 || ' milliseconds')::interval from unnest($1::text[]) as k
++       on conflict (key) do update set
++         failures = case when private.login_attempts.reset_at < now() then 1 else private.login_attempts.failures + 1 end,
++         reset_at = case when private.login_attempts.reset_at < now() then now() + ($2 || ' milliseconds')::interval else private.login_attempts.reset_at end`,
++      [keys, String(LOGIN_WINDOW_MS)]
++    );
++    // opportunistic cleanup
++    getPool().query(`delete from private.login_attempts where reset_at < now() - interval '1 day'`).catch(() => {});
++  } catch (e) {
++    console.error("[auth] rate-limit record failed", e);
++  }
++}
++
++async function clearAttempts(key: string) {
++  await getPool().query(`delete from private.login_attempts where key = $1`, [key]).catch(() => {});
+ }
+ 
+ // A real hash to verify against when the email is unknown, so "no such
+@@ -95,8 +121,14 @@
+     const password = String(creds.password || "");
+     if (!email || !password) return fail();
+ 
+-    const key = `${email}|${this.opts.ip ?? ""}`;
+-    if (tooMany(key)) return fail("Too many attempts. Please wait a few minutes and try again.", 429);
++    const acctKey = `acct:${email}`;
++    const ipKey = this.opts.ip ? `ip:${this.opts.ip}` : null;
++    const limits = [{ key: acctKey, max: LOGIN_LIMITS.account }];
++    if (ipKey) limits.push({ key: ipKey, max: LOGIN_LIMITS.ip });
++    if (await isThrottled(limits)) {
++      return fail("Too many attempts. Please wait a few minutes and try again.", 429);
++    }
++    const failKeys = ipKey ? [acctKey, ipKey] : [acctKey];
+ 
+     const { rows } = await getPool().query(
+       `select u.id, u.email, u.banned_until, c.password_hash
+@@ -107,13 +139,17 @@
+     const row = rows[0];
+     if (!row) {
+       await argonVerify(await getDummy(), password).catch(() => false);
++      await recordFailure(failKeys);
+       return fail();
+     }
+     const ok = await argonVerify(row.password_hash, password).catch(() => false);
+-    if (!ok) return fail();
++    if (!ok) {
++      await recordFailure(failKeys);
++      return fail();
++    }
+     if (row.banned_until && new Date(row.banned_until) > new Date()) return fail("This account has been deactivated.", 400);
+ 
+-    clearAttempts(key);
++    await clearAttempts(acctKey);
+     const remember = this.opts.rememberMe === true;
+     await this.createSession(row.id, remember ? 30 * DAY : DAY, remember);
+     this.onUser?.(row.id);
+@@ -216,6 +252,7 @@
+       password: string;
+       email_confirm?: boolean;
+       user_metadata?: object;
++      mustChangePassword?: boolean;
+       provision?: (client: PoolClient, user: AuthUser) => Promise<T>;
+     }): Promise<{ data: { user: AuthUser | null; provisioned?: T }; error: AuthError | null }> => {
+       const email = String(a.email || "").toLowerCase().trim();
+@@ -225,10 +262,10 @@
+         await client.query("begin");
+         const u = await client.query(`insert into auth.users (email) values ($1) returning id, email`, [email]);
+         const user = { id: u.rows[0].id, email: u.rows[0].email };
+-        await client.query(`insert into private.credentials (user_id, password_hash) values ($1, $2)`, [
+-          user.id,
+-          passwordHash,
+-        ]);
++        await client.query(
++          `insert into private.credentials (user_id, password_hash, must_change_password) values ($1, $2, $3)`,
++          [user.id, passwordHash, a.mustChangePassword === true]
++        );
+         const provisioned = a.provision ? await a.provision(client, user) : undefined;
+         await client.query("commit");
+         return { data: { user, provisioned }, error: null };
+@@ -284,7 +321,7 @@
+   const h = await argonHash(String(password));
+   await getPool().query(
+     `insert into private.credentials (user_id, password_hash) values ($1, $2)
+-       on conflict (user_id) do update set password_hash = excluded.password_hash, updated_at = now()`,
++       on conflict (user_id) do update set password_hash = excluded.password_hash, must_change_password = false, updated_at = now()`,
+     [userId, h]
+   );
+ }
+diff -ruN orig/sew-studio-main/src/lib/notify.ts sew-studio-main/src/lib/notify.ts
+--- orig/sew-studio-main/src/lib/notify.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/lib/notify.ts	2026-11-10 11:32:12.992958932 +0000
+@@ -1,3 +1,4 @@
++import { generatePortalToken } from "@/lib/security";
+ import type { AppClient } from "@/lib/db/appClient";
+ 
+ type Client = AppClient;
+@@ -170,8 +171,7 @@
+     .maybeSingle();
+   if (existing?.portal_token) return existing.portal_token;
+ 
+-  const token =
+-    Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
++  const token = generatePortalToken();
+   await db.from("customers").update({ portal_token: token }).eq("id", customerId);
+   return token;
+ }
+diff -ruN orig/sew-studio-main/src/lib/security.ts sew-studio-main/src/lib/security.ts
+--- orig/sew-studio-main/src/lib/security.ts	1970-01-01 00:00:00.000000000 +0000
++++ sew-studio-main/src/lib/security.ts	2026-11-10 11:31:59.842739727 +0000
+@@ -0,0 +1,19 @@
++import { randomBytes, randomInt } from "crypto";
++
++export const MIN_PASSWORD_LENGTH = 8;
++export const PASSWORD_TOO_SHORT = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
++
++/** Unambiguous characters only (no 0/O, 1/l/I) so a temporary password is easy to read out. */
++const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
++
++/** Cryptographically random temporary password (default 12 chars, ~70 bits). */
++export function generateTempPassword(length = 12): string {
++  let out = "";
++  for (let i = 0; i < length; i++) out += ALPHABET[randomInt(ALPHABET.length)];
++  return out;
++}
++
++/** 256-bit URL-safe token for customer portal links. */
++export function generatePortalToken(): string {
++  return randomBytes(32).toString("base64url");
++}
+diff -ruN orig/sew-studio-main/src/stores/auth.ts sew-studio-main/src/stores/auth.ts
+--- orig/sew-studio-main/src/stores/auth.ts	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/stores/auth.ts	2026-11-10 11:36:22.271223820 +0000
+@@ -28,6 +28,7 @@
+   canAccessOrders?: boolean;
+   canAccessBoard?: boolean;
+   canManageFreelancers?: boolean;
++  mustChangePassword?: boolean;
+ }
+ 
+ type Status = "loading" | "authenticated" | "unauthenticated";
+diff -ruN orig/sew-studio-main/src/views/Team.tsx sew-studio-main/src/views/Team.tsx
+--- orig/sew-studio-main/src/views/Team.tsx	2026-11-09 22:34:54.000000000 +0000
++++ sew-studio-main/src/views/Team.tsx	2026-11-10 11:32:28.311556971 +0000
+@@ -1163,7 +1163,7 @@
+   role: "staff",
+   gender: "",
+   phone: "",
+-  password: "atelier2025",
++  password: "",
+ };
+ 
+ function AddMemberDialog({
+@@ -1181,7 +1181,10 @@
+     mutationFn: (body: MemberForm) => apiPost<User>("/api/users", body),
+     onSuccess: (u) => {
+       toast.success(`${u.fullName} added to the atelier.`, {
+-        description: `Signed in as ${u.role}. Default password: ${form.password || "atelier2025"}.`,
++        description: (u as any).temporaryPassword
++          ? `Temporary password (shown once): ${(u as any).temporaryPassword}. Share it securely and ask them to change it after signing in.`
++          : `Signed in as ${u.role}.`,
++        duration: (u as any).temporaryPassword ? 60000 : undefined,
+       });
+       onDone();
+       setForm(EMPTY_MEMBER);
+@@ -1301,15 +1304,15 @@
+               <Input
+                 value={form.password}
+                 onChange={(e) => set("password", e.target.value)}
+-                placeholder="atelier2025"
++                placeholder="Leave blank to generate one"
+                 className="h-10 bg-white border-[#E2E8F0] rounded-md tabular-nums"
+               />
+             </Field>
+           </div>
+           <p className="text-[11px] text-stone-400 -mt-1">
+-            Default password is{" "}
+-            <span className="font-medium text-stone-500">atelier2025</span>. The
+-            member can sign in and you can change it later from the database.
++            Leave the password blank and a unique temporary one is generated
++            and shown once after you add the member. Passwords you set must be
++            at least 8 characters.
+           </p>
+ 
+           <DialogFooter>
+@@ -1355,7 +1358,7 @@
+   mentorId: "",
+   gender: "",
+   phone: "",
+-  password: "atelier2025",
++  password: "",
+ };
+ 
+ function AddTraineeDialog({
+@@ -1379,12 +1382,15 @@
+         role: "trainee",
+         gender: body.gender || undefined,
+         phone: body.phone || undefined,
+-        password: body.password || "atelier2025",
++        password: body.password || undefined,
+         mentorId: body.mentorId || undefined,
+       }),
+     onSuccess: (u) => {
+       toast.success(`${u.fullName} added as a trainee.`, {
+-        description: `Default password: ${form.password || "atelier2025"}.`,
++        description: (u as any).temporaryPassword
++          ? `Temporary password (shown once): ${(u as any).temporaryPassword}. Share it securely and ask them to change it after signing in.`
++          : undefined,
++        duration: (u as any).temporaryPassword ? 60000 : undefined,
+       });
+       onDone();
+       setForm(EMPTY_TRAINEE);
+@@ -1513,14 +1519,14 @@
+             <Input
+               value={form.password}
+               onChange={(e) => set("password", e.target.value)}
+-              placeholder="atelier2025"
++              placeholder="Leave blank to generate one"
+               className="h-10 bg-white border-[#E2E8F0] rounded-md tabular-nums"
+             />
+           </Field>
+           <p className="text-[11px] text-stone-400 -mt-1">
+-            Default password is{" "}
+-            <span className="font-medium text-stone-500">atelier2025</span>. The
+-            trainee can sign in and you can change it later.
++            Leave the password blank and a unique temporary one is generated
++            and shown once after you add the trainee. Passwords you set must be
++            at least 8 characters.
+           </p>
+ 
+           <DialogFooter>

@@ -1,5 +1,18 @@
 import { NextResponse } from "next/server";
+import { getPool } from "@/lib/db/pool";
 import { getTenant } from "@/lib/db/session";
+
+async function needsPasswordChange(userId: string): Promise<boolean> {
+  try {
+    const { rows } = await getPool().query(
+      "select must_change_password from private.credentials where user_id = $1",
+      [userId]
+    );
+    return rows[0]?.must_change_password === true;
+  } catch {
+    return false; // column missing until migration 021 is applied
+  }
+}
 
 export async function GET() {
   try {
@@ -15,6 +28,7 @@ export async function GET() {
       .maybeSingle();
     if (!profile) return NextResponse.json({ user: null }, { status: 200 });
 
+    const mustChangePassword = await needsPasswordChange(profile.id);
     return NextResponse.json({
       user: {
         id: profile.id,
@@ -29,6 +43,7 @@ export async function GET() {
         canAccessOrders: profile.can_access_orders,
         canAccessBoard: profile.can_access_board,
         canManageFreelancers: profile.can_manage_freelancers,
+        mustChangePassword,
       },
     });
   } catch {

@@ -1,3 +1,4 @@
+import { generatePortalToken } from "@/lib/security";
 import type { AppClient } from "@/lib/db/appClient";
 
 type Client = AppClient;
@@ -170,8 +171,7 @@ export async function ensurePortalToken(db: Client, customerId: string): Promise
     .maybeSingle();
   if (existing?.portal_token) return existing.portal_token;
 
-  const token =
-    Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+  const token = generatePortalToken();
   await db.from("customers").update({ portal_token: token }).eq("id", customerId);
   return token;
 }

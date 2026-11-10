@@ -68,7 +68,16 @@ export async function PATCH(
   const { data: existing } = await existingQuery.maybeSingle();
   if (!existing) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
-  const body = await req.json();
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "A valid update is required." }, { status: 400 });
+  }
+  // Production roles (staff/trainer/trainee) move orders along; money, customer,
+  // assignment, scheduling and priority stay owner-only. Enforced here, not just in the UI.
+  if (ctx.role !== "madam") {
+    const allowed = new Set(["status", "notes", "designImage"]);
+    for (const k of Object.keys(body)) if (!allowed.has(k)) delete (body as Record<string, unknown>)[k];
+  }
   const statusChanged = body.status !== undefined && body.status !== existing.status;
 
   const data: Database["public"]["Tables"]["orders"]["Update"] = {};

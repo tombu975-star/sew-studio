@@ -9,6 +9,9 @@ export async function POST(
   try {
     const ctx = await getTenant();
     if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
+    if (ctx.role !== "madam") {
+      return Response.json({ error: "Only the studio owner can record payments." }, { status: 403 });
+    }
 
     const { id } = await params;
     const body = await req.json();

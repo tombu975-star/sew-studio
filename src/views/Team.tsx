@@ -1163,7 +1163,7 @@ const EMPTY_MEMBER: MemberForm = {
   role: "staff",
   gender: "",
   phone: "",
-  password: "atelier2025",
+  password: "",
 };
 
 function AddMemberDialog({
@@ -1181,7 +1181,10 @@ function AddMemberDialog({
     mutationFn: (body: MemberForm) => apiPost<User>("/api/users", body),
     onSuccess: (u) => {
       toast.success(`${u.fullName} added to the atelier.`, {
-        description: `Signed in as ${u.role}. Default password: ${form.password || "atelier2025"}.`,
+        description: (u as any).temporaryPassword
+          ? `Temporary password (shown once): ${(u as any).temporaryPassword}. Share it securely and ask them to change it after signing in.`
+          : `Signed in as ${u.role}.`,
+        duration: (u as any).temporaryPassword ? 60000 : undefined,
       });
       onDone();
       setForm(EMPTY_MEMBER);
@@ -1301,15 +1304,15 @@ function AddMemberDialog({
               <Input
                 value={form.password}
                 onChange={(e) => set("password", e.target.value)}
-                placeholder="atelier2025"
+                placeholder="Leave blank to generate one"
                 className="h-10 bg-white border-[#E2E8F0] rounded-md tabular-nums"
               />
             </Field>
           </div>
           <p className="text-[11px] text-stone-400 -mt-1">
-            Default password is{" "}
-            <span className="font-medium text-stone-500">atelier2025</span>. The
-            member can sign in and you can change it later from the database.
+            Leave the password blank and a unique temporary one is generated
+            and shown once after you add the member. Passwords you set must be
+            at least 8 characters.
           </p>
 
           <DialogFooter>
@@ -1355,7 +1358,7 @@ const EMPTY_TRAINEE: TraineeForm = {
   mentorId: "",
   gender: "",
   phone: "",
-  password: "atelier2025",
+  password: "",
 };
 
 function AddTraineeDialog({
@@ -1379,12 +1382,15 @@ function AddTraineeDialog({
         role: "trainee",
         gender: body.gender || undefined,
         phone: body.phone || undefined,
-        password: body.password || "atelier2025",
+        password: body.password || undefined,
         mentorId: body.mentorId || undefined,
       }),
     onSuccess: (u) => {
       toast.success(`${u.fullName} added as a trainee.`, {
-        description: `Default password: ${form.password || "atelier2025"}.`,
+        description: (u as any).temporaryPassword
+          ? `Temporary password (shown once): ${(u as any).temporaryPassword}. Share it securely and ask them to change it after signing in.`
+          : undefined,
+        duration: (u as any).temporaryPassword ? 60000 : undefined,
       });
       onDone();
       setForm(EMPTY_TRAINEE);
@@ -1513,14 +1519,14 @@ function AddTraineeDialog({
             <Input
               value={form.password}
               onChange={(e) => set("password", e.target.value)}
-              placeholder="atelier2025"
+              placeholder="Leave blank to generate one"
               className="h-10 bg-white border-[#E2E8F0] rounded-md tabular-nums"
             />
           </Field>
           <p className="text-[11px] text-stone-400 -mt-1">
-            Default password is{" "}
-            <span className="font-medium text-stone-500">atelier2025</span>. The
-            trainee can sign in and you can change it later.
+            Leave the password blank and a unique temporary one is generated
+            and shown once after you add the trainee. Passwords you set must be
+            at least 8 characters.
           </p>
 
           <DialogFooter>

@@ -28,6 +28,7 @@ export interface AuthUser {
   canAccessOrders?: boolean;
   canAccessBoard?: boolean;
   canManageFreelancers?: boolean;
+  mustChangePassword?: boolean;
 }
 
 type Status = "loading" | "authenticated" | "unauthenticated";

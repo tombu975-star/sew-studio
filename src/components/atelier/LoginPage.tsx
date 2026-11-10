@@ -92,8 +92,8 @@ export function LoginPage() {
     e.preventDefault();
     setError("");
 
-    if (password.length < 6) {
-      const msg = "Password must be at least 6 characters.";
+    if (password.length < 8) {
+      const msg = "Password must be at least 8 characters.";
       setError(msg);
       toast.error(msg);
       return;
@@ -275,7 +275,7 @@ export function LoginPage() {
               />
             </Field>
 
-            <Field label="Password" htmlFor="reg-password" required hint="At least 6 characters" icon={Lock}>
+            <Field label="Password" htmlFor="reg-password" required hint="At least 8 characters" icon={Lock}>
               <PasswordInput
                 id="reg-password"
                 value={password}
@@ -283,7 +283,7 @@ export function LoginPage() {
                 show={showPassword}
                 onToggle={() => setShowPassword((v) => !v)}
                 autoComplete="new-password"
-                minLength={6}
+                minLength={8}
               />
             </Field>
 

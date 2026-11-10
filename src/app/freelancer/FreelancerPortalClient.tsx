@@ -113,7 +113,7 @@ function FreelancerAuth({
     setError("");
     if (registering) {
       if (!fullName.trim()) return setError("Please enter your name.");
-      if (password.length < 6) return setError("Password must be at least 6 characters.");
+      if (password.length < 8) return setError("Password must be at least 8 characters.");
     }
     setLoading(true);
     try {
@@ -240,14 +240,14 @@ function FreelancerAuth({
               <input
                 type="password"
                 required
-                minLength={registering ? 6 : undefined}
+                minLength={registering ? 8 : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={INPUT_CLASS}
                 autoComplete={registering ? "new-password" : "current-password"}
               />
               {registering && (
-                <p className="text-[11px] text-stone-400 mt-1">At least 6 characters.</p>
+                <p className="text-[11px] text-stone-400 mt-1">At least 8 characters.</p>
               )}
             </div>
             {error && (

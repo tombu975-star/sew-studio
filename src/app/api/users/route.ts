@@ -5,6 +5,7 @@ import { getPool } from "@/lib/db/pool";
 import type { PoolClient } from "pg";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 import { getPlanEntitlements } from "@/lib/plans";
+import { MIN_PASSWORD_LENGTH, PASSWORD_TOO_SHORT, generateTempPassword } from "@/lib/security";
 
 export async function GET() {
   try {
@@ -92,9 +93,12 @@ export async function POST(req: Request) {
     if (phone && !isPlausiblePhone(phone)) {
       return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
     }
-    const memberPassword = typeof password === "string" && password ? password : "atelier2025";
-    if (memberPassword.length < 6) {
-      return Response.json({ error: "Password must be at least 6 characters." }, { status: 400 });
+    // No shared fallback password: if the owner doesn't type one, generate a
+    // unique random temporary password and show it to them once.
+    const providedPassword = typeof password === "string" && password ? password : null;
+    const memberPassword = providedPassword ?? generateTempPassword();
+    if (memberPassword.length < MIN_PASSWORD_LENGTH) {
+      return Response.json({ error: PASSWORD_TOO_SHORT }, { status: 400 });
     }
     // One account per email (Gmail aliases included) and per phone number.
     const conflict = await findIdentityConflict(admin, { email: emailNorm, phone });
@@ -118,6 +122,8 @@ export async function POST(req: Request) {
       email: emailNorm,
       password: memberPassword,
       email_confirm: true,
+      // Generated (or owner-typed) passwords are temporary: force a change at first sign-in.
+      mustChangePassword: true,
       provision: async (client: PoolClient, user) => {
         await client.query("select pg_advisory_xact_lock(hashtext($1))", [ctx.shopId]);
         const { rows: memberRows } = await client.query(
@@ -179,6 +185,8 @@ export async function POST(req: Request) {
       mentorId: profile.mentor_id,
       createdAt: profile.created_at,
       updatedAt: profile.updated_at,
+      // Returned once, only when the server generated it.
+      ...(providedPassword ? {} : { temporaryPassword: memberPassword }),
     });
   } catch (err) {
     if (createdAuthUserId) {

@@ -60,8 +60,15 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const ctx = await getTenant();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Mirrors the UI rule (canCreateOrders): only the studio owner creates orders.
+  if (ctx.role !== "madam") {
+    return NextResponse.json({ error: "Only the studio owner can create orders." }, { status: 403 });
+  }
 
-  const body = await req.json();
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "A valid order is required." }, { status: 400 });
+  }
 
   const { data: customer } = await ctx.db
     .from("customers")

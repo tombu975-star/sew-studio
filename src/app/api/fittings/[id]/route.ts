@@ -11,6 +11,9 @@ export async function PATCH(
     if (!ctx) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (ctx.role !== "madam" && ctx.role !== "staff") {
+      return Response.json({ error: "Not allowed to edit fittings." }, { status: 403 });
+    }
 
     const { id } = await params;
     const body = await req.json();
