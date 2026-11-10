@@ -17,3 +17,6 @@ export function generateTempPassword(length = 12): string {
 export function generatePortalToken(): string {
   return randomBytes(32).toString("base64url");
 }
+
+/** 256-bit URL-safe one-time token (email verification links etc.). */
+export const generateUrlToken = generatePortalToken;

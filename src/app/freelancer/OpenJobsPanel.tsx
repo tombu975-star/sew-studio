@@ -17,28 +17,30 @@ interface OpenJob {
   dueDate: string | null;
   createdAt: string;
   shop: { name: string };
+  postStatus?: string;
   myApplication: { status: string; message?: string | null; proposedCost?: number | null } | null;
 }
 
 const input = "h-10 w-full rounded-md border border-[#D8DEE7] bg-white px-3 text-sm outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15";
 
 /** Freelancer-side: jobs shops have posted that nobody is assigned to yet. */
-export function OpenJobsPanel() {
+export function OpenJobsPanel({ canApply = true }: { canApply?: boolean }) {
   const [jobs, setJobs] = useState<OpenJob[] | null>(null);
   const [error, setError] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [cost, setCost] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [view, setView] = useState<"browse" | "applied">("browse");
 
   const load = useCallback(
     () =>
-      apiGet<OpenJob[]>("/api/freelancer/open-jobs")
+      apiGet<OpenJob[]>(`/api/freelancer/open-jobs${view === "applied" ? "?scope=applied" : ""}`)
         .then((j) => { setJobs(j); setError(""); })
         .catch((e) => { setError(apiErrorMessage(e, "Could not load open jobs.")); setJobs((j) => j ?? []); }),
-    []
+    [view]
   );
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { setJobs(null); load(); }, [load]);
 
   async function apply(id: string) {
     setBusy(id);
@@ -60,19 +62,36 @@ export function OpenJobsPanel() {
     finally { setBusy(null); }
   }
 
+  const tabs = (
+    <div className="mb-1 flex gap-2" role="tablist" aria-label="Open jobs view">
+      {([["browse", "Browse jobs"], ["applied", "My requests"]] as const).map(([k, label]) => (
+        <button key={k} role="tab" aria-selected={view === k} onClick={() => setView(k)}
+          className={`h-8 rounded-full border px-3.5 text-xs font-medium transition-colors ${
+            view === k ? "border-[#1D4ED8] bg-[#1D4ED8] text-white" : "border-[#D8DEE7] bg-white text-stone-600 hover:border-[#1D4ED8]"}`}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
   if (!jobs) {
     return (
       <div className="space-y-3" aria-busy="true">
+        {tabs}
         {[0, 1, 2].map((i) => <div key={i} className="h-32 animate-pulse rounded-lg border border-[#E2E8F0] bg-white" />)}
       </div>
     );
   }
   return (
     <div className="space-y-3">
+      {tabs}
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
       {jobs.length === 0 && !error && (
         <SectionCard>
-          <EmptyState icon={Search} title="No open jobs right now" description="When studios post work you can apply for, it will show up here." />
+          {view === "browse" ? (
+            <EmptyState icon={Search} title="No open jobs right now" description="When studios post work you can apply for, it will show up here. You don't need to be on a studio's roster to apply." />
+          ) : (
+            <EmptyState icon={Search} title="No requests yet" description="Jobs you apply for appear here, with the studio's decision." />
+          )}
         </SectionCard>
       )}
       {jobs.map((j) => (
@@ -96,7 +115,7 @@ export function OpenJobsPanel() {
               <p className="text-xs text-stone-500">
                 {j.myApplication.proposedCost != null ? `Your price: ${formatCurrency(j.myApplication.proposedCost, "GHS")}` : "You applied for this job."}
               </p>
-              {j.myApplication.status === "Pending" && (
+              {j.myApplication.status === "Pending" && j.postStatus !== "Closed" && j.postStatus !== "Filled" && (
                 <PremiumButton variant="ghost" size="sm" loading={busy === j.id} onClick={() => withdraw(j.id)}>Withdraw</PremiumButton>
               )}
             </div>
@@ -112,9 +131,13 @@ export function OpenJobsPanel() {
               </div>
             </div>
           ) : (
-            <PremiumButton className="mt-3" size="sm" variant="outline" onClick={() => { setOpenId(j.id); setMessage(""); setCost(""); }}>
-              Apply
-            </PremiumButton>
+            canApply ? (
+              <PremiumButton className="mt-3" size="sm" variant="outline" onClick={() => { setOpenId(j.id); setMessage(""); setCost(""); }}>
+                Apply
+              </PremiumButton>
+            ) : (
+              <p className="mt-3 text-xs text-stone-500">Verify your email to apply for this job.</p>
+            )
           )}
         </SectionCard>
       ))}

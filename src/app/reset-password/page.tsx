@@ -2,7 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { LockKeyhole, Scissors } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
+import { BrandMark } from "@/components/atelier/BrandMark";
 import { apiPost } from "@/lib/api";
 
 function ResetPasswordForm() {
@@ -35,8 +36,8 @@ function ResetPasswordForm() {
     <section className="w-full max-w-md rounded-lg border border-[#E2E8F0] bg-white p-6 sm:p-8">
       <div className="mb-8 text-center sm:text-left">
           <div className="mb-8 flex items-center justify-center gap-3 sm:justify-start">
-            <div className="flex size-9 items-center justify-center rounded-md bg-[#2563EB] text-white"><Scissors className="size-4" /></div>
-            <span className="font-display text-xl font-semibold text-[#0F172A]">Madam Studio</span>
+            <BrandMark size={44} />
+            <span className="font-display text-xl font-semibold text-[#0F172A]">Sewiness</span>
           </div>
           <h1 className="font-display text-[34px] font-semibold leading-none text-[#0F172A]">Choose a new password</h1>
       </div>

@@ -1,12 +1,24 @@
 import { getFreelancerSession } from "@/lib/db/session";
 import { getPool } from "@/lib/db/pool";
+import { dbErrorResponse } from "@/lib/db/errors";
 
 // POST   /api/freelancer/open-jobs/[id]/apply { message?, proposedCost? } — apply (or update a pending application)
 // DELETE /api/freelancer/open-jobs/[id]/apply — withdraw a pending application
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function post_impl(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getFreelancerSession();
   if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
+
+  const { rows: me } = await getPool().query(
+    `select verified_at from public.freelancer_profiles where id = $1`,
+    [ctx.freelancerId]
+  );
+  if (!me[0]?.verified_at) {
+    return Response.json(
+      { error: "Verify your email to apply for jobs. Check your inbox for the link, or request a new one from your portal." },
+      { status: 403 }
+    );
+  }
 
   const body = await req.json().catch(() => ({}));
   const message = String(body?.message ?? "").trim().slice(0, 1000) || null;
@@ -38,7 +50,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   return Response.json({ ok: true });
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function delete_impl(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getFreelancerSession();
   if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -48,4 +60,20 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     [id, ctx.freelancerId]
   );
   return Response.json({ ok: true });
+}
+
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    return await post_impl(req, { params });
+  } catch (err) {
+    return dbErrorResponse(err, "freelancer/open-jobs/apply POST");
+  }
+}
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    return await delete_impl(_req, { params });
+  } catch (err) {
+    return dbErrorResponse(err, "freelancer/open-jobs/apply DELETE");
+  }
 }

@@ -165,7 +165,7 @@ export function PortalClient() {
               Track your order
             </h1>
             <p className="text-[10px] uppercase tracking-[0.3em] text-white/60 mt-2 animate-fade-in-up">
-              Madam Studio · Client Portal
+              Sewiness · Client Portal
             </p>
           </div>
         </div>

@@ -134,7 +134,7 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (admin: AdminProfile) => void 
       <div className="w-full max-w-[410px]">
         <div className="mb-7 flex items-center gap-3">
           <div className="grid size-12 place-items-center rounded-2xl bg-[#315B4A] text-white shadow-sm"><ShieldCheck className="size-5" /></div>
-          <div><p className="text-[11px] font-semibold uppercase tracking-[.18em] text-[#527564]">Madam Studio</p><p className="text-sm text-slate-500">Platform operations</p></div>
+          <div><p className="text-[11px] font-semibold uppercase tracking-[.18em] text-[#527564]">Sewiness</p><p className="text-sm text-slate-500">Platform operations</p></div>
         </div>
         <SectionCard>
           <div className="mb-6"><h1 className="font-display text-2xl font-semibold text-slate-900">System admin</h1><p className="mt-1 text-sm text-slate-500">Sign in to manage your platform.</p></div>
@@ -237,7 +237,7 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-[248px] flex-col border-r border-slate-200 bg-white px-4 py-5 transition-transform lg:translate-x-0 ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center gap-3 px-2 pb-8">
           <div className="grid size-10 place-items-center rounded-xl bg-[#315B4A] text-white"><ShieldCheck className="size-5" /></div>
-          <div className="min-w-0"><p className="font-display text-lg font-semibold leading-tight">Madam Studio</p><p className="text-[11px] text-slate-500">System administration</p></div>
+          <div className="min-w-0"><p className="font-display text-lg font-semibold leading-tight">Sewiness</p><p className="text-[11px] text-slate-500">System administration</p></div>
           <button onClick={() => setMobileNavOpen(false)} aria-label="Close navigation" className="ml-auto rounded-md p-1 text-slate-500 hover:bg-slate-100 lg:hidden"><X className="size-4" /></button>
         </div>
         <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[.16em] text-slate-400">Workspace</p>

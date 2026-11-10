@@ -200,7 +200,7 @@ export function LoginPage() {
 
           <div className="mt-4 border-t border-[#eee7e1] pt-4 max-sm:border-0 max-sm:pt-0 max-sm:text-center sm:mt-8 sm:pt-6">
               <p className="text-[13px] leading-5 text-[#756a64] max-sm:hidden sm:text-sm sm:leading-6">
-                New to Madam Studio? Create a shop account to set up your workspace.
+                New to Sewiness? Create a shop account to set up your workspace.
               </p>
             <button
               type="button"

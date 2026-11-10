@@ -21,7 +21,7 @@ export async function GET() {
 
     const { data: links, error } = await ctx.db
       .from("freelancer_shop_links")
-      .select("*, freelancer:freelancer_profiles(id, full_name, email, phone, specialty, skills)")
+      .select("*, freelancer:freelancer_profiles(id, full_name, email, phone, specialty, skills, verified_at)")
       .eq("shop_id", ctx.shopId)
       .order("created_at", { ascending: false });
     if (error) throw error;
@@ -34,6 +34,7 @@ export async function GET() {
       phone: l.freelancer?.phone,
       specialty: l.freelancer?.specialty,
       skills: l.freelancer?.skills,
+      verified: !!l.freelancer?.verified_at,
       rateNotes: l.rate_notes,
       status: l.status,
       createdAt: l.created_at,

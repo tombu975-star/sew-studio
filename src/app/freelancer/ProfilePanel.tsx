@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { LogOut } from "lucide-react";
 import { PageHeader, SectionCard } from "@/components/atelier/_portal";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
+import { VerifiedBadge } from "@/components/atelier/VerifiedBadge";
 import { apiErrorMessage, apiPatch, apiPost } from "@/lib/api";
 import type { FreelancerProfile } from "./types";
 
@@ -67,7 +68,10 @@ export function ProfilePanel({
       <PageHeader eyebrow="Account" title="Your profile" subtitle="Studios see your name, specialty and skills when they look for freelancers." />
       <div className="grid gap-4 lg:grid-cols-2">
         <SectionCard>
-          <h3 className="mb-4 text-sm font-semibold text-[#0F172A]">Public profile</h3>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold text-[#0F172A]">Public profile</h3>
+            {profile.verified ? <VerifiedBadge /> : <span className="text-xs text-amber-700">Email not verified</span>}
+          </div>
           <form onSubmit={saveProfile} className="space-y-4">
             <div><label className={label} htmlFor="p-name">Full name</label>
               <input id="p-name" required className={input} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" /></div>

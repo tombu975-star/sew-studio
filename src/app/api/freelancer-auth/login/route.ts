@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     const { data: freelancer } = await db
       .from("freelancer_profiles")
-      .select("id, email, full_name, phone, specialty, skills")
+      .select("id, email, full_name, phone, specialty, skills, verified_at")
       .eq("id", data.user.id)
       .maybeSingle();
 
@@ -42,6 +42,7 @@ export async function POST(req: Request) {
         phone: freelancer.phone,
         specialty: freelancer.specialty,
         skills: freelancer.skills,
+        verified: !!freelancer.verified_at,
       },
     });
   } catch (error) {

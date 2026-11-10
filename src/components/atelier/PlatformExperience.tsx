@@ -17,10 +17,10 @@ export interface PlatformSettings {
 const DEFAULT_SETTINGS: PlatformSettings = {
   appVersion: "0.2.1",
   releaseNotes: "",
-  brandName: "Madam Studio",
+  brandName: "Sewiness",
   loginHeading: "Welcome back",
   loginDescription: "Sign in to manage your studio’s customers, orders and daily work.",
-  loginFooter: "Madam Studio · Atelier management system",
+  loginFooter: "Sewiness · Atelier management system",
   primaryColor: "#1D4ED8",
   accentColor: "#2563EB",
   backgroundColor: "#F4F6F8",
@@ -48,7 +48,7 @@ export function PlatformExperience({ children }: { children: React.ReactNode }) 
         root.style.setProperty("--ring", next.primaryColor || DEFAULT_SETTINGS.primaryColor);
         root.style.setProperty("--background", next.backgroundColor || DEFAULT_SETTINGS.backgroundColor);
         root.dataset.appVersion = next.appVersion || DEFAULT_SETTINGS.appVersion;
-        document.title = `${next.brandName || DEFAULT_SETTINGS.brandName} — Atelier Management`;
+        document.title = next.brandName || DEFAULT_SETTINGS.brandName;
       })
       .catch(() => {
         // Presentation settings are optional; keep the built-in theme if the

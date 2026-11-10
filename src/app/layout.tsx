@@ -5,7 +5,8 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
-  title: "Madam Studio — Atelier Management",
+  title: { default: "Sewiness", template: "%s | Sewiness" },
+  applicationName: "Sewiness",
   description:
     "One system, every role — a smarter atelier for custom tailoring studios: clients, orders, production, training and AI style assist, all in one place.",
   keywords: [
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     "custom clothing",
     "style assist",
   ],
-  authors: [{ name: "Madam Studio" }],
+  authors: [{ name: "Sewiness" }],
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -29,10 +30,11 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Madam Studio",
+    title: "Sewiness",
   },
   openGraph: {
-    title: "Madam Studio — Atelier Management",
+    siteName: "Sewiness",
+    title: "Sewiness",
     description:
       "One system, every role — a smarter atelier for custom tailoring studios: clients, orders, production, training and AI style assist, all in one place.",
   },

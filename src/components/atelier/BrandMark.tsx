@@ -1,0 +1,31 @@
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+
+/** The Sewiness emblem (mannequin and tape measure). */
+export function BrandMark({ className, size = 36 }: { className?: string; size?: number }) {
+  return (
+    <Image
+      src="/brand/sewiness-mark.png"
+      alt=""
+      width={Math.round(size * 0.6)}
+      height={size}
+      className={cn("h-auto w-auto object-contain", className)}
+      style={{ height: size, width: "auto" }}
+    />
+  );
+}
+
+/** The full Sewiness logo with the name. */
+export function BrandLogo({ className, width = 220 }: { className?: string; width?: number }) {
+  return (
+    <Image
+      src="/brand/sewiness-wordmark.png"
+      alt="Sewiness"
+      width={width}
+      height={Math.round(width * 0.5)}
+      priority
+      className={cn("h-auto", className)}
+      style={{ width, height: "auto" }}
+    />
+  );
+}

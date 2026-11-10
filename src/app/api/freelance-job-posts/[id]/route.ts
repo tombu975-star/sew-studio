@@ -1,5 +1,6 @@
 import { getTenant, canManageFreelancers } from "@/lib/db/session";
 import { getPool } from "@/lib/db/pool";
+import { dbErrorResponse } from "@/lib/db/errors";
 
 // PATCH /api/freelance-job-posts/[id]
 //   { action: "accept", applicationId } — commissions that freelancer: creates the
@@ -7,7 +8,7 @@ import { getPool } from "@/lib/db/pool";
 //        declines the other applicants (one transaction).
 //   { action: "decline", applicationId }
 //   { action: "close" } — stop taking applications.
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function patch_impl(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getTenant();
   if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
   if (!canManageFreelancers(ctx)) return Response.json({ error: "Not allowed." }, { status: 403 });
@@ -93,12 +94,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return Response.json({ ok: true });
     } catch (e) {
       await client.query("rollback").catch(() => {});
-      console.error("[freelance-job-posts accept]", e);
-      return Response.json({ error: "Could not accept this application." }, { status: 500 });
+      return dbErrorResponse(e, "freelance-job-posts accept");
     } finally {
       client.release();
     }
   }
 
   return Response.json({ error: "Unknown action." }, { status: 400 });
+}
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    return await patch_impl(req, { params });
+  } catch (err) {
+    return dbErrorResponse(err, "freelance-job-posts/[id] PATCH");
+  }
 }

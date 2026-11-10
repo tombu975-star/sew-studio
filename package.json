@@ -10,12 +10,14 @@
   },
   "private": true,
   "scripts": {
+    "predev": "node scripts/migrate.mjs",
     "dev": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
     "start": "node scripts/migrate.mjs && next start",
     "lint": "eslint .",
     "create-admin": "node scripts/create-system-admin.mjs",
     "db:migrate": "node scripts/migrate.mjs",
+    "icons": "node scripts/generate-icons.mjs",
     "test:db": "tsx tests/db-layer.test.ts"
   },
   "dependencies": {

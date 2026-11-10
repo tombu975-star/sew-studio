@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SectionCard } from "@/components/atelier/SectionCard";
+import { VerifiedBadge } from "@/components/atelier/VerifiedBadge";
 import { apiGet, apiPost, apiPatch, apiErrorMessage } from "@/lib/api";
 
 interface DirectoryEntry {
@@ -11,6 +12,7 @@ interface DirectoryEntry {
   name: string;
   specialty?: string | null;
   skills?: string | null;
+  verified?: boolean;
   linked: boolean;
 }
 interface Application {
@@ -19,6 +21,7 @@ interface Application {
   name: string;
   specialty?: string | null;
   skills?: string | null;
+  verified?: boolean;
   message?: string | null;
   proposedCost?: number | null;
   status: string;
@@ -77,11 +80,17 @@ export function FreelancerMarketplace() {
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
+  const loadError = directoryQ.error || postsQ.error;
   const directory = directoryQ.data ?? [];
   const posts = postsQ.data ?? [];
 
   return (
     <div className="space-y-5">
+      {loadError && (
+        <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {apiErrorMessage(loadError, "Could not load the freelancer directory and job posts.")}
+        </div>
+      )}
       <SectionCard title={`Post an open job`}>
         <div className="p-4 space-y-3">
           <textarea
@@ -136,7 +145,7 @@ export function FreelancerMarketplace() {
                       <li key={a.id} className="rounded-md bg-[#F8FAFC] border border-[#E2E8F0] p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-sm font-medium">{a.name}{a.specialty ? ` · ${a.specialty}` : ""}</p>
+                            <p className="flex flex-wrap items-center gap-2 text-sm font-medium">{a.name}{a.specialty ? ` · ${a.specialty}` : ""}{a.verified && <VerifiedBadge />}</p>
                             {a.skills && <p className="text-xs text-stone-500">{a.skills}</p>}
                             {a.message && <p className="text-xs text-stone-600 mt-1">“{a.message}”</p>}
                             {a.proposedCost != null && <p className="text-xs text-stone-500 mt-1">Quote: {a.proposedCost.toLocaleString()}</p>}
@@ -166,20 +175,24 @@ export function FreelancerMarketplace() {
         )}
       </SectionCard>
 
-      <SectionCard title="Find freelancers" bodyClassName="p-0">
+      <SectionCard title="Find verified freelancers" bodyClassName="p-0">
         <div className="p-4 border-b border-[#E2E8F0]">
           <input className={input} placeholder="Search by name, specialty or skill" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
         {directoryQ.isLoading ? (
           <p className="p-4 text-sm text-stone-500">Loading…</p>
+        ) : directoryQ.error ? (
+          <p className="p-4 text-sm text-stone-500">The directory couldn't be loaded.</p>
         ) : directory.length === 0 ? (
-          <p className="p-4 text-sm text-stone-500">No freelancers found.</p>
+          <p className="p-4 text-sm text-stone-500">
+            {q ? "No freelancers match your search." : "No freelancers have registered yet. Share your freelancer sign-up link: /freelancer?mode=register"}
+          </p>
         ) : (
           <ul className="divide-y divide-[#E2E8F0]">
             {directory.map((f) => (
               <li key={f.id} className="p-4 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">{f.name}{f.specialty ? ` · ${f.specialty}` : ""}</p>
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium">{f.name}{f.specialty ? ` · ${f.specialty}` : ""}{f.verified && <VerifiedBadge />}</p>
                   {f.skills && <p className="text-xs text-stone-500 truncate">{f.skills}</p>}
                 </div>
                 {f.linked ? (

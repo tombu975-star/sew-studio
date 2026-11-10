@@ -272,6 +272,7 @@ export interface Freelancer {
   phone?: string | null;
   email?: string | null;
   avatarUrl?: string | null;
+  verified?: boolean;
   rateNotes?: string | null;
   status: string; // Available | Busy | Unavailable
   createdAt: string;

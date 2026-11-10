@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Scissors, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import { BrandLogo, BrandMark } from "@/components/atelier/BrandMark";
 import { LoginPage } from "@/components/atelier/LoginPage";
 import { usePlatformSettings } from "@/components/atelier/PlatformExperience";
 
@@ -50,8 +51,8 @@ export function PlatformLogin({
           <div className="relative z-10 flex flex-col justify-between px-5 py-4 [@media(max-height:700px)]:py-3 text-white sm:min-h-[340px] sm:p-9 lg:min-h-[720px] lg:p-12">
             <header className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-white/25 bg-white/15 backdrop-blur-md">
-                  <Scissors className="size-5" aria-hidden="true" />
+                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-white shadow-[0_4px_14px_rgba(40,8,60,0.25)]">
+                  <BrandMark size={36} />
                 </span>
                 <div className="min-w-0">
                   <p className="truncate text-base font-semibold tracking-wide">{settings.brandName}</p>
@@ -84,6 +85,9 @@ export function PlatformLogin({
 
         <section className="flex min-h-0 overflow-y-auto px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-1 text-white sm:overflow-visible sm:pb-12 sm:pt-12 sm:text-inherit sm:px-10 sm:py-12 lg:px-12 xl:px-[72px]">
           <div className="m-auto w-full max-w-[420px]">
+            <div className="mb-3 hidden sm:block">
+              <BrandLogo width={168} />
+            </div>
             {children ?? <LoginPage />}
             <footer className="mt-4 text-center text-xs leading-relaxed text-white/70 [@media(max-height:700px)]:hidden sm:mt-8 sm:text-[#8b7f78]">
               <p>{settings.loginFooter}</p>

@@ -9,6 +9,8 @@ import { PageHeader, SectionCard } from "@/components/atelier/_portal";
 import { PremiumMetric } from "@/components/atelier/PremiumMetric";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { StatusBadge } from "@/components/atelier/StatusBadge";
+import { VerifiedBadge } from "@/components/atelier/VerifiedBadge";
+import { VerifyBanner } from "./VerifyBanner";
 import { EmptyState } from "@/components/atelier/EmptyState";
 import { apiGet, apiPatch, apiPost, setOnSessionExpired } from "@/lib/api";
 import { apiErrorMessage } from "@/lib/api";
@@ -83,7 +85,7 @@ export function FreelancerDashboard({
             </span>
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-semibold text-[#0F172A]">Freelancer portal</p>
-              <p className="truncate text-[11px] text-stone-500">{profile.fullName}</p>
+              <p className="flex items-center gap-1.5 truncate text-[11px] text-stone-500">{profile.fullName}{profile.verified && <VerifiedBadge compact />}</p>
             </div>
           </div>
           <nav className="hidden items-center gap-1 md:flex" aria-label="Sections">
@@ -117,11 +119,12 @@ export function FreelancerDashboard({
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 animate-fade-in">
+        {!profile.verified && <VerifyBanner onVerified={onProfileChange} />}
         {tab === "jobs" && <MyJobs profile={profile} onBrowse={() => setTab("open")} />}
         {tab === "open" && (
           <>
-            <PageHeader eyebrow="Find work" title="Open jobs" subtitle="Jobs studios have posted. Apply with your price and a short note." />
-            <OpenJobsPanel />
+            <PageHeader eyebrow="Find work" title="Open jobs" subtitle="Jobs studios have posted. Apply with your price and a short note — no roster invitation needed." />
+            <OpenJobsPanel canApply={!!profile.verified} />
           </>
         )}
         {tab === "profile" && <ProfilePanel profile={profile} onChange={onProfileChange} onLogout={logout} />}

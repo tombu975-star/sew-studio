@@ -10,7 +10,8 @@ import { useAuth } from "@/stores/auth";
 import { useNav } from "@/stores/nav";
 import { setOnSessionExpired } from "@/lib/api";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
-import { Scissors, Lock, Crown } from "lucide-react";
+import { Lock, Crown } from "lucide-react";
+import { BrandMark } from "@/components/atelier/BrandMark";
 import { menuForView, MENU_DEFINITIONS } from "@/lib/menu-config";
 import { useMenuSettings } from "@/stores/menu-settings";
 import { getPlanEntitlements, requiredPlanForFeature } from "@/lib/plans";
@@ -131,7 +132,7 @@ function GuardView({ view, children }: { view: "orders" | "board"; children: Rea
 function FullScreenLoader() {
   return (
     <div role="status" aria-label="Loading" className="min-h-dvh flex flex-col items-center justify-center bg-[#F8FAFC]">
-      <div className="flex size-11 items-center justify-center rounded-md bg-[#2563EB]"><Scissors className="size-5 text-white" strokeWidth={2} /></div>
+      <BrandMark size={64} />
       <div className="mt-6 h-0.5 w-24 overflow-hidden rounded-full bg-[#E2E8F0]"><div className="h-full w-1/2 animate-[loader-slide_1.1s_ease-in-out_infinite] rounded-full bg-[#2563EB]" /></div>
     </div>
   );

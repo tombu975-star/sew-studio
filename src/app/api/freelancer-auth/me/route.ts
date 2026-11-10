@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data: freelancer } = await ctx.db
     .from("freelancer_profiles")
-    .select("id, email, full_name, phone, specialty, skills")
+    .select("id, email, full_name, phone, specialty, skills, verified_at")
     .eq("id", ctx.freelancerId)
     .maybeSingle();
   if (!freelancer) {
@@ -23,6 +23,7 @@ export async function GET() {
     phone: freelancer.phone,
     specialty: freelancer.specialty,
     skills: freelancer.skills,
+    verified: !!freelancer.verified_at,
   });
 }
 
@@ -52,7 +53,7 @@ export async function PATCH(req: Request) {
       skills: skills || null,
     })
     .eq("id", ctx.freelancerId)
-    .select("id, email, full_name, phone, specialty, skills")
+    .select("id, email, full_name, phone, specialty, skills, verified_at")
     .single();
   if (error || !data) {
     const friendly = identityErrorMessage(error);
@@ -66,5 +67,6 @@ export async function PATCH(req: Request) {
     phone: data.phone,
     specialty: data.specialty,
     skills: data.skills,
+    verified: !!data.verified_at,
   });
 }

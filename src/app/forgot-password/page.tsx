@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Mail, Scissors } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
+import { BrandMark } from "@/components/atelier/BrandMark";
 import { apiPost } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
@@ -29,8 +30,8 @@ export default function ForgotPasswordPage() {
       <section className="w-full max-w-md rounded-lg border border-[#E2E8F0] bg-white p-6 sm:p-8">
         <div className="mb-8 text-center sm:text-left">
           <div className="mb-8 flex items-center justify-center gap-3 sm:justify-start">
-            <div className="flex size-9 items-center justify-center rounded-md bg-[#2563EB] text-white"><Scissors className="size-4" /></div>
-            <span className="font-display text-xl font-semibold text-[#0F172A]">Madam Studio</span>
+            <BrandMark size={44} />
+            <span className="font-display text-xl font-semibold text-[#0F172A]">Sewiness</span>
           </div>
           <h1 className="font-display text-[34px] font-semibold leading-none text-[#0F172A]">Reset your password</h1>
           <p className="mt-2 text-sm text-stone-500">We’ll email a secure link if an account matches.</p>

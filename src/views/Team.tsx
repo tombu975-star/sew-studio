@@ -33,6 +33,7 @@ import {
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { FreelancerMarketplace } from "@/views/FreelancerMarketplace";
+import { VerifiedBadge } from "@/components/atelier/VerifiedBadge";
 import { PremiumMetric } from "@/components/atelier/PremiumMetric";
 import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
 import { EmptyState, SkeletonList } from "@/components/atelier/EmptyState";
@@ -675,6 +676,7 @@ function FreelancersCard({
                     <span className="font-medium text-[#0F172A] truncate">
                       {f.name}
                     </span>
+                    {f.verified && <VerifiedBadge />}
                     {f.specialty && (
                       <span className="inline-flex items-center rounded-md bg-[#2563EB]/8 text-[#2563EB] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] border border-[#2563EB]/15">
                         {f.specialty}

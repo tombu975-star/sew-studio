@@ -5,6 +5,7 @@ export interface FreelancerProfile {
   phone?: string | null;
   specialty?: string | null;
   skills?: string | null;
+  verified?: boolean;
 }
 
 export interface FreelanceJob {

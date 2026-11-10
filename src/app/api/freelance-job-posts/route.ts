@@ -1,8 +1,9 @@
 import { getTenant, canManageFreelancers } from "@/lib/db/session";
 import { getPool } from "@/lib/db/pool";
+import { dbErrorResponse } from "@/lib/db/errors";
 
 // GET /api/freelance-job-posts — this shop's open-job posts with their applicants.
-export async function GET() {
+async function get_impl() {
   const ctx = await getTenant();
   if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
   if (!canManageFreelancers(ctx)) return Response.json({ error: "Not allowed." }, { status: 403 });
@@ -15,7 +16,7 @@ export async function GET() {
   );
   const { rows: apps } = await pool.query(
     `select a.id, a.post_id, a.message, a.proposed_cost, a.status, a.created_at,
-            p.id as freelancer_id, p.full_name, p.specialty, p.skills
+            p.id as freelancer_id, p.full_name, p.specialty, p.skills, p.verified_at
        from public.freelance_job_applications a
        join public.freelance_job_posts jp on jp.id = a.post_id
        join public.freelancer_profiles p on p.id = a.freelancer_id
@@ -39,6 +40,7 @@ export async function GET() {
           name: a.full_name,
           specialty: a.specialty,
           skills: a.skills,
+          verified: !!a.verified_at,
           message: a.message,
           proposedCost: a.proposed_cost === null ? null : Number(a.proposed_cost),
           status: a.status,
@@ -49,7 +51,7 @@ export async function GET() {
 }
 
 // POST /api/freelance-job-posts — publish an open job freelancers can apply to.
-export async function POST(req: Request) {
+async function post_impl(req: Request) {
   const ctx = await getTenant();
   if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
   if (!canManageFreelancers(ctx)) return Response.json({ error: "Not allowed." }, { status: 403 });
@@ -71,4 +73,20 @@ export async function POST(req: Request) {
     [ctx.shopId, description, budget, due ? due.toISOString() : null, ctx.userId]
   );
   return Response.json({ id: rows[0].id }, { status: 201 });
+}
+
+export async function GET() {
+  try {
+    return await get_impl();
+  } catch (err) {
+    return dbErrorResponse(err, "freelance-job-posts GET");
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    return await post_impl(req);
+  } catch (err) {
+    return dbErrorResponse(err, "freelance-job-posts POST");
+  }
 }
