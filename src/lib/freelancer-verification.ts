@@ -40,7 +40,7 @@ export async function sendFreelancerVerification(opts: {
   const link = `${opts.appUrl.replace(/\/$/, "")}/freelancer/verify?token=${token}`;
   const sent = await sendEmail({
     to: opts.email,
-    subject: "Verify your Sewiness freelancer account",
+    subject: "Verify your Sewsiness freelancer account",
     body: `Hi ${opts.name.split(" ")[0] || "there"},\n\nConfirm your email to get your Verified badge and start applying for jobs:\n\n${link}\n\nThis link works once and expires in ${TTL_HOURS} hours. If you didn't create this account, you can ignore this message.`,
     type: "freelancer_verification",
   });

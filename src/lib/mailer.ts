@@ -39,8 +39,8 @@ function appUrl(): string {
 export function renderHtml(subject: string, body: string): string {
   const base = appUrl();
   const logo = base
-    ? `<img src="${esc(base)}/brand/sewiness-wordmark.png" alt="Sewiness" width="150" style="display:block;margin:0 0 20px;height:auto" />`
-    : `<p style="margin:0 0 20px;font-size:20px;font-weight:700;color:#541625">Sewiness</p>`;
+    ? `<img src="${esc(base)}/brand/sewsiness-wordmark.png" alt="Sewsiness" width="150" style="display:block;margin:0 0 20px;height:auto" />`
+    : `<p style="margin:0 0 20px;font-size:20px;font-weight:700;color:#541625">Sewsiness</p>`;
   const paragraphs = body
     .split(/\n{2,}/)
     .map((p) => p.trim())

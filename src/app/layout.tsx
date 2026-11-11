@@ -11,8 +11,8 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
-  title: { default: "Sewiness", template: "%s | Sewiness" },
-  applicationName: "Sewiness",
+  title: { default: "Sewsiness", template: "%s | Sewsiness" },
+  applicationName: "Sewsiness",
   description:
     "One system, every role — a smarter atelier for custom tailoring studios: clients, orders, production, training and AI style assist, all in one place.",
   keywords: [
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     "custom clothing",
     "style assist",
   ],
-  authors: [{ name: "Sewiness" }],
+  authors: [{ name: "Sewsiness" }],
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -36,11 +36,11 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Sewiness",
+    title: "Sewsiness",
   },
   openGraph: {
-    siteName: "Sewiness",
-    title: "Sewiness",
+    siteName: "Sewsiness",
+    title: "Sewsiness",
     description:
       "One system, every role — a smarter atelier for custom tailoring studios: clients, orders, production, training and AI style assist, all in one place.",
   },

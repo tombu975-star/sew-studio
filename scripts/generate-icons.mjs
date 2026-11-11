@@ -2,7 +2,7 @@
 /**
  * Builds every browser/app icon from ONE source logo.
  *
- *   1. Save the official Sewiness logo as  public/brand/sewiness-logo.svg
+ *   1. Save the official Sewsiness logo as  public/brand/sewsiness-logo.svg
  *      (or .png / .webp / .jpg — a square, at least 512x512 for raster files).
  *   2. Run:  npm run icons          (or:  node scripts/generate-icons.mjs path/to/logo.png)
  *
@@ -17,10 +17,10 @@ import sharp from "sharp";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pub = path.join(root, "public");
-const candidates = ["svg", "png", "webp", "jpg", "jpeg"].map((e) => path.join(pub, "brand", `sewiness-logo.${e}`));
+const candidates = ["svg", "png", "webp", "jpg", "jpeg"].map((e) => path.join(pub, "brand", `sewsiness-logo.${e}`));
 const source = process.argv[2] ? path.resolve(process.argv[2]) : candidates.find((p) => fs.existsSync(p));
 if (!source || !fs.existsSync(source)) {
-  console.error("No logo found. Save it as public/brand/sewiness-logo.svg (or .png) or pass a path.");
+  console.error("No logo found. Save it as public/brand/sewsiness-logo.svg (or .png) or pass a path.");
   process.exit(1);
 }
 const isSvg = source.toLowerCase().endsWith(".svg");

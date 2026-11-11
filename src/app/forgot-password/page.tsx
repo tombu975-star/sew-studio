@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
         <div className="mb-8 text-center sm:text-left">
           <div className="mb-8 flex items-center justify-center gap-3 sm:justify-start">
             <BrandMark size={44} />
-            <span className="font-display text-xl font-semibold text-[#2F151B]">Sewiness</span>
+            <span className="font-display text-xl font-semibold text-[#2F151B]">Sewsiness</span>
           </div>
           <h1 className="font-display text-[34px] font-semibold leading-none text-[#2F151B]">Reset your password</h1>
           <p className="mt-2 text-sm text-stone-500">We’ll email a secure link if an account matches.</p>

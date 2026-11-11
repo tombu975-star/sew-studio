@@ -28,6 +28,10 @@ import {
   Crown,
   Clock3,
   Calculator,
+  Wallet,
+  Truck,
+  Package,
+  LineChart,
   ChevronDown,
 } from "lucide-react";
 import { useRole, type Role } from "@/stores/role";
@@ -39,6 +43,7 @@ import { cn } from "@/lib/utils";
 import { BrandMark } from "@/components/atelier/BrandMark";
 import { ForcePasswordChange } from "@/components/atelier/ForcePasswordChange";
 import { getPlanEntitlements } from "@/lib/plans";
+import { ExportButtons } from "@/components/atelier/ExportButtons";
 
 type IconType = React.ComponentType<{ className?: string; strokeWidth?: number }>;
 
@@ -71,8 +76,17 @@ const SECTIONS: Record<Role, NavSection[]> = {
         { to: "fittings", label: "Fittings", icon: CalendarDays },
         { to: "tasks", label: "Tasks", icon: CheckSquare },
         { to: "quote", label: "Quotes", icon: Zap },
-        { to: "costing", label: "True Costing", icon: Calculator },
         { to: "style-assist", label: "Style Assist", icon: Sparkles },
+        { to: "accra-runs", label: "Accra Runs", icon: Truck },
+        { to: "assets", label: "Inventory", icon: Package },
+      ],
+    },
+    {
+      label: "Money",
+      items: [
+        { to: "payments", label: "Payments", icon: Wallet },
+        { to: "costing", label: "True Costing", icon: Calculator },
+        { to: "projection", label: "Business Projection", icon: LineChart },
       ],
     },
     {
@@ -251,6 +265,10 @@ const VIEW_META: Record<ViewKey, { label: string; icon: IconType }> = {
   "style-assist": { label: "Style Assist", icon: Sparkles },
   quote: { label: "Quick Quote", icon: Zap },
   costing: { label: "True Costing", icon: Calculator },
+  payments: { label: "Payments", icon: Wallet },
+  projection: { label: "Business Projection", icon: LineChart },
+  "accra-runs": { label: "Accra Runs", icon: Truck },
+  assets: { label: "Inventory", icon: Package },
   team: { label: "Team", icon: UsersRound },
   community: { label: "Community", icon: MessageSquare },
   progress: { label: "Trainee Progress", icon: GraduationCap },
@@ -542,12 +560,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <span className="flex items-center gap-2">
               <Crown className="size-4 shrink-0" />
-              Your two-month trial has ended. Your studio is read-only and your data is safe. Choose Pro or Enterprise to carry on.
+              Your two-month trial has ended. Your studio is view-only: everything you entered is kept and you can still open and export it. Choose Pro or Enterprise to add new entries again.
             </span>
             {user?.role === "madam" ? (
-              <button onClick={() => go("settings")} className="shrink-0 text-left font-semibold underline underline-offset-2">
-                View plans
-              </button>
+              <span className="flex shrink-0 flex-wrap items-center gap-3">
+                <ExportButtons compact />
+                <button onClick={() => go("settings")} className="text-left font-semibold underline underline-offset-2">
+                  View plans
+                </button>
+              </span>
             ) : (
               <span className="shrink-0 text-xs">Ask your studio owner to upgrade.</span>
             )}

@@ -8,7 +8,11 @@ export const MENU_DEFINITIONS = [
   { key: "fittings", label: "Fittings", section: "Studio" },
   { key: "tasks", label: "Tasks", section: "Studio" },
   { key: "quote", label: "Quotes", section: "Studio" },
-  { key: "costing", label: "True Costing", section: "Studio" },
+  { key: "payments", label: "Payments", section: "Money" },
+  { key: "costing", label: "True Costing", section: "Money" },
+  { key: "projection", label: "Business Projection", section: "Money" },
+  { key: "accra-runs", label: "Accra Runs", section: "Studio" },
+  { key: "assets", label: "Inventory", section: "Studio" },
   { key: "style-assist", label: "Style Assist", section: "Studio" },
   { key: "team", label: "Team", section: "People" },
   { key: "community", label: "Community", section: "People" },
@@ -45,6 +49,10 @@ const VIEW_MENU: Partial<Record<ViewKey, MenuKey>> = {
   messages: "messages",
   "my-jobs": "my-jobs",
   settings: "settings",
+  payments: "payments",
+  projection: "projection",
+  "accra-runs": "accra-runs",
+  assets: "assets",
 };
 
 export function menuForView(view: ViewKey): MenuKey | undefined {
@@ -57,6 +65,8 @@ const API_MENU_PREFIXES: readonly [string, MenuKey][] = [
   ["/api/customers", "customers"],
   ["/api/measurements", "customers"],
   ["/api/orders", "orders"],
+  ["/api/accra-runs", "accra-runs"],
+  ["/api/assets", "assets"],
   ["/api/fittings", "fittings"],
   ["/api/tasks", "tasks"],
   ["/api/style-assist", "style-assist"],

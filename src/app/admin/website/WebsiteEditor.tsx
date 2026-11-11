@@ -69,11 +69,11 @@ export function WebsiteEditor() {
     finally { setSaving(false); }
   }
 
-  if (checking || (authorized && loading)) return <main className="grid min-h-dvh place-items-center bg-[#F7F4FA]"><Loader2 className="size-6 animate-spin text-[#782F43]" aria-label="Loading" /></main>;
-  if (!authorized) return <main className="grid min-h-dvh place-items-center bg-[#F7F4FA] px-5"><section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-sm"><ShieldCheck className="mx-auto size-8 text-[#782F43]" /><h1 className="mt-4 text-xl font-semibold">Platform administrator sign-in required</h1><p className="mt-2 text-sm text-slate-500">Sign in at the admin portal, then return to edit the website.</p><a className="mt-5 inline-flex h-10 items-center rounded-lg bg-[#782F43] px-4 text-sm font-medium text-white" href="/admin">Open admin portal</a></section></main>;
+  if (checking || (authorized && loading)) return <main className="grid min-h-dvh place-items-center bg-[#FAF6F6]"><Loader2 className="size-6 animate-spin text-[#782F43]" aria-label="Loading" /></main>;
+  if (!authorized) return <main className="grid min-h-dvh place-items-center bg-[#FAF6F6] px-5"><section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-sm"><ShieldCheck className="mx-auto size-8 text-[#782F43]" /><h1 className="mt-4 text-xl font-semibold">Platform administrator sign-in required</h1><p className="mt-2 text-sm text-slate-500">Sign in at the admin portal, then return to edit the website.</p><a className="mt-5 inline-flex h-10 items-center rounded-lg bg-[#782F43] px-4 text-sm font-medium text-white" href="/admin">Open admin portal</a></section></main>;
 
   return (
-    <main className="min-h-dvh bg-[#F7F4FA] px-4 py-8 text-slate-900 sm:px-8">
+    <main className="min-h-dvh bg-[#FAF6F6] px-4 py-8 text-slate-900 sm:px-8">
       <form onSubmit={save} className="mx-auto max-w-4xl space-y-5">
         <a href="/admin" className="text-sm font-medium text-[#782F43] hover:underline">← Back to platform admin</a>
         <header>
@@ -200,7 +200,7 @@ export function WebsiteEditor() {
           </div>
         </section>
 
-        <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-[#F7F4FA]/95 px-4 py-4 backdrop-blur sm:-mx-8 sm:px-8">
+        <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-[#FAF6F6]/95 px-4 py-4 backdrop-blur sm:-mx-8 sm:px-8">
           <div className="flex items-center gap-4">
             <button type="button" onClick={reset} disabled={saving} className={ghostBtn}><RotateCcw className="size-3.5" />Restore defaults</button>
             <p className="hidden text-xs text-slate-500 sm:block">{updatedAt ? `Last saved ${new Date(updatedAt).toLocaleString()}` : "Using default content"}</p>

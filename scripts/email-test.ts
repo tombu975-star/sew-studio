@@ -14,8 +14,8 @@ async function main() {
   console.log(`Provider in use: ${emailProviderConfigured()}`);
   const r = await sendEmailDetailed({
     to,
-    subject: "Sewiness test email",
-    body: "If you can read this, Sewiness can send email.\n\nhttps://example.com/test-link",
+    subject: "Sewsiness test email",
+    body: "If you can read this, Sewsiness can send email.\n\nhttps://example.com/test-link",
     type: "test",
   });
   console.log(

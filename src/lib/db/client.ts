@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getPool } from "./pool";
 import { QueryBuilder, type Executor } from "./query";
 

@@ -15,6 +15,8 @@ export const coreFeatures = [
   "dashboard",
   "customers",
   "orders",
+  "payments",
+  "costing",
   "board",
   "fittings",
   "tasks",
@@ -25,9 +27,9 @@ export const coreFeatures = [
 const proFeatures = [
   ...coreFeatures,
   "quote",
-  "costing",
   "style-assist",
   "messages",
+  "projection",
 ] as const satisfies readonly MenuKey[];
 
 /** Length of the free trial, counted from each studio's own sign-up date. */
@@ -52,14 +54,14 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     key: "trial",
     name: "Trial",
     summary: "Two months with every feature of Pro and Enterprise, so you see the whole app.",
-    maxMembers: 3,
+    maxMembers: null,
     // The trial opens everything. Pro and Enterprise are what you choose,
     // and pay for, once the two months are up.
     features: allFeatures,
     highlights: [
       "2 months, starting the day you sign up",
       "Every Pro and Enterprise feature included",
-      "Up to 3 studio members",
+      "Unlimited studio members while you try",
     ],
   },
   pro: {
@@ -70,7 +72,7 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     features: proFeatures,
     highlights: [
       "Customers, orders, board, fittings and tasks",
-      "Quotes, True Costing, client messages and Style Assist",
+      "Payments, True Costing, quotes, Style Assist and Business Projection",
       "Up to 10 studio members",
     ],
   },
@@ -82,7 +84,7 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     features: allFeatures,
     highlights: [
       "Every studio and learning workspace",
-      "Community, curriculum and certificates",
+      "Accra Runs, Inventory, community, curriculum and certificates",
       "Unlimited studio members",
     ],
   },
@@ -113,9 +115,13 @@ export function getPlanEntitlements(
     trialEndsAt: trialEndsAt ?? null,
     daysRemaining,
     maxMembers: PLANS[plan].maxMembers,
-    // Once the two months are up the studio is read-only on the core tools
-    // until it picks Pro or Enterprise.
-    features: trialExpired ? coreFeatures : PLANS[plan].features,
+    // `features` are the tools that still accept NEW entries. Every tool stays
+    // open to view: after an unpaid trial nothing accepts new entries, and a
+    // smaller plan keeps the tools outside it readable but paused.
+    features: (trialExpired ? [] : PLANS[plan].features) as readonly MenuKey[],
+    viewableFeatures: allFeatures,
+    canWrite: (feature: MenuKey) =>
+      !trialExpired && (PLANS[plan].features as readonly MenuKey[]).includes(feature),
   };
 }
 

@@ -17,10 +17,10 @@ export interface PlatformSettings {
 const DEFAULT_SETTINGS: PlatformSettings = {
   appVersion: "0.2.1",
   releaseNotes: "",
-  brandName: "Sewiness",
+  brandName: "Sewsiness",
   loginHeading: "Welcome back",
   loginDescription: "Sign in to manage your studio’s customers, orders and daily work.",
-  loginFooter: "Sewiness · Atelier management system",
+  loginFooter: "Sewsiness · Atelier management system",
   primaryColor: "#650019",
   accentColor: "#800020",
   backgroundColor: "#F9F2F4",

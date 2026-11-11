@@ -1,5 +1,6 @@
 "use client";
 
+import { ExportButtons } from "@/components/atelier/ExportButtons";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -93,7 +94,7 @@ export function PlanSettingsPanel() {
               <p className="mt-1 text-sm text-stone-500">
                 {data.plan === "trial"
                   ? data.trialExpired
-                    ? "Your two-month trial has ended. Your studio is in read-only mode and your data is safe. Choose Pro or Enterprise to carry on."
+                    ? "Your two-month trial has ended. Your studio is view-only: all your data is kept and you can still export it. Choose Pro or Enterprise to add new entries again."
                     : `${data.daysRemaining} ${data.daysRemaining === 1 ? "day" : "days"} left in your two-month trial, with every Pro and Enterprise feature included.`
                   : PLANS[data.plan].summary}
               </p>
@@ -120,6 +121,10 @@ export function PlanSettingsPanel() {
             After that, choose Pro or Enterprise to carry on. Until you do, your data stays available to view but changes are paused.
           </div>
         )}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 px-5 py-3">
+          <p className="text-xs text-stone-500">Your data is always yours. Download it any time, even when your studio is view-only.</p>
+          <ExportButtons compact />
+        </div>
       </SectionCard>
 
       {request && (

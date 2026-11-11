@@ -77,14 +77,14 @@ Choose one. Both are tested; the app tries Resend first, then SMTP.
 | `SMTP_PORT` | `465` |
 | `SMTP_USER` | the mailbox, e.g. `you@gmail.com` |
 | `SMTP_PASS` | a Gmail *App password* (Google account > Security > 2-Step Verification > App passwords), not your normal password |
-| `EMAIL_FROM` | `Sewiness <you@gmail.com>` |
+| `EMAIL_FROM` | `Sewsiness <you@gmail.com>` |
 
 **B. Resend** (best for a custom domain)
 
 | Variable | Value |
 | --- | --- |
 | `RESEND_API_KEY` | from resend.com |
-| `EMAIL_FROM` | `Sewiness <no-reply@your-verified-domain>` (the domain must be verified in Resend) |
+| `EMAIL_FROM` | `Sewsiness <no-reply@your-verified-domain>` (the domain must be verified in Resend) |
 
 Check it from your machine, which prints the provider used and any exact error:
 

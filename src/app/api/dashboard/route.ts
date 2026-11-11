@@ -10,7 +10,6 @@ import {
   serializeStyleConcept,
   serializeSettings,
 } from "@/lib/db/serializers";
-import { getPlanEntitlements } from "@/lib/plans";
 import type { MenuKey } from "@/lib/menu-config";
 
 // Payload is deliberately lean: the dashboard already receives payments and
@@ -30,15 +29,8 @@ export async function GET() {
     const menuEnabled = new Map<string, boolean>(
       menuRows.map((row) => [row.menu_key, row.enabled])
     );
-    const { data: shop, error: shopError } = await ctx.db
-      .from("shops")
-      .select("plan, trial_ends_at")
-      .eq("id", ctx.shopId)
-      .single();
-    if (shopError || !shop) throw shopError ?? new Error("Could not load studio plan.");
-    const planFeatures = new Set(getPlanEntitlements(shop.plan, shop.trial_ends_at).features);
     const featureEnabled = (key: MenuKey) =>
-      menuEnabled.get(key) !== false && planFeatures.has(key);
+      menuEnabled.get(key) !== false;
 
     const [
       ordersRes,

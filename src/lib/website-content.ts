@@ -103,7 +103,7 @@ export const DEFAULT_WEBSITE_CONTENT: WebsiteContent = {
     heading: "Common questions",
     items: [
       { q: "Do my clients need an account?", a: "No. Clients follow their order with a private tracking link that your studio shares with them." },
-      { q: "Can I try Sewiness before choosing a plan?", a: "Yes. Every new studio starts with a two-month trial that includes customers, orders, production, fittings, tasks and costing." },
+      { q: "Can I try Sewsiness before choosing a plan?", a: "Yes. Every new studio starts with a two-month trial that includes customers, orders, production, fittings, tasks and costing." },
       { q: "Can I work with freelancers?", a: "Yes. Freelancers register through their own portal, and studios can assign them work." },
       { q: "Can I add my team and trainees?", a: "Yes. Each plan includes team members, and access is controlled by role so trainees only see what you grant." },
     ],

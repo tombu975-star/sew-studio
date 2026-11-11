@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * A small query builder that speaks the same method chain the API routes
  * already use (from().select().eq().order().maybeSingle() ...) but compiles

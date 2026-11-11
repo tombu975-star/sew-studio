@@ -51,7 +51,7 @@
   --shadow-blue: 0 4px 12px rgb(131 33 56 / 0.2);
 }
 
-/* Sewiness palette. The default blue / slate / stone scales are re-pointed at the
+/* Sewsiness palette. The default blue / slate / stone scales are re-pointed at the
    brand burgundy and a burgundy-tinted neutral (the purple/violet/fuchsia scales
    too, so no stray purple can appear), so every utility class in the app
    (text-slate-600, bg-blue-50, border-stone-200 ...) follows the brand. */
@@ -419,7 +419,7 @@
 }
 
 /* ────────────────────────────────────────────────────────────────
-   SEWINESS POCKET ATELIER — unified screen redesign layer
+   SEWSINESS POCKET ATELIER — unified screen redesign layer
    Applies consistently to every existing studio module without
    changing data flows, permissions, API contracts or DB structure.
    ──────────────────────────────────────────────────────────────── */
@@ -529,7 +529,7 @@ main [class*="rounded-full"][class*="text-"] { letter-spacing: .005em; }
 }
 
 
-/* ── SEWINESS · BURGUNDY SIGNATURE SYSTEM ─────────────────────────
+/* ── SEWSINESS · BURGUNDY SIGNATURE SYSTEM ─────────────────────────
    Final brand pass shared by studio, admin, customer, freelancer,
    tracking and public-facing pages. */
 :root {
@@ -611,7 +611,7 @@ body:has(> div > header) a[class*="bg-[#800020]"],
 body:has(> div > header) a[class*="bg-[#650019]"] {
   box-shadow: 0 8px 22px rgba(128, 0, 32, .18);
 }
-body:has(> div > header) [class*="bg-[#FAF8FC]"],
+body:has(> div > header) [class*="bg-[#FCF9F9]"],
 body:has(> div > header) [class*="bg-[#FCF8F5]"] { background-color: #FCF8F5; }
 body:has(> div > header) [class*="text-[#800020]"],
 body:has(> div > header) [class*="text-[#650019]"] { color: #800020; }

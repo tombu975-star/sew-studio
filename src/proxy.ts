@@ -47,28 +47,23 @@ export async function proxy(request: NextRequest) {
 
         if (shop) {
           const access = getPlanEntitlements(shop.plan, shop.trial_ends_at);
-          if (menuKey && !access.features.includes(menuKey)) {
-            return NextResponse.json(
-              { error: `This feature is available on the ${requiredPlanForFeature(menuKey) === "pro" ? "Pro" : "Enterprise"} plan.` },
-              { status: 403 }
-            );
-          }
-
           const canSubmitUpgradeRequest = pathname === "/api/plan/upgrade-request";
           const isAuthOrPlatformAdmin =
             pathname.startsWith("/api/auth/") ||
             pathname.startsWith("/api/freelancer-auth/") ||
             pathname.startsWith("/api/admin/");
-          if (
-            isApiMutation &&
-            access.trialExpired &&
-            !canSubmitUpgradeRequest &&
-            !isAuthOrPlatformAdmin
-          ) {
-            return NextResponse.json(
-              { error: "Your trial has ended. Your studio is read-only until you upgrade." },
-              { status: 403 }
-            );
+
+          // Everything stays open to view. New entries and changes pause for a
+          // tool outside the studio's plan, and for every tool once an unpaid
+          // trial has ended.
+          if (isApiMutation && !canSubmitUpgradeRequest && !isAuthOrPlatformAdmin) {
+            const paused = menuKey ? !access.canWrite(menuKey) : access.trialExpired;
+            if (paused) {
+              const message = access.trialExpired
+                ? "Your trial has ended, so your studio is view-only. Choose a plan to add new entries. Everything you entered is kept."
+                : `This tool is on the ${requiredPlanForFeature(menuKey!) === "pro" ? "Pro" : "Enterprise"} plan. You can still view everything you entered, but adding new entries needs an upgrade.`;
+              return NextResponse.json({ error: message, code: "PLAN_VIEW_ONLY" }, { status: 403 });
+            }
           }
         }
       } catch (error) {

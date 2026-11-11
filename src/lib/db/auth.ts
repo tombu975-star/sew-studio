@@ -221,7 +221,7 @@ export class AuthApi {
       const link = `${opts.redirectTo}${opts.redirectTo.includes("?") ? "&" : "?"}code=${token}`;
       const sent = await sendEmail({
         to: u.email,
-        subject: "Reset your Sewiness password",
+        subject: "Reset your Sewsiness password",
         body: `Use this link to choose a new password. It works once and expires in one hour.\n\n${link}\n\nIf you did not ask for this, you can ignore this message.`,
         type: "password_reset",
       });

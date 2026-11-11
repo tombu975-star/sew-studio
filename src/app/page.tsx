@@ -44,7 +44,7 @@ const sans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { absolute: "Sewiness | Atelier management for custom tailoring studios" },
+  title: { absolute: "Sewsiness | Atelier management for custom tailoring studios" },
   description:
     "Clients, measurements, orders, fittings, production and training in one system, with dedicated portals for studios, clients and freelancers.",
 };
@@ -85,7 +85,7 @@ function ProductPreview() {
         <div className="mt-4 grid grid-cols-3 gap-3">
           {BOARD.map((col) => (
             <div key={col.stage} className="rounded-lg bg-[#FAF0F2] p-2.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B6178]">{col.stage}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A6C70]">{col.stage}</p>
               <div className="mt-2 space-y-2">
                 {col.items.map((item) => (
                   <div key={item} className="rounded-md border border-[#EADDE0] bg-white p-2.5 shadow-sm">
@@ -121,7 +121,7 @@ export default async function HomePage() {
     <div className={`${serif.variable} ${sans.variable} min-h-dvh bg-[#FCF8F5] font-[family-name:var(--font-sans-site)] text-[#2F151B] antialiased`}>
       <header className="sticky top-0 z-40 border-b border-[#EADDE0] bg-[#FCF8F5]/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
-          <Link href="/" aria-label="Sewiness home" className="shrink-0">
+          <Link href="/" aria-label="Sewsiness home" className="shrink-0">
             <BrandLogo width={104} />
           </Link>
           <nav aria-label="Sections" className="hidden items-center gap-8 text-sm font-medium text-[#80666D] md:flex">
@@ -141,12 +141,12 @@ export default async function HomePage() {
       </header>
 
       <main>
-        <section className="relative overflow-hidden bg-[#2A0F42] text-white">
+        <section className="relative overflow-hidden bg-[#3B0A18] text-white">
           <img src="/atelier-login.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#650019]/90 via-[#3A1259]/90 to-[#1F0833]/95" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#650019]/90 via-[#4A0E20]/90 to-[#2A0610]/95" />
           <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 py-20 lg:grid-cols-[1.05fr_1fr] lg:py-28">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D9BFEE]">{c.hero.eyebrow}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#E6C3CB]">{c.hero.eyebrow}</p>
               <h1 className={`${heading} mt-5 text-5xl font-semibold leading-[1.05] sm:text-6xl`}>
                 {c.hero.headline}
               </h1>
@@ -154,7 +154,7 @@ export default async function HomePage() {
                 {c.hero.subheadline}
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href="/studio" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-6 text-sm font-semibold text-[#650019] hover:bg-[#F6EFFB]">
+                <Link href="/studio" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-6 text-sm font-semibold text-[#650019] hover:bg-[#FBF1F3]">
                   {c.hero.primaryCta} <ArrowRight className="size-4" />
                 </Link>
                 {portals.length > 0 && (
@@ -179,12 +179,12 @@ export default async function HomePage() {
               {portals.map((p) => {
                 const meta = PORTAL_META[p.id];
                 return (
-                  <Link key={p.id} href={meta.href} className="group flex flex-col rounded-2xl border border-[#EADDE0] bg-white p-8 transition hover:border-[#C196E0] hover:shadow-lg">
+                  <Link key={p.id} href={meta.href} className="group flex flex-col rounded-2xl border border-[#EADDE0] bg-white p-8 transition hover:border-[#D79AA8] hover:shadow-lg">
                     <span className="grid size-12 place-items-center rounded-xl bg-[#F5E8EB] text-[#800020]">
                       <meta.icon className="size-6" />
                     </span>
                     <h3 className={`${heading} mt-6 text-3xl font-semibold`}>{p.name}</h3>
-                    {p.audience && <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-[#8838B8]">{p.audience}</p>}
+                    {p.audience && <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-[#832138]">{p.audience}</p>}
                     <p className="mt-4 flex-1 text-sm leading-relaxed text-[#80666D]">{p.blurb}</p>
                     <span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#650019]">
                       {p.cta} <ArrowRight className="size-4 transition group-hover:translate-x-1" />
@@ -230,7 +230,7 @@ export default async function HomePage() {
             <ol className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {c.how.steps.map((st, i) => (
                 <li key={i} className="border-t-2 border-[#800020] pt-5">
-                  <span className={`${heading} text-4xl font-semibold text-[#A468CE]`}>{String(i + 1).padStart(2, "0")}</span>
+                  <span className={`${heading} text-4xl font-semibold text-[#B85C70]`}>{String(i + 1).padStart(2, "0")}</span>
                   <h3 className="mt-3 text-base font-semibold">{st.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-[#80666D]">{st.text}</p>
                 </li>
@@ -239,7 +239,7 @@ export default async function HomePage() {
           </section>
         )}
 
-        <section id="plans" className="scroll-mt-20 bg-[#F3EEF8]">
+        <section id="plans" className="scroll-mt-20 bg-[#F9F2F4]">
           <div className="mx-auto max-w-6xl px-5 py-24">
             <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#800020]">Plans</p>
@@ -260,7 +260,7 @@ export default async function HomePage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/studio" className={"mt-8 inline-flex h-11 items-center justify-center rounded-lg text-sm font-semibold " + (plan.key === "pro" ? "bg-[#800020] text-white hover:bg-[#650019]" : "border border-[#D9BFEE] text-[#650019] hover:bg-[#F6EFFB]")}>
+                  <Link href="/studio" className={"mt-8 inline-flex h-11 items-center justify-center rounded-lg text-sm font-semibold " + (plan.key === "pro" ? "bg-[#800020] text-white hover:bg-[#650019]" : "border border-[#E6C3CB] text-[#650019] hover:bg-[#FBF1F3]")}>
                     {plan.key === "trial" ? "Start free trial" : "Get started"}
                   </Link>
                 </div>
@@ -288,10 +288,10 @@ export default async function HomePage() {
         )}
 
         <section className="mx-auto max-w-6xl px-5 pb-24">
-          <div className="rounded-3xl bg-gradient-to-br from-[#650019] to-[#2A0F42] px-7 py-16 text-center text-white sm:px-14">
+          <div className="rounded-3xl bg-gradient-to-br from-[#650019] to-[#3B0A18] px-7 py-16 text-center text-white sm:px-14">
             <h2 className={`${heading} mx-auto max-w-2xl text-4xl font-semibold sm:text-5xl`}>{c.cta.heading}</h2>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href="/studio" className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-6 text-sm font-semibold text-[#650019] hover:bg-[#F6EFFB]">
+              <Link href="/studio" className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-6 text-sm font-semibold text-[#650019] hover:bg-[#FBF1F3]">
                 Create your studio account
               </Link>
               {freelancerOn && (
@@ -309,7 +309,7 @@ export default async function HomePage() {
           <div>
             <BrandLogo width={96} />
             {c.footer.tagline && <p className="mt-2 text-sm text-[#80666D]">{c.footer.tagline}</p>}
-            <p className="mt-2 text-xs text-[#80666D]">© {new Date().getFullYear()} Sewiness. All rights reserved.</p>
+            <p className="mt-2 text-xs text-[#80666D]">© {new Date().getFullYear()} Sewsiness. All rights reserved.</p>
             {c.footer.contactEmail && <a href={`mailto:${c.footer.contactEmail}`} className="mt-1 inline-block text-xs font-medium text-[#800020] hover:underline">{c.footer.contactEmail}</a>}
           </div>
           <nav aria-label="Portals" className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-[#80666D]">

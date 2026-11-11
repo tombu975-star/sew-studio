@@ -10,11 +10,12 @@ import { useAuth } from "@/stores/auth";
 import { useNav } from "@/stores/nav";
 import { setOnSessionExpired } from "@/lib/api";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
-import { Lock, Crown } from "lucide-react";
+import { Lock, Crown, Eye } from "lucide-react";
 import { BrandMark } from "@/components/atelier/BrandMark";
 import { menuForView, MENU_DEFINITIONS } from "@/lib/menu-config";
 import { useMenuSettings } from "@/stores/menu-settings";
 import { getPlanEntitlements, requiredPlanForFeature } from "@/lib/plans";
+import { ExportButtons } from "@/components/atelier/ExportButtons";
 
 // Load all views lazily so each is a separate client bundle.
 const Dashboard = dynamic(() => import("@/views/Dashboard").then((m) => m.default), { ssr: false });
@@ -37,52 +38,71 @@ const Certificate = dynamic(() => import("@/views/Certificate").then((m) => m.de
 const Messages = dynamic(() => import("@/views/Messages").then((m) => m.default), { ssr: false });
 const MyJobs = dynamic(() => import("@/views/MyJobs").then((m) => m.default), { ssr: false });
 const Settings = dynamic(() => import("@/views/Settings").then((m) => m.default), { ssr: false });
+const Payments = dynamic(() => import("@/views/Payments").then((m) => m.default), { ssr: false });
+const Projection = dynamic(() => import("@/views/Projection").then((m) => m.default), { ssr: false });
+const AccraRuns = dynamic(() => import("@/views/AccraRuns").then((m) => m.default), { ssr: false });
+const Assets = dynamic(() => import("@/views/Assets").then((m) => m.default), { ssr: false });
 const UserProfile = dynamic(() => import("@/views/UserProfile").then((m) => m.default), { ssr: false });
 
 function CurrentView() {
-  const { view, go } = useNav();
-  const user = useAuth((state) => state.user);
+  const { view } = useNav();
   const enabledMenus = useMenuSettings((state) => state.enabled);
   const menuKey = menuForView(view);
   const menu = menuKey ? MENU_DEFINITIONS.find((item) => item.key === menuKey) : undefined;
   if (menuKey && enabledMenus?.[menuKey] === false) {
-    const planFeatures = user?.shop
-      ? getPlanEntitlements(user.shop.plan, user.shop.trial_ends_at).features
-      : [];
-    const planLocked = !planFeatures.includes(menuKey);
-    const requiredPlan = requiredPlanForFeature(menuKey);
     return (
       <div className="mx-auto w-full max-w-lg p-5 md:p-8">
-        <div className="rounded-2xl border border-[#E8DDD5] bg-white p-7 text-center shadow-sm sm:p-9">
-          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-[#8E3232]/10 text-[#8E3232]">
-            {planLocked ? <Crown className="size-5" /> : <Lock className="size-5" />}
+        <div className="rounded-2xl border border-[#E6D4D8] bg-white p-7 text-center shadow-sm sm:p-9">
+          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-[#650019]/10 text-[#650019]">
+            <Lock className="size-5" />
           </span>
-          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[.16em] text-[#8E3232]">
-            {planLocked ? "A little more room to grow" : "Studio feature"}
-          </p>
-          <h2 className="mt-2 font-display text-2xl font-semibold text-[#302623]">
-            {menu?.label ?? "This feature"} is {planLocked ? "part of a higher plan" : "unavailable"}
+          <h2 className="mt-5 font-display text-2xl font-semibold text-[#3B0010]">
+            {menu?.label ?? "This feature"} is unavailable
           </h2>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-stone-500">
-            {planLocked
-              ? `Upgrade to ${requiredPlan === "enterprise" ? "Enterprise" : "Pro"} to bring this tool into your studio.`
-              : "This feature is currently disabled by the platform administrator."}
+            This feature is currently disabled by the platform administrator.
           </p>
-          {planLocked && user?.role === "madam" ? (
-            <button
-              type="button"
-              onClick={() => go("settings")}
-              className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#782f43] px-4 text-sm font-semibold text-white hover:bg-[#632638]"
-            >
-              <Crown className="size-4" /> View plans
-            </button>
-          ) : planLocked ? (
-            <p className="mt-5 text-xs text-stone-500">Ask your studio owner about upgrading.</p>
-          ) : null}
         </div>
       </div>
     );
   }
+  return (
+    <>
+      <ViewOnlyBanner menuKey={menuKey} />
+      <ViewSwitch view={view} />
+    </>
+  );
+}
+
+/** Shown above any tool that is view-only for this studio (unpaid trial, or outside its plan). */
+function ViewOnlyBanner({ menuKey }: { menuKey: ReturnType<typeof menuForView> }) {
+  const { go } = useNav();
+  const user = useAuth((state) => state.user);
+  if (!menuKey || !user?.shop) return null;
+  const access = getPlanEntitlements(user.shop.plan, user.shop.trial_ends_at);
+  if (access.canWrite(menuKey)) return null;
+  const plan = requiredPlanForFeature(menuKey) === "pro" ? "Pro" : "Enterprise";
+  return (
+    <div role="status" className="border-b border-[#E6D4D8] bg-[#FBF1F3] px-4 py-3 md:px-8">
+      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#650019]">
+        <Eye className="size-4 shrink-0" />
+        <p className="min-w-0 flex-1">
+          {access.trialExpired
+            ? "Your trial has ended, so this studio is view-only. Everything you entered is kept."
+            : `This tool is on the ${plan} plan. You can view what you entered; new entries are paused.`}
+        </p>
+        <ExportButtons compact />
+        {user.role === "madam" && (
+          <button type="button" onClick={() => go("settings")} className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#650019] px-3 text-xs font-semibold text-white hover:bg-[#4A0010]">
+            <Crown className="size-3.5" /> Choose a plan
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ViewSwitch({ view }: { view: ReturnType<typeof useNav.getState>["view"] }) {
   switch (view) {
     case "dashboard": return <Dashboard />;
     case "customers": return <Customers />;
@@ -95,6 +115,10 @@ function CurrentView() {
     case "tasks": return <Tasks />;
     case "style-assist": return <StyleAssist />;
     case "quote": return <QuickQuote />;
+    case "payments": return <Payments />;
+    case "projection": return <Projection />;
+    case "accra-runs": return <AccraRuns />;
+    case "assets": return <Assets />;
     case "team": return <Team />;
     case "community": return <Community />;
     case "progress": return <Progress />;
