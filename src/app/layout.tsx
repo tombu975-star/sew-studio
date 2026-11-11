@@ -14,14 +14,14 @@ export const metadata: Metadata = {
   title: { default: "Sewsiness", template: "%s | Sewsiness" },
   applicationName: "Sewsiness",
   description:
-    "One system, every role — a smarter atelier for custom tailoring studios: clients, orders, production, training and AI style assist, all in one place.",
+    "Business coaching, training, tools and an app for people who sew for a living. Learn to price properly, keep good records and pay yourself.",
   keywords: [
-    "atelier",
+    "sewing business",
+    "fashion business",
     "tailoring",
-    "bespoke",
-    "fashion studio",
-    "custom clothing",
-    "style assist",
+    "pricing for tailors",
+    "fashion business training",
+    "Ghana",
   ],
   authors: [{ name: "Sewsiness" }],
   manifest: "/manifest.json",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     siteName: "Sewsiness",
     title: "Sewsiness",
     description:
-      "One system, every role — a smarter atelier for custom tailoring studios: clients, orders, production, training and AI style assist, all in one place.",
+      "Business coaching, training, tools and an app for people who sew for a living. Learn to price properly, keep good records and pay yourself.",
   },
 };
 
