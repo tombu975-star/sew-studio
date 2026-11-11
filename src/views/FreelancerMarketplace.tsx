@@ -32,6 +32,7 @@ interface Post {
   budget: number | null;
   dueDate: string | null;
   status: string;
+  fromTask?: boolean;
   applications: Application[];
 }
 
@@ -116,6 +117,7 @@ export function FreelancerMarketplace() {
       </SectionCard>
 
       <SectionCard title={`Open jobs & applications · ${posts.length}`} bodyClassName="p-0">
+        <p className="border-b border-[#E6DFEE] px-4 py-2.5 text-xs text-stone-500">Tasks you create without assigning anyone are listed here automatically so freelancers can request them.</p>
         {posts.length === 0 ? (
           <p className="p-4 text-sm text-stone-500">No posts yet. Freelancers see open jobs and can apply.</p>
         ) : (
@@ -126,7 +128,7 @@ export function FreelancerMarketplace() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-stone-800">{p.taskDescription}</p>
                     <p className="text-xs text-stone-500">
-                      {p.status}
+                      {p.fromTask ? "Unassigned task · " : ""}{p.status}
                       {p.budget !== null ? ` · budget ${p.budget.toLocaleString()}` : ""}
                       {p.dueDate ? ` · due ${new Date(p.dueDate).toLocaleDateString()}` : ""}
                     </p>

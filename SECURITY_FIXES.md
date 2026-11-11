@@ -92,3 +92,16 @@ Purely visual: no routes, data, permissions or behaviour changed.
 - Login, forgot/reset password and freelancer sign-in moved from burgundy to the plum theme.
 - Migration 027 moves the platform login backdrop default to the new tint.
 - Contrast checked: body/muted text, buttons, nav and status colours meet WCAG AA.
+
+---
+# Unassigned tasks become open jobs; shops can't edit freelancer profiles (migration 028)
+
+- A database trigger turns every studio task that is unassigned, not done and not a graded
+  training exercise into an open job freelancers can request (shown as "Studio task"). It
+  pauses the job when the task is assigned or completed, and reopens it if unassigned again.
+  Only the task title and due date are shared; no order or customer details.
+- Hiring a freelancer from a task-based job creates their freelance job, notes the hand-over
+  on the task and moves it to In Progress.
+- Studios (including owners) can no longer change a freelancer's name, phone, specialty or
+  skills: the API rejects it (403) and the dialog is now "Working terms" (rate notes + status).
+  Freelancers edit their own profile from their portal.

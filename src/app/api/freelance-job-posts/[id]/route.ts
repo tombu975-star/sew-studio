@@ -47,7 +47,7 @@ async function patch_impl(req: Request, { params }: { params: Promise<{ id: stri
     try {
       await client.query("begin");
       const { rows: post } = await client.query(
-        `select task_description, budget, due_date from public.freelance_job_posts
+        `select task_description, budget, due_date, task_id from public.freelance_job_posts
           where id = $1 and shop_id = $2 and status = 'Open' for update`,
         [id, ctx.shopId]
       );
@@ -90,6 +90,21 @@ async function patch_impl(req: Request, { params }: { params: Promise<{ id: stri
          values ($1, $2, $3, $4, $5, 'Commissioned')`,
         [ctx.shopId, freelancerId, post[0].task_description, cost, post[0].due_date]
       );
+      // A post that came from a studio task: note the hand-over on the task and mark it under way.
+      if (post[0].task_id) {
+        const { rows: who } = await client.query(
+          `select full_name from public.freelancer_profiles where id = $1`,
+          [freelancerId]
+        );
+        await client.query(
+          `update public.tasks
+              set status = case when status = 'To Do' then 'In Progress' else status end,
+                  notes = trim(both E'\n' from coalesce(notes, '') || E'\nHanded to freelancer: ' || $2),
+                  updated_at = now()
+            where id = $1 and shop_id = $3`,
+          [post[0].task_id, who[0]?.full_name ?? "a freelancer", ctx.shopId]
+        );
+      }
       await client.query("commit");
       return Response.json({ ok: true });
     } catch (e) {

@@ -10,7 +10,7 @@ async function get_impl() {
 
   const pool = getPool();
   const { rows: posts } = await pool.query(
-    `select id, task_description, budget, due_date, status, created_at
+    `select id, task_description, budget, due_date, status, created_at, task_id
        from public.freelance_job_posts where shop_id = $1 order by created_at desc limit 100`,
     [ctx.shopId]
   );
@@ -32,6 +32,7 @@ async function get_impl() {
       dueDate: p.due_date,
       status: p.status,
       createdAt: p.created_at,
+      fromTask: !!p.task_id,
       applications: apps
         .filter((a) => a.post_id === p.id)
         .map((a) => ({

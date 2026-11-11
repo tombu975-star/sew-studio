@@ -741,7 +741,7 @@ function FreelancersCard({
                   <button
                     type="button"
                     onClick={() => setEditFreelancer(f)}
-                    aria-label={`Edit details for ${f.name}`}
+                    aria-label={`Working terms for ${f.name}`}
                     title="Edit details"
                     className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#E6DFEE] bg-white text-xs text-stone-600 hover:text-[#6A1FA0] hover:border-[#6A1FA0]/40 hover:bg-[#F6EFFB] transition-colors"
                   >
@@ -2539,10 +2539,6 @@ function EditFreelancerDialog({
   freelancer: Freelancer | null;
 }) {
   const qc = useQueryClient();
-  const [fullName, setFullName] = useState(freelancer?.name ?? "");
-  const [phone, setPhone] = useState(freelancer?.phone ?? "");
-  const [specialty, setSpecialty] = useState(freelancer?.specialty ?? "");
-  const [skills, setSkills] = useState(freelancer?.skills ?? "");
   const [rateNotes, setRateNotes] = useState(freelancer?.rateNotes ?? "");
   const [status, setStatus] = useState(freelancer?.status ?? "Available");
 
@@ -2562,74 +2558,33 @@ function EditFreelancerDialog({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!freelancer) return;
-    if (!fullName.trim()) {
-      toast.error("Name can't be empty.");
-      return;
-    }
-    // Studio-side details (rate notes, status) are always saved. Contact
-    // details are sent only if changed, so a freelancer who also works with
-    // other studios can still have their rate notes and status updated.
-    const body: Record<string, unknown> = {
-      rateNotes: rateNotes.trim() || null,
-      status,
-    };
-    if (fullName.trim() !== freelancer.name) body.fullName = fullName.trim();
-    if ((phone.trim() || null) !== (freelancer.phone || null)) body.phone = phone.trim() || null;
-    if ((specialty || null) !== (freelancer.specialty || null)) body.specialty = specialty || null;
-    if ((skills.trim() || null) !== (freelancer.skills || null)) body.skills = skills.trim() || null;
-    saveMutation.mutate(body);
+    // Only this studio's working terms are editable. The freelancer's own profile is theirs.
+    saveMutation.mutate({ rateNotes: rateNotes.trim() || null, status });
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit freelancer</DialogTitle>
+          <DialogTitle>Working terms</DialogTitle>
           <DialogDescription>
-            Update details and working terms for {freelancer?.name ?? "this freelancer"}.
+            Set your rate notes and availability for {freelancer?.name ?? "this freelancer"}. Their profile can only be changed by the freelancer.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Field label="Full name">
-            <Input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="h-10 bg-white border-[#E6DFEE] rounded-md"
-            />
-          </Field>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Phone">
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+233 …"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
-              />
-            </Field>
-            <Field label="Specialty">
-              <Select value={specialty || undefined} onValueChange={setSpecialty}>
-                <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
-                  <SelectValue placeholder="Select specialty" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SPECIALTIES.map((sp) => (
-                    <SelectItem key={sp} value={sp}>
-                      {sp}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+          <div className="rounded-lg border border-[#E6DFEE] bg-[#FAF8FC] p-3 text-sm">
+            <p className="flex flex-wrap items-center gap-2 font-medium text-[#1F1430]">
+              {freelancer?.name}
+              {freelancer?.verified && <VerifiedBadge />}
+            </p>
+            <p className="mt-0.5 text-xs text-stone-500">
+              {[freelancer?.specialty, freelancer?.skills].filter(Boolean).join(" · ") || "No specialty or skills listed"}
+            </p>
+            {(freelancer?.email || freelancer?.phone) && (
+              <p className="mt-0.5 text-xs text-stone-500">{[freelancer?.email, freelancer?.phone].filter(Boolean).join(" · ")}</p>
+            )}
           </div>
-          <Field label="Skills">
-            <Input
-              value={skills}
-              onChange={(e) => setSkills(e.target.value)}
-              placeholder="e.g. hand beading, gele tying"
-              className="h-10 bg-white border-[#E6DFEE] rounded-md"
-            />
-          </Field>
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Status">
               <Select value={status} onValueChange={setStatus}>

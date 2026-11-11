@@ -1,7 +1,5 @@
 import { getTenant, canManageFreelancers } from "@/lib/db/session";
-import { createAdminClient } from "@/lib/db/adminClient";
 import type { Database } from "@/lib/db/database.types";
-import { findIdentityConflict, isPlausiblePhone, MESSAGES } from "@/lib/identity";
 
 const PERMISSION_ERROR = {
   error: "Only the studio owner, or someone granted freelancer access, can manage this.",
@@ -39,57 +37,13 @@ export async function PATCH(
     const body = await req.json();
     const { rateNotes, status, fullName, phone, specialty, skills } = body || {};
 
-    // ── Contact details live on the freelancer's shared account ──────────
-    // A freelancer can work with several studios, so their own details are
-    // theirs to change. The owner may edit them only while this studio is
-    // the freelancer's ONLY studio (i.e. one the owner set up themselves).
-    const touchesProfile =
-      fullName !== undefined ||
-      phone !== undefined ||
-      specialty !== undefined ||
-      skills !== undefined;
-    if (touchesProfile) {
-      const admin = createAdminClient();
-      const { count: otherStudios } = await admin
-        .from("freelancer_shop_links")
-        .select("id", { count: "exact", head: true })
-        .eq("freelancer_id", existing.freelancer_id)
-        .neq("shop_id", ctx.shopId);
-      if ((otherStudios ?? 0) > 0) {
-        return Response.json(
-          {
-            error:
-              "This freelancer also works with other studios, so only they can change their contact details. You can still edit your rate notes and their status.",
-          },
-          { status: 403 }
-        );
-      }
-      const profileUpdate: Database["public"]["Tables"]["freelancer_profiles"]["Update"] = {};
-      if (fullName !== undefined) {
-        const name = String(fullName).trim();
-        if (!name) return Response.json({ error: "Name can't be empty." }, { status: 400 });
-        profileUpdate.full_name = name;
-      }
-      if (phone !== undefined) {
-        profileUpdate.phone = phone ? String(phone).trim() : null;
-        if (phone) {
-          if (!isPlausiblePhone(phone)) {
-            return Response.json({ error: MESSAGES.badPhone }, { status: 400 });
-          }
-          const conflict = await findIdentityConflict(admin, {
-            phone,
-            excludeId: existing.freelancer_id,
-          });
-          if (conflict) return Response.json({ error: conflict.message }, { status: 409 });
-        }
-      }
-      if (specialty !== undefined) profileUpdate.specialty = specialty ? String(specialty) : null;
-      if (skills !== undefined) profileUpdate.skills = skills ? String(skills) : null;
-      const { error: profileError } = await admin
-        .from("freelancer_profiles")
-        .update(profileUpdate)
-        .eq("id", existing.freelancer_id);
-      if (profileError) throw profileError;
+    // A freelancer's profile (name, phone, specialty, skills) belongs to the freelancer.
+    // Studios, including owners, may only manage their own working terms with them.
+    if (fullName !== undefined || phone !== undefined || specialty !== undefined || skills !== undefined) {
+      return Response.json(
+        { error: "Only the freelancer can edit their own profile. You can update your rate notes and their status." },
+        { status: 403 }
+      );
     }
 
     const data: Database["public"]["Tables"]["freelancer_shop_links"]["Update"] = {};
