@@ -54,8 +54,8 @@ const BOARD_COLUMNS: ColumnDef[] = [
 ];
 
 const AVATAR_GRADIENTS = [
-  "from-[#6A1FA0] to-[#6A1FA0]",
-  "from-[#4F4560] to-[#4F4560]",
+  "from-[#832138] to-[#832138]",
+  "from-[#5F464C] to-[#5F464C]",
   "from-[#4d6b4a] to-[#4d6b4a]",
   "from-[#8a5a2b] to-[#8a5a2b]",
 ];
@@ -227,20 +227,20 @@ export default function ProductionBoard() {
           {BOARD_COLUMNS.map((col) => (
             <div
               key={col.key}
-              className="w-[85vw] max-w-80 sm:w-80 shrink-0 snap-start rounded-xl border border-[#E6DFEE] bg-[#FAF8FC]/60 p-2.5 space-y-2.5"
+              className="w-[85vw] max-w-80 sm:w-80 shrink-0 snap-start rounded-xl border border-[#EEDFE3] bg-[#FCF8F9]/60 p-2.5 space-y-2.5"
             >
               <div className="h-8 w-2/3 shimmer rounded" />
               {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-28 rounded-lg border border-[#E6DFEE] bg-white shimmer"
+                  className="h-28 rounded-lg border border-[#EEDFE3] bg-white shimmer"
                 />
               ))}
             </div>
           ))}
         </div>
       ) : (orders || []).length === 0 ? (
-        <div className="surface-premium border border-[#E6DFEE] rounded-lg elevate-sm p-6">
+        <div className="surface-premium border border-[#EEDFE3] rounded-lg elevate-sm p-6">
           <EmptyState
             icon={LayoutGrid}
             title="No orders on the board"
@@ -305,18 +305,18 @@ function Column({
     <div
       ref={setNodeRef}
       className={cn(
-        "w-[85vw] max-w-80 sm:w-80 shrink-0 snap-start rounded-xl border bg-[#FAF8FC]/60 elevate-sm flex flex-col transition-colors",
+        "w-[85vw] max-w-80 sm:w-80 shrink-0 snap-start rounded-xl border bg-[#FCF8F9]/60 elevate-sm flex flex-col transition-colors",
         isOver
-          ? "border-[#6A1FA0]/50 ring-2 ring-[#6A1FA0]/15"
-          : "border-[#E6DFEE]"
+          ? "border-[#832138]/50 ring-2 ring-[#832138]/15"
+          : "border-[#EEDFE3]"
       )}
     >
       {/* Header */}
-      <div className="px-4 py-3 border-b border-[#E6DFEE]/70 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-[#EEDFE3]/70 flex items-center justify-between">
         <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-500">
           {col.title}
         </h3>
-        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-semibold text-[#1F1430] tabular-nums bg-white border border-[#E6DFEE] rounded-full">
+        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-semibold text-[#2F151B] tabular-nums bg-white border border-[#EEDFE3] rounded-full">
           {cards.length}
         </span>
       </div>
@@ -386,8 +386,8 @@ function Card({
       {...attributes}
       onClick={onClick}
       className={cn(
-        "rounded-lg bg-white border border-[#E6DFEE] p-3.5 elevate-sm lift cursor-grab active:cursor-grabbing",
-        (dragging || overlay) && "shadow-lg border-[#6A1FA0]/40",
+        "rounded-lg bg-white border border-[#EEDFE3] p-3.5 elevate-sm lift cursor-grab active:cursor-grabbing",
+        (dragging || overlay) && "shadow-lg border-[#832138]/40",
         overlay && "rotate-1"
       )}
     >
@@ -410,7 +410,7 @@ function Card({
       </div>
 
       {/* Style picture */}
-      <div className="mt-2.5 h-24 w-full rounded-md overflow-hidden bg-[#F6EFFB] border border-[#E6DFEE] flex items-center justify-center">
+      <div className="mt-2.5 h-24 w-full rounded-md overflow-hidden bg-[#FAF0F2] border border-[#EEDFE3] flex items-center justify-center">
         {order.designImage ? (
            
           <img
@@ -426,7 +426,7 @@ function Card({
       </div>
 
       {/* Garment */}
-      <div className="text-[13px] text-[#1F1430] font-medium leading-snug line-clamp-2 mt-2">
+      <div className="text-[13px] text-[#2F151B] font-medium leading-snug line-clamp-2 mt-2">
         {order.garmentDesign}
       </div>
 
@@ -435,10 +435,10 @@ function Card({
         <StatusBadge status={order.status} />
         {order.priority === "High" && (
           <span
-            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#6A1FA0] font-semibold"
+            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#832138] font-semibold"
             title="High priority"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#6A1FA0]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#832138]" />
             High
           </span>
         )}
@@ -451,11 +451,11 @@ function Card({
             <span>Paid</span>
             <span className="tabular-nums">{paidPct}%</span>
           </div>
-          <div className="h-1 w-full bg-[#E6DFEE] rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-[#EEDFE3] rounded-full overflow-hidden">
             <div
               className={cn(
                 "h-full rounded-full transition-all",
-                paidPct >= 100 ? "bg-emerald-500" : "bg-[#6A1FA0]"
+                paidPct >= 100 ? "bg-emerald-500" : "bg-[#832138]"
               )}
               style={{ width: `${paidPct}%` }}
             />
@@ -464,7 +464,7 @@ function Card({
       )}
 
       {/* Footer: delivery */}
-      <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-[#E6DFEE]/70">
+      <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-[#EEDFE3]/70">
         <span
           className={cn(
             "text-[11px] flex items-center gap-1 tabular-nums",

@@ -165,7 +165,7 @@ export default function MyJobs() {
             description="Orders the studio assigns to you will appear here with their delivery dates."
           />
         ) : (
-          <ul className="divide-y divide-[#E6DFEE]/70">
+          <ul className="divide-y divide-[#EEDFE3]/70">
             {activeJobs.map((order) => (
               <ActiveJobRow
                 key={order.id}
@@ -191,7 +191,7 @@ export default function MyJobs() {
             description="Tasks the studio assigns to you will appear here with their due dates."
           />
         ) : (
-          <ul className="divide-y divide-[#E6DFEE]/70">
+          <ul className="divide-y divide-[#EEDFE3]/70">
             {openTasks.map((task) => (
               <OpenTaskRow key={task.id} task={task} />
             ))}
@@ -250,7 +250,7 @@ function DesignThumb({
         alt={alt || ""}
         className={cn(
           dim,
-          "rounded-lg object-cover border border-[#E6DFEE] shrink-0 bg-[#FAF8FC]"
+          "rounded-lg object-cover border border-[#EEDFE3] shrink-0 bg-[#FCF8F9]"
         )}
       />
     );
@@ -259,7 +259,7 @@ function DesignThumb({
     <div
       className={cn(
         dim,
-        "rounded-lg bg-gradient-to-br from-[#FAF8FC] to-[#F3EFF7] border border-[#E6DFEE] flex items-center justify-center shrink-0"
+        "rounded-lg bg-gradient-to-br from-[#FCF8F9] to-[#F7EFF1] border border-[#EEDFE3] flex items-center justify-center shrink-0"
       )}
     >
       <Scissors className="w-4 h-4 text-stone-400" />
@@ -280,11 +280,11 @@ function ActiveJobRow({
     <li>
       <button
         onClick={onClick}
-        className="w-full flex items-center gap-4 py-3.5 px-1 hover:bg-[#F6EFFB]/60 rounded-md transition-colors text-left group"
+        className="w-full flex items-center gap-4 py-3.5 px-1 hover:bg-[#FAF0F2]/60 rounded-md transition-colors text-left group"
       >
         <DesignThumb src={order.designImage} alt={order.garmentDesign} size="sm" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-[#1F1430] truncate group-hover:text-[#6A1FA0] transition-colors">
+          <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
             {order.garmentDesign}
           </p>
           <p className="text-xs text-stone-500 mt-0.5 truncate">
@@ -307,7 +307,7 @@ function ActiveJobRow({
             </span>
           </div>
         </div>
-        <Briefcase className="w-4 h-4 text-stone-300 group-hover:text-[#6A1FA0] transition-colors shrink-0" />
+        <Briefcase className="w-4 h-4 text-stone-300 group-hover:text-[#832138] transition-colors shrink-0" />
       </button>
     </li>
   );
@@ -317,11 +317,11 @@ function OpenTaskRow({ task }: { task: TaskWithOrder }) {
   const overdue = task.dueDate && isOverdue(task.dueDate) && task.status !== "Done";
   return (
     <li className="py-3.5 px-1 flex items-center gap-4">
-      <div className="w-10 h-10 rounded-full bg-[#F6EFFB] border border-[#E6DFEE] flex items-center justify-center shrink-0">
+      <div className="w-10 h-10 rounded-full bg-[#FAF0F2] border border-[#EEDFE3] flex items-center justify-center shrink-0">
         <ListTodo className="w-4 h-4 text-stone-400" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-[#1F1430] truncate">
+        <p className="text-sm font-medium text-[#2F151B] truncate">
           {task.title}
         </p>
         {task.order && (
@@ -360,9 +360,9 @@ function CompletedCard({
   return (
     <button
       onClick={onClick}
-      className="text-left rounded-lg border border-[#E6DFEE] surface-premium elevate-sm lift overflow-hidden group"
+      className="text-left rounded-lg border border-[#EEDFE3] surface-premium elevate-sm lift overflow-hidden group"
     >
-      <div className="aspect-[4/5] bg-[#FAF8FC] overflow-hidden">
+      <div className="aspect-[4/5] bg-[#FCF8F9] overflow-hidden">
         {order.designImage ? (
           <img
             src={order.designImage}
@@ -370,13 +370,13 @@ function CompletedCard({
             className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#FAF8FC] to-[#F3EFF7] flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-[#FCF8F9] to-[#F7EFF1] flex items-center justify-center">
             <ImageIcon className="w-6 h-6 text-stone-300" />
           </div>
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm font-medium text-[#1F1430] truncate group-hover:text-[#6A1FA0] transition-colors">
+        <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
           {order.garmentDesign}
         </p>
         <p className="text-xs text-stone-500 mt-0.5 truncate">

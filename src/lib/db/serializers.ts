@@ -95,6 +95,9 @@ export function serializeOrder(o: Record<string, any>) {
     sellingPrice: o.selling_price,
     fabricCost: o.fabric_cost,
     labourCost: o.labour_cost,
+    otherCost: o.other_cost ?? 0,
+    markupPercent: o.markup_percent ?? null,
+    suggestedPrice: o.suggested_price ?? null,
     notes: o.notes,
     priority: o.priority,
     payments: Array.isArray(o.payments) ? o.payments.map(serializePayment) : undefined,
@@ -374,6 +377,7 @@ export function serializeSettings(s: Record<string, any>) {
     taxId: s.tax_id || "",
     invoicePrefix: s.invoice_prefix || "INV",
     overheadRecoveryBasis: s.overhead_recovery_basis,
+    defaultMarkupPercent: s.default_markup_percent ?? 30,
   };
 }
 

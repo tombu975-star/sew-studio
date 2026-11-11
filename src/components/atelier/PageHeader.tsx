@@ -21,7 +21,7 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col items-start text-left md:flex-row md:items-end md:justify-between gap-4 md:gap-8 mb-5 md:mb-6 md:pb-5 md:border-b md:border-[#DDD3E7]", className)}>
+    <div className={cn("flex flex-col items-start text-left md:flex-row md:items-end md:justify-between gap-4 md:gap-8 mb-5 md:mb-6 md:pb-5 md:border-b md:border-[#E6D4D8]", className)}>
       <div className="min-w-0 w-full md:w-auto">
         {eyebrow && (
           <p className="text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-2">
@@ -30,7 +30,7 @@ export function PageHeader({
           </p>
         )}
         <h1
-          className="font-semibold text-[#2A0F45] leading-tight tracking-tight"
+          className="font-semibold text-[#391019] leading-tight tracking-tight"
           style={{ fontSize: "clamp(24px, 2.5vw, 30px)" }}
         >
           {title}

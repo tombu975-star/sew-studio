@@ -55,16 +55,40 @@ export function orderOverheadMargin(
   return fabric * (rate / 100);
 }
 
-/** An order's full True Cost: fabric + labour + this order's overhead
- *  margin (see orderOverheadMargin — a percentage of fabric cost under the
- *  standard method, or the flat fallback if the rate isn't configured). */
+/** An order's full True Cost: materials + labour + other job costs + this
+ *  order's share of studio overhead (see orderOverheadMargin — a percentage
+ *  of fabric cost under the standard method, or the flat fallback if the
+ *  rate isn't configured). */
 export function orderTrueCost(
-  order: { fabricCost?: number | null; labourCost?: number | null },
+  order: { fabricCost?: number | null; labourCost?: number | null; otherCost?: number | null },
   settings: Settings | null | undefined
 ) {
   const fabric = Number(order?.fabricCost) || 0;
   const labour = Number(order?.labourCost) || 0;
-  return fabric + labour + orderOverheadMargin(order, settings);
+  const other = Number(order?.otherCost) || 0;
+  return fabric + labour + other + orderOverheadMargin(order, settings);
+}
+
+/** Studio default mark-up (% on top of True Cost) used to pre-fill pricing. */
+export const FALLBACK_MARKUP_PERCENT = 30;
+export function defaultMarkupPercent(settings: Settings | null | undefined) {
+  const v = Number(settings?.defaultMarkupPercent);
+  return Number.isFinite(v) && v >= 0 ? v : FALLBACK_MARKUP_PERCENT;
+}
+
+/** Price that covers True Cost plus the mark-up, rounded to a whole unit so
+ *  it reads like a price a person would quote. */
+export function suggestedPriceFor(trueCost: number, markupPercent: number) {
+  const cost = Math.max(0, Number(trueCost) || 0);
+  const markup = Math.max(0, Number(markupPercent) || 0);
+  return Math.round(cost * (1 + markup / 100));
+}
+
+/** Mark-up % that a given price achieves over True Cost (null if no cost). */
+export function markupAchieved(price: number, trueCost: number) {
+  const cost = Number(trueCost) || 0;
+  if (cost <= 0) return null;
+  return ((Number(price) || 0) / cost - 1) * 100;
 }
 
 // The studio's currency (ISO 4217). Set once from the signed-in user's shop

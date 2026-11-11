@@ -14,6 +14,7 @@ export type ViewKey =
   | "tasks"
   | "style-assist"
   | "quote"
+  | "costing"
   | "team"
   | "community"
   | "progress"

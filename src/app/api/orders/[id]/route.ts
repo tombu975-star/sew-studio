@@ -91,6 +91,17 @@ export async function PATCH(
   if (body.sellingPrice !== undefined) data.selling_price = Number(body.sellingPrice) || 0;
   if (body.fabricCost !== undefined) data.fabric_cost = Number(body.fabricCost) || 0;
   if (body.labourCost !== undefined) data.labour_cost = Number(body.labourCost) || 0;
+  if (body.otherCost !== undefined) data.other_cost = Math.max(0, Number(body.otherCost) || 0);
+  if (body.markupPercent !== undefined)
+    data.markup_percent =
+      body.markupPercent === null || body.markupPercent === ""
+        ? null
+        : Math.min(1000, Math.max(0, Number(body.markupPercent) || 0));
+  if (body.suggestedPrice !== undefined)
+    data.suggested_price =
+      body.suggestedPrice === null || body.suggestedPrice === ""
+        ? null
+        : Math.max(0, Number(body.suggestedPrice) || 0);
   if (body.notes !== undefined) data.notes = body.notes;
   if (body.priority !== undefined) data.priority = body.priority;
   if (body.assignedStaffId !== undefined) {

@@ -368,6 +368,9 @@ export interface Database {
           selling_price: number;
           fabric_cost: number;
           labour_cost: number;
+          other_cost: number;
+          markup_percent: Nullable<number>;
+          suggested_price: Nullable<number>;
           notes: Nullable<string>;
           priority: string;
           created_at: string;
@@ -674,6 +677,7 @@ export interface Database {
           tax_id: string;
           invoice_prefix: string;
           overhead_recovery_basis: number;
+          default_markup_percent: number;
           created_at: string;
           updated_at: string;
         };

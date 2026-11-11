@@ -8,7 +8,7 @@ import { ArrowLeft, Pencil, TrendingUp, User as UserIcon, Shirt, CalendarDays, W
 import { apiGet, apiPost } from "@/lib/api";
 import { useNav } from "@/stores/nav";
 import { useRole } from "@/stores/role";
-import { ORDER_STATUSES, PRIORITY_LEVELS, todayISO, formatCurrency, formatDate, orderOverheadMargin, overheadRecoveryRatePercent } from "@/lib/format";
+import { ORDER_STATUSES, PRIORITY_LEVELS, todayISO, formatCurrency, formatDate, orderOverheadMargin, overheadRecoveryRatePercent, defaultMarkupPercent, suggestedPriceFor } from "@/lib/format";
 import type { Customer, MeasurementSet, Order, Settings, User } from "@/lib/types";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
@@ -66,6 +66,12 @@ export default function NewOrder() {
   const [sellingPrice, setSellingPrice] = useState("");
   const [fabricCost, setFabricCost] = useState("");
   const [labourCost, setLabourCost] = useState("");
+  const [otherCost, setOtherCost] = useState("");
+  // null = use the studio default from Settings until the owner types one.
+  const [markupInput, setMarkupInput] = useState<string | null>(null);
+  // True once the owner has typed their own final price; until then the price
+  // follows the True Costing suggestion as the costs change.
+  const [priceEdited, setPriceEdited] = useState(false);
   const [priority, setPriority] = useState<string>("Medium");
   const [notes, setNotes] = useState("");
 
@@ -81,12 +87,22 @@ export default function NewOrder() {
   );
   const overheadRate = useMemo(() => overheadRecoveryRatePercent(settings), [settings]);
 
+  // True Costing: materials + labour + other costs + studio overhead share,
+  // then the mark-up on top gives the suggested price.
+  const markupPercent = markupInput !== null ? Math.max(0, Number(markupInput) || 0) : defaultMarkupPercent(settings);
+  const trueCost = useMemo(
+    () => (Number(fabricCost) || 0) + (Number(labourCost) || 0) + (Number(otherCost) || 0) + overhead,
+    [fabricCost, labourCost, otherCost, overhead]
+  );
+  const suggestedPrice = useMemo(() => suggestedPriceFor(trueCost, markupPercent), [trueCost, markupPercent]);
+  // The price shown in the field: the owner's own figure once they have typed
+  // one, otherwise the live suggestion (blank while there is no cost yet).
+  const sellingPriceValue = priceEdited ? sellingPrice : trueCost > 0 ? String(suggestedPrice) : "";
+  const priceDiff = (Number(sellingPriceValue) || 0) - suggestedPrice;
   const estMargin = useMemo(() => {
-    const s = Number(sellingPrice) || 0;
-    const f = Number(fabricCost) || 0;
-    const l = Number(labourCost) || 0;
-    return s - f - l - overhead;
-  }, [sellingPrice, fabricCost, labourCost, overhead]);
+    const s = Number(sellingPriceValue) || 0;
+    return s - trueCost;
+  }, [sellingPriceValue, trueCost]);
 
   // The chosen customer's latest measurements, shown beside the form so the
   // order is booked against the actual fit profile.
@@ -101,7 +117,7 @@ export default function NewOrder() {
   }, [customerDetail]);
   const selectedCustomer = (customers || []).find((c) => c.id === customerId);
   const depositPercent = Number(settings?.depositPercent) || 0;
-  const price = Number(sellingPrice) || 0;
+  const price = Number(sellingPriceValue) || 0;
   const depositDue = Math.round(price * depositPercent) / 100;
   const balanceDue = price - depositDue;
 
@@ -113,9 +129,12 @@ export default function NewOrder() {
         orderDate,
         status,
         priority,
-        sellingPrice: Number(sellingPrice) || 0,
+        sellingPrice: Number(sellingPriceValue) || 0,
         fabricCost: Number(fabricCost) || 0,
         labourCost: Number(labourCost) || 0,
+        otherCost: Number(otherCost) || 0,
+        markupPercent,
+        suggestedPrice: trueCost > 0 ? suggestedPrice : null,
         notes: notes.trim() || undefined,
       };
       if (deliveryDate) body.deliveryDate = deliveryDate;
@@ -142,7 +161,7 @@ export default function NewOrder() {
       <div className="p-5 md:p-8 max-w-[820px] mx-auto w-full">
         <button
           onClick={() => go("orders")}
-          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition mb-4"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#832138] transition mb-4"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
@@ -176,7 +195,7 @@ export default function NewOrder() {
     <div className="p-5 md:p-8 max-w-[1180px] mx-auto w-full">
       <button
         onClick={() => go("orders")}
-        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition mb-4"
+        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#832138] transition mb-4"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
       </button>
@@ -194,7 +213,7 @@ export default function NewOrder() {
               <div className="space-y-4">
                 <div>
                   <Label>
-                    Customer <span className="text-[#6A1FA0]">*</span>
+                    Customer <span className="text-[#832138]">*</span>
                   </Label>
                   <Select value={customerId} onValueChange={setCustomerId}>
                     <SelectTrigger className="rounded-md mt-1.5 w-full bg-white">
@@ -228,7 +247,7 @@ export default function NewOrder() {
               <div className="space-y-4">
                 <div>
                   <Label>
-                    Garment description <span className="text-[#6A1FA0]">*</span>
+                    Garment description <span className="text-[#832138]">*</span>
                   </Label>
                   <Textarea
                     value={garmentDesign}
@@ -259,7 +278,7 @@ export default function NewOrder() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>
-                      Order date <span className="text-[#6A1FA0]">*</span>
+                      Order date <span className="text-[#832138]">*</span>
                     </Label>
                     <Input type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} className="rounded-md mt-1.5" />
                   </div>
@@ -303,27 +322,101 @@ export default function NewOrder() {
               </div>
             </SectionCard>
 
-            <SectionCard title="4. Pricing" action={<Wallet className="w-4 h-4 text-stone-400" />} className="animate-fade-in-up">
+            <SectionCard title="4. Pricing · True Costing" action={<Wallet className="w-4 h-4 text-stone-400" />} className="animate-fade-in-up">
               <div className="space-y-4">
+                <p className="text-xs text-stone-500">
+                  Enter what this job really costs. We add your studio overhead and your mark-up to suggest a price.
+                  You can change the final price whenever you like.
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <Label>Selling price ({currency})</Label>
-                    <Input type="number" inputMode="decimal" min="0" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} placeholder="0" className="rounded-md mt-1.5 tabular-nums" />
-                  </div>
-                  <div>
-                    <Label>Fabric / materials ({currency})</Label>
+                    <Label>Materials / fabric ({currency})</Label>
                     <Input type="number" inputMode="decimal" min="0" value={fabricCost} onChange={(e) => setFabricCost(e.target.value)} placeholder="0" className="rounded-md mt-1.5 tabular-nums" />
                   </div>
                   <div>
                     <Label>Labour ({currency})</Label>
                     <Input type="number" inputMode="decimal" min="0" value={labourCost} onChange={(e) => setLabourCost(e.target.value)} placeholder="0" className="rounded-md mt-1.5 tabular-nums" />
                   </div>
+                  <div>
+                    <Label>Other costs ({currency})</Label>
+                    <Input type="number" inputMode="decimal" min="0" value={otherCost} onChange={(e) => setOtherCost(e.target.value)} placeholder="Thread, zips, transport…" className="rounded-md mt-1.5 tabular-nums" />
+                  </div>
                 </div>
-                <p className="text-[11px] text-stone-500">
-                  Overhead margin to recover on this order:{" "}
-                  <span className="font-medium text-[#1F1430]">{formatCurrency(overhead, currency)}</span>
-                  {overheadRate > 0 ? ` (${overheadRate.toFixed(1)}% of fabric / materials cost, excluding labour)` : " (flat per-order overhead — set a monthly cost base in Settings for the percentage method)"}
-                </p>
+
+                <dl className="rounded-md border border-[#EEDFE3] bg-[#FCF8F9] px-4 py-3 space-y-1.5 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-stone-500">
+                      Studio overhead share
+                      <span className="block text-[11px] text-stone-400">
+                        {overheadRate > 0 ? `${overheadRate.toFixed(1)}% of materials cost, added automatically` : "Flat per-order overhead from Settings"}
+                      </span>
+                    </dt>
+                    <dd className="font-medium tabular-nums text-[#2F151B]">{formatCurrency(overhead, currency)}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 border-t border-[#EEDFE3] pt-1.5">
+                    <dt className="font-medium text-[#2F151B]">True cost</dt>
+                    <dd className="font-semibold tabular-nums text-[#2F151B]">{formatCurrency(trueCost, currency)}</dd>
+                  </div>
+                </dl>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Mark-up on true cost (%)</Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.5"
+                      value={markupInput ?? String(markupPercent)}
+                      onChange={(e) => setMarkupInput(e.target.value)}
+                      className="rounded-md mt-1.5 tabular-nums"
+                    />
+                    <p className="text-[11px] text-stone-400 mt-1">Starts from the default set in Settings.</p>
+                  </div>
+                  <div>
+                    <Label>Suggested price ({currency})</Label>
+                    <div className="mt-1.5 flex h-9 items-center rounded-md border border-[#EEDFE3] bg-white px-3 text-sm font-semibold tabular-nums text-[#832138]">
+                      {trueCost > 0 ? formatCurrency(suggestedPrice, currency) : "Add costs to see a price"}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Final selling price ({currency})</Label>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    value={sellingPriceValue}
+                    onChange={(e) => {
+                      setPriceEdited(true);
+                      setSellingPrice(e.target.value);
+                    }}
+                    placeholder="0"
+                    className="rounded-md mt-1.5 tabular-nums"
+                  />
+                  {priceEdited && trueCost > 0 ? (
+                    <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-stone-500">
+                      <span>
+                        {priceDiff === 0
+                          ? "Matches the suggested price."
+                          : `You set this ${formatCurrency(Math.abs(priceDiff), currency)} ${priceDiff > 0 ? "above" : "below"} the suggested price.`}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPriceEdited(false);
+                          setSellingPrice("");
+                        }}
+                        className="font-medium text-[#832138] underline underline-offset-2"
+                      >
+                        Use suggested price
+                      </button>
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-stone-400">Filled in from the costs above. Type over it to set your own price.</p>
+                  )}
+                </div>
               </div>
             </SectionCard>
 
@@ -360,30 +453,30 @@ export default function NewOrder() {
             <dl className="space-y-2.5">
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Customer</dt>
-                  <dd className="text-right font-medium text-[#1F1430]">{selectedCustomer?.name || "—"}</dd>
+                  <dd className="text-right font-medium text-[#2F151B]">{selectedCustomer?.name || "—"}</dd>
                 </div>
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Garment</dt>
-                  <dd className="text-right font-medium text-[#1F1430]"><span className="line-clamp-2">{garmentDesign.trim() || "—"}</span></dd>
+                  <dd className="text-right font-medium text-[#2F151B]"><span className="line-clamp-2">{garmentDesign.trim() || "—"}</span></dd>
                 </div>
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Delivery</dt>
-                  <dd className="text-right font-medium text-[#1F1430]">{deliveryDate || "Not set"}</dd>
+                  <dd className="text-right font-medium text-[#2F151B]">{deliveryDate || "Not set"}</dd>
                 </div>
             </dl>
-            <div className="my-4 h-px bg-[#E6DFEE]" />
+            <div className="my-4 h-px bg-[#EEDFE3]" />
             <dl className="space-y-2.5">
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Selling price</dt>
-                  <dd className="text-right font-medium text-[#1F1430]">{formatCurrency(price, currency)}</dd>
+                  <dd className="text-right font-medium text-[#2F151B]">{formatCurrency(price, currency)}</dd>
                 </div>
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Deposit due ({depositPercent}%)</dt>
-                  <dd className="text-right font-medium text-[#1F1430]">{formatCurrency(depositDue, currency)}</dd>
+                  <dd className="text-right font-medium text-[#2F151B]">{formatCurrency(depositDue, currency)}</dd>
                 </div>
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Balance on collection</dt>
-                  <dd className="text-right font-medium text-[#1F1430]">{formatCurrency(balanceDue, currency)}</dd>
+                  <dd className="text-right font-medium text-[#2F151B]">{formatCurrency(balanceDue, currency)}</dd>
                 </div>
             </dl>
             <div className={cn("mt-4 flex items-center justify-between gap-3 rounded-md border p-3", estMargin >= 0 ? "bg-emerald-50/60 border-emerald-200" : "bg-amber-50/60 border-amber-200")}>
@@ -395,7 +488,7 @@ export default function NewOrder() {
                 <AnimatedNumber value={estMargin} format="currency" currency={currency} duration={400} />
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-stone-400">Selling − fabric − labour − overhead margin.</p>
+            <p className="mt-2 text-[10px] text-stone-400">Selling price − true cost (materials, labour, other costs and overhead).</p>
           </SectionCard>
 
           <SectionCard title="Measurements on file" action={<Ruler className="w-4 h-4 text-stone-400" />}>
@@ -407,7 +500,7 @@ export default function NewOrder() {
                       return (
                         <div key={key}>
                           <dt className="text-stone-400">{FIELD_BY_KEY[key].label.replace(/ \(.*\)$/, "")}</dt>
-                          <dd className="font-semibold tabular-nums text-[#1F1430]">{cm != null ? `${formatValue(cm, "cm")} cm` : "—"}</dd>
+                          <dd className="font-semibold tabular-nums text-[#2F151B]">{cm != null ? `${formatValue(cm, "cm")} cm` : "—"}</dd>
                         </div>
                       );
                     })}

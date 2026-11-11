@@ -75,16 +75,16 @@ export function FreelancerDashboard({
   const initials = profile.fullName.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 
   return (
-    <div className="min-h-dvh bg-[#FAF8FC] pb-24 md:pb-10">
+    <div className="min-h-dvh bg-[#FCF8F9] pb-24 md:pb-10">
       {/* Top bar */}
-      <header className="sticky top-0 z-30 border-b border-[#E6DFEE] bg-white/95 backdrop-blur-md pt-safe">
+      <header className="sticky top-0 z-30 border-b border-[#EEDFE3] bg-white/95 backdrop-blur-md pt-safe">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#6A1FA0] to-[#571A84] text-white">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#832138] to-[#6C1C2F] text-white">
               <Scissors className="size-4" />
             </span>
             <div className="min-w-0 leading-tight">
-              <p className="truncate text-sm font-semibold text-[#1F1430]">Freelancer portal</p>
+              <p className="truncate text-sm font-semibold text-[#2F151B]">Freelancer portal</p>
               <p className="flex items-center gap-1.5 truncate text-[11px] text-stone-500">{profile.fullName}{profile.verified && <VerifiedBadge compact />}</p>
             </div>
           </div>
@@ -96,7 +96,7 @@ export function FreelancerDashboard({
                 aria-current={tab === id ? "page" : undefined}
                 className={cn(
                   "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors",
-                  tab === id ? "bg-[#F6EFFB] text-[#571A84]" : "text-stone-600 hover:bg-[#F3EFF7]"
+                  tab === id ? "bg-[#FAF0F2] text-[#6C1C2F]" : "text-stone-600 hover:bg-[#F7EFF1]"
                 )}
               >
                 <Icon className="size-4" /> {label}
@@ -106,7 +106,7 @@ export function FreelancerDashboard({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setTab("profile")}
-              className="grid size-9 place-items-center rounded-full bg-[#F6EFFB] text-xs font-semibold text-[#571A84] md:hidden"
+              className="grid size-9 place-items-center rounded-full bg-[#FAF0F2] text-xs font-semibold text-[#6C1C2F] md:hidden"
               aria-label="Profile"
             >
               {initials || "F"}
@@ -131,16 +131,16 @@ export function FreelancerDashboard({
       </main>
 
       {/* Mobile bottom nav (same pattern as the studio app) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#E6DFEE] bg-white/95 backdrop-blur-md" aria-label="Sections">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#EEDFE3] bg-white/95 backdrop-blur-md" aria-label="Sections">
         <div className="flex h-14 items-center justify-around">
           {NAV.map(({ id, label, icon: Icon }) => {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)} aria-current={active ? "page" : undefined}
                 className="relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-2 py-1.5">
-                {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#6A1FA0]" />}
-                <Icon className={cn("size-5", active ? "text-[#6A1FA0]" : "text-stone-400")} strokeWidth={active ? 2 : 1.5} />
-                <span className={cn("text-[10px] leading-tight", active ? "font-semibold text-[#6A1FA0]" : "text-stone-400")}>{label}</span>
+                {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#832138]" />}
+                <Icon className={cn("size-5", active ? "text-[#832138]" : "text-stone-400")} strokeWidth={active ? 2 : 1.5} />
+                <span className={cn("text-[10px] leading-tight", active ? "font-semibold text-[#832138]" : "text-stone-400")}>{label}</span>
               </button>
             );
           })}
@@ -212,7 +212,7 @@ function MyJobs({ profile, onBrowse }: { profile: FreelancerProfile; onBrowse: (
         {([["all", "All"], ["active", "Active"], ["Delivered", "Delivered"], ["Paid", "Paid"]] as [Filter, string][]).map(([k, label]) => (
           <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}
             className={cn("h-8 rounded-full border px-3.5 text-xs font-medium transition-colors",
-              filter === k ? "border-[#571A84] bg-[#571A84] text-white" : "border-[#DDD3E7] bg-white text-stone-600 hover:border-[#571A84]")}>
+              filter === k ? "border-[#6C1C2F] bg-[#6C1C2F] text-white" : "border-[#E6D4D8] bg-white text-stone-600 hover:border-[#6C1C2F]")}>
             {label}
           </button>
         ))}
@@ -222,7 +222,7 @@ function MyJobs({ profile, onBrowse }: { profile: FreelancerProfile; onBrowse: (
 
       {jobs === null ? (
         <div className="space-y-3" aria-busy="true">
-          {[0, 1, 2].map((i) => <div key={i} className="h-32 animate-pulse rounded-lg border border-[#E6DFEE] bg-white" />)}
+          {[0, 1, 2].map((i) => <div key={i} className="h-32 animate-pulse rounded-lg border border-[#EEDFE3] bg-white" />)}
         </div>
       ) : visible.length === 0 ? (
         <SectionCard>
@@ -263,7 +263,7 @@ function MyJobs({ profile, onBrowse }: { profile: FreelancerProfile; onBrowse: (
                     <button key={s} disabled={updatingId === j.id || j.status === s} onClick={() => setStatus(j.id, s)}
                       aria-pressed={j.status === s}
                       className={cn("inline-flex h-8 items-center gap-1 rounded-md border px-2.5 text-xs font-medium transition-colors disabled:cursor-default",
-                        j.status === s ? "border-[#571A84] bg-[#F6EFFB] text-[#571A84]" : "border-[#DDD3E7] bg-white text-stone-600 hover:border-[#571A84] disabled:opacity-50")}>
+                        j.status === s ? "border-[#6C1C2F] bg-[#FAF0F2] text-[#6C1C2F]" : "border-[#E6D4D8] bg-white text-stone-600 hover:border-[#6C1C2F] disabled:opacity-50")}>
                       {j.status === s && <CheckCircle2 className="size-3.5" />} {s}
                     </button>
                   ))}

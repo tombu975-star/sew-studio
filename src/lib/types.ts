@@ -99,6 +99,12 @@ export interface Order {
   sellingPrice: number;
   fabricCost: number;
   labourCost: number;
+  /** Other direct job costs (thread, zips, transport …). */
+  otherCost?: number;
+  /** Mark-up % on True Cost used when the order was priced; null = priced by hand. */
+  markupPercent?: number | null;
+  /** Price True Costing suggested when the order was booked. */
+  suggestedPrice?: number | null;
   notes?: string | null;
   priority: string;
   createdAt: string;
@@ -261,6 +267,8 @@ export interface Settings {
   invoicePrefix?: string;
   // Standard overhead-recovery-rate costing (see src/lib/format.ts)
   overheadRecoveryBasis?: number;
+  /** Default mark-up % on True Cost, pre-filled when pricing an order. */
+  defaultMarkupPercent?: number;
 }
 
 export interface Freelancer {

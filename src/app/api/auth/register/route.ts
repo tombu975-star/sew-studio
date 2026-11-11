@@ -92,8 +92,8 @@ export async function POST(req: Request) {
           const suffixText = suffix ? `-${suffix}` : "";
           const candidate = `${baseSlug.slice(0, 40 - suffixText.length)}${suffixText}`;
           const result = await client.query(
-            `insert into public.shops (name, slug, plan, currency)
-             values ($1, $2, 'trial', 'GHS')
+            `insert into public.shops (name, slug, plan, currency, trial_started_at, trial_ends_at)
+             values ($1, $2, 'trial', 'GHS', now(), now() + interval '2 months')
              on conflict (slug) do nothing
              returning id, name, slug, currency, plan, trial_started_at, trial_ends_at`,
             [shopName, candidate]

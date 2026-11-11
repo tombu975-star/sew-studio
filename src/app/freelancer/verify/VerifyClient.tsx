@@ -29,21 +29,21 @@ export function VerifyClient() {
     >
       <div className="animate-fade-in text-center sm:text-left">
         {state === "working" && (
-          <div className="flex items-center gap-3 text-[#6B6178] max-sm:text-white"><Loader2 className="size-5 animate-spin" /> Verifying your email…</div>
+          <div className="flex items-center gap-3 text-[#776267] max-sm:text-white"><Loader2 className="size-5 animate-spin" /> Verifying your email…</div>
         )}
         {state === "ok" && (
           <>
             <VerifiedBadge />
-            <h2 className="mt-4 font-serif text-3xl font-medium tracking-tight text-[#1F1430] max-sm:text-white">You're verified</h2>
-            <p className="mt-2 text-sm leading-6 text-[#6B6178] max-sm:text-white/85">Your email is confirmed and your Verified badge is live. You can now apply for open jobs.</p>
+            <h2 className="mt-4 font-serif text-3xl font-medium tracking-tight text-[#2F151B] max-sm:text-white">You're verified</h2>
+            <p className="mt-2 text-sm leading-6 text-[#776267] max-sm:text-white/85">Your email is confirmed and your Verified badge is live. You can now apply for open jobs.</p>
             <a href="/freelancer" className="mt-6 inline-block"><PremiumButton size="lg">Go to your portal</PremiumButton></a>
           </>
         )}
         {state === "error" && (
           <>
             <AlertCircle className="size-8 text-[#8f2933] max-sm:text-white" />
-            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-[#1F1430] max-sm:text-white">Link problem</h2>
-            <p className="mt-2 text-sm leading-6 text-[#6B6178] max-sm:text-white/85">{message}</p>
+            <h2 className="mt-3 font-serif text-3xl font-medium tracking-tight text-[#2F151B] max-sm:text-white">Link problem</h2>
+            <p className="mt-2 text-sm leading-6 text-[#776267] max-sm:text-white/85">{message}</p>
             <a href="/freelancer" className="mt-6 inline-block"><PremiumButton size="lg" variant="outline">Sign in to request a new link</PremiumButton></a>
           </>
         )}

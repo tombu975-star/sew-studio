@@ -27,6 +27,8 @@ import {
   AlertCircle,
   Crown,
   Clock3,
+  Calculator,
+  ChevronDown,
 } from "lucide-react";
 import { useRole, type Role } from "@/stores/role";
 import { useNav, type ViewKey } from "@/stores/nav";
@@ -69,6 +71,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
         { to: "fittings", label: "Fittings", icon: CalendarDays },
         { to: "tasks", label: "Tasks", icon: CheckSquare },
         { to: "quote", label: "Quotes", icon: Zap },
+        { to: "costing", label: "True Costing", icon: Calculator },
         { to: "style-assist", label: "Style Assist", icon: Sparkles },
       ],
     },
@@ -203,7 +206,8 @@ const SECTIONS: Record<Role, NavSection[]> = {
 
 // Mobile: top 5 priority items per role (rest in a "More" sheet)
 const MOBILE_PRIORITY: Record<Role, ViewKey[]> = {
-  madam: ["dashboard", "orders", "customers", "messages", "community"],
+  // Owners start with the everyday four; every other tool is under "More".
+  madam: ["dashboard", "customers", "orders", "board"],
   trainer: ["dashboard", "orders", "progress", "community", "board"],
   staff: ["dashboard", "orders", "board", "tasks", "community"],
   trainee: ["dashboard", "orders", "progress", "tasks", "community"],
@@ -223,11 +227,11 @@ const ROLE_LABELS: Record<Role, string> = {
 // tell whose seat you're sitting in without it fighting the gold brand
 // accent used for every interactive/active state.
 const ROLE_ACCENT: Record<Role, string> = {
-  madam: "#6A1FA0",
+  madam: "#832138",
   staff: "#0E7490", // teal — operations
   trainer: "#B87A64", // rose clay — training & assessment
-  trainee: "#571A84", // navy-slate — learning & portfolio
-  freelancer: "#7A4568", // plum — assigned jobs
+  trainee: "#6C1C2F", // deep burgundy — learning & portfolio
+  freelancer: "#794652", // wine — assigned jobs
 };
 
 // Page title + icon shown in the mobile header for every route — including
@@ -246,6 +250,7 @@ const VIEW_META: Record<ViewKey, { label: string; icon: IconType }> = {
   tasks: { label: "Tasks", icon: CheckSquare },
   "style-assist": { label: "Style Assist", icon: Sparkles },
   quote: { label: "Quick Quote", icon: Zap },
+  costing: { label: "True Costing", icon: Calculator },
   team: { label: "Team", icon: UsersRound },
   community: { label: "Community", icon: MessageSquare },
   progress: { label: "Trainee Progress", icon: GraduationCap },
@@ -264,6 +269,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { enabled, error: menuSettingsError, load: loadMenuSettings } = useMenuSettings();
   const [moreOpen, setMoreOpen] = useState(false);
+  // Desktop sidebar: owners see the everyday tools first; the rest sit under
+  // "More tools". Remembered per browser once the owner opens or closes it.
+  const [toolsOpen, setToolsOpen] = useState(false);
+  useEffect(() => {
+    try {
+      setToolsOpen(window.localStorage.getItem("sidebar-more-tools") === "open");
+    } catch {
+      /* storage unavailable: stay collapsed */
+    }
+  }, []);
+  const toggleTools = () => {
+    setToolsOpen((open) => {
+      const next = !open;
+      try {
+        window.localStorage.setItem("sidebar-more-tools", next ? "open" : "closed");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     void loadMenuSettings();
@@ -349,7 +375,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </p>
               <span
                 className="inline-flex items-center text-[10px] font-medium mt-1 px-1.5 py-0.5 rounded-sm"
-                style={{ backgroundColor: "#43196B", color: "#D6CCE2" }}
+                style={{ backgroundColor: "#581A28", color: "#E1CDD1" }}
               >
                 {ROLE_LABELS[role]} portal
               </span>
@@ -362,42 +388,80 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           aria-label="Primary"
           className="flex-1 overflow-y-auto overflow-x-hidden scroll-slim px-2.5 lg:px-3 py-3"
         >
-          {sections.map((section, si) => (
-            <div key={section.label} className={cn(si > 0 && "mt-4 lg:mt-[18px]")}>
-              {si > 0 && (
-                <div className="lg:hidden h-px bg-sidebar-border mx-3 mb-3" aria-hidden="true" />
-              )}
-              <p className="hidden lg:block text-[11px] font-medium text-slate-400 px-3 mb-1.5">
-                {section.label}
-              </p>
-              <div className="space-y-0.5">
-                {section.items.map(({ to, label, icon: Icon }) => {
-                  const active = isActive(to);
-                  return (
-                    <button
-                      key={to}
-                      onClick={() => go(to)}
-                      title={label}
-                      aria-label={label}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "group relative w-full flex items-center justify-center lg:justify-start gap-3 h-10 lg:h-9 lg:px-3 rounded-lg text-[13.5px] transition-colors duration-150",
-                        active
-                          ? "bg-[#7A2DB8] text-white font-medium shadow-sm"
-                          : "text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/70"
-                      )}
-                    >
-                      <Icon
-                        className="w-[18px] h-[18px] shrink-0"
-                        strokeWidth={active ? 2 : 1.6}
-                      />
-                      <span className="hidden lg:inline truncate">{label}</span>
-                    </button>
-                  );
-                })}
+          {(() => {
+            const BASICS = ["dashboard", "customers", "orders", "board"] as ViewKey[];
+            const collapse = role === "madam";
+            const basicItems = collapse ? allItems.filter((i) => BASICS.includes(i.to)) : [];
+            const laterSections = collapse
+              ? sections
+                  .map((sec) => ({ ...sec, items: sec.items.filter((i) => !BASICS.includes(i.to)) }))
+                  .filter((sec) => sec.items.length > 0)
+              : sections;
+            const laterCount = laterSections.reduce((n, sec) => n + sec.items.length, 0);
+            // Never hide the page the person is on.
+            const showLater = !collapse || toolsOpen || laterSections.some((sec) => sec.items.some((i) => isActive(i.to)));
+
+            const renderItem = ({ to, label, icon: Icon }: NavItem) => {
+              const active = isActive(to);
+              return (
+                <button
+                  key={to}
+                  onClick={() => go(to)}
+                  title={label}
+                  aria-label={label}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "group relative w-full flex items-center justify-center lg:justify-start gap-3 h-10 lg:h-9 lg:px-3 rounded-lg text-[13.5px] transition-colors duration-150",
+                    active
+                      ? "bg-[#972E46] text-white font-medium shadow-sm"
+                      : "text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/70"
+                  )}
+                >
+                  <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={active ? 2 : 1.6} />
+                  <span className="hidden lg:inline truncate">{label}</span>
+                </button>
+              );
+            };
+
+            const renderSection = (section: NavSection, si: number) => (
+              <div key={section.label} className={cn(si > 0 && "mt-4 lg:mt-[18px]")}>
+                {si > 0 && <div className="lg:hidden h-px bg-sidebar-border mx-3 mb-3" aria-hidden="true" />}
+                <p className="hidden lg:block text-[11px] font-medium text-slate-400 px-3 mb-1.5">{section.label}</p>
+                <div className="space-y-0.5">{section.items.map(renderItem)}</div>
               </div>
-            </div>
-          ))}
+            );
+
+            return (
+              <>
+                {collapse && basicItems.length > 0 && (
+                  <div>
+                    <p className="hidden lg:block text-[11px] font-medium text-slate-400 px-3 mb-1.5">Everyday</p>
+                    <div className="space-y-0.5">{basicItems.map(renderItem)}</div>
+                  </div>
+                )}
+                {collapse && laterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={toggleTools}
+                    aria-expanded={showLater}
+                    title={showLater ? "Hide other tools" : "Show more tools"}
+                    className="mt-4 lg:mt-[18px] w-full flex items-center justify-center lg:justify-between gap-3 h-10 lg:h-9 lg:px-3 rounded-lg text-[13px] text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/70 transition-colors"
+                  >
+                    <span className="hidden lg:inline">More tools ({laterCount})</span>
+                    <ChevronDown
+                      className={cn("w-[18px] h-[18px] shrink-0 transition-transform", showLater && "rotate-180")}
+                      strokeWidth={1.6}
+                    />
+                  </button>
+                )}
+                {showLater && (
+                  <div className={cn(collapse && "mt-2")}>
+                    {laterSections.map((section, si) => renderSection(section, collapse ? si + 1 : si))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </nav>
 
         {/* User */}
@@ -412,7 +476,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <div className="relative shrink-0">
                   <div
-                    className="w-9 h-9 rounded-full bg-[#55297F] text-white flex items-center justify-center text-xs font-semibold ring-2 ring-offset-2 ring-offset-sidebar"
+                    className="w-9 h-9 rounded-full bg-[#692837] text-white flex items-center justify-center text-xs font-semibold ring-2 ring-offset-2 ring-offset-sidebar"
                     style={{ ["--tw-ring-color" as string]: roleAccent }}
                   >
                     {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
@@ -442,7 +506,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ─── Mobile top bar ──────────────────────────────────────── */}
-      <header className="md:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#E6DFEE] bg-white/95 backdrop-blur-md">
+      <header className="md:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#EEDFE3] bg-white/95 backdrop-blur-md">
         {/* Three equal columns keep the title dead-centre regardless of what
             sits on either side (spacer left, profile avatar right). */}
         <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem] items-center gap-3 px-4 h-12">
@@ -452,10 +516,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="flex items-center justify-center gap-2 min-w-0 justify-self-center max-w-full"
             title={shopDisplayName}
           >
-            <div className="w-7 h-7 rounded-lg bg-[#6A1FA0] flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-[#832138] flex items-center justify-center shrink-0">
               <ActiveIcon className="w-3.5 h-3.5 text-white" strokeWidth={2.25} />
             </div>
-            <span className="font-display text-base font-semibold text-[#1F1430] truncate min-w-0">
+            <span className="font-display text-base font-semibold text-[#2F151B] truncate min-w-0">
               {activeMeta.label}
             </span>
           </button>
@@ -479,7 +543,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <span className="flex items-center gap-2">
               <Crown className="size-4 shrink-0" />
-              Your trial has ended. Your studio is read-only and your data is safe.
+              Your two-month trial has ended. Your studio is read-only and your data is safe. Choose Pro or Enterprise to carry on.
             </span>
             {user?.role === "madam" ? (
               <button onClick={() => go("settings")} className="shrink-0 text-left font-semibold underline underline-offset-2">
@@ -489,17 +553,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span className="shrink-0 text-xs">Ask your studio owner to upgrade.</span>
             )}
           </div>
-        ) : planAccess?.daysRemaining !== null && planAccess?.daysRemaining !== undefined && planAccess.daysRemaining <= 5 ? (
+        ) : planAccess?.daysRemaining !== null && planAccess?.daysRemaining !== undefined && planAccess.daysRemaining <= 14 ? (
           <div className="mx-4 mt-4 flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between md:mx-8">
             <span className="flex items-center gap-2">
               <Clock3 className="size-4 shrink-0" />
               {planAccess.daysRemaining === 0
                 ? "Your trial ends today."
-                : `${planAccess.daysRemaining} ${planAccess.daysRemaining === 1 ? "day" : "days"} left in your trial.`}
+                : `${planAccess.daysRemaining} ${planAccess.daysRemaining === 1 ? "day" : "days"} left in your trial. Choose Pro or Enterprise to keep going.`}
             </span>
             {user?.role === "madam" && (
               <button onClick={() => go("settings")} className="shrink-0 text-left font-semibold underline underline-offset-2">
-                Explore plans
+                Choose a plan
               </button>
             )}
           </div>
@@ -519,7 +583,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* ─── Mobile bottom nav (5 priority + More) ───────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#E6DFEE] bg-white/95 backdrop-blur-md">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#EEDFE3] bg-white/95 backdrop-blur-md">
         <div className="flex items-center justify-around h-14">
           {mobileItems.map(({ to, label, icon: Icon }) => {
             const active = isActive(to);
@@ -530,16 +594,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 relative min-w-0 flex-1 max-w-[72px]"
               >
                 {active && (
-                  <span className="absolute top-0 w-8 h-0.5 bg-[#6A1FA0] rounded-full" />
+                  <span className="absolute top-0 w-8 h-0.5 bg-[#832138] rounded-full" />
                 )}
                 <Icon
-                  className={cn("w-5 h-5 transition-colors shrink-0", active ? "text-[#6A1FA0]" : "text-stone-400")}
+                  className={cn("w-5 h-5 transition-colors shrink-0", active ? "text-[#832138]" : "text-stone-400")}
                   strokeWidth={active ? 2 : 1.5}
                 />
                 <span
                   className={cn(
                     "text-[9px] leading-tight transition-colors truncate w-full text-center",
-                    active ? "text-[#6A1FA0] font-semibold" : "text-stone-400"
+                    active ? "text-[#832138] font-semibold" : "text-stone-400"
                   )}
                 >
                   {label}
@@ -553,7 +617,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 min-w-0 flex-1 max-w-[72px]"
             >
               <MoreHorizontal
-                className={cn("w-5 h-5 shrink-0", moreOpen ? "text-[#6A1FA0]" : "text-stone-400")}
+                className={cn("w-5 h-5 shrink-0", moreOpen ? "text-[#832138]" : "text-stone-400")}
                 strokeWidth={1.5}
               />
               <span className="text-[9px] leading-tight text-stone-400">More</span>
@@ -569,16 +633,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onClick={() => setMoreOpen(false)}
         >
           <div
-            className="absolute bottom-0 inset-x-0 pb-safe bg-white rounded-t-2xl border-t border-[#E6DFEE] max-h-[80dvh] overflow-y-auto scroll-slim animate-fade-in-up"
+            className="absolute bottom-0 inset-x-0 pb-safe bg-white rounded-t-2xl border-t border-[#EEDFE3] max-h-[80dvh] overflow-y-auto scroll-slim animate-fade-in-up"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white flex items-center justify-between px-5 py-4 border-b border-[#E6DFEE]">
-              <p className="font-display text-lg font-semibold text-[#1F1430]">
+            <div className="sticky top-0 bg-white flex items-center justify-between px-5 py-4 border-b border-[#EEDFE3]">
+              <p className="font-display text-lg font-semibold text-[#2F151B]">
                 More
               </p>
               <button
                 onClick={() => setMoreOpen(false)}
-                className="w-8 h-8 rounded-full hover:bg-[#FAF8FC] flex items-center justify-center text-stone-400"
+                className="w-8 h-8 rounded-full hover:bg-[#FCF8F9] flex items-center justify-center text-stone-400"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -595,11 +659,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                     view === "profile"
-                      ? "bg-[#6A1FA0]/8 text-[#6A1FA0] font-medium"
-                      : "text-stone-600 hover:bg-[#FAF8FC]"
+                      ? "bg-[#832138]/8 text-[#832138] font-medium"
+                      : "text-stone-600 hover:bg-[#FCF8F9]"
                   )}
                 >
-                  <div className="w-7 h-7 rounded-full bg-[#6A1FA0] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-[#832138] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
                     {(user?.fullName || "?").charAt(0).toUpperCase()}
                   </div>
                   <span className="flex-1 text-left truncate">{user?.fullName || "My profile"}</span>
@@ -630,8 +694,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             className={cn(
                               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                               active
-                                ? "bg-[#6A1FA0]/8 text-[#6A1FA0] font-medium"
-                                : "text-stone-600 hover:bg-[#FAF8FC]"
+                                ? "bg-[#832138]/8 text-[#832138] font-medium"
+                                : "text-stone-600 hover:bg-[#FCF8F9]"
                             )}
                           >
                             <Icon className="w-[18px] h-[18px]" strokeWidth={1.5} />
@@ -645,13 +709,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 );
               })}
 
-              <div className="mb-3 pt-1 border-t border-[#E6DFEE]">
+              <div className="mb-3 pt-1 border-t border-[#EEDFE3]">
                 <button
                   onClick={() => {
                     setMoreOpen(false);
                     logout();
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-lg text-sm text-stone-500 hover:bg-[#FAF8FC] hover:text-[#6A1FA0] transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-lg text-sm text-stone-500 hover:bg-[#FCF8F9] hover:text-[#832138] transition-colors"
                 >
                   <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
                   <span className="flex-1 text-left">Sign out</span>

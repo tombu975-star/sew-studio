@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSystemAdminSession } from "@/lib/db/session";
 import { createAdminClient } from "@/lib/db/adminClient";
+import { trialEndDate } from "@/lib/plans";
 
 type Ctx = { params: Promise<{ id: string }> };
 type PlanRequestRow = {
@@ -115,8 +116,9 @@ export async function PATCH(req: Request, { params }: Ctx) {
     }
     data.plan = body.plan;
     if (body.plan === "trial" && existing.plan !== "trial") {
-      data.trial_started_at = new Date().toISOString();
-      data.trial_ends_at = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      const trialStart = new Date();
+      data.trial_started_at = trialStart.toISOString();
+      data.trial_ends_at = trialEndDate(trialStart).toISOString();
     }
   }
   if (typeof body.currency === "string" && body.currency.trim()) data.currency = body.currency.trim().toUpperCase();

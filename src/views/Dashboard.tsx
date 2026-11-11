@@ -61,8 +61,7 @@ import type {
 import { useNav } from "@/stores/nav";
 import { useRole } from "@/stores/role";
 import { useAuth } from "@/stores/auth";
-import { getPlanEntitlements } from "@/lib/plans";
-import { GettingStartedDialog } from "@/components/atelier/GettingStartedDialog";
+import { FirstSteps } from "@/components/atelier/FirstSteps";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -142,9 +141,9 @@ const STATUS_CATEGORY_COLOR: Record<string, string> = {
   Enquiry: "text-stone-700",
   Quoted: "text-stone-700",
   Consultation: "text-stone-700",
-  Confirmed: "text-[#571A84]",
-  "Deposit Paid": "text-[#571A84]",
-  "In Production": "text-[#7A4568]",
+  Confirmed: "text-[#6C1C2F]",
+  "Deposit Paid": "text-[#6C1C2F]",
+  "In Production": "text-[#794652]",
   Fitting: "text-[#8A5A2B]",
   Alterations: "text-[#8A5A2B]",
   Ready: "text-[#4A6B53]",
@@ -154,12 +153,12 @@ const STATUS_CATEGORY_COLOR: Record<string, string> = {
 
 /* ---------- gradient avatar palette ---------- */
 const AVATAR_GRADIENTS = [
-  "from-[#6A1FA0] to-[#6A1FA0]",
-  "from-[#483E59] to-[#483E59]",
+  "from-[#832138] to-[#832138]",
+  "from-[#583F45] to-[#583F45]",
   "from-[#8a5a2b] to-[#8a5a2b]",
   "from-[#4d6b4a] to-[#4d6b4a]",
-  "from-[#4F4560] to-[#4F4560]",
-  "from-[#6b3f5e] to-[#6b3f5e]",
+  "from-[#5F464C] to-[#5F464C]",
+  "from-[#6a404a] to-[#6a404a]",
 ];
 
 function avatarGradient(seed: string) {
@@ -453,36 +452,6 @@ function MainDashboard() {
     }
   };
 
-  /* ----- Getting started pop-up (trial plan only) ----- */
-  const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
-  const shop = user?.shop;
-  const shopId = shop?.id;
-  const onActiveTrial =
-    !!shop &&
-    shop.plan === "trial" &&
-    !getPlanEntitlements(shop.plan, shop.trial_ends_at).trialExpired;
-  const ordersCount = m?.orders.length;
-  useEffect(() => {
-    if (!owner || !onActiveTrial || !shopId || ordersCount !== 0) return;
-    let dismissed = false;
-    try {
-      dismissed = localStorage.getItem(`getting-started-dismissed:${shopId}`) === "1";
-    } catch {
-      /* storage unavailable: show it */
-    }
-    if (!dismissed) setGettingStartedOpen(true);
-  }, [owner, onActiveTrial, shopId, ordersCount]);
-  const handleGettingStartedChange = (open: boolean) => {
-    setGettingStartedOpen(open);
-    if (!open && shopId) {
-      try {
-        localStorage.setItem(`getting-started-dismissed:${shopId}`, "1");
-      } catch {
-        /* ignore */
-      }
-    }
-  };
-
   /* ----- loading + error guards ----- */
   if (isLoading || !m) {
     return (
@@ -540,18 +509,50 @@ function MainDashboard() {
     year: "numeric",
   });
 
+  // First-steps state: derived from the studio's real data, so it ticks off
+  // by itself as the owner works.
+  const firstStepsProps = {
+    customersCount: m.customers.length,
+    ordersCount: m.orders.length,
+    hasPayment: data ? data.payments.length > 0 : false,
+    hasMovedOrder: m.orders.some((o) => o.status !== "Enquiry"),
+    firstOrderId: m.orders[0]?.id ?? null,
+    go,
+  };
+  const firstStepsDone =
+    firstStepsProps.customersCount > 0 &&
+    firstStepsProps.ordersCount > 0 &&
+    firstStepsProps.hasPayment &&
+    firstStepsProps.hasMovedOrder;
+
+  // A studio with no orders yet sees only the basics. The full dashboard
+  // appears as soon as the first order exists.
+  if (owner && m.orders.length === 0) {
+    return (
+      <div className="p-5 md:p-8 max-w-[860px] mx-auto w-full">
+        <PageHeader
+          eyebrow={`Welcome · ${today}`}
+          eyebrowIcon={CalendarDays}
+          title={`${ownerLabel}'s Atelier`}
+          subtitle="Start with these four steps. The rest of the tools are there when you need them."
+        />
+        <FirstSteps {...firstStepsProps} className="animate-fade-in-up" />
+      </div>
+    );
+  }
+
   const healthPillClass =
     m.healthStatus === "On Track"
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
       : m.healthStatus === "Needs Attention"
       ? "bg-amber-50 text-amber-700 border-amber-200"
-      : "bg-[#6A1FA0]/10 text-[#6A1FA0] border-[#6A1FA0]/30";
+      : "bg-[#832138]/10 text-[#832138] border-[#832138]/30";
   const healthDotClass =
     m.healthStatus === "On Track"
       ? "bg-emerald-500"
       : m.healthStatus === "Needs Attention"
       ? "bg-amber-500"
-      : "bg-[#6A1FA0]";
+      : "bg-[#832138]";
 
   return (
     <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
@@ -587,15 +588,9 @@ function MainDashboard() {
         }
       />
 
-      <GettingStartedDialog
-        open={gettingStartedOpen}
-        onOpenChange={handleGettingStartedChange}
-        hasCustomers={m.customers.length > 0}
-        onStart={() => {
-          handleGettingStartedChange(false);
-          go(m.customers.length > 0 ? "new-order" : "customers");
-        }}
-      />
+      {owner && !firstStepsDone && (
+        <FirstSteps {...firstStepsProps} className="mb-4 animate-fade-in-up" />
+      )}
 
       {/* ---------- Money row (Madam only) ---------- */}
       {!staff && (
@@ -655,7 +650,7 @@ function MainDashboard() {
               action={
                 <button
                   onClick={() => go("orders")}
-                  className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
+                  className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
                 >
                   View all
                   <ChevronRight className="w-3 h-3" />
@@ -678,9 +673,9 @@ function MainDashboard() {
                     <button
                       key={o.id}
                       onClick={() => go("order", { id: o.id })}
-                      className="text-left shrink-0 w-60 rounded-lg border border-[#E6DFEE] p-4 lift hover:border-[#6A1FA0]/30 transition group bg-white"
+                      className="text-left shrink-0 w-60 rounded-lg border border-[#EEDFE3] p-4 lift hover:border-[#832138]/30 transition group bg-white"
                     >
-                      <p className="text-sm font-medium text-[#1F1430] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#6A1FA0]">
+                      <p className="text-sm font-medium text-[#2F151B] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#832138]">
                         {o.garmentDesign || "Untitled garment"}
                       </p>
                       <p className="text-xs text-stone-400 mt-2">
@@ -702,7 +697,7 @@ function MainDashboard() {
               {m.statusCounts.map(({ status, count }) => (
                 <div
                   key={status}
-                  className="rounded-lg border border-[#E6DFEE] px-3.5 py-3 hover:border-[#6A1FA0]/30 transition-colors bg-[#FFFFFF]"
+                  className="rounded-lg border border-[#EEDFE3] px-3.5 py-3 hover:border-[#832138]/30 transition-colors bg-[#FFFFFF]"
                 >
                   <div
                     className={`font-display text-2xl font-semibold leading-none tabular-nums ${
@@ -725,7 +720,7 @@ function MainDashboard() {
             action={
               <button
                 onClick={() => go("fittings")}
-                className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
               >
                 All fittings
                 <ChevronRight className="w-3 h-3" />
@@ -740,17 +735,17 @@ function MainDashboard() {
                 description="Add one from an order's detail page."
               />
             ) : (
-              <div className="divide-y divide-[#E6DFEE]">
+              <div className="divide-y divide-[#EEDFE3]">
                 {m.upcomingFittings.map((f) => {
                   const order = m.orders.find((o) => o.id === f.orderId);
                   return (
                     <button
                       key={f.id}
                       onClick={() => order && go("order", { id: order.id })}
-                      className="flex items-center justify-between px-5 py-3.5 w-full text-left hover:bg-[#F6EFFB] transition group"
+                      className="flex items-center justify-between px-5 py-3.5 w-full text-left hover:bg-[#FAF0F2] transition group"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#1F1430] group-hover:text-[#6A1FA0] truncate">
+                        <p className="text-sm font-medium text-[#2F151B] group-hover:text-[#832138] truncate">
                           {order?.garmentDesign?.slice(0, 48) || "Order fitting"}
                         </p>
                         <p className="text-xs text-stone-400 mt-0.5">
@@ -775,7 +770,7 @@ function MainDashboard() {
           action={
             <button
               onClick={() => go("tasks")}
-              className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
+              className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
             >
               {staff ? "Open" : "All tasks"}
               <ChevronRight className="w-3 h-3" />
@@ -785,7 +780,7 @@ function MainDashboard() {
         >
           {staff ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="font-display text-6xl font-semibold text-[#6A1FA0] leading-none">
+              <div className="font-display text-6xl font-semibold text-[#832138] leading-none">
                 <AnimatedNumber value={m.openTasks.length} />
               </div>
               <p className="text-xs text-stone-400 mt-3">
@@ -808,11 +803,11 @@ function MainDashboard() {
               description="Add staff in Settings to see workload here."
             />
           ) : (
-            <div className="divide-y divide-[#E6DFEE]">
+            <div className="divide-y divide-[#EEDFE3]">
               {m.staffWorkload.map(({ user, openTasks, activeOrders, capacityPct, overCapacity }) => (
                 <div
                   key={user.id}
-                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F6EFFB] transition"
+                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#FAF0F2] transition"
                 >
                   <div
                     className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(
@@ -822,7 +817,7 @@ function MainDashboard() {
                     {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1F1430] truncate">
+                    <p className="text-sm font-medium text-[#2F151B] truncate">
                       {user.fullName || user.email}
                     </p>
                     <p
@@ -833,17 +828,17 @@ function MainDashboard() {
                       {activeOrders} active order{activeOrders !== 1 ? "s" : ""}
                       {overCapacity ? " — over capacity" : ""}
                     </p>
-                    <div className="mt-1.5 h-1 w-full max-w-[140px] rounded-full bg-[#E6DFEE] overflow-hidden">
+                    <div className="mt-1.5 h-1 w-full max-w-[140px] rounded-full bg-[#EEDFE3] overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
-                          overCapacity ? "bg-[#8E3232]" : "bg-[#6A1FA0]"
+                          overCapacity ? "bg-[#8E3232]" : "bg-[#832138]"
                         }`}
                         style={{ width: `${Math.max(4, capacityPct)}%` }}
                       />
                     </div>
                   </div>
                   <span
-                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#6A1FA0] rounded-full"
+                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#832138] rounded-full"
                     title={`${openTasks} open task${openTasks !== 1 ? "s" : ""}`}
                   >
                     {openTasks}
@@ -866,7 +861,7 @@ function MainDashboard() {
               action={
                 <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
                   Last 6 months · Total{" "}
-                  <span className="text-[#1F1430] font-semibold tabular-nums">
+                  <span className="text-[#2F151B] font-semibold tabular-nums">
                     {formatCurrency(m.totalReceived6m)}
                   </span>
                 </span>
@@ -889,29 +884,29 @@ function MainDashboard() {
                       >
                         <stop
                           offset="0%"
-                          stopColor="#6A1FA0"
+                          stopColor="#832138"
                           stopOpacity={0.35}
                         />
                         <stop
                           offset="100%"
-                          stopColor="#6A1FA0"
+                          stopColor="#832138"
                           stopOpacity={0.02}
                         />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
-                      stroke="#E6DFEE"
+                      stroke="#EEDFE3"
                       strokeDasharray="3 3"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="label"
-                      tick={{ fontSize: 11, fill: "#7B6F8C" }}
-                      axisLine={{ stroke: "#E6DFEE" }}
+                      tick={{ fontSize: 11, fill: "#8B7076" }}
+                      axisLine={{ stroke: "#EEDFE3" }}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 11, fill: "#7B6F8C" }}
+                      tick={{ fontSize: 11, fill: "#8B7076" }}
                       axisLine={false}
                       tickLine={false}
                       width={64}
@@ -925,17 +920,17 @@ function MainDashboard() {
                         "Received",
                       ]}
                       contentStyle={{
-                        border: "1px solid #E6DFEE",
+                        border: "1px solid #EEDFE3",
                         borderRadius: 8,
                         fontSize: 12,
                         background: "#FFFFFF",
                       }}
-                      labelStyle={{ color: "#1F1430", fontWeight: 600 }}
+                      labelStyle={{ color: "#2F151B", fontWeight: 600 }}
                     />
                     <Area
                       type="monotone"
                       dataKey="total"
-                      stroke="#6A1FA0"
+                      stroke="#832138"
                       strokeWidth={2}
                       fill="url(#burgundyGrad)"
                     />
@@ -991,7 +986,7 @@ function MainDashboard() {
                 {m.attentionItems.map((item, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-2.5 text-sm p-2.5 -mx-2.5 rounded-md hover:bg-[#F6EFFB] transition lift"
+                    className="flex items-start gap-2.5 text-sm p-2.5 -mx-2.5 rounded-md hover:bg-[#FAF0F2] transition lift"
                   >
                     <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                     <span className="text-stone-700 leading-snug">{item}</span>
@@ -1005,12 +1000,12 @@ function MainDashboard() {
           <div className="mb-4">
             <SectionCard
               title="AI Trend Suggestions"
-              action={<Sparkles className="w-4 h-4 text-[#6A1FA0]" />}
+              action={<Sparkles className="w-4 h-4 text-[#832138]" />}
             >
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#6A1FA0]/10 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4 text-[#6A1FA0]" />
+                  <div className="w-10 h-10 rounded-full bg-[#832138]/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#832138]" />
                   </div>
                   <p className="text-sm text-stone-600 leading-snug flex-1">
                     Generate AI insights from your studio's recent orders,
@@ -1028,7 +1023,7 @@ function MainDashboard() {
                 </div>
 
                 {insights && insights.length > 0 && (
-                  <ul className="space-y-2.5 border-t border-[#E6DFEE] pt-4">
+                  <ul className="space-y-2.5 border-t border-[#EEDFE3] pt-4">
                     {insights.map((s, i) => (
                       <li
                         key={i}
@@ -1045,7 +1040,7 @@ function MainDashboard() {
                 )}
 
                 {insights && insights.length === 0 && (
-                  <div className="border-t border-[#E6DFEE] pt-4">
+                  <div className="border-t border-[#EEDFE3] pt-4">
                     <EmptyState
                       icon={Sparkles}
                       title="No suggestions returned"
@@ -1063,7 +1058,7 @@ function MainDashboard() {
       {canCreateOrders() && (
         <button
           onClick={() => go("new-order")}
-          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#6A1FA0] text-white flex items-center justify-center shadow-lg hover:bg-[#571A84] transition"
+          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#832138] text-white flex items-center justify-center shadow-lg hover:bg-[#6C1C2F] transition"
           aria-label="New Custom Order"
         >
           <Plus className="w-6 h-6" />
@@ -1087,14 +1082,14 @@ function HealthMetric({
   format: "currency" | "plain";
 }) {
   return (
-    <div className="rounded-lg border border-[#E6DFEE] p-3.5 bg-white hover:border-[#6A1FA0]/20 transition">
+    <div className="rounded-lg border border-[#EEDFE3] p-3.5 bg-white hover:border-[#832138]/20 transition">
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-3.5 h-3.5 text-stone-400" />
         <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
           {label}
         </span>
       </div>
-      <div className="font-display font-semibold text-xl text-[#1F1430] tabular-nums">
+      <div className="font-display font-semibold text-xl text-[#2F151B] tabular-nums">
         <AnimatedNumber value={value} format={format} />
       </div>
     </div>
@@ -1147,7 +1142,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
       action={
         <button
           onClick={() => go("progress")}
-          className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
+          className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
         >
           All trainees
           <ChevronRight className="w-3 h-3" />
@@ -1162,7 +1157,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
           description="Add trainees from the Team view to follow their progress."
         />
       ) : (
-        <div className="divide-y divide-[#E6DFEE]">
+        <div className="divide-y divide-[#EEDFE3]">
           {trainees.map((t) => {
             const stats = perTrainee.get(t.id) ?? {
               total: 0,
@@ -1174,7 +1169,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
               <button
                 key={t.id}
                 onClick={() => go("progress", { id: t.id })}
-                className="flex items-center gap-3 px-5 py-3.5 w-full text-left hover:bg-[#F6EFFB] transition group"
+                className="flex items-center gap-3 px-5 py-3.5 w-full text-left hover:bg-[#FAF0F2] transition group"
               >
                 <div
                   className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(
@@ -1184,7 +1179,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                   {(t.fullName || t.email || "?").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1F1430] truncate group-hover:text-[#6A1FA0] transition-colors">
+                  <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
                     {t.fullName || t.email}
                   </p>
                   <p className="text-[11px] text-stone-400">
@@ -1210,7 +1205,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                     </span>
                   )}
                   {stats.total === 0 && (
-                    <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#6A1FA0] transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#832138] transition-colors" />
                   )}
                 </div>
               </button>
@@ -1391,7 +1386,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("progress")}
-                className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
               >
                 View progress
                 <ChevronRight className="w-3 h-3" />
@@ -1415,17 +1410,17 @@ function TraineeDashboard({ userId }: { userId: string }) {
                 }
               />
             ) : (
-              <div className="divide-y divide-[#E6DFEE]/70">
+              <div className="divide-y divide-[#EEDFE3]/70">
                 {skills.slice(0, 5).map((s) => (
                   <div
                     key={s.skill}
                     className="flex items-center gap-3 px-5 py-3.5"
                   >
-                    <div className="w-8 h-8 rounded-md bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 flex items-center justify-center shrink-0">
-                      <Scissors className="w-3.5 h-3.5 text-[#6A1FA0]" />
+                    <div className="w-8 h-8 rounded-md bg-[#832138]/8 border border-[#832138]/15 flex items-center justify-center shrink-0">
+                      <Scissors className="w-3.5 h-3.5 text-[#832138]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-[#1F1430] truncate">
+                      <div className="text-sm font-medium text-[#2F151B] truncate">
                         {s.skill}
                       </div>
                       <div className="text-[11px] text-stone-400 tabular-nums">
@@ -1453,7 +1448,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("orders")}
-                className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
               >
                 All orders
                 <ChevronRight className="w-3 h-3" />
@@ -1468,16 +1463,16 @@ function TraineeDashboard({ userId }: { userId: string }) {
                 description="When the studio assigns you a garment, it'll appear here for you to follow."
               />
             ) : (
-              <div className="divide-y divide-[#E6DFEE]/70">
+              <div className="divide-y divide-[#EEDFE3]/70">
                 {myOrders.map((o) => {
                   const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
                   return (
                     <button
                       key={o.id}
                       onClick={() => go("order", { id: o.id })}
-                      className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-[#F6EFFB] transition group"
+                      className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-[#FAF0F2] transition group"
                     >
-                      <div className="w-11 h-11 rounded-md overflow-hidden bg-[#F6EFFB] border border-[#E6DFEE] flex items-center justify-center shrink-0">
+                      <div className="w-11 h-11 rounded-md overflow-hidden bg-[#FAF0F2] border border-[#EEDFE3] flex items-center justify-center shrink-0">
                         {o.designImage ? (
                           <img
                             src={o.designImage}
@@ -1489,7 +1484,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-[#1F1430] truncate group-hover:text-[#6A1FA0] transition-colors">
+                        <div className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
                           {o.garmentDesign || "Untitled garment"}
                         </div>
                         <div className="text-[11px] text-stone-400 truncate">
@@ -1521,7 +1516,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("community")}
-                className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
               >
                 Wall
                 <ChevronRight className="w-3 h-3" />
@@ -1545,15 +1540,15 @@ function TraineeDashboard({ userId }: { userId: string }) {
                 }
               />
             ) : (
-              <div className="divide-y divide-[#E6DFEE]/70">
+              <div className="divide-y divide-[#EEDFE3]/70">
                 {recentPosts.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => go("community")}
-                    className="w-full text-left px-5 py-3.5 hover:bg-[#F6EFFB] transition group"
+                    className="w-full text-left px-5 py-3.5 hover:bg-[#FAF0F2] transition group"
                   >
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-[#6A1FA0] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-[#832138] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
                         {(p.authorName || "?").charAt(0).toUpperCase()}
                       </div>
                       <span className="text-[11px] text-stone-500 truncate">
@@ -1564,7 +1559,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                       </span>
                     </div>
                     {p.title && (
-                      <div className="text-sm font-medium text-[#1F1430] truncate group-hover:text-[#6A1FA0] transition-colors">
+                      <div className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
                         {p.title}
                       </div>
                     )}

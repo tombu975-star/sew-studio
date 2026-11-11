@@ -24,11 +24,11 @@ export function PlatformLogin({
   const settings = usePlatformSettings();
   return (
     <main
-      className="h-dvh overflow-hidden bg-[#4A1470] p-0 text-[#1F1430] sm:h-auto sm:min-h-dvh sm:overflow-visible sm:bg-[var(--login-bg)] sm:p-4 lg:p-6"
+      className="h-dvh overflow-hidden bg-[#5C1626] p-0 text-[#2F151B] sm:h-auto sm:min-h-dvh sm:overflow-visible sm:bg-[var(--login-bg)] sm:p-4 lg:p-6"
       style={{ "--login-bg": settings.backgroundColor } as React.CSSProperties}
     >
-      <div className="mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-[#4A1470] sm:bg-[#FAF8FC] sm:h-auto sm:min-h-dvh sm:grid-rows-none sm:rounded-[24px] sm:shadow-[0_24px_80px_rgba(42,15,69,0.12)] lg:min-h-[calc(100dvh-48px)] lg:grid-cols-[1.05fr_.95fr]">
-        <aside className="relative isolate h-[31dvh] max-h-[380px] min-h-[150px] overflow-hidden bg-[#2A0F45] [@media(min-height:760px)]:h-[40dvh] sm:h-auto sm:max-h-none sm:min-h-[340px] lg:min-h-[720px]">
+      <div className="mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-[#5C1626] sm:bg-[#FCF8F9] sm:h-auto sm:min-h-dvh sm:grid-rows-none sm:rounded-[24px] sm:shadow-[0_24px_80px_rgba(57,16,25,0.12)] lg:min-h-[calc(100dvh-48px)] lg:grid-cols-[1.05fr_.95fr]">
+        <aside className="relative isolate h-[31dvh] max-h-[380px] min-h-[150px] overflow-hidden bg-[#391019] [@media(min-height:760px)]:h-[40dvh] sm:h-auto sm:max-h-none sm:min-h-[340px] lg:min-h-[720px]">
           <Image
             src="/atelier-login.jpg"
             alt=""
@@ -37,21 +37,21 @@ export function PlatformLogin({
             sizes="(max-width: 1023px) 100vw, 55vw"
             className="object-cover object-[center_22%] sm:object-[center_38%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#1A0A2B]/55 via-[#2A0F45]/10 to-[#1A0A2B]/75 max-sm:hidden" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#230A10]/55 via-[#391019]/10 to-[#230A10]/75 max-sm:hidden" />
           {/* Phones: red-tinted photo that melts into the panel, like the reference */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#2D0F4A]/45 via-[#4A1470]/55 to-[#4A1470] sm:hidden" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#3D101A]/45 via-[#5C1626]/55 to-[#5C1626] sm:hidden" />
           <svg
             aria-hidden="true"
             viewBox="0 0 390 64"
             preserveAspectRatio="none"
             className="absolute -bottom-px left-0 z-[5] h-9 w-full sm:hidden"
           >
-            <path d="M0 64V30C58 6 128 -2 196 14c66 16 130 34 194 2V64Z" fill="#4A1470" />
+            <path d="M0 64V30C58 6 128 -2 196 14c66 16 130 34 194 2V64Z" fill="#5C1626" />
           </svg>
           <div className="relative z-10 flex flex-col justify-between px-5 py-4 [@media(max-height:700px)]:py-3 text-white sm:min-h-[340px] sm:p-9 lg:min-h-[720px] lg:p-12">
             <header className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-white shadow-[0_4px_14px_rgba(30,8,60,0.25)]">
+                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-white shadow-[0_4px_14px_rgba(49,10,19,0.25)]">
                   <BrandMark size={36} />
                 </span>
                 <div className="min-w-0">
@@ -89,7 +89,7 @@ export function PlatformLogin({
               <BrandLogo width={168} />
             </div>
             {children ?? <LoginPage />}
-            <footer className="mt-4 text-center text-xs leading-relaxed text-white/70 [@media(max-height:700px)]:hidden sm:mt-8 sm:text-[#7A6F8A]">
+            <footer className="mt-4 text-center text-xs leading-relaxed text-white/70 [@media(max-height:700px)]:hidden sm:mt-8 sm:text-[#897076]">
               <p>{settings.loginFooter}</p>
               {settings.releaseNotes && (
                 <p className="mx-auto mt-2 hidden max-w-[360px] sm:block" aria-label="Latest release notes">

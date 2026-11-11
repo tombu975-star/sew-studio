@@ -100,7 +100,8 @@ export default function Customers() {
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [addOpen, setAddOpen] = useState(false);
+  // The first-steps card sends owners here with ?add so the form is already open.
+  const [addOpen, setAddOpen] = useState(() => useNav.getState().params.add === "1");
 
   const { data: customers = [], isLoading } = useQuery<CustomerWithCount[]>({
     queryKey: ["customers"],
@@ -260,12 +261,12 @@ export default function Customers() {
               placeholder="Search by name, phone, or email…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-11 bg-white border-[#E6DFEE] rounded-md"
+              className="pl-9 h-11 bg-white border-[#EEDFE3] rounded-md"
               aria-label="Search customers"
             />
           </div>
           <Select value={sourceFilter} onValueChange={setSourceFilter}>
-            <SelectTrigger className="w-full h-11 bg-white border-[#E6DFEE] rounded-md">
+            <SelectTrigger className="w-full h-11 bg-white border-[#EEDFE3] rounded-md">
               <SelectValue placeholder="Entry source" />
             </SelectTrigger>
             <SelectContent>
@@ -278,7 +279,7 @@ export default function Customers() {
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-full h-11 bg-white border-[#E6DFEE] rounded-md">
+            <SelectTrigger className="w-full h-11 bg-white border-[#EEDFE3] rounded-md">
               <SelectValue placeholder="Client type" />
             </SelectTrigger>
             <SelectContent>
@@ -306,12 +307,12 @@ export default function Customers() {
                 className={
                   "rounded-lg border px-3 py-2 text-xs flex items-center gap-2 transition-all lift " +
                   (sourceFilter === src
-                    ? "border-[#6A1FA0]/40 bg-[#6A1FA0]/5"
-                    : "border-[#E6DFEE] bg-white hover:border-[#6A1FA0]/30")
+                    ? "border-[#832138]/40 bg-[#832138]/5"
+                    : "border-[#EEDFE3] bg-white hover:border-[#832138]/30")
                 }
               >
                 <span className="text-stone-500">{src}</span>
-                <span className="font-semibold text-[#1F1430] tabular-nums">
+                <span className="font-semibold text-[#2F151B] tabular-nums">
                   {count}
                 </span>
               </button>
@@ -375,21 +376,21 @@ export default function Customers() {
         </SectionCard>
       ) : (
         <SectionCard bodyClassName="p-0">
-          <div className="divide-y divide-[#E6DFEE]/70">
+          <div className="divide-y divide-[#EEDFE3]/70">
             {filtered.map((c) => (
               <button
                 key={c.id}
                 onClick={() => go("customer", { id: c.id })}
-                className="group w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[#FAF8FC] transition-all focus:outline-none focus-visible:bg-[#FAF8FC]"
+                className="group w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[#FCF8F9] transition-all focus:outline-none focus-visible:bg-[#FCF8F9]"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-[#6A1FA0] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#832138] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                   aria-hidden
                 >
                   {(c.name || "?").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-[#1F1430] truncate">
+                  <div className="font-medium text-[#2F151B] truncate">
                     {c.name}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
@@ -414,15 +415,15 @@ export default function Customers() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F6EFFB] border border-[#E6DFEE] px-2.5 py-1 text-[11px] text-stone-600">
-                    <span className="font-semibold tabular-nums text-[#1F1430]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FAF0F2] border border-[#EEDFE3] px-2.5 py-1 text-[11px] text-stone-600">
+                    <span className="font-semibold tabular-nums text-[#2F151B]">
                       {c._orderCount}
                     </span>
                     <span className="text-stone-400">
                       {c._orderCount === 1 ? "order" : "orders"}
                     </span>
                   </span>
-                  <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#6A1FA0] transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#832138] transition-colors" />
                 </div>
               </button>
             ))}
@@ -517,7 +518,7 @@ function AddCustomerDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl text-[#1F1430]">
+          <DialogTitle className="font-display text-xl text-[#2F151B]">
             Add New Customer
           </DialogTitle>
           <DialogDescription className="text-stone-500">
@@ -527,7 +528,7 @@ function AddCustomerDialog({
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="c-name" className="text-xs text-stone-600">
-              Name <span className="text-[#6A1FA0]">*</span>
+              Name <span className="text-[#832138]">*</span>
             </Label>
             <Input
               id="c-name"
@@ -662,8 +663,8 @@ function AddCustomerDialog({
                     className={
                       "text-[11px] px-2.5 py-1 rounded-md border transition-all " +
                       (active
-                        ? "bg-[#6A1FA0]/10 border-[#6A1FA0]/40 text-[#6A1FA0]"
-                        : "bg-white border-[#E6DFEE] text-stone-600 hover:border-[#6A1FA0]/30")
+                        ? "bg-[#832138]/10 border-[#832138]/40 text-[#832138]"
+                        : "bg-white border-[#EEDFE3] text-stone-600 hover:border-[#832138]/30")
                     }
                   >
                     {style}

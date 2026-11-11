@@ -226,15 +226,15 @@ export default function Team() {
         subtitle="Manage staff, trainers and the freelancers you commission."
         actions={
           owner ? (
-            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E6DFEE] bg-white pl-2 pr-3 py-1.5 elevate-sm">
-              <span className="w-6 h-6 rounded-full bg-[#6A1FA0] flex items-center justify-center text-white text-[11px] font-display font-semibold">
+            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#EEDFE3] bg-white pl-2 pr-3 py-1.5 elevate-sm">
+              <span className="w-6 h-6 rounded-full bg-[#832138] flex items-center justify-center text-white text-[11px] font-display font-semibold">
                 {initialOf(owner.fullName)}
               </span>
               <div className="leading-tight">
                 <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
                   Owner
                 </div>
-                <div className="text-xs font-medium text-[#1F1430]">
+                <div className="text-xs font-medium text-[#2F151B]">
                   {owner.fullName}
                 </div>
               </div>
@@ -269,22 +269,22 @@ export default function Team() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="bg-white border border-[#E6DFEE] rounded-lg h-auto p-1 overflow-x-auto max-w-full inline-flex w-auto gap-0.5">
+        <TabsList className="bg-white border border-[#EEDFE3] rounded-lg h-auto p-1 overflow-x-auto max-w-full inline-flex w-auto gap-0.5">
           <TabsTrigger
             value="staff"
-            className="rounded-md data-[state=active]:bg-[#6A1FA0] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+            className="rounded-md data-[state=active]:bg-[#832138] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Staff &amp; Trainers
           </TabsTrigger>
           <TabsTrigger
             value="trainees"
-            className="rounded-md data-[state=active]:bg-[#6A1FA0] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+            className="rounded-md data-[state=active]:bg-[#832138] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Trainees
           </TabsTrigger>
           <TabsTrigger
             value="freelancers"
-            className="rounded-md data-[state=active]:bg-[#6A1FA0] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+            className="rounded-md data-[state=active]:bg-[#832138] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Freelancers
           </TabsTrigger>
@@ -380,16 +380,16 @@ export default function Team() {
             </DialogDescription>
           </DialogHeader>
           {createdFreelancerCredentials && (
-            <div className="space-y-3 rounded-lg border border-[#E6DFEE] bg-slate-50 p-4 text-sm">
+            <div className="space-y-3 rounded-lg border border-[#EEDFE3] bg-slate-50 p-4 text-sm">
               <div>
                 <p className="text-xs text-stone-500 mb-1">Login email</p>
-                <p className="font-medium text-[#1F1430] break-all">
+                <p className="font-medium text-[#2F151B] break-all">
                   {createdFreelancerCredentials.email}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-stone-500 mb-1">Initial password</p>
-                <code className="block rounded bg-white border border-[#E6DFEE] p-2 text-[#1F1430] break-all select-all">
+                <code className="block rounded bg-white border border-[#EEDFE3] p-2 text-[#2F151B] break-all select-all">
                   {createdFreelancerCredentials.password}
                 </code>
               </div>
@@ -486,28 +486,28 @@ function StaffTrainersCard({
           }
         />
       ) : (
-        <div className="divide-y divide-[#E6DFEE]/70">
+        <div className="divide-y divide-[#EEDFE3]/70">
           {sorted.map((u) => {
             const isOwner = u.role === "madam";
             const isMe = ownerId === u.id;
             return (
               <div
                 key={u.id}
-                className="group flex items-center gap-4 px-5 py-4 hover:bg-[#FAF8FC] transition-colors"
+                className="group flex items-center gap-4 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-[#6A1FA0] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#832138] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                   aria-hidden
                 >
                   {initialOf(u.fullName)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-[#1F1430] truncate">
+                    <span className="font-medium text-[#2F151B] truncate">
                       {u.fullName}
                     </span>
                     {isOwner && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6A1FA0] bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 px-1.5 py-0.5 rounded-md">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#832138] bg-[#832138]/8 border border-[#832138]/15 px-1.5 py-0.5 rounded-md">
                         <Crown className="w-3 h-3" /> Owner
                       </span>
                     )}
@@ -529,7 +529,7 @@ function StaffTrainersCard({
                       </span>
                     )}
                     {u.gender && (
-                      <span className="inline-flex items-center rounded-md bg-[#F6EFFB] border border-[#E6DFEE] px-1.5 py-0.5 text-[10px] uppercase tracking-[0.14em] text-stone-500">
+                      <span className="inline-flex items-center rounded-md bg-[#FAF0F2] border border-[#EEDFE3] px-1.5 py-0.5 text-[10px] uppercase tracking-[0.14em] text-stone-500">
                         {u.gender}
                       </span>
                     )}
@@ -566,7 +566,7 @@ function StaffTrainersCard({
                       onClick={() => onEdit(u)}
                       aria-label={`Edit details for ${u.fullName}`}
                       title="Edit details"
-                      className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#E6DFEE] bg-white text-xs text-stone-600 hover:text-[#6A1FA0] hover:border-[#6A1FA0]/40 hover:bg-[#F6EFFB] transition-colors"
+                      className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#EEDFE3] bg-white text-xs text-stone-600 hover:text-[#832138] hover:border-[#832138]/40 hover:bg-[#FAF0F2] transition-colors"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">Edit</span>
@@ -656,29 +656,29 @@ function FreelancersCard({
           ) : undefined}
         />
       ) : (
-        <div className="divide-y divide-[#E6DFEE]/70">
+        <div className="divide-y divide-[#EEDFE3]/70">
           {freelancers.map((f) => {
             const SpecialtyIcon =
               SPECIALTY_ICON[f.specialty || "Other"] || Briefcase;
             return (
               <div
                 key={f.linkId}
-                className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FAF8FC] transition-colors"
+                className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-[#6A1FA0] flex items-center justify-center text-white shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#832138] flex items-center justify-center text-white shrink-0 shadow-sm"
                   aria-hidden
                 >
                   <SpecialtyIcon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-[#1F1430] truncate">
+                    <span className="font-medium text-[#2F151B] truncate">
                       {f.name}
                     </span>
                     {f.verified && <VerifiedBadge />}
                     {f.specialty && (
-                      <span className="inline-flex items-center rounded-md bg-[#6A1FA0]/8 text-[#6A1FA0] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] border border-[#6A1FA0]/15">
+                      <span className="inline-flex items-center rounded-md bg-[#832138]/8 text-[#832138] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] border border-[#832138]/15">
                         {f.specialty}
                       </span>
                     )}
@@ -724,7 +724,7 @@ function FreelancersCard({
                   >
                     <SelectTrigger
                       size="sm"
-                      className="w-[130px] bg-white border-[#E6DFEE] rounded-md h-9"
+                      className="w-[130px] bg-white border-[#EEDFE3] rounded-md h-9"
                       disabled={statusMutation.isPending}
                       aria-label={`Change status for ${f.name}`}
                     >
@@ -743,7 +743,7 @@ function FreelancersCard({
                     onClick={() => setEditFreelancer(f)}
                     aria-label={`Working terms for ${f.name}`}
                     title="Edit details"
-                    className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#E6DFEE] bg-white text-xs text-stone-600 hover:text-[#6A1FA0] hover:border-[#6A1FA0]/40 hover:bg-[#F6EFFB] transition-colors"
+                    className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#EEDFE3] bg-white text-xs text-stone-600 hover:text-[#832138] hover:border-[#832138]/40 hover:bg-[#FAF0F2] transition-colors"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Edit</span>
@@ -888,7 +888,7 @@ function TraineesCard({
             }
           />
         ) : (
-          <div className="divide-y divide-[#E6DFEE]/70">
+          <div className="divide-y divide-[#EEDFE3]/70">
             {trainees.map((t) => {
               const s = statsByTrainee.get(t.id);
               const mentorUser = t.mentorId
@@ -909,17 +909,17 @@ function TraineesCard({
               return (
                 <div
                   key={t.id}
-                  className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FAF8FC] transition-colors"
+                  className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
                 >
                   <div
-                    className="w-11 h-11 rounded-full bg-[#6A1FA0] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                    className="w-11 h-11 rounded-full bg-[#832138] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                     aria-hidden
                   >
                     {initialOf(t.fullName)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-[#1F1430] truncate">
+                      <span className="font-medium text-[#2F151B] truncate">
                         {t.fullName}
                       </span>
                       <StatusBadge status="Trainee" />
@@ -988,7 +988,7 @@ function TraineesCard({
                                 <span className="text-stone-300" aria-hidden>
                                   ·
                                 </span>
-                                <span className="inline-flex items-center gap-1 text-[#6A1FA0] font-medium">
+                                <span className="inline-flex items-center gap-1 text-[#832138] font-medium">
                                   <span className="tabular-nums">
                                     Week {weeksElapsed}
                                   </span>
@@ -1019,7 +1019,7 @@ function TraineesCard({
                           aria-label={`${t.fullName} training progress`}
                         >
                           <div
-                            className="h-full bg-[#6A1FA0] rounded-full transition-all duration-500"
+                            className="h-full bg-[#832138] rounded-full transition-all duration-500"
                             style={{
                               width: `${
                                 progressPct === 0 ? 1 : progressPct
@@ -1090,12 +1090,12 @@ function TraineesCard({
                       {(t as any).canAccessOrders || (t as any).canAccessBoard ? (
                         <>
                           {(t as any).canAccessOrders && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#6A1FA0] bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 rounded px-1.5 py-0.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#832138] bg-[#832138]/8 border border-[#832138]/15 rounded px-1.5 py-0.5">
                               <ShoppingBag className="w-2.5 h-2.5" /> Orders
                             </span>
                           )}
                           {(t as any).canAccessBoard && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#6A1FA0] bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 rounded px-1.5 py-0.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#832138] bg-[#832138]/8 border border-[#832138]/15 rounded px-1.5 py-0.5">
                               <LayoutGrid className="w-2.5 h-2.5" /> Board
                             </span>
                           )}
@@ -1241,7 +1241,7 @@ function AddMemberDialog({
                 value={form.fullName}
                 onChange={(e) => set("fullName", e.target.value)}
                 placeholder="e.g. Akosua Mensah"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
                 required
                 autoFocus
               />
@@ -1252,7 +1252,7 @@ function AddMemberDialog({
                 value={form.email}
                 onChange={(e) => set("email", e.target.value)}
                 placeholder="name@studio.com"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
                 required
               />
             </Field>
@@ -1264,7 +1264,7 @@ function AddMemberDialog({
                 value={form.role}
                 onValueChange={(v) => set("role", v)}
               >
-                <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+                <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1281,7 +1281,7 @@ function AddMemberDialog({
                 value={form.gender}
                 onValueChange={(v) => set("gender", v)}
               >
-                <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+                <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1301,7 +1301,7 @@ function AddMemberDialog({
                 value={form.phone}
                 onChange={(e) => set("phone", e.target.value)}
                 placeholder="+233 …"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
               />
             </Field>
             <Field label="Password">
@@ -1309,7 +1309,7 @@ function AddMemberDialog({
                 value={form.password}
                 onChange={(e) => set("password", e.target.value)}
                 placeholder="Leave blank to generate one"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md tabular-nums"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md tabular-nums"
               />
             </Field>
           </div>
@@ -1445,7 +1445,7 @@ function AddTraineeDialog({
                 value={form.fullName}
                 onChange={(e) => set("fullName", e.target.value)}
                 placeholder="e.g. Ama Mensah"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
                 required
                 autoFocus
               />
@@ -1456,7 +1456,7 @@ function AddTraineeDialog({
                 value={form.email}
                 onChange={(e) => set("email", e.target.value)}
                 placeholder="name@studio.com"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
                 required
               />
             </Field>
@@ -1467,7 +1467,7 @@ function AddTraineeDialog({
               value={form.mentorId}
               onValueChange={(v) => set("mentorId", v)}
             >
-              <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+              <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                 <SelectValue placeholder="Assign a mentor" />
               </SelectTrigger>
               <SelectContent>
@@ -1497,7 +1497,7 @@ function AddTraineeDialog({
                 value={form.gender}
                 onValueChange={(v) => set("gender", v)}
               >
-                <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+                <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1514,7 +1514,7 @@ function AddTraineeDialog({
                 value={form.phone}
                 onChange={(e) => set("phone", e.target.value)}
                 placeholder="+233 …"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
               />
             </Field>
           </div>
@@ -1524,7 +1524,7 @@ function AddTraineeDialog({
               value={form.password}
               onChange={(e) => set("password", e.target.value)}
               placeholder="Leave blank to generate one"
-              className="h-10 bg-white border-[#E6DFEE] rounded-md tabular-nums"
+              className="h-10 bg-white border-[#EEDFE3] rounded-md tabular-nums"
             />
           </Field>
           <p className="text-[11px] text-stone-400 -mt-1">
@@ -1640,14 +1640,14 @@ function FreelanceJobsSection({ freelancers }: { freelancers: Freelancer[] }) {
           }
         />
       ) : (
-        <div className="divide-y divide-[#E6DFEE]/70">
+        <div className="divide-y divide-[#EEDFE3]/70">
           {jobs.map((j) => (
             <div
               key={j.id}
-              className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-5 py-3.5 hover:bg-[#FAF8FC] transition-colors"
+              className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-5 py-3.5 hover:bg-[#FCF8F9] transition-colors"
             >
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-[#1F1430] text-sm truncate">
+                <div className="font-medium text-[#2F151B] text-sm truncate">
                   {j.taskDescription}
                 </div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-500 mt-0.5">
@@ -1666,7 +1666,7 @@ function FreelanceJobsSection({ freelancers }: { freelancers: Freelancer[] }) {
               >
                 <SelectTrigger
                   size="sm"
-                  className="w-[140px] bg-white border-[#E6DFEE] rounded-md h-9 shrink-0"
+                  className="w-[140px] bg-white border-[#EEDFE3] rounded-md h-9 shrink-0"
                   disabled={statusMutation.isPending}
                 >
                   <SelectValue />
@@ -1762,7 +1762,7 @@ function AssignJobDialog({
         >
           <Field label="Freelancer" required>
             <Select value={freelancerId} onValueChange={setFreelancerId}>
-              <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+              <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                 <SelectValue placeholder="Choose a freelancer" />
               </SelectTrigger>
               <SelectContent>
@@ -1780,7 +1780,7 @@ function AssignJobDialog({
               value={taskDescription}
               onChange={(e) => setTaskDescription(e.target.value)}
               placeholder="e.g. Bead the bodice for order SW-1042 — floral pattern"
-              className="bg-white border-[#E6DFEE] rounded-md min-h-[70px] resize-y"
+              className="bg-white border-[#EEDFE3] rounded-md min-h-[70px] resize-y"
               required
             />
           </Field>
@@ -1794,7 +1794,7 @@ function AssignJobDialog({
                 value={cost}
                 onChange={(e) => setCost(e.target.value)}
                 placeholder="e.g. 150"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md tabular-nums"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md tabular-nums"
               />
             </Field>
             <Field label="Due date">
@@ -1802,7 +1802,7 @@ function AssignJobDialog({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
               />
             </Field>
           </div>
@@ -1916,7 +1916,7 @@ function AddFreelancerDialog({
                 value={form.name}
                 onChange={(e) => set("name", e.target.value)}
                 placeholder="e.g. Adwoa Beads"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
                 required
                 autoFocus
               />
@@ -1926,7 +1926,7 @@ function AddFreelancerDialog({
                 value={form.specialty}
                 onValueChange={(v) => set("specialty", v)}
               >
-                <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+                <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1945,7 +1945,7 @@ function AddFreelancerDialog({
               value={form.skills}
               onChange={(e) => set("skills", e.target.value)}
               placeholder="Comma-separated, e.g. pearl threading, bead embroidery"
-              className="h-10 bg-white border-[#E6DFEE] rounded-md"
+              className="h-10 bg-white border-[#EEDFE3] rounded-md"
             />
           </Field>
 
@@ -1955,7 +1955,7 @@ function AddFreelancerDialog({
                 value={form.phone}
                 onChange={(e) => set("phone", e.target.value)}
                 placeholder="+233 …"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
               />
             </Field>
             <Field label="Email" required>
@@ -1964,7 +1964,7 @@ function AddFreelancerDialog({
                 value={form.email}
                 onChange={(e) => set("email", e.target.value)}
                 placeholder="name@example.com — used for their login"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
                 required
               />
             </Field>
@@ -1976,7 +1976,7 @@ function AddFreelancerDialog({
               value={form.password}
               onChange={(e) => set("password", e.target.value)}
               placeholder="Leave blank to generate a secure password"
-              className="h-10 bg-white border-[#E6DFEE] rounded-md"
+              className="h-10 bg-white border-[#EEDFE3] rounded-md"
               minLength={8}
               autoComplete="new-password"
             />
@@ -1993,7 +1993,7 @@ function AddFreelancerDialog({
                 value={form.status}
                 onValueChange={(v) => set("status", v)}
               >
-                <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+                <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -2012,7 +2012,7 @@ function AddFreelancerDialog({
               value={form.rateNotes}
               onChange={(e) => set("rateNotes", e.target.value)}
               placeholder="What you pay them, lead time, preferred fabrics, payment terms…"
-              className="bg-white border-[#E6DFEE] rounded-md min-h-[80px] resize-y"
+              className="bg-white border-[#EEDFE3] rounded-md min-h-[80px] resize-y"
             />
           </Field>
 
@@ -2170,7 +2170,7 @@ function EditTraineeDialog({
             <Input
               value={form.fullName}
               onChange={(e) => set("fullName", e.target.value)}
-              className="h-10 bg-white border-[#E6DFEE] rounded-md"
+              className="h-10 bg-white border-[#EEDFE3] rounded-md"
             />
           </Field>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -2179,12 +2179,12 @@ function EditTraineeDialog({
                 value={form.phone}
                 onChange={(e) => set("phone", e.target.value)}
                 placeholder="+233 …"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
               />
             </Field>
             <Field label="Gender">
               <Select value={form.gender || undefined} onValueChange={(v) => set("gender", v)}>
-                <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+                <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2203,7 +2203,7 @@ function EditTraineeDialog({
               value={form.mentorId || UNASSIGNED_MENTOR}
               onValueChange={(v) => set("mentorId", v)}
             >
-              <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+              <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                 <SelectValue placeholder="Unassigned" />
               </SelectTrigger>
               <SelectContent>
@@ -2231,7 +2231,7 @@ function EditTraineeDialog({
               value={form.programId || NO_PROGRAM}
               onValueChange={(v) => set("programId", v)}
             >
-              <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+              <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                 <SelectValue placeholder="Not enrolled" />
               </SelectTrigger>
               <SelectContent>
@@ -2264,7 +2264,7 @@ function EditTraineeDialog({
                 value={form.trainingDurationWeeks}
                 onChange={(e) => set("trainingDurationWeeks", e.target.value)}
                 placeholder="12"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md tabular-nums"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md tabular-nums"
               />
             </Field>
             <Field label="Training started date">
@@ -2272,13 +2272,13 @@ function EditTraineeDialog({
                 type="date"
                 value={form.trainingStartedAt}
                 onChange={(e) => set("trainingStartedAt", e.target.value)}
-                className="h-10 bg-white border-[#E6DFEE] rounded-md tabular-nums"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md tabular-nums"
               />
             </Field>
           </div>
 
-          <div className="rounded-md bg-[#F6EFFB] border border-[#E6DFEE] px-3 py-2.5 flex items-start gap-2">
-            <CalendarDays className="w-3.5 h-3.5 text-[#6A1FA0] shrink-0 mt-0.5" />
+          <div className="rounded-md bg-[#FAF0F2] border border-[#EEDFE3] px-3 py-2.5 flex items-start gap-2">
+            <CalendarDays className="w-3.5 h-3.5 text-[#832138] shrink-0 mt-0.5" />
             <p className="text-[11px] text-stone-500 leading-relaxed">
               The training duration + start date drive the progress bar on the
               trainee&rsquo;s card and the &ldquo;Week X of Y&rdquo; schedule
@@ -2287,16 +2287,16 @@ function EditTraineeDialog({
           </div>
 
           {/* Trainee access permissions */}
-          <div className="rounded-md border border-[#E6DFEE] divide-y divide-[#E6DFEE]">
-            <div className="px-3 py-2 bg-[#FAF8FC] flex items-center gap-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#6A1FA0]" />
+          <div className="rounded-md border border-[#EEDFE3] divide-y divide-[#EEDFE3]">
+            <div className="px-3 py-2 bg-[#FCF8F9] flex items-center gap-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#832138]" />
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
                 Studio access permissions
               </p>
             </div>
             <label className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-[#1F1430] flex items-center gap-1.5">
+                <p className="text-sm font-medium text-[#2F151B] flex items-center gap-1.5">
                   <ShoppingBag className="w-3.5 h-3.5 text-stone-400" />
                   Orders access
                 </p>
@@ -2311,7 +2311,7 @@ function EditTraineeDialog({
             </label>
             <label className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-[#1F1430] flex items-center gap-1.5">
+                <p className="text-sm font-medium text-[#2F151B] flex items-center gap-1.5">
                   <LayoutGrid className="w-3.5 h-3.5 text-stone-400" />
                   Production Board access
                 </p>
@@ -2327,7 +2327,7 @@ function EditTraineeDialog({
             {isOwnerViewer && (
               <label className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#1F1430] flex items-center gap-1.5">
+                  <p className="text-sm font-medium text-[#2F151B] flex items-center gap-1.5">
                     <Briefcase className="w-3.5 h-3.5 text-stone-400" />
                     Freelancer management
                   </p>
@@ -2387,7 +2387,7 @@ function Field({
     <div className="space-y-1.5">
       <Label className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500 flex items-center gap-1">
         {label}
-        {required && <span className="text-[#6A1FA0]">*</span>}
+        {required && <span className="text-[#832138]">*</span>}
       </Label>
       {children}
     </div>
@@ -2462,7 +2462,7 @@ function EditMemberDialog({
             <Input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="h-10 bg-white border-[#E6DFEE] rounded-md"
+              className="h-10 bg-white border-[#EEDFE3] rounded-md"
             />
           </Field>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -2471,12 +2471,12 @@ function EditMemberDialog({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+233 …"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
               />
             </Field>
             <Field label="Gender">
               <Select value={gender || undefined} onValueChange={setGender}>
-                <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+                <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2494,7 +2494,7 @@ function EditMemberDialog({
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
               placeholder="https://…"
-              className="h-10 bg-white border-[#E6DFEE] rounded-md"
+              className="h-10 bg-white border-[#EEDFE3] rounded-md"
             />
           </Field>
           <p className="text-[11px] text-stone-400 -mt-1">
@@ -2573,8 +2573,8 @@ function EditFreelancerDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="rounded-lg border border-[#E6DFEE] bg-[#FAF8FC] p-3 text-sm">
-            <p className="flex flex-wrap items-center gap-2 font-medium text-[#1F1430]">
+          <div className="rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] p-3 text-sm">
+            <p className="flex flex-wrap items-center gap-2 font-medium text-[#2F151B]">
               {freelancer?.name}
               {freelancer?.verified && <VerifiedBadge />}
             </p>
@@ -2588,7 +2588,7 @@ function EditFreelancerDialog({
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Status">
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="h-10 bg-white border-[#E6DFEE] rounded-md w-full">
+                <SelectTrigger className="h-10 bg-white border-[#EEDFE3] rounded-md w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -2605,7 +2605,7 @@ function EditFreelancerDialog({
                 value={rateNotes}
                 onChange={(e) => setRateNotes(e.target.value)}
                 placeholder="e.g. GHS 150 per piece"
-                className="h-10 bg-white border-[#E6DFEE] rounded-md"
+                className="h-10 bg-white border-[#EEDFE3] rounded-md"
               />
             </Field>
           </div>

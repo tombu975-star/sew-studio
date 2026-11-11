@@ -40,7 +40,7 @@ export function renderHtml(subject: string, body: string): string {
   const base = appUrl();
   const logo = base
     ? `<img src="${esc(base)}/brand/sewiness-wordmark.png" alt="Sewiness" width="150" style="display:block;margin:0 0 20px;height:auto" />`
-    : `<p style="margin:0 0 20px;font-size:20px;font-weight:700;color:#4b1566">Sewiness</p>`;
+    : `<p style="margin:0 0 20px;font-size:20px;font-weight:700;color:#541625">Sewiness</p>`;
   const paragraphs = body
     .split(/\n{2,}/)
     .map((p) => p.trim())
@@ -49,12 +49,12 @@ export function renderHtml(subject: string, body: string): string {
       const m = p.match(/^(https?:\/\/\S+)$/);
       if (m) {
         const href = esc(m[1]);
-        return `<p style="margin:22px 0"><a href="${href}" style="background:#4b1566;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;display:inline-block">Open the link</a></p><p style="margin:0;font-size:12px;color:#7B6F8C;word-break:break-all">${href}</p>`;
+        return `<p style="margin:22px 0"><a href="${href}" style="background:#541625;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;display:inline-block">Open the link</a></p><p style="margin:0;font-size:12px;color:#8B7076;word-break:break-all">${href}</p>`;
       }
       return `<p style="margin:0 0 14px;line-height:1.6">${esc(p).replace(/\n/g, "<br>")}</p>`;
     })
     .join("");
-  return `<!doctype html><html><body style="margin:0;padding:24px;background:#f5f3f7;font-family:Arial,Helvetica,sans-serif;color:#2A1F40"><div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px"><title>${esc(subject)}</title>${logo}${paragraphs}</div></body></html>`;
+  return `<!doctype html><html><body style="margin:0;padding:24px;background:#f7f3f4;font-family:Arial,Helvetica,sans-serif;color:#3F2027"><div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px"><title>${esc(subject)}</title>${logo}${paragraphs}</div></body></html>`;
 }
 
 function fromAddress(): string | null {

@@ -446,7 +446,7 @@ export default function Tasks() {
               <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
                 {traineeMode ? "Your average" : "Studio average"}
               </span>
-              <div className="font-display font-semibold text-[#1F1430] leading-none tabular-nums flex items-baseline gap-1">
+              <div className="font-display font-semibold text-[#2F151B] leading-none tabular-nums flex items-baseline gap-1">
                 {avgPct != null ? (
                   <>
                     <span
@@ -475,7 +475,7 @@ export default function Tasks() {
                 <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
                   Graded
                 </span>
-                <div className="font-display font-semibold text-[#1F1430] leading-none tabular-nums flex items-baseline gap-1.5">
+                <div className="font-display font-semibold text-[#2F151B] leading-none tabular-nums flex items-baseline gap-1.5">
                   <span style={{ fontSize: "clamp(28px, 3.5vw, 40px)" }}>
                     <AnimatedNumber value={gradedTasks.length} />
                   </span>
@@ -490,7 +490,7 @@ export default function Tasks() {
               <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
                 {traineeMode ? "Graded assignments" : "Graded assignments"}
               </span>
-              <span className="font-display font-semibold text-[#1F1430] tabular-nums leading-none" style={{ fontSize: "clamp(28px, 3.5vw, 40px)" }}>
+              <span className="font-display font-semibold text-[#2F151B] tabular-nums leading-none" style={{ fontSize: "clamp(28px, 3.5vw, 40px)" }}>
                 <AnimatedNumber value={gradedTasks.length} />
                 <span className="text-sm text-stone-400 font-sans font-normal ml-1">
                   of {filtered.length}
@@ -561,7 +561,7 @@ export default function Tasks() {
       {isError ? (
         <SectionCard title="Error">
           <div className="flex items-center gap-2 text-sm text-stone-500">
-            <AlertCircle className="w-4 h-4 text-[#6A1FA0]" />
+            <AlertCircle className="w-4 h-4 text-[#832138]" />
             Could not load tasks. Please try again.
           </div>
         </SectionCard>
@@ -614,12 +614,12 @@ export default function Tasks() {
                     <Icon
                       className={cn(
                         "w-3.5 h-3.5",
-                        col === "To Do" && "text-[#6A1FA0]",
-                        col === "In Progress" && "text-[#571A84]",
+                        col === "To Do" && "text-[#832138]",
+                        col === "In Progress" && "text-[#6C1C2F]",
                         col === "Done" && "text-[#4A6B53]"
                       )}
                     />
-                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#F6EFFB] border border-[#E6DFEE] text-[10px] font-semibold text-stone-600 tabular-nums">
+                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#FAF0F2] border border-[#EEDFE3] text-[10px] font-semibold text-stone-600 tabular-nums">
                       {count}
                     </span>
                   </div>
@@ -750,7 +750,7 @@ function TaskCard({
   const showAwaiting = isDone && !isGraded;
 
   return (
-    <div className="rounded-lg bg-white border border-[#E6DFEE] p-3.5 elevate-sm lift flex flex-col gap-2.5">
+    <div className="rounded-lg bg-white border border-[#EEDFE3] p-3.5 elevate-sm lift flex flex-col gap-2.5">
       <div className="flex items-start justify-between gap-2">
         <button
           onClick={onClick}
@@ -760,7 +760,7 @@ function TaskCard({
             task.orderId && "hover:underline"
           )}
         >
-          <p className="text-sm font-medium text-[#1F1430] leading-snug">
+          <p className="text-sm font-medium text-[#2F151B] leading-snug">
             {task.title}
           </p>
         </button>
@@ -772,7 +772,7 @@ function TaskCard({
               onClick={onEdit}
               aria-label="Edit task"
               title="Edit task"
-              className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#6A1FA0] hover:bg-[#6A1FA0]/5 transition"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#832138] hover:bg-[#832138]/5 transition"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
@@ -809,7 +809,7 @@ function TaskCard({
         <div className="flex items-center gap-2 min-w-0">
           {showStaff && staffName ? (
             <span className="inline-flex items-center gap-1.5 min-w-0">
-              <span className="w-5 h-5 rounded-full bg-[#6A1FA0]/10 text-[#6A1FA0] text-[10px] font-semibold flex items-center justify-center shrink-0">
+              <span className="w-5 h-5 rounded-full bg-[#832138]/10 text-[#832138] text-[10px] font-semibold flex items-center justify-center shrink-0">
                 {initial}
               </span>
               <span className="text-xs text-stone-500 truncate">
@@ -818,7 +818,7 @@ function TaskCard({
             </span>
           ) : !showStaff ? (
             <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-stone-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#6A1FA0]/40" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#832138]/40" />
               Your assignment
             </span>
           ) : (
@@ -847,7 +847,7 @@ function TaskCard({
 
       {/* Grading area — Done tasks show grade + feedback or "Awaiting grade". */}
       {isDone && isGraded && (
-        <div className="rounded-md bg-[#6A1FA0]/4 border-l-2 border-[#6A1FA0]/30 pl-3 pr-2 py-2 flex flex-col gap-1.5">
+        <div className="rounded-md bg-[#832138]/4 border-l-2 border-[#832138]/30 pl-3 pr-2 py-2 flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <ScoreBadge score={task.score!} max={task.maxScore!} />
             {task.gradedBy && (
@@ -879,7 +879,7 @@ function TaskCard({
       {showAwaiting && (
         <div
           className={cn(
-            "flex items-center gap-2 pt-2 border-t border-[#E6DFEE]/70",
+            "flex items-center gap-2 pt-2 border-t border-[#EEDFE3]/70",
             showGradeControl && "justify-between"
           )}
         >
@@ -902,7 +902,7 @@ function TaskCard({
       )}
 
       {/* Status row */}
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#E6DFEE]/70">
+      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#EEDFE3]/70">
         <span className="text-[10px] uppercase tracking-[0.16em] text-stone-400">
           Status
         </span>
@@ -1022,7 +1022,7 @@ function NewTaskDialog({
     >
       <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md rounded-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display text-[#1F1430]">
+          <DialogTitle className="font-display text-[#2F151B]">
             {editing ? "Edit Task" : "New Task"}
           </DialogTitle>
           <DialogDescription>
@@ -1219,8 +1219,8 @@ function GradeForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="font-display text-[#1F1430] flex items-center gap-2">
-          <span className="w-7 h-7 rounded-full bg-[#6A1FA0]/10 text-[#6A1FA0] flex items-center justify-center">
+        <DialogTitle className="font-display text-[#2F151B] flex items-center gap-2">
+          <span className="w-7 h-7 rounded-full bg-[#832138]/10 text-[#832138] flex items-center justify-center">
             <GraduationCap className="w-4 h-4" />
           </span>
           Grade assignment
@@ -1264,7 +1264,7 @@ function GradeForm({
         </div>
 
         {/* Live percentage + letter grade preview */}
-        <div className="rounded-md bg-[#F6EFFB] border border-[#E6DFEE] px-3 py-2.5 flex items-center justify-between gap-2">
+        <div className="rounded-md bg-[#FAF0F2] border border-[#EEDFE3] px-3 py-2.5 flex items-center justify-between gap-2">
           <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
             Percentage · Grade
           </span>

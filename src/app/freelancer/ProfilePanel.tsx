@@ -10,7 +10,7 @@ import { apiErrorMessage, apiPatch, apiPost } from "@/lib/api";
 import type { FreelancerProfile } from "./types";
 
 const SPECIALTIES = ["Beader", "Embroiderer", "Cutter", "Tailor", "Designer", "Photographer", "Other"];
-const input = "h-10 w-full rounded-md border border-[#DDD3E7] bg-white px-3 text-sm outline-none focus:border-[#6A1FA0] focus:ring-2 focus:ring-[#6A1FA0]/15";
+const input = "h-10 w-full rounded-md border border-[#E6D4D8] bg-white px-3 text-sm outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/15";
 const label = "mb-1 block text-xs font-medium text-stone-500";
 
 export function ProfilePanel({
@@ -69,7 +69,7 @@ export function ProfilePanel({
       <div className="grid gap-4 lg:grid-cols-2">
         <SectionCard>
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold text-[#1F1430]">Public profile</h3>
+            <h3 className="text-sm font-semibold text-[#2F151B]">Public profile</h3>
             {profile.verified ? <VerifiedBadge /> : <span className="text-xs text-amber-700">Email not verified</span>}
           </div>
           <form onSubmit={saveProfile} className="space-y-4">
@@ -94,7 +94,7 @@ export function ProfilePanel({
 
         <div className="space-y-4">
           <SectionCard>
-            <h3 className="mb-4 text-sm font-semibold text-[#1F1430]">Change password</h3>
+            <h3 className="mb-4 text-sm font-semibold text-[#2F151B]">Change password</h3>
             <form onSubmit={changePassword} className="space-y-3">
               <input type="password" className={input} placeholder="Current password" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} />
               <input type="password" className={input} placeholder="New password (8+ characters)" autoComplete="new-password" minLength={8} required value={next} onChange={(e) => setNext(e.target.value)} />

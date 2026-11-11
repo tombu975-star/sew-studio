@@ -52,7 +52,7 @@ export function ImageUpload({
         disabled={busy}
         aria-label={label}
         className={cn(
-          "relative shrink-0 overflow-hidden rounded-xl border border-dashed border-[#E3CFF2] bg-[#F6EFFB] flex items-center justify-center text-stone-400 hover:border-[#6A1FA0]/50 hover:text-[#6A1FA0] transition-colors",
+          "relative shrink-0 overflow-hidden rounded-xl border border-dashed border-[#F0D1D8] bg-[#FAF0F2] flex items-center justify-center text-stone-400 hover:border-[#832138]/50 hover:text-[#832138] transition-colors",
           shape === "wide" ? "h-28 w-40" : "size-24"
         )}
       >
@@ -64,7 +64,7 @@ export function ImageUpload({
         )}
         {busy && (
           <span className="absolute inset-0 flex items-center justify-center bg-white/70">
-            <Loader2 className="size-5 animate-spin text-[#6A1FA0]" />
+            <Loader2 className="size-5 animate-spin text-[#832138]" />
           </span>
         )}
       </button>
@@ -74,7 +74,7 @@ export function ImageUpload({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-md border border-[#E6DFEE] bg-white px-3 py-1.5 text-xs font-medium text-[#1F1430] hover:border-[#6A1FA0]/40 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md border border-[#EEDFE3] bg-white px-3 py-1.5 text-xs font-medium text-[#2F151B] hover:border-[#832138]/40 disabled:opacity-50"
           >
             <Upload className="size-3.5" /> {value ? "Change" : label}
           </button>

@@ -82,11 +82,11 @@ function initialOf(name: string): string {
 function gradientFor(name: string): string {
   // Deterministic burgundy-leaning gradient avatar.
   const palettes = [
-    "from-[#6A1FA0] to-[#571A84]",
-    "from-[#6A1FA0] to-[#b45309]",
-    "from-[#571A84] to-[#0e7490]",
-    "from-[#6A1FA0] to-[#4A6B53]",
-    "from-[#571A84] to-[#6A1FA0]",
+    "from-[#832138] to-[#6C1C2F]",
+    "from-[#832138] to-[#b45309]",
+    "from-[#6C1C2F] to-[#0e7490]",
+    "from-[#832138] to-[#4A6B53]",
+    "from-[#6C1C2F] to-[#832138]",
   ];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
@@ -241,7 +241,7 @@ function OwnerCertificate() {
         subtitle="Issue and print official apprenticeship completion certificates."
         actions={
           user ? (
-            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E6DFEE] bg-white pl-2 pr-3 py-1.5 elevate-sm">
+            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#EEDFE3] bg-white pl-2 pr-3 py-1.5 elevate-sm">
               <span
                 className={cn(
                   "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-display font-semibold",
@@ -254,7 +254,7 @@ function OwnerCertificate() {
                 <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
                   {user.role === "trainer" ? "Trainer" : "Owner"}
                 </div>
-                <div className="text-xs font-medium text-[#1F1430]">
+                <div className="text-xs font-medium text-[#2F151B]">
                   {user.fullName}
                 </div>
               </div>
@@ -339,8 +339,8 @@ function OwnerCertificate() {
                     className={cn(
                       "group shrink-0 flex items-center gap-3 rounded-xl border px-3 py-2 transition-all duration-200",
                       active
-                        ? "bg-[#6A1FA0] border-[#571A84] text-white"
-                        : "bg-white border-[#E6DFEE] text-[#1F1430] hover:border-[#6A1FA0]/30 hover:bg-[#FAF8FC] elevate-sm lift"
+                        ? "bg-[#832138] border-[#6C1C2F] text-white"
+                        : "bg-white border-[#EEDFE3] text-[#2F151B] hover:border-[#832138]/30 hover:bg-[#FCF8F9] elevate-sm lift"
                     )}
                   >
                     <span
@@ -414,7 +414,7 @@ function SelectedTraineeHeader({
   onClear: () => void;
 }) {
   return (
-    <div className="surface-premium border border-[#E6DFEE] rounded-lg elevate-sm lift p-5 mb-6 flex items-center gap-4 animate-fade-in-up no-print">
+    <div className="surface-premium border border-[#EEDFE3] rounded-lg elevate-sm lift p-5 mb-6 flex items-center gap-4 animate-fade-in-up no-print">
       <div
         className={cn(
           "w-14 h-14 rounded-full bg-gradient-to-br flex items-center justify-center text-white font-display font-semibold text-xl shrink-0 shadow-sm",
@@ -426,7 +426,7 @@ function SelectedTraineeHeader({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <h2 className="font-display font-semibold text-[#1F1430] text-xl leading-tight">
+          <h2 className="font-display font-semibold text-[#2F151B] text-xl leading-tight">
             {trainee.fullName}
           </h2>
           <StatusBadge status="Trainee" />
@@ -544,7 +544,7 @@ function CertificateForTrainee({
               <AlertDialogTitle>Revoke this certificate?</AlertDialogTitle>
               <AlertDialogDescription>
                 This will permanently remove{" "}
-                <span className="font-medium text-[#1F1430]">
+                <span className="font-medium text-[#2F151B]">
                   {cert.trainee?.fullName}
                 </span>
                 &apos;s certificate ({cert.certificateNo}). This action cannot
@@ -639,7 +639,7 @@ function IssuePanel({
             {initialOf(trainee.fullName)}
           </div>
           <div>
-            <div className="font-display font-semibold text-[#1F1430] text-lg leading-tight">
+            <div className="font-display font-semibold text-[#2F151B] text-lg leading-tight">
               {trainee.fullName}
             </div>
             <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400 mt-1">
@@ -665,12 +665,12 @@ function IssuePanel({
 
       <Separator className="my-5" />
 
-      <div className="rounded-lg border border-[#E6DFEE] bg-[#FAF8FC] p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-        <div className="w-9 h-9 rounded-full bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 flex items-center justify-center shrink-0">
-          <GraduationCap className="w-4 h-4 text-[#6A1FA0]" />
+      <div className="rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="w-9 h-9 rounded-full bg-[#832138]/8 border border-[#832138]/15 flex items-center justify-center shrink-0">
+          <GraduationCap className="w-4 h-4 text-[#832138]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-[#1F1430]">
+          <p className="text-sm font-medium text-[#2F151B]">
             Ready to issue {trainee.fullName.split(" ")[0]}&apos;s certificate?
           </p>
           <p className="text-xs text-stone-500 mt-0.5">
@@ -711,14 +711,14 @@ function SummaryStat({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-[#E6DFEE] bg-white p-3">
+    <div className="rounded-lg border border-[#EEDFE3] bg-white p-3">
       <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
         {label}
       </div>
       <div
         className={cn(
           "mt-1 font-display font-semibold tabular-nums",
-          accent ? "text-[#6A1FA0]" : "text-[#1F1430]",
+          accent ? "text-[#832138]" : "text-[#2F151B]",
           "text-2xl"
         )}
       >
@@ -786,13 +786,13 @@ function IssueDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg no-print">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl text-[#1F1430] flex items-center gap-2">
-            <Award className="w-5 h-5 text-[#6A1FA0]" />
+          <DialogTitle className="font-display text-xl text-[#2F151B] flex items-center gap-2">
+            <Award className="w-5 h-5 text-[#832138]" />
             Issue certificate
           </DialogTitle>
           <p className="text-xs text-stone-500 -mt-1">
             For{" "}
-            <span className="font-medium text-[#1F1430]">
+            <span className="font-medium text-[#2F151B]">
               {trainee.fullName}
             </span>{" "}
             · issued by you ({issuerId ? "you" : "—"}).
@@ -867,7 +867,7 @@ function IssueDialog({
               <button
                 type="button"
                 onClick={() => setSkillsAchieved(prefilledSkills)}
-                className="text-[11px] text-[#6A1FA0] hover:underline"
+                className="text-[11px] text-[#832138] hover:underline"
               >
                 Reset to proficient skills
               </button>
@@ -952,7 +952,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
 
   return (
     <div
-      className="cert-card bg-white border-4 border-[#6A1FA0] rounded-lg elevate-lg relative overflow-hidden mx-auto"
+      className="cert-card bg-white border-4 border-[#832138] rounded-lg elevate-lg relative overflow-hidden mx-auto"
       style={{
         maxWidth: "920px",
         minHeight: "640px",
@@ -961,7 +961,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
     >
       {/* Inner border ornament */}
       <div
-        className="absolute inset-3 border border-[#6A1FA0]/25 rounded-md pointer-events-none"
+        className="absolute inset-3 border border-[#832138]/25 rounded-md pointer-events-none"
         aria-hidden
       />
       {/* Subtle background flourish */}
@@ -969,7 +969,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         className="absolute inset-0 pointer-events-none opacity-[0.04]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 50% 18%, #6A1FA0 0%, transparent 45%)",
+            "radial-gradient(circle at 50% 18%, #832138 0%, transparent 45%)",
         }}
         aria-hidden
       />
@@ -984,7 +984,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         <Scissors
           key={pos}
           className={cn(
-            "absolute w-4 h-4 text-[#6A1FA0]/30 pointer-events-none",
+            "absolute w-4 h-4 text-[#832138]/30 pointer-events-none",
             pos
           )}
           aria-hidden
@@ -995,11 +995,11 @@ function CertificateCard({ cert }: { cert: Certificate }) {
       <div className="relative z-10 flex flex-col items-center text-center h-full">
         {/* Studio mark */}
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full border-2 border-[#6A1FA0] flex items-center justify-center bg-white">
-            <Scissors className="w-5 h-5 text-[#6A1FA0]" />
+          <div className="w-12 h-12 rounded-full border-2 border-[#832138] flex items-center justify-center bg-white">
+            <Scissors className="w-5 h-5 text-[#832138]" />
           </div>
           <div
-            className="font-display font-semibold text-[#1F1430] mt-2.5"
+            className="font-display font-semibold text-[#2F151B] mt-2.5"
             style={{ fontSize: "clamp(20px, 2.4vw, 26px)" }}
           >
             Madam Studio
@@ -1012,7 +1012,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         {/* Title block */}
         <div className="mt-8 sm:mt-10">
           <h1
-            className="font-display font-semibold text-[#6A1FA0] leading-[1.05]"
+            className="font-display font-semibold text-[#832138] leading-[1.05]"
             style={{ fontSize: "clamp(30px, 4.2vw, 48px)" }}
           >
             Certificate of Apprenticeship
@@ -1025,12 +1025,12 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         {/* Trainee name */}
         <div className="mt-5 sm:mt-6">
           <div
-            className="font-display font-semibold text-[#1F1430] leading-tight"
+            className="font-display font-semibold text-[#2F151B] leading-tight"
             style={{ fontSize: "clamp(24px, 3.2vw, 38px)" }}
           >
             {cert.trainee?.fullName ?? "Trainee"}
           </div>
-          <div className="w-48 h-px bg-[#6A1FA0]/40 mx-auto mt-2" />
+          <div className="w-48 h-px bg-[#832138]/40 mx-auto mt-2" />
         </div>
 
         {/* Body */}
@@ -1039,16 +1039,16 @@ function CertificateCard({ cert }: { cert: Certificate }) {
           style={{ fontSize: "clamp(13px, 1.1vw, 15px)", lineHeight: 1.7 }}
         >
           has successfully completed the{" "}
-          <span className="italic text-[#6A1FA0] font-medium">
+          <span className="italic text-[#832138] font-medium">
             {cert.programName}
           </span>
           , a{" "}
-          <span className="tabular-nums font-medium text-[#1F1430]">
+          <span className="tabular-nums font-medium text-[#2F151B]">
             {cert.durationWeeks}
           </span>
           -week apprenticeship programme in bespoke tailoring and design.
           {honorsText && (
-            <span className="block mt-2 font-medium text-[#6A1FA0]">
+            <span className="block mt-2 font-medium text-[#832138]">
               {honorsText}
             </span>
           )}
@@ -1064,7 +1064,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
               {skills.map((s) => (
                 <span
                   key={s}
-                  className="inline-flex items-center gap-1 rounded-md border border-[#6A1FA0]/20 bg-[#6A1FA0]/5 text-[#6A1FA0] px-2.5 py-1 text-xs"
+                  className="inline-flex items-center gap-1 rounded-md border border-[#832138]/20 bg-[#832138]/5 text-[#832138] px-2.5 py-1 text-xs"
                 >
                   <Check className="w-3 h-3 opacity-70" />
                   {s}
@@ -1082,9 +1082,9 @@ function CertificateCard({ cert }: { cert: Certificate }) {
               <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500 mb-2">
                 Issued by
               </div>
-              <div className="h-px bg-[#1F1430]/40 w-full max-w-[180px] mb-1.5" />
+              <div className="h-px bg-[#2F151B]/40 w-full max-w-[180px] mb-1.5" />
               <div
-                className="font-display font-semibold text-[#1F1430] leading-tight"
+                className="font-display font-semibold text-[#2F151B] leading-tight"
                 style={{ fontSize: "clamp(13px, 1.1vw, 16px)" }}
               >
                 {cert.issuedBy?.fullName ?? "—"}
@@ -1097,19 +1097,19 @@ function CertificateCard({ cert }: { cert: Certificate }) {
             {/* Faux seal */}
             <div className="flex flex-col items-center">
               <div
-                className="w-20 h-20 rounded-full border-2 border-[#6A1FA0] flex items-center justify-center bg-white relative"
+                className="w-20 h-20 rounded-full border-2 border-[#832138] flex items-center justify-center bg-white relative"
                 style={{ transform: "rotate(-6deg)" }}
                 aria-hidden
               >
-                <div className="absolute inset-1 rounded-full border border-[#6A1FA0]/30" />
+                <div className="absolute inset-1 rounded-full border border-[#832138]/30" />
                 <div className="flex flex-col items-center">
                   <span
-                    className="font-display font-semibold text-[#6A1FA0] leading-none"
+                    className="font-display font-semibold text-[#832138] leading-none"
                     style={{ fontSize: "clamp(16px, 1.8vw, 20px)" }}
                   >
                     MS
                   </span>
-                  <span className="text-[8px] uppercase tracking-[0.16em] text-[#6A1FA0]/70 mt-0.5">
+                  <span className="text-[8px] uppercase tracking-[0.16em] text-[#832138]/70 mt-0.5">
                     {year}
                   </span>
                 </div>
@@ -1121,8 +1121,8 @@ function CertificateCard({ cert }: { cert: Certificate }) {
               <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500 mb-2">
                 Certificate No.
               </div>
-              <div className="h-px bg-[#1F1430]/40 w-full max-w-[180px] ml-auto mb-1.5" />
-              <div className="font-mono text-[#1F1430] text-xs sm:text-sm tabular-nums break-all">
+              <div className="h-px bg-[#2F151B]/40 w-full max-w-[180px] ml-auto mb-1.5" />
+              <div className="font-mono text-[#2F151B] text-xs sm:text-sm tabular-nums break-all">
                 {cert.certificateNo}
               </div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mt-0.5">

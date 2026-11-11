@@ -6,3 +6,6 @@ Sewiness brand files
 - `sewiness-wordmark.png` the full logo with the name, used on the sign-in page.
 
 To change the logo later, replace these files and run `npm run icons`.
+
+Brand colour: burgundy. The main brand red is #832138 (hover #6C1C2F, sidebar #391019). The logo, icons,
+app theme and the platform colour settings all use it. If the logo is ever replaced, run `npm run icons`.

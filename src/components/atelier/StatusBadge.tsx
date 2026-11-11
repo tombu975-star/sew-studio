@@ -11,12 +11,12 @@ import { cn } from "@/lib/utils";
  * alteration flag · positive · final · financial.
  */
 const HUE = {
-  neutral: "#6B6178", // tailor's slate — not yet started / low priority
+  neutral: "#776267", // tailor's slate — not yet started / low priority
   pending: "#B45309", // warm amber — awaiting action, scheduled, learning
   info: "#2F5FC4", // blue — early-stage, informational
-  progress: "#6A1FA0", // brand plum — confirmed, actively underway
+  progress: "#832138", // brand burgundy — confirmed, actively underway
   active: "#2E7D4F", // green — active / available
-  alteration: "#8E3232", // vintage crimson — the spec's "Alteration Flag /
+  alteration: "#D4472A", // vermilion (kept clearly apart from the burgundy brand colour) — the spec's "Alteration Flag /
   // Urgent": needs hands-on rework, rejected, declined.
   positive: "#4A6B53", // sage olive — the spec's "Ready for Review / Completed".
   final: "#2F6B63", // deep teal — delivered / completed milestone.

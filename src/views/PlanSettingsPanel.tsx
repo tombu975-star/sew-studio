@@ -75,9 +75,9 @@ export function PlanSettingsPanel() {
     <div className="space-y-5">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[.14em] text-[#8E3232]">Studio plan</p>
-        <h2 className="mt-1 font-display text-xl font-semibold text-[#1F1430]">Choose the right space to grow</h2>
+        <h2 className="mt-1 font-display text-xl font-semibold text-[#2F151B]">Try everything, then choose your plan</h2>
         <p className="mt-1 max-w-2xl text-sm leading-relaxed text-stone-500">
-          Your plan controls the tools and team size available to this studio. Request an upgrade and our team will follow up to activate it.
+          Your two-month trial includes every Pro and Enterprise feature so you can see the whole app. When it ends, choose Pro or Enterprise to carry on. Send a request and our team will follow up to activate it.
         </p>
       </div>
 
@@ -89,12 +89,12 @@ export function PlanSettingsPanel() {
             </span>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Current plan</p>
-              <p className="mt-0.5 text-lg font-semibold capitalize text-[#1F1430]">{data.plan}</p>
+              <p className="mt-0.5 text-lg font-semibold capitalize text-[#2F151B]">{data.plan}</p>
               <p className="mt-1 text-sm text-stone-500">
                 {data.plan === "trial"
                   ? data.trialExpired
-                    ? "Your trial has ended. Your studio is in read-only mode; your data is safe."
-                    : `${data.daysRemaining} ${data.daysRemaining === 1 ? "day" : "days"} left in your 14-day trial.`
+                    ? "Your two-month trial has ended. Your studio is in read-only mode and your data is safe. Choose Pro or Enterprise to carry on."
+                    : `${data.daysRemaining} ${data.daysRemaining === 1 ? "day" : "days"} left in your two-month trial, with every Pro and Enterprise feature included.`
                   : PLANS[data.plan].summary}
               </p>
             </div>
@@ -104,7 +104,7 @@ export function PlanSettingsPanel() {
               <UsersRound className="size-4" />
               Studio members
             </div>
-            <p className="font-semibold text-[#1F1430]">
+            <p className="font-semibold text-[#2F151B]">
               {data.memberCount}
               <span className="font-normal text-stone-500">
                 {data.maxMembers === null ? " · unlimited" : ` / ${data.maxMembers}`}
@@ -115,8 +115,9 @@ export function PlanSettingsPanel() {
         {data.plan === "trial" && data.trialEndsAt && (
           <div className="flex items-center gap-2 border-t border-stone-100 bg-stone-50/70 px-5 py-3 text-xs text-stone-500">
             <Clock3 className="size-4 shrink-0" />
-            Trial ends {new Date(data.trialEndsAt).toLocaleDateString(undefined, { dateStyle: "long" })}.
-            After that, existing data stays available to view, but changes are paused until upgrade.
+            Your trial started {new Date(data.trialStartedAt).toLocaleDateString(undefined, { dateStyle: "long" })} and ends{" "}
+            {new Date(data.trialEndsAt).toLocaleDateString(undefined, { dateStyle: "long" })}.
+            After that, choose Pro or Enterprise to carry on. Until you do, your data stays available to view but changes are paused.
           </div>
         )}
       </SectionCard>
@@ -164,7 +165,7 @@ export function PlanSettingsPanel() {
                 </span>
               )}
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-base font-semibold text-[#1F1430]">{plan.name}</h3>
+                <h3 className="text-base font-semibold text-[#2F151B]">{plan.name}</h3>
                 {isCurrent && (
                   <span className="rounded-full bg-[#8E3232]/10 px-2 py-1 text-[10px] font-semibold text-[#8E3232]">
                     Your plan

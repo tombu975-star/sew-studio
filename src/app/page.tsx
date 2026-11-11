@@ -28,6 +28,7 @@ const Fittings = dynamic(() => import("@/views/Fittings").then((m) => m.default)
 const Tasks = dynamic(() => import("@/views/Tasks").then((m) => m.default), { ssr: false });
 const StyleAssist = dynamic(() => import("@/views/StyleAssist").then((m) => m.default), { ssr: false });
 const QuickQuote = dynamic(() => import("@/views/QuickQuote").then((m) => m.default), { ssr: false });
+const TrueCosting = dynamic(() => import("@/views/TrueCosting").then((m) => m.default), { ssr: false });
 const Team = dynamic(() => import("@/views/Team").then((m) => m.default), { ssr: false });
 const Community = dynamic(() => import("@/views/Community").then((m) => m.default), { ssr: false });
 const Progress = dynamic(() => import("@/views/Progress").then((m) => m.default), { ssr: false });
@@ -95,6 +96,7 @@ function CurrentView() {
     case "tasks": return <Tasks />;
     case "style-assist": return <StyleAssist />;
     case "quote": return <QuickQuote />;
+    case "costing": return <TrueCosting />;
     case "team": return <Team />;
     case "community": return <Community />;
     case "progress": return <Progress />;
@@ -117,11 +119,11 @@ function GuardView({ view, children }: { view: "orders" | "board"; children: Rea
   if (isTrainee && !permitted) {
     return (
       <div className="p-5 md:p-8 max-w-md mx-auto w-full">
-        <div className="surface-premium border border-[#E6DFEE] rounded-lg elevate-sm p-8 text-center">
-          <div className="w-14 h-14 rounded-full bg-[#6A1FA0]/8 flex items-center justify-center mx-auto mb-4"><Lock className="w-6 h-6 text-[#6A1FA0]" /></div>
-          <h2 className="font-display text-xl font-semibold text-[#1F1430]">Access not yet granted</h2>
+        <div className="surface-premium border border-[#EEDFE3] rounded-lg elevate-sm p-8 text-center">
+          <div className="w-14 h-14 rounded-full bg-[#832138]/8 flex items-center justify-center mx-auto mb-4"><Lock className="w-6 h-6 text-[#832138]" /></div>
+          <h2 className="font-display text-xl font-semibold text-[#2F151B]">Access not yet granted</h2>
           <p className="text-sm text-stone-500 mt-2 leading-relaxed">Your trainer hasn&apos;t granted you access to {view === "orders" ? "Orders" : "the Production Board"} yet. Once they feel you&apos;re ready, they&apos;ll unlock it for you.</p>
-          <button onClick={() => go("dashboard")} className="mt-5 inline-flex items-center gap-2 px-4 py-2 bg-[#6A1FA0] text-white text-sm font-medium rounded-md hover:bg-[#571A84] transition">Back to dashboard</button>
+          <button onClick={() => go("dashboard")} className="mt-5 inline-flex items-center gap-2 px-4 py-2 bg-[#832138] text-white text-sm font-medium rounded-md hover:bg-[#6C1C2F] transition">Back to dashboard</button>
         </div>
       </div>
     );
@@ -131,9 +133,9 @@ function GuardView({ view, children }: { view: "orders" | "board"; children: Rea
 
 function FullScreenLoader() {
   return (
-    <div role="status" aria-label="Loading" className="min-h-dvh flex flex-col items-center justify-center bg-[#FAF8FC]">
+    <div role="status" aria-label="Loading" className="min-h-dvh flex flex-col items-center justify-center bg-[#FCF8F9]">
       <BrandMark size={64} />
-      <div className="mt-6 h-0.5 w-24 overflow-hidden rounded-full bg-[#E6DFEE]"><div className="h-full w-1/2 animate-[loader-slide_1.1s_ease-in-out_infinite] rounded-full bg-[#6A1FA0]" /></div>
+      <div className="mt-6 h-0.5 w-24 overflow-hidden rounded-full bg-[#EEDFE3]"><div className="h-full w-1/2 animate-[loader-slide_1.1s_ease-in-out_infinite] rounded-full bg-[#832138]" /></div>
     </div>
   );
 }

@@ -90,6 +90,15 @@ export async function POST(req: NextRequest) {
     selling_price: Number(body.sellingPrice) || 0,
     fabric_cost: Number(body.fabricCost) || 0,
     labour_cost: Number(body.labourCost) || 0,
+    other_cost: Math.max(0, Number(body.otherCost) || 0),
+    markup_percent:
+      body.markupPercent === undefined || body.markupPercent === null || body.markupPercent === ""
+        ? null
+        : Math.min(1000, Math.max(0, Number(body.markupPercent) || 0)),
+    suggested_price:
+      body.suggestedPrice === undefined || body.suggestedPrice === null || body.suggestedPrice === ""
+        ? null
+        : Math.max(0, Number(body.suggestedPrice) || 0),
     notes: body.notes || null,
     priority: body.priority || "Medium",
   };

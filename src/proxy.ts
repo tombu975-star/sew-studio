@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getPool } from "@/lib/db/pool";
 import { menuForApiPath, menuForPagePath } from "@/lib/menu-config";
-import { getPlanEntitlements } from "@/lib/plans";
+import { getPlanEntitlements, requiredPlanForFeature } from "@/lib/plans";
 
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -49,7 +49,7 @@ export async function proxy(request: NextRequest) {
           const access = getPlanEntitlements(shop.plan, shop.trial_ends_at);
           if (menuKey && !access.features.includes(menuKey)) {
             return NextResponse.json(
-              { error: `This feature is available on the ${access.plan === "trial" ? "Pro" : "Enterprise"} plan.` },
+              { error: `This feature is available on the ${requiredPlanForFeature(menuKey) === "pro" ? "Pro" : "Enterprise"} plan.` },
               { status: 403 }
             );
           }

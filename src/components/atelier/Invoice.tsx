@@ -22,7 +22,7 @@ const PAY_LABEL: Record<PayState, string> = {
 const PAY_STYLE: Record<PayState, string> = {
   paid: "border-emerald-600 text-emerald-700",
   part: "border-amber-600 text-amber-700",
-  unpaid: "border-[#6A1FA0] text-[#6A1FA0]",
+  unpaid: "border-[#832138] text-[#832138]",
 };
 
 /**
@@ -62,17 +62,17 @@ export function Invoice({
 
   return (
     <article
-      className="invoice-sheet w-full bg-white border border-[#E6DFEE] rounded-lg overflow-hidden"
+      className="invoice-sheet w-full bg-white border border-[#EEDFE3] rounded-lg overflow-hidden"
       aria-label={`Invoice ${invoiceNumber(order, settings?.invoicePrefix)}`}
     >
       {/* Accent rule */}
-      <div className="h-1.5 bg-[#6A1FA0]" />
+      <div className="h-1.5 bg-[#832138]" />
 
       <div className="p-5 sm:p-8 md:p-10">
         {/* Letterhead */}
         <div className="grid gap-6 sm:grid-cols-2 sm:gap-8">
           <div className="min-w-0">
-            <h2 className="font-display text-2xl sm:text-[28px] font-semibold leading-tight text-[#1F1430] break-words">
+            <h2 className="font-display text-2xl sm:text-[28px] font-semibold leading-tight text-[#2F151B] break-words">
               {studio}
             </h2>
             <address className="mt-2 not-italic text-[12px] leading-relaxed text-stone-500 space-y-0.5">
@@ -87,31 +87,31 @@ export function Invoice({
             <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-stone-400">
               Invoice
             </div>
-            <div className="mt-1 font-display text-2xl font-semibold tabular-nums text-[#1F1430] break-all">
+            <div className="mt-1 font-display text-2xl font-semibold tabular-nums text-[#2F151B] break-all">
               {invoiceNumber(order, settings?.invoicePrefix)}
             </div>
             <dl className="mt-3 grid grid-cols-[auto_1fr] sm:inline-grid gap-x-4 gap-y-1 text-[12px] sm:text-left">
               <dt className="text-stone-400">Issued</dt>
-              <dd className="text-[#1F1430] font-medium tabular-nums sm:text-right">
+              <dd className="text-[#2F151B] font-medium tabular-nums sm:text-right">
                 {formatDate(order.orderDate)}
               </dd>
               <dt className="text-stone-400">Delivery</dt>
-              <dd className="text-[#1F1430] font-medium tabular-nums sm:text-right">
+              <dd className="text-[#2F151B] font-medium tabular-nums sm:text-right">
                 {order.deliveryDate ? formatDate(order.deliveryDate) : "To be agreed"}
               </dd>
               <dt className="text-stone-400">Status</dt>
-              <dd className="text-[#1F1430] font-medium sm:text-right">{order.status}</dd>
+              <dd className="text-[#2F151B] font-medium sm:text-right">{order.status}</dd>
             </dl>
           </div>
         </div>
 
         {/* Bill to / order */}
-        <section className="mt-8 grid gap-6 sm:grid-cols-2 sm:gap-8 border-t border-[#E6DFEE] pt-6">
+        <section className="mt-8 grid gap-6 sm:grid-cols-2 sm:gap-8 border-t border-[#EEDFE3] pt-6">
           <div className="min-w-0">
             <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">
               Billed to
             </h3>
-            <div className="mt-2 text-sm font-semibold text-[#1F1430] break-words">
+            <div className="mt-2 text-sm font-semibold text-[#2F151B] break-words">
               {c?.name || "—"}
             </div>
             <div className="mt-1 text-[12px] leading-relaxed text-stone-500 space-y-0.5">
@@ -125,7 +125,7 @@ export function Invoice({
             <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">
               Garment
             </h3>
-            <div className="mt-2 text-sm font-semibold text-[#1F1430] break-words">
+            <div className="mt-2 text-sm font-semibold text-[#2F151B] break-words">
               {order.garmentDesign}
             </div>
             <div className="mt-1 text-[12px] leading-relaxed text-stone-500 space-y-0.5">
@@ -137,22 +137,22 @@ export function Invoice({
 
         {/* Line items */}
         <section className="mt-8">
-          <div className="hidden sm:grid grid-cols-[2rem_minmax(0,1fr)_3.5rem_7rem_7.5rem] gap-3 border-y border-[#1F1430] py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#1F1430]">
+          <div className="hidden sm:grid grid-cols-[2rem_minmax(0,1fr)_3.5rem_7rem_7.5rem] gap-3 border-y border-[#2F151B] py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2F151B]">
             <span>#</span>
             <span>Description</span>
             <span className="text-right">Qty</span>
             <span className="text-right">Unit price</span>
             <span className="text-right">Amount</span>
           </div>
-          <div className="sm:hidden border-y border-[#1F1430] py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#1F1430] flex justify-between">
+          <div className="sm:hidden border-y border-[#2F151B] py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2F151B] flex justify-between">
             <span>Description</span>
             <span>Amount</span>
           </div>
 
-          <div className="grid sm:grid-cols-[2rem_minmax(0,1fr)_3.5rem_7rem_7.5rem] gap-x-3 gap-y-1 py-4 border-b border-[#E6DFEE] items-start">
+          <div className="grid sm:grid-cols-[2rem_minmax(0,1fr)_3.5rem_7rem_7.5rem] gap-x-3 gap-y-1 py-4 border-b border-[#EEDFE3] items-start">
             <span className="hidden sm:block text-[12px] text-stone-400 tabular-nums">1</span>
             <div className="min-w-0">
-              <div className="text-sm font-medium text-[#1F1430] break-words">
+              <div className="text-sm font-medium text-[#2F151B] break-words">
                 {order.garmentDesign}
               </div>
               <div className="mt-0.5 text-[12px] text-stone-500">
@@ -169,7 +169,7 @@ export function Invoice({
             <span className="hidden sm:block text-right text-sm tabular-nums">
               {formatCurrency(total, currency)}
             </span>
-            <span className="sm:text-right text-sm font-medium tabular-nums text-[#1F1430] flex justify-between sm:block">
+            <span className="sm:text-right text-sm font-medium tabular-nums text-[#2F151B] flex justify-between sm:block">
               <span className="sm:hidden text-[12px] text-stone-400">1 ×</span>
               {formatCurrency(total, currency)}
             </span>
@@ -181,11 +181,11 @@ export function Invoice({
           <dl className="w-full sm:w-[22rem] text-sm">
             <div className="flex justify-between py-1.5">
               <dt className="text-stone-500">Subtotal</dt>
-              <dd className="tabular-nums text-[#1F1430]">{formatCurrency(total, currency)}</dd>
+              <dd className="tabular-nums text-[#2F151B]">{formatCurrency(total, currency)}</dd>
             </div>
-            <div className="flex justify-between py-1.5 border-t border-[#E6DFEE]">
-              <dt className="font-semibold text-[#1F1430]">Total</dt>
-              <dd className="tabular-nums font-semibold text-[#1F1430]">
+            <div className="flex justify-between py-1.5 border-t border-[#EEDFE3]">
+              <dt className="font-semibold text-[#2F151B]">Total</dt>
+              <dd className="tabular-nums font-semibold text-[#2F151B]">
                 {formatCurrency(total, currency)}
               </dd>
             </div>
@@ -196,7 +196,7 @@ export function Invoice({
             <div
               className={cn(
                 "mt-1 flex items-center justify-between rounded-md px-3 py-3",
-                balance > 0 ? "bg-[#6A1FA0] text-white" : "bg-emerald-700 text-white"
+                balance > 0 ? "bg-[#832138] text-white" : "bg-emerald-700 text-white"
               )}
             >
               <dt className="text-[11px] font-semibold uppercase tracking-[0.18em]">
@@ -220,7 +220,7 @@ export function Invoice({
         </section>
 
         {/* Payments received */}
-        <section className="mt-8 border-t border-[#E6DFEE] pt-6">
+        <section className="mt-8 border-t border-[#EEDFE3] pt-6">
           <div className="flex items-center justify-between gap-3 mb-3">
             <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">
               Payments received
@@ -230,21 +230,21 @@ export function Invoice({
           {payments.length === 0 ? (
             <p className="text-sm text-stone-400">No payments recorded yet.</p>
           ) : (
-            <ul className="divide-y divide-[#E6DFEE]/80 border-y border-[#E6DFEE]">
+            <ul className="divide-y divide-[#EEDFE3]/80 border-y border-[#EEDFE3]">
               {payments.map((p) => (
                 <li
                   key={p.id}
                   className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 py-2.5 text-[13px]"
                 >
                   <div className="min-w-0">
-                    <span className="tabular-nums text-[#1F1430]">{formatDate(p.date)}</span>
+                    <span className="tabular-nums text-[#2F151B]">{formatDate(p.date)}</span>
                     {(p.method || p.note) && (
                       <span className="text-stone-400 break-words">
                         {" "}· {[p.method, p.note].filter(Boolean).join(" · ")}
                       </span>
                     )}
                   </div>
-                  <span className="tabular-nums font-medium text-[#1F1430]">
+                  <span className="tabular-nums font-medium text-[#2F151B]">
                     {formatCurrency(p.amount, currency)}
                   </span>
                 </li>
@@ -267,7 +267,7 @@ export function Invoice({
 
         {/* Terms */}
         {terms.length > 0 && (
-          <section className="mt-8 border-t border-[#E6DFEE] pt-6">
+          <section className="mt-8 border-t border-[#EEDFE3] pt-6">
             <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">
               Terms &amp; conditions
             </h3>

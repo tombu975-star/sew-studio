@@ -11,7 +11,7 @@ export interface PlanDefinition {
   highlights: readonly string[];
 }
 
-const coreFeatures = [
+export const coreFeatures = [
   "dashboard",
   "customers",
   "orders",
@@ -25,20 +25,40 @@ const coreFeatures = [
 const proFeatures = [
   ...coreFeatures,
   "quote",
+  "costing",
   "style-assist",
   "messages",
 ] as const satisfies readonly MenuKey[];
+
+/** Length of the free trial, counted from each studio's own sign-up date. */
+export const TRIAL_MONTHS = 2;
+
+/** The moment a trial that began at `start` runs out: two calendar months on. */
+export function trialEndDate(start: Date = new Date()): Date {
+  const end = new Date(start.getTime());
+  const day = end.getUTCDate();
+  end.setUTCDate(1);
+  end.setUTCMonth(end.getUTCMonth() + TRIAL_MONTHS);
+  // Clamp 31 Dec -> end of Feb etc. rather than spilling into the next month.
+  const lastDay = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth() + 1, 0)).getUTCDate();
+  end.setUTCDate(Math.min(day, lastDay));
+  return end;
+}
+
+const allFeatures = MENU_DEFINITIONS.map(({ key }) => key) as readonly MenuKey[];
 
 export const PLANS: Record<PlanKey, PlanDefinition> = {
   trial: {
     key: "trial",
     name: "Trial",
-    summary: "A 14-day introduction to your digital workroom.",
+    summary: "Two months with every feature of Pro and Enterprise, so you see the whole app.",
     maxMembers: 3,
-    features: coreFeatures,
+    // The trial opens everything. Pro and Enterprise are what you choose,
+    // and pay for, once the two months are up.
+    features: allFeatures,
     highlights: [
-      "14 days to explore the essentials",
-      "Customers, orders and production tools",
+      "2 months, starting the day you sign up",
+      "Every Pro and Enterprise feature included",
       "Up to 3 studio members",
     ],
   },
@@ -49,8 +69,8 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     maxMembers: 10,
     features: proFeatures,
     highlights: [
-      "Everything in Trial",
-      "Quotes, client messages and Style Assist",
+      "Customers, orders, board, fittings and tasks",
+      "Quotes, True Costing, client messages and Style Assist",
       "Up to 10 studio members",
     ],
   },
@@ -59,7 +79,7 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     name: "Enterprise",
     summary: "Every workspace feature for a larger studio or academy.",
     maxMembers: null,
-    features: MENU_DEFINITIONS.map(({ key }) => key),
+    features: allFeatures,
     highlights: [
       "Every studio and learning workspace",
       "Community, curriculum and certificates",
@@ -93,12 +113,15 @@ export function getPlanEntitlements(
     trialEndsAt: trialEndsAt ?? null,
     daysRemaining,
     maxMembers: PLANS[plan].maxMembers,
-    features: PLANS[plan].features,
+    // Once the two months are up the studio is read-only on the core tools
+    // until it picks Pro or Enterprise.
+    features: trialExpired ? coreFeatures : PLANS[plan].features,
   };
 }
 
-export function requiredPlanForFeature(feature: MenuKey): PlanKey {
-  if ((PLANS.trial.features as readonly MenuKey[]).includes(feature)) return "trial";
+/** The cheapest paid plan that includes a feature. The trial includes
+ *  everything, so it is never the answer here. */
+export function requiredPlanForFeature(feature: MenuKey): Exclude<PlanKey, "trial"> {
   if ((PLANS.pro.features as readonly MenuKey[]).includes(feature)) return "pro";
   return "enterprise";
 }

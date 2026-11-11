@@ -21,9 +21,9 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   loginHeading: "Welcome back",
   loginDescription: "Sign in to manage your studio’s customers, orders and daily work.",
   loginFooter: "Sewiness · Atelier management system",
-  primaryColor: "#571A84",
-  accentColor: "#6A1FA0",
-  backgroundColor: "#F6F2F9",
+  primaryColor: "#6C1C2F",
+  accentColor: "#832138",
+  backgroundColor: "#F9F2F4",
 };
 
 const PlatformSettingsContext = createContext<PlatformSettings>(DEFAULT_SETTINGS);

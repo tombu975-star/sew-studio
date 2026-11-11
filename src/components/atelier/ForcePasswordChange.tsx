@@ -37,7 +37,7 @@ export function ForcePasswordChange() {
     }
   };
 
-  const input = "h-11 w-full rounded-md border border-[#E6DFEE] px-3 text-sm outline-none focus:border-[#6A1FA0]";
+  const input = "h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm outline-none focus:border-[#832138]";
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true">
       <form onSubmit={submit} className="w-full max-w-sm space-y-3 rounded-xl bg-white p-6 shadow-xl">
@@ -53,7 +53,7 @@ export function ForcePasswordChange() {
           value={confirm} onChange={(e) => setConfirm(e.target.value)} className={input} />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={busy}
-          className="h-11 w-full rounded-md bg-[#6A1FA0] text-sm font-medium text-white disabled:opacity-60">
+          className="h-11 w-full rounded-md bg-[#832138] text-sm font-medium text-white disabled:opacity-60">
           {busy ? "Saving…" : "Save password"}
         </button>
         <button type="button" onClick={() => logout()} className="w-full text-xs text-stone-400">Sign out</button>

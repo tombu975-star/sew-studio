@@ -33,7 +33,7 @@ export function LearningTabs({ current }: { current: ViewKey }) {
 
   return (
     <nav aria-label="Learning" className="-mx-5 mb-5 overflow-x-auto px-5 md:mx-0 md:px-0">
-      <ul className="flex min-w-max gap-1 border-b border-[#DDD3E7]">
+      <ul className="flex min-w-max gap-1 border-b border-[#E6D4D8]">
         {tabs.map((t) => {
           const active = t.view === current;
           return (
@@ -44,10 +44,10 @@ export function LearningTabs({ current }: { current: ViewKey }) {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "-mb-px inline-flex h-11 items-center gap-2 border-b-2 px-3.5 text-sm font-medium transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6A1FA0]/40 focus-visible:ring-offset-1",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#832138]/40 focus-visible:ring-offset-1",
                   active
-                    ? "border-[#6A1FA0] text-[#2A0F45]"
-                    : "border-transparent text-slate-500 hover:text-[#2A0F45]"
+                    ? "border-[#832138] text-[#391019]"
+                    : "border-transparent text-slate-500 hover:text-[#391019]"
                 )}
               >
                 <t.icon className="size-4" aria-hidden="true" />

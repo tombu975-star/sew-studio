@@ -18,7 +18,7 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "surface-premium border border-[#E6DFEE] rounded-lg elevate-sm p-5 flex flex-col justify-between",
+        "surface-premium border border-[#EEDFE3] rounded-lg elevate-sm p-5 flex flex-col justify-between",
         className
       )}
     >
@@ -29,7 +29,7 @@ export function MetricCard({
         <div
           className={cn(
             "font-display font-semibold leading-none",
-            accent ? "text-[#6A1FA0]" : "text-[#1F1430]"
+            accent ? "text-[#832138]" : "text-[#2F151B]"
           )}
           style={{ fontSize: "clamp(26px, 3vw, 38px)" }}
         >

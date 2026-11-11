@@ -99,7 +99,7 @@ const CHANNEL_META: Record<
 // Direction tag — Auto = stone neutral, Manual = burgundy accent.
 const DIRECTION_META: Record<string, { label: string; class: string }> = {
   auto: { label: "Auto", class: "bg-stone-100 text-stone-500 border-stone-200" },
-  manual: { label: "Manual", class: "bg-[#6A1FA0]/8 text-[#6A1FA0] border-[#6A1FA0]/20" },
+  manual: { label: "Manual", class: "bg-[#832138]/8 text-[#832138] border-[#832138]/20" },
 };
 
 export function PortalClient() {
@@ -152,11 +152,11 @@ export function PortalClient() {
   // ─── No token: show the entry screen ───────────────────────────
   if (!token && !loading) {
     return (
-      <div className="min-h-dvh flex flex-col bg-[#FAF8FC]">
-        <div className="relative h-[38vh] min-h-[260px] overflow-hidden bg-[#6A1FA0]">
+      <div className="min-h-dvh flex flex-col bg-[#FCF8F9]">
+        <div className="relative h-[38vh] min-h-[260px] overflow-hidden bg-[#832138]">
           <img src="/atelier-login.jpg" alt="Atelier" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#6A1FA0]/85 via-[#571A84]/65 to-[#1F1430]/80" />
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-[#FAF8FC]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#832138]/85 via-[#6C1C2F]/65 to-[#2F151B]/80" />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-[#FCF8F9]" />
           <div className="relative h-full flex flex-col items-center justify-center text-white px-6 text-center">
             <div className="w-14 h-14 rounded-full border border-white/40 flex items-center justify-center backdrop-blur-sm bg-white/5 animate-fade-in-up">
               <Scissors className="w-6 h-6" />
@@ -172,7 +172,7 @@ export function PortalClient() {
         <div className="flex-1 flex items-start justify-center px-6 pt-2 pb-10 -mt-6 relative z-10">
           <div className="w-full max-w-md animate-fade-in-up">
             <div className="mb-6">
-              <h2 className="font-display font-semibold text-[#1F1430] leading-tight" style={{ fontSize: "clamp(24px, 5vw, 30px)" }}>
+              <h2 className="font-display font-semibold text-[#2F151B] leading-tight" style={{ fontSize: "clamp(24px, 5vw, 30px)" }}>
                 Enter your tracking link
               </h2>
               <p className="text-sm text-stone-500 mt-2">
@@ -194,11 +194,11 @@ export function PortalClient() {
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value)}
                 placeholder="e.g. a1b2c3d4e5f6..."
-                className="w-full h-12 bg-white border border-[#E6DFEE] rounded-xl px-4 text-sm text-[#1F1430] placeholder-stone-400 focus:outline-none focus:border-[#6A1FA0] focus:ring-4 focus:ring-[#6A1FA0]/8 transition-all elevate-sm"
+                className="w-full h-12 bg-white border border-[#EEDFE3] rounded-xl px-4 text-sm text-[#2F151B] placeholder-stone-400 focus:outline-none focus:border-[#832138] focus:ring-4 focus:ring-[#832138]/8 transition-all elevate-sm"
               />
               <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 h-12 px-5 bg-[#6A1FA0] text-white text-sm font-medium rounded-xl hover:bg-[#571A84] transition-all elevate-burgundy hover:translate-y-[-1px] group"
+                className="w-full inline-flex items-center justify-center gap-2 h-12 px-5 bg-[#832138] text-white text-sm font-medium rounded-xl hover:bg-[#6C1C2F] transition-all elevate-burgundy hover:translate-y-[-1px] group"
               >
                 Track my order
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
@@ -215,11 +215,11 @@ export function PortalClient() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FAF8FC] gap-4">
-        <div className="w-12 h-12 rounded-full border border-[#6A1FA0] flex items-center justify-center">
-          <Scissors className="w-5 h-5 text-[#6A1FA0]" />
+      <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FCF8F9] gap-4">
+        <div className="w-12 h-12 rounded-full border border-[#832138] flex items-center justify-center">
+          <Scissors className="w-5 h-5 text-[#832138]" />
         </div>
-        <Loader2 className="w-5 h-5 animate-spin text-[#6A1FA0]" />
+        <Loader2 className="w-5 h-5 animate-spin text-[#832138]" />
         <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400">Loading your orders…</p>
       </div>
     );
@@ -227,15 +227,15 @@ export function PortalClient() {
 
   if (error || !data) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FAF8FC] gap-4 px-6 text-center">
-        <div className="w-14 h-14 rounded-full bg-[#6A1FA0]/8 flex items-center justify-center">
-          <AlertCircle className="w-6 h-6 text-[#6A1FA0]" />
+      <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FCF8F9] gap-4 px-6 text-center">
+        <div className="w-14 h-14 rounded-full bg-[#832138]/8 flex items-center justify-center">
+          <AlertCircle className="w-6 h-6 text-[#832138]" />
         </div>
-        <p className="font-display text-xl font-semibold text-[#1F1430]">Link not found</p>
+        <p className="font-display text-xl font-semibold text-[#2F151B]">Link not found</p>
         <p className="text-sm text-stone-500 max-w-xs">
           {error || "This tracking link is invalid or has expired."}
         </p>
-        <a href="/portal" className="mt-2 inline-flex items-center gap-2 text-sm text-[#6A1FA0] font-medium hover:underline">
+        <a href="/portal" className="mt-2 inline-flex items-center gap-2 text-sm text-[#832138] font-medium hover:underline">
           <ArrowRight className="w-4 h-4 rotate-180" /> Try a different link
         </a>
       </div>
@@ -246,11 +246,11 @@ export function PortalClient() {
   setStudioCurrency(data.shop.currency);
 
   return (
-    <div className="min-h-dvh bg-[#FAF8FC]">
+    <div className="min-h-dvh bg-[#FCF8F9]">
       {/* Header band */}
-      <div className="relative overflow-hidden bg-[#6A1FA0]">
+      <div className="relative overflow-hidden bg-[#832138]">
         <img src="/atelier-login.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#6A1FA0]/90 to-[#1F1430]/85" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#832138]/90 to-[#2F151B]/85" />
         <div className="relative px-6 py-10 md:py-14 max-w-3xl mx-auto text-white">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center backdrop-blur-sm bg-white/5">
@@ -289,17 +289,17 @@ export function PortalClient() {
                     key={n.id}
                     className={`flex gap-3 p-3 rounded-lg border transition-all ${
                       !n.readAt
-                        ? "bg-[#6A1FA0]/4 border-[#6A1FA0]/15"
-                        : "bg-white border-[#E6DFEE]"
+                        ? "bg-[#832138]/4 border-[#832138]/15"
+                        : "bg-white border-[#EEDFE3]"
                     }`}
                   >
-                    <div className="w-9 h-9 rounded-full bg-[#6A1FA0]/8 flex items-center justify-center shrink-0">
-                      <Icon className="w-4 h-4 text-[#6A1FA0]" />
+                    <div className="w-9 h-9 rounded-full bg-[#832138]/8 flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4 text-[#832138]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                          <p className="text-sm font-medium text-[#1F1430] truncate">{n.title}</p>
+                          <p className="text-sm font-medium text-[#2F151B] truncate">{n.title}</p>
                           {channel && ChannelIcon && (
                             <span
                               className={`inline-flex items-center gap-1 px-1.5 h-[18px] rounded-full border text-[9px] font-semibold uppercase tracking-wide ${channel.class}`}
@@ -328,7 +328,7 @@ export function PortalClient() {
                         </p>
                       )}
                     </div>
-                    {!n.readAt && <span className="w-2 h-2 rounded-full bg-[#6A1FA0] shrink-0 mt-1.5" />}
+                    {!n.readAt && <span className="w-2 h-2 rounded-full bg-[#832138] shrink-0 mt-1.5" />}
                   </div>
                 );
               })}
@@ -346,20 +346,20 @@ export function PortalClient() {
                 const expanded = expandedOrder === order.id;
                 const paid = order.payments?.reduce((s, p) => s + p.amount, 0) || 0;
                 return (
-                  <div key={order.id} className="rounded-lg border border-[#E6DFEE] overflow-hidden">
+                  <div key={order.id} className="rounded-lg border border-[#EEDFE3] overflow-hidden">
                     <button
                       onClick={() => setExpandedOrder(expanded ? null : order.id)}
-                      className="w-full flex items-center gap-4 p-4 hover:bg-[#FAF8FC] transition text-left"
+                      className="w-full flex items-center gap-4 p-4 hover:bg-[#FCF8F9] transition text-left"
                     >
                       {order.designImage ? (
                         <img src={order.designImage} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0" />
                       ) : (
-                        <div className="w-14 h-14 rounded-lg bg-[#FAF8FC] border border-[#E6DFEE] flex items-center justify-center shrink-0">
+                        <div className="w-14 h-14 rounded-lg bg-[#FCF8F9] border border-[#EEDFE3] flex items-center justify-center shrink-0">
                           <Scissors className="w-5 h-5 text-stone-400" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#1F1430] truncate">{order.garmentDesign}</p>
+                        <p className="text-sm font-medium text-[#2F151B] truncate">{order.garmentDesign}</p>
                         <p className="text-xs text-stone-400 mt-0.5">Ordered {shortDate(order.orderDate)}</p>
                         <div className="mt-2"><StatusBadge status={order.status} /></div>
                       </div>
@@ -367,7 +367,7 @@ export function PortalClient() {
                     </button>
 
                     {expanded && (
-                      <div className="border-t border-[#E6DFEE] p-4 space-y-5 animate-fade-in-up">
+                      <div className="border-t border-[#EEDFE3] p-4 space-y-5 animate-fade-in-up">
                         {/* Status stepper */}
                         <div>
                           <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-3">Order journey</p>
@@ -378,11 +378,11 @@ export function PortalClient() {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-1">Delivery date</p>
-                            <p className="text-sm text-[#1F1430] font-medium">{formatDate(order.deliveryDate)}</p>
+                            <p className="text-sm text-[#2F151B] font-medium">{formatDate(order.deliveryDate)}</p>
                           </div>
                           <div>
                             <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-1">Payment</p>
-                            <p className="text-sm text-[#1F1430] font-medium tabular-nums">
+                            <p className="text-sm text-[#2F151B] font-medium tabular-nums">
                               {formatCurrency(paid)} <span className="text-stone-400">of {formatCurrency(order.sellingPrice)}</span>
                             </p>
                           </div>
@@ -396,7 +396,7 @@ export function PortalClient() {
                               {order.payments.map((p) => (
                                 <div key={p.id} className="flex items-center justify-between text-xs">
                                   <span className="text-stone-600">{formatDate(p.date)}{p.method ? ` · ${p.method}` : ""}{p.note ? ` · ${p.note}` : ""}</span>
-                                  <span className="text-[#1F1430] font-medium tabular-nums">{formatCurrency(p.amount)}</span>
+                                  <span className="text-[#2F151B] font-medium tabular-nums">{formatCurrency(p.amount)}</span>
                                 </div>
                               ))}
                             </div>
@@ -430,13 +430,13 @@ export function PortalClient() {
         <SectionCard title="Need help?">
           <div className="flex flex-wrap gap-3">
             {data.customer.phone && (
-              <a href={`tel:${data.customer.phone}`} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#E6DFEE] bg-white text-sm text-[#1F1430] hover:border-[#6A1FA0]/30 transition elevate-sm">
-                <Phone className="w-4 h-4 text-[#6A1FA0]" /> Call the studio
+              <a href={`tel:${data.customer.phone}`} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#EEDFE3] bg-white text-sm text-[#2F151B] hover:border-[#832138]/30 transition elevate-sm">
+                <Phone className="w-4 h-4 text-[#832138]" /> Call the studio
               </a>
             )}
             {data.customer.email && (
-              <a href="mailto:studio" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#E6DFEE] bg-white text-sm text-[#1F1430] hover:border-[#6A1FA0]/30 transition elevate-sm">
-                <Mail className="w-4 h-4 text-[#6A1FA0]" /> Email us
+              <a href="mailto:studio" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#EEDFE3] bg-white text-sm text-[#2F151B] hover:border-[#832138]/30 transition elevate-sm">
+                <Mail className="w-4 h-4 text-[#832138]" /> Email us
               </a>
             )}
           </div>
@@ -449,12 +449,12 @@ export function PortalClient() {
         {data.shop.policies && (
           <SectionCard title="Studio policies">
             <div className="grid sm:grid-cols-3 gap-4 mb-5">
-              <div className="rounded-lg border border-[#E6DFEE] bg-[#FAF8FC] p-3.5">
+              <div className="rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] p-3.5">
                 <div className="flex items-center gap-1.5 text-stone-400 mb-1.5">
                   <Percent className="w-3.5 h-3.5" />
                   <span className="text-[10px] uppercase tracking-[0.16em]">Deposit</span>
                 </div>
-                <p className="text-lg font-semibold text-[#1F1430] font-display">
+                <p className="text-lg font-semibold text-[#2F151B] font-display">
                   {data.shop.policies.depositPercent}%
                 </p>
                 <p className="text-[11px] text-stone-400 mt-0.5">
@@ -463,24 +463,24 @@ export function PortalClient() {
                     : "Remainder due on delivery"}
                 </p>
               </div>
-              <div className="rounded-lg border border-[#E6DFEE] bg-[#FAF8FC] p-3.5">
+              <div className="rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] p-3.5">
                 <div className="flex items-center gap-1.5 text-stone-400 mb-1.5">
                   <ScissorsIcon className="w-3.5 h-3.5" />
                   <span className="text-[10px] uppercase tracking-[0.16em]">Fittings</span>
                 </div>
-                <p className="text-lg font-semibold text-[#1F1430] font-display">
+                <p className="text-lg font-semibold text-[#2F151B] font-display">
                   {data.shop.policies.fittingsIncluded} included
                 </p>
                 <p className="text-[11px] text-stone-400 mt-0.5">
                   {data.shop.policies.alterationsWindowDays}-day alterations window
                 </p>
               </div>
-              <div className="rounded-lg border border-[#E6DFEE] bg-[#FAF8FC] p-3.5">
+              <div className="rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] p-3.5">
                 <div className="flex items-center gap-1.5 text-stone-400 mb-1.5">
                   <Wallet className="w-3.5 h-3.5" />
                   <span className="text-[10px] uppercase tracking-[0.16em]">Quotes</span>
                 </div>
-                <p className="text-lg font-semibold text-[#1F1430] font-display">
+                <p className="text-lg font-semibold text-[#2F151B] font-display">
                   {data.shop.policies.quoteValidDays} days
                 </p>
                 <p className="text-[11px] text-stone-400 mt-0.5">Rush fee {data.shop.policies.rushFeePercent}%</p>
@@ -490,27 +490,27 @@ export function PortalClient() {
             <div className="space-y-4">
               {data.shop.policies.depositPolicyText && (
                 <div className="flex gap-3">
-                  <ShieldCheck className="w-4 h-4 text-[#6A1FA0] shrink-0 mt-0.5" />
+                  <ShieldCheck className="w-4 h-4 text-[#832138] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-medium text-[#1F1430] mb-0.5">Deposit policy</p>
+                    <p className="text-xs font-medium text-[#2F151B] mb-0.5">Deposit policy</p>
                     <p className="text-xs text-stone-500 leading-relaxed">{data.shop.policies.depositPolicyText}</p>
                   </div>
                 </div>
               )}
               {data.shop.policies.alterationsPolicyText && (
                 <div className="flex gap-3">
-                  <ScissorsIcon className="w-4 h-4 text-[#6A1FA0] shrink-0 mt-0.5" />
+                  <ScissorsIcon className="w-4 h-4 text-[#832138] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-medium text-[#1F1430] mb-0.5">Alterations policy</p>
+                    <p className="text-xs font-medium text-[#2F151B] mb-0.5">Alterations policy</p>
                     <p className="text-xs text-stone-500 leading-relaxed">{data.shop.policies.alterationsPolicyText}</p>
                   </div>
                 </div>
               )}
               {data.shop.policies.cancellationPolicyText && (
                 <div className="flex gap-3">
-                  <AlertCircle className="w-4 h-4 text-[#6A1FA0] shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-[#832138] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-medium text-[#1F1430] mb-0.5">Cancellation policy</p>
+                    <p className="text-xs font-medium text-[#2F151B] mb-0.5">Cancellation policy</p>
                     <p className="text-xs text-stone-500 leading-relaxed">{data.shop.policies.cancellationPolicyText}</p>
                   </div>
                 </div>

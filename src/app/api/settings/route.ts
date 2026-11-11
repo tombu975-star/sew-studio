@@ -86,6 +86,9 @@ export async function PATCH(req: Request) {
     for (const [key, column] of Object.entries(percentFieldMap)) {
       if (key in body) data[column] = Math.min(100, Math.max(0, Number(body[key]) || 0));
     }
+    if ("defaultMarkupPercent" in body) {
+      data.default_markup_percent = Math.min(1000, Math.max(0, Number(body.defaultMarkupPercent) || 0));
+    }
     const dayFieldMap: Record<string, string> = {
       quoteValidDays: "quote_valid_days",
       alterationsWindowDays: "alterations_window_days",

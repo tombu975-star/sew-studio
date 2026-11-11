@@ -85,7 +85,7 @@ const TYPE_META: Record<
   },
   announcement: {
     label: "Announcement",
-    chip: "bg-[#6A1FA0]/10 text-[#6A1FA0] border-[#6A1FA0]/20",
+    chip: "bg-[#832138]/10 text-[#832138] border-[#832138]/20",
     icon: Megaphone,
   },
 };
@@ -98,7 +98,7 @@ function roleChip(role?: string | null): {
     case "madam":
       return {
         label: "Owner",
-        className: "bg-[#6A1FA0]/10 text-[#6A1FA0] border-[#6A1FA0]/20",
+        className: "bg-[#832138]/10 text-[#832138] border-[#832138]/20",
       };
     case "staff":
       return {
@@ -289,7 +289,7 @@ export default function Community() {
         title="Community"
         subtitle="Updates, questions, inspiration and showcases from the atelier."
         actions={
-          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 text-[#6A1FA0]">
+          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#832138]/8 border border-[#832138]/15 text-[#832138]">
             <MessageSquare className="w-4 h-4" />
           </span>
         }
@@ -381,7 +381,7 @@ export default function Community() {
           <span
             className={cn(
               "text-[11px] tabular-nums",
-              overLimit ? "text-[#6A1FA0] font-medium" : "text-stone-400"
+              overLimit ? "text-[#832138] font-medium" : "text-stone-400"
             )}
           >
             {bodyCount}/{MAX_BODY}
@@ -411,8 +411,8 @@ export default function Community() {
               className={cn(
                 "px-3.5 h-8 rounded-full text-xs font-medium transition-all duration-200 border whitespace-nowrap",
                 active
-                  ? "bg-[#6A1FA0] text-white border-[#6A1FA0]"
-                  : "bg-white text-stone-500 border-[#E6DFEE] hover:border-[#6A1FA0]/30 hover:text-[#1F1430] hover:bg-[#F6EFFB]"
+                  ? "bg-[#832138] text-white border-[#832138]"
+                  : "bg-white text-stone-500 border-[#EEDFE3] hover:border-[#832138]/30 hover:text-[#2F151B] hover:bg-[#FAF0F2]"
               )}
             >
               {f.label}
@@ -529,7 +529,7 @@ function PostCard({
 
   return (
     <article
-      className="surface-premium border border-[#E6DFEE] rounded-xl elevate-sm lift animate-fade-in-up overflow-hidden"
+      className="surface-premium border border-[#EEDFE3] rounded-xl elevate-sm lift animate-fade-in-up overflow-hidden"
       style={{ animationDelay: `${Math.min(idx, 8) * 60}ms` }}
     >
       <div className="p-5">
@@ -537,14 +537,14 @@ function PostCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
             <div
-              className="w-10 h-10 rounded-full bg-[#6A1FA0] text-white flex items-center justify-center font-display font-semibold text-sm shrink-0 elevate-sm"
+              className="w-10 h-10 rounded-full bg-[#832138] text-white flex items-center justify-center font-display font-semibold text-sm shrink-0 elevate-sm"
               aria-hidden
             >
               {initialOf(post.authorName)}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-medium text-[#1F1430] truncate">
+                <span className="text-sm font-medium text-[#2F151B] truncate">
                   {post.authorName}
                 </span>
                 <span
@@ -587,18 +587,18 @@ function PostCard({
         {/* Body */}
         <div className="mt-3">
           {post.title && (
-            <h3 className="font-display font-semibold text-[#1F1430] text-lg leading-snug mb-1">
+            <h3 className="font-display font-semibold text-[#2F151B] text-lg leading-snug mb-1">
               {post.title}
             </h3>
           )}
-          <p className="text-sm text-[#1F1430] whitespace-pre-wrap leading-relaxed">
+          <p className="text-sm text-[#2F151B] whitespace-pre-wrap leading-relaxed">
             {post.body}
           </p>
         </div>
 
         {/* Image */}
         {post.imageUrl && (
-          <div className="mt-3 rounded-lg overflow-hidden border border-[#E6DFEE] shadow-inner bg-[#F6EFFB]">
+          <div className="mt-3 rounded-lg overflow-hidden border border-[#EEDFE3] shadow-inner bg-[#FAF0F2]">
             <img
               src={post.imageUrl}
               alt=""
@@ -618,15 +618,15 @@ function PostCard({
             className={cn(
               "inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-xs font-medium transition-all duration-200 border",
               liked
-                ? "bg-[#6A1FA0]/8 text-[#6A1FA0] border-[#6A1FA0]/20"
-                : "bg-white text-stone-500 border-[#E6DFEE] hover:border-[#6A1FA0]/30 hover:text-[#1F1430] hover:bg-[#F6EFFB]",
+                ? "bg-[#832138]/8 text-[#832138] border-[#832138]/20"
+                : "bg-white text-stone-500 border-[#EEDFE3] hover:border-[#832138]/30 hover:text-[#2F151B] hover:bg-[#FAF0F2]",
               likePending && "opacity-60 cursor-wait"
             )}
           >
             <Heart
               className={cn(
                 "w-3.5 h-3.5 transition-all",
-                liked && "fill-[#6A1FA0] text-[#6A1FA0]"
+                liked && "fill-[#832138] text-[#832138]"
               )}
             />
             <span className="tabular-nums">{likeCount}</span>
@@ -640,8 +640,8 @@ function PostCard({
             className={cn(
               "inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-xs font-medium transition-all duration-200 border",
               commentOpen
-                ? "bg-[#1F1430]/5 text-[#1F1430] border-[#E6DFEE]"
-                : "bg-white text-stone-500 border-[#E6DFEE] hover:border-[#6A1FA0]/30 hover:text-[#1F1430] hover:bg-[#F6EFFB]"
+                ? "bg-[#2F151B]/5 text-[#2F151B] border-[#EEDFE3]"
+                : "bg-white text-stone-500 border-[#EEDFE3] hover:border-[#832138]/30 hover:text-[#2F151B] hover:bg-[#FAF0F2]"
             )}
           >
             <MessageSquare className="w-3.5 h-3.5" />
@@ -652,20 +652,20 @@ function PostCard({
 
       {/* Comments */}
       {(post.comments.length > 0 || commentOpen) && (
-        <div className="border-t border-[#E6DFEE]/70 bg-[#F6EFFB]/40 px-5 py-4">
+        <div className="border-t border-[#EEDFE3]/70 bg-[#FAF0F2]/40 px-5 py-4">
           {post.comments.length > 0 && (
             <ul className="space-y-3 mb-3">
               {post.comments.map((c) => (
                 <li key={c.id} className="flex items-start gap-2.5">
                   <div
-                    className="w-7 h-7 rounded-full bg-[#6A1FA0]/85 text-white flex items-center justify-center text-[10px] font-medium shrink-0"
+                    className="w-7 h-7 rounded-full bg-[#832138]/85 text-white flex items-center justify-center text-[10px] font-medium shrink-0"
                     aria-hidden
                   >
                     {initialOf(c.authorName)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-xs font-medium text-[#1F1430]">
+                      <span className="text-xs font-medium text-[#2F151B]">
                         {c.authorName}
                       </span>
                       <span className="text-[10px] text-stone-400">

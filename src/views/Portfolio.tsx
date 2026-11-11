@@ -216,12 +216,12 @@ function GalleryCard({
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left rounded-lg overflow-hidden border border-[#E6DFEE] surface-premium elevate-sm lift group hover:border-[#6A1FA0]/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6A1FA0]/30 animate-fade-in-up"
+      className="w-full text-left rounded-lg overflow-hidden border border-[#EEDFE3] surface-premium elevate-sm lift group hover:border-[#832138]/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#832138]/30 animate-fade-in-up"
       style={{ animationDelay: `${index * 50}ms` }}
       aria-label={`View ${garment} for ${customerName}`}
     >
       {/* Image area — 3/4 portrait lookbook frame */}
-      <div className="aspect-[3/4] bg-[#FAF8FC] relative overflow-hidden">
+      <div className="aspect-[3/4] bg-[#FCF8F9] relative overflow-hidden">
         {order.designImage ? (
           <>
             <img
@@ -235,7 +235,7 @@ function GalleryCard({
           </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-3 text-center">
-            <div className="w-12 h-12 rounded-full bg-white border border-[#E6DFEE] flex items-center justify-center shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-white border border-[#EEDFE3] flex items-center justify-center shadow-sm">
               <Scissors className="w-5 h-5 text-stone-400" />
             </div>
             <p className="text-xs text-stone-500 font-medium line-clamp-2 leading-tight">
@@ -255,7 +255,7 @@ function GalleryCard({
 
       {/* Info area */}
       <div className="p-3 space-y-1">
-        <p className="font-medium text-sm text-[#1F1430] truncate group-hover:text-[#6A1FA0] transition-colors">
+        <p className="font-medium text-sm text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
           {garment}
         </p>
         <div className="flex items-center gap-1 text-xs text-stone-500">

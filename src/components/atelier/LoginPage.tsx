@@ -39,12 +39,12 @@ export function extractApiError(err: unknown, fallback: string): string {
 }
 
 export const inputClass =
-  "h-12 w-full rounded-xl border border-[#E5DEEC] bg-white px-4 text-base text-[#1F1430] outline-none transition placeholder:text-[#A296B2] focus:border-[#6A1FA0] focus:ring-4 focus:ring-[#6A1FA0]/10 sm:h-[52px] sm:text-sm " +
+  "h-12 w-full rounded-xl border border-[#ECDEE1] bg-white px-4 text-base text-[#2F151B] outline-none transition placeholder:text-[#B1979D] focus:border-[#832138] focus:ring-4 focus:ring-[#832138]/10 sm:h-[52px] sm:text-sm " +
   // phones: white pill with an icon on the left, as in the reference design
-  "max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(30,8,60,0.22)] max-sm:placeholder:text-[#857A94] max-sm:focus:ring-white/35";
+  "max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)] max-sm:placeholder:text-[#937B80] max-sm:focus:ring-white/35";
 
 export const phoneButton =
-  "max-sm:rounded-full max-sm:bg-white max-sm:text-[#4A1470] max-sm:shadow-[0_8px_20px_rgba(30,8,60,0.3)] max-sm:hover:bg-purple-50 max-sm:focus-visible:ring-white/60 max-sm:focus-visible:ring-offset-[#4A1470]";
+  "max-sm:rounded-full max-sm:bg-white max-sm:text-[#5C1626] max-sm:shadow-[0_8px_20px_rgba(49,10,19,0.3)] max-sm:hover:bg-purple-50 max-sm:focus-visible:ring-white/60 max-sm:focus-visible:ring-offset-[#5C1626]";
 
 export function LoginPage() {
   const { login, register, hydrate, status } = useAuth();
@@ -130,13 +130,13 @@ export function LoginPage() {
       <PhoneTabs mode={mode} onSwitch={switchMode} />
       {mode === "login" ? (
         <section key="login" id="panel-login" role="tabpanel" aria-labelledby="tab-login" className="animate-fade-in">
-          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6A1FA0] sm:block">
+          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#832138] sm:block">
             Your studio, in good hands
           </p>
-          <h2 className="font-serif text-[28px] font-medium tracking-tight text-[#1F1430] max-sm:sr-only sm:mt-3 sm:text-[42px]">
+          <h2 className="font-serif text-[28px] font-medium tracking-tight text-[#2F151B] max-sm:sr-only sm:mt-3 sm:text-[42px]">
             Sign in
           </h2>
-          <p className="mt-1 text-[13px] leading-5 text-[#6B6178] max-sm:hidden sm:mt-2 sm:text-sm sm:leading-6">
+          <p className="mt-1 text-[13px] leading-5 text-[#776267] max-sm:hidden sm:mt-2 sm:text-sm sm:leading-6">
             Pick up where you left off. Your workroom is waiting.
           </p>
 
@@ -169,18 +169,18 @@ export function LoginPage() {
             </Field>
 
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 pt-0.5 text-xs">
-              <label className="inline-flex cursor-pointer items-center gap-2 text-[#6B6178] max-sm:text-white/90">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-[#776267] max-sm:text-white/90">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(event) => setRememberMe(event.target.checked)}
-                  className="size-4 shrink-0 accent-[#6A1FA0] max-sm:accent-white"
+                  className="size-4 shrink-0 accent-[#832138] max-sm:accent-white"
                 />
                 Keep me signed in
               </label>
               <a
                 href="/forgot-password"
-                className="font-medium text-[#6A1FA0] underline-offset-4 hover:underline max-sm:text-white"
+                className="font-medium text-[#832138] underline-offset-4 hover:underline max-sm:text-white"
               >
                 Forgot password?
               </a>
@@ -192,28 +192,28 @@ export function LoginPage() {
               type="submit"
               size="lg"
               loading={submitting}
-              className={cn("h-12 w-full rounded-xl bg-[#6A1FA0] text-white shadow-[0_8px_18px_rgba(106,31,160,0.2)] hover:bg-[#571A84] sm:h-[52px]", phoneButton)}
+              className={cn("h-12 w-full rounded-xl bg-[#832138] text-white shadow-[0_8px_18px_rgba(131,33,56,0.2)] hover:bg-[#6C1C2F] sm:h-[52px]", phoneButton)}
             >
               {submitting ? "Signing in…" : "Sign in"}
             </PremiumButton>
           </form>
 
-          <div className="mt-4 border-t border-[#EDE7F3] pt-4 max-sm:border-0 max-sm:pt-0 max-sm:text-center sm:mt-8 sm:pt-6">
-              <p className="text-[13px] leading-5 text-[#6B6178] max-sm:hidden sm:text-sm sm:leading-6">
+          <div className="mt-4 border-t border-[#F3E7EA] pt-4 max-sm:border-0 max-sm:pt-0 max-sm:text-center sm:mt-8 sm:pt-6">
+              <p className="text-[13px] leading-5 text-[#776267] max-sm:hidden sm:text-sm sm:leading-6">
                 New to Sewiness? Create a shop account to set up your workspace.
               </p>
             <button
               type="button"
               onClick={() => switchMode("register")}
-              className="mt-2 text-sm font-semibold text-[#6A1FA0] underline-offset-4 hover:underline max-sm:hidden"
+              className="mt-2 text-sm font-semibold text-[#832138] underline-offset-4 hover:underline max-sm:hidden"
             >
               Create a shop account <span aria-hidden="true">→</span>
             </button>
-            <p className="mt-2.5 text-[13px] leading-5 text-[#6B6178] max-sm:mt-0 max-sm:text-white/85 sm:mt-5 sm:text-sm sm:leading-6">
+            <p className="mt-2.5 text-[13px] leading-5 text-[#776267] max-sm:mt-0 max-sm:text-white/85 sm:mt-5 sm:text-sm sm:leading-6">
               Work with studios as a freelancer?{" "}
               <a
                 href="/freelancer"
-                className="font-medium text-[#6A1FA0] underline-offset-4 hover:underline max-sm:text-white max-sm:underline"
+                className="font-medium text-[#832138] underline-offset-4 hover:underline max-sm:text-white max-sm:underline"
               >
                 Freelancer sign in
               </a>
@@ -222,13 +222,13 @@ export function LoginPage() {
         </section>
       ) : (
         <section key="register" id="panel-register" role="tabpanel" aria-labelledby="tab-register" className="animate-fade-in">
-          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6A1FA0] sm:block">
+          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#832138] sm:block">
             Start creating
           </p>
-          <h2 className="font-serif text-2xl font-medium tracking-tight text-[#1F1430] max-sm:sr-only sm:mt-3 sm:text-4xl">
+          <h2 className="font-serif text-2xl font-medium tracking-tight text-[#2F151B] max-sm:sr-only sm:mt-3 sm:text-4xl">
             Create your studio account
           </h2>
-          <p className="mt-1 text-[13px] leading-5 text-[#6B6178] max-sm:hidden sm:mt-2 sm:text-sm sm:leading-6">
+          <p className="mt-1 text-[13px] leading-5 text-[#776267] max-sm:hidden sm:mt-2 sm:text-sm sm:leading-6">
             Set up your studio account to start adding customers and orders.
           </p>
 
@@ -296,11 +296,11 @@ export function LoginPage() {
               <Select value={gender} onValueChange={setGender}>
                 <SelectTrigger
                   id="gender"
-                  className="h-12 w-full rounded-xl border-[#E5DEEC] bg-white text-base font-normal data-[size=default]:h-12 sm:h-[52px] sm:data-[size=default]:h-[52px] text-[#1F1430] focus:border-[#6A1FA0] focus:ring-4 focus:ring-[#6A1FA0]/10 sm:text-sm max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(30,8,60,0.22)]"
+                  className="h-12 w-full rounded-xl border-[#ECDEE1] bg-white text-base font-normal data-[size=default]:h-12 sm:h-[52px] sm:data-[size=default]:h-[52px] text-[#2F151B] focus:border-[#832138] focus:ring-4 focus:ring-[#832138]/10 sm:text-sm max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)]"
                 >
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-[#E5DEEC]">
+                <SelectContent className="rounded-xl border-[#ECDEE1]">
                   <SelectItem value="Female" className="text-sm">Female</SelectItem>
                   <SelectItem value="Male" className="text-sm">Male</SelectItem>
                   <SelectItem value="Other" className="text-sm">Other</SelectItem>
@@ -314,18 +314,18 @@ export function LoginPage() {
               type="submit"
               size="lg"
               loading={submitting}
-              className={cn("h-12 w-full rounded-xl bg-[#6A1FA0] text-white shadow-[0_8px_18px_rgba(106,31,160,0.2)] hover:bg-[#571A84] sm:h-[52px]", phoneButton)}
+              className={cn("h-12 w-full rounded-xl bg-[#832138] text-white shadow-[0_8px_18px_rgba(131,33,56,0.2)] hover:bg-[#6C1C2F] sm:h-[52px]", phoneButton)}
             >
               {submitting ? "Creating your shop…" : "Create shop"}
             </PremiumButton>
           </form>
 
-          <p className="mt-4 border-t border-[#EDE7F3] pt-4 text-sm text-[#6B6178] max-sm:hidden sm:mt-7 sm:pt-6">
+          <p className="mt-4 border-t border-[#F3E7EA] pt-4 text-sm text-[#776267] max-sm:hidden sm:mt-7 sm:pt-6">
             Already have a studio?{" "}
             <button
               type="button"
               onClick={() => switchMode("login")}
-              className="font-medium text-[#6A1FA0] underline-offset-4 hover:underline"
+              className="font-medium text-[#832138] underline-offset-4 hover:underline"
             >
               Back to sign in
             </button>
@@ -356,13 +356,13 @@ export function Field({
   return (
     <div>
       {/* On phones the placeholder and icon carry the label; screen readers still get it */}
-      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-semibold text-[#3B3050] max-sm:sr-only sm:mb-2">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-semibold text-[#4F3138] max-sm:sr-only sm:mb-2">
         {label}
-        {required && <span className="ml-0.5 text-[#6A1FA0]" aria-hidden="true">*</span>}
+        {required && <span className="ml-0.5 text-[#832138]" aria-hidden="true">*</span>}
       </label>
       <div className="relative">
         {Icon && (
-          <Icon className="pointer-events-none absolute left-4 top-1/2 z-10 hidden size-[18px] -translate-y-1/2 text-[#4A1470] max-sm:block" />
+          <Icon className="pointer-events-none absolute left-4 top-1/2 z-10 hidden size-[18px] -translate-y-1/2 text-[#5C1626] max-sm:block" />
         )}
         {children}
       </div>
@@ -404,7 +404,7 @@ export function PasswordInput({
       <button
         type="button"
         onClick={onToggle}
-        className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-[#9A8FAA] transition-colors hover:bg-[#F5F0FA] hover:text-[#4F4560] max-sm:rounded-full max-sm:text-[#857A94]"
+        className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-[#A99096] transition-colors hover:bg-[#F9F1F3] hover:text-[#5F464C] max-sm:rounded-full max-sm:text-[#937B80]"
         aria-label={show ? "Hide password" : "Show password"}
       >
         {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -432,7 +432,7 @@ export function PhoneTabs({ mode, onSwitch }: { mode: Mode; onSwitch: (m: Mode) 
       aria-controls={`panel-${m}`}
       onClick={() => onSwitch(m)}
       className={cn(
-        "relative pb-1.5 text-[15px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#4A1470]",
+        "relative pb-1.5 text-[15px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#5C1626]",
         mode === m ? "font-semibold text-white" : "font-medium text-white/65"
       )}
     >

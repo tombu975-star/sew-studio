@@ -47,7 +47,7 @@ const CONTENT_W = PAGE_W - MARGIN * 2;
 
 const INK = rgb(0.08, 0.08, 0.1);
 const MUTE = rgb(0.4, 0.42, 0.46);
-const MAROON = rgb(0.5, 0, 0.125); // matches the app's #6A1FA0 accent
+const MAROON = rgb(0.5, 0, 0.125); // matches the app's #832138 accent
 const LINE = rgb(0.85, 0.85, 0.86);
 
 function formatDate(d: Date | string | null | undefined) {

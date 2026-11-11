@@ -39,6 +39,8 @@ import {
   PRIORITY_LEVELS,
   orderOverheadMargin,
   overheadRecoveryRatePercent,
+  defaultMarkupPercent,
+  suggestedPriceFor,
 } from "@/lib/format";
 import type { Order, Settings } from "@/lib/types";
 
@@ -72,8 +74,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const AVATAR_GRADIENTS = [
-  "from-[#6A1FA0] to-[#6A1FA0]",
-  "from-[#4F4560] to-[#4F4560]",
+  "from-[#832138] to-[#832138]",
+  "from-[#5F464C] to-[#5F464C]",
   "from-[#4d6b4a] to-[#4d6b4a]",
   "from-[#8a5a2b] to-[#8a5a2b]",
 ];
@@ -127,7 +129,11 @@ export default function OrderDetail() {
   const overheadRate = useMemo(() => overheadRecoveryRatePercent(settings), [settings]);
   // Minimum selling price that recovers fabric + labour + overhead (no profit).
   const breakEvenPrice = useMemo(
-    () => (Number(order?.fabricCost) || 0) + (Number(order?.labourCost) || 0) + overhead,
+    () =>
+      (Number(order?.fabricCost) || 0) +
+      (Number(order?.labourCost) || 0) +
+      (Number(order?.otherCost) || 0) +
+      overhead,
     [order, overhead]
   );
 
@@ -146,8 +152,16 @@ export default function OrderDetail() {
   const trueCost = useMemo(() => {
     const fabric = Number(order?.fabricCost) || 0;
     const labour = Number(order?.labourCost) || 0;
-    return fabric + labour + overhead;
+    const other = Number(order?.otherCost) || 0;
+    return fabric + labour + other + overhead;
   }, [order, overhead]);
+  const suggestedPrice = useMemo(
+    () =>
+      order?.suggestedPrice != null && Number(order.suggestedPrice) > 0
+        ? Number(order.suggestedPrice)
+        : suggestedPriceFor(trueCost, order?.markupPercent ?? defaultMarkupPercent(settings)),
+    [order, trueCost, settings]
+  );
   const estMargin = useMemo(() => {
     const selling = Number(order?.sellingPrice) || 0;
     return selling - trueCost;
@@ -297,7 +311,7 @@ export default function OrderDetail() {
       <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
         <button
           onClick={() => go("orders")}
-          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition mb-4"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#832138] transition mb-4"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
@@ -326,11 +340,11 @@ export default function OrderDetail() {
       <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
         <button
           onClick={() => go("orders")}
-          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition mb-4"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#832138] transition mb-4"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
-        <div className="h-28 w-full rounded-xl bg-[#FAF8FC] border border-[#E6DFEE] shimmer mb-6" />
+        <div className="h-28 w-full rounded-xl bg-[#FCF8F9] border border-[#EEDFE3] shimmer mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
             <SkeletonCard />
@@ -394,6 +408,10 @@ export default function OrderDetail() {
                 value={formatCurrency(order.labourCost, currency)}
               />
               <Stat
+                label="Other Costs"
+                value={formatCurrency(order.otherCost ?? 0, currency)}
+              />
+              <Stat
                 label={overheadRate > 0 ? `Overhead (${overheadRate.toFixed(1)}% of fabric)` : "Overhead"}
                 value={formatCurrency(overhead, currency)}
               />
@@ -404,6 +422,19 @@ export default function OrderDetail() {
               <Stat
                 label="Break-even Price"
                 value={formatCurrency(breakEvenPrice, currency)}
+              />
+              <Stat
+                label={
+                  order.markupPercent != null
+                    ? `Suggested Price (${Number(order.markupPercent)}% mark-up)`
+                    : "Suggested Price"
+                }
+                value={formatCurrency(suggestedPrice, currency)}
+                sub={
+                  Number(order.sellingPrice) === suggestedPrice
+                    ? "Final price matches"
+                    : `Final price ${formatCurrency(Math.abs((Number(order.sellingPrice) || 0) - suggestedPrice), currency)} ${(Number(order.sellingPrice) || 0) > suggestedPrice ? "above" : "below"}`
+                }
               />
               <Stat
                 label="Est. Margin"
@@ -419,11 +450,11 @@ export default function OrderDetail() {
                   <span>Payment progress</span>
                   <span className="tabular-nums">{paidPct}%</span>
                 </div>
-                <div className="h-2 w-full bg-[#E6DFEE] rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-[#EEDFE3] rounded-full overflow-hidden">
                   <div
                     className={cn(
                       "h-full rounded-full transition-all",
-                      paidPct >= 100 ? "bg-emerald-500" : "bg-[#6A1FA0]"
+                      paidPct >= 100 ? "bg-emerald-500" : "bg-[#832138]"
                     )}
                     style={{ width: `${paidPct}%` }}
                   />
@@ -436,7 +467,7 @@ export default function OrderDetail() {
                 Payments
               </div>
               {order.payments && order.payments.length > 0 ? (
-                <div className="divide-y divide-[#E6DFEE]/70 border border-[#E6DFEE] rounded-md overflow-hidden">
+                <div className="divide-y divide-[#EEDFE3]/70 border border-[#EEDFE3] rounded-md overflow-hidden">
                   {order.payments
                     .slice()
                     .sort(
@@ -446,14 +477,14 @@ export default function OrderDetail() {
                     .map((p) => (
                       <div
                         key={p.id}
-                        className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-[#FAF8FC]/60"
+                        className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-[#FCF8F9]/60"
                       >
                         <div className="min-w-0 flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                           </div>
                           <div className="min-w-0">
-                            <div className="text-sm font-semibold text-[#1F1430] tabular-nums">
+                            <div className="text-sm font-semibold text-[#2F151B] tabular-nums">
                               {formatCurrency(p.amount, currency)}
                             </div>
                             <div className="text-[11px] text-stone-400">
@@ -512,9 +543,9 @@ export default function OrderDetail() {
                   value={order.assignedStaff?.fullName || "Unassigned"}
                 />
               </div>
-              <div className="rounded-md border border-[#E6DFEE] bg-[#F6EFFB] p-3.5 text-[12px] text-stone-600 leading-relaxed">
+              <div className="rounded-md border border-[#EEDFE3] bg-[#FAF0F2] p-3.5 text-[12px] text-stone-600 leading-relaxed">
                 <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-1.5">
-                  <Sparkles className="w-3 h-3 text-[#6A1FA0]" />
+                  <Sparkles className="w-3 h-3 text-[#832138]" />
                   Note
                 </div>
                 Financial details are managed by the studio. Focus on the
@@ -532,7 +563,7 @@ export default function OrderDetail() {
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 print:hidden">
         <button
           onClick={() => go("orders")}
-          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#832138] transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
@@ -581,7 +612,7 @@ export default function OrderDetail() {
       <div
         role="tablist"
         aria-label="Order sections"
-        className="mb-6 flex gap-1 border-b border-[#E6DFEE] overflow-x-auto scroll-slim print:hidden"
+        className="mb-6 flex gap-1 border-b border-[#EEDFE3] overflow-x-auto scroll-slim print:hidden"
       >
         {TABS.map(({ key, label, icon: Icon }) => (
           <button
@@ -592,8 +623,8 @@ export default function OrderDetail() {
             className={cn(
               "inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors",
               activeTab === key
-                ? "border-[#6A1FA0] text-[#6A1FA0]"
-                : "border-transparent text-stone-500 hover:text-[#1F1430]"
+                ? "border-[#832138] text-[#832138]"
+                : "border-transparent text-stone-500 hover:text-[#2F151B]"
             )}
           >
             <Icon className="w-4 h-4" />
@@ -625,12 +656,12 @@ export default function OrderDetail() {
           <img
             src={order.designImage}
             alt={order.garmentDesign || "Design image"}
-            className="w-full aspect-video rounded-xl object-cover elevate-md bg-[#F6EFFB]"
+            className="w-full aspect-video rounded-xl object-cover elevate-md bg-[#FAF0F2]"
           />
           {canSeeMoney && (
             <button
               onClick={() => setImageDialogOpen(true)}
-              className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/95 backdrop-blur border border-[#E6DFEE] rounded-md hover:bg-white transition elevate-sm"
+              className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/95 backdrop-blur border border-[#EEDFE3] rounded-md hover:bg-white transition elevate-sm"
             >
               <Pencil className="w-3 h-3" /> Edit image
             </button>
@@ -639,12 +670,12 @@ export default function OrderDetail() {
       ) : canSeeMoney ? (
         <button
           onClick={() => setImageDialogOpen(true)}
-          className="w-full mb-6 aspect-video rounded-xl border-2 border-dashed border-[#E6DFEE] bg-[#F6EFFB] flex flex-col items-center justify-center gap-2 hover:border-[#6A1FA0]/40 hover:bg-[#FAF8FC] transition group animate-fade-in-up"
+          className="w-full mb-6 aspect-video rounded-xl border-2 border-dashed border-[#EEDFE3] bg-[#FAF0F2] flex flex-col items-center justify-center gap-2 hover:border-[#832138]/40 hover:bg-[#FCF8F9] transition group animate-fade-in-up"
         >
-          <div className="w-10 h-10 rounded-full bg-white border border-[#E6DFEE] flex items-center justify-center">
-            <ImageIcon className="w-4 h-4 text-stone-400 group-hover:text-[#6A1FA0] transition" />
+          <div className="w-10 h-10 rounded-full bg-white border border-[#EEDFE3] flex items-center justify-center">
+            <ImageIcon className="w-4 h-4 text-stone-400 group-hover:text-[#832138] transition" />
           </div>
-          <span className="text-xs text-stone-500 group-hover:text-[#6A1FA0] font-medium">
+          <span className="text-xs text-stone-500 group-hover:text-[#832138] font-medium">
             Add a design image
           </span>
           <span className="text-[10px] text-stone-400">
@@ -654,11 +685,11 @@ export default function OrderDetail() {
       ) : null}
 
       {/* Premium header band */}
-      <div className="rounded-xl elevate-md surface-premium border border-[#E6DFEE] p-6 mb-6 animate-fade-in-up">
+      <div className="rounded-xl elevate-md surface-premium border border-[#EEDFE3] p-6 mb-6 animate-fade-in-up">
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
           <div className="min-w-0 flex-1">
             <h1
-              className="font-display font-semibold text-[#1F1430] leading-[1.1]"
+              className="font-display font-semibold text-[#2F151B] leading-[1.1]"
               style={{ fontSize: "clamp(26px, 3.4vw, 34px)" }}
             >
               {order.garmentDesign}
@@ -675,7 +706,7 @@ export default function OrderDetail() {
               >
                 {initials(order.customer?.name || "?")}
               </div>
-              <span className="text-sm text-[#6A1FA0] hover:underline font-medium">
+              <span className="text-sm text-[#832138] hover:underline font-medium">
                 {order.customer?.name || "—"}
               </span>
             </button>
@@ -759,10 +790,10 @@ export default function OrderDetail() {
                 {order.fittings.map((f) => (
                   <div
                     key={f.id}
-                    className="flex items-start justify-between gap-3 p-3.5 border border-[#E6DFEE] rounded-md hover:bg-[#FAF8FC]/50 transition-colors"
+                    className="flex items-start justify-between gap-3 p-3.5 border border-[#EEDFE3] rounded-md hover:bg-[#FCF8F9]/50 transition-colors"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-[#1F1430] flex items-center gap-1.5">
+                      <div className="text-sm font-medium text-[#2F151B] flex items-center gap-1.5">
                         <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
                         {formatDate(f.date)}
                       </div>
@@ -795,10 +826,10 @@ export default function OrderDetail() {
                 {order.tasks.map((t) => (
                   <div
                     key={t.id}
-                    className="flex items-center justify-between gap-3 p-3.5 border border-[#E6DFEE] rounded-md hover:bg-[#FAF8FC]/50 transition-colors"
+                    className="flex items-center justify-between gap-3 p-3.5 border border-[#EEDFE3] rounded-md hover:bg-[#FCF8F9]/50 transition-colors"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-[#1F1430] truncate">
+                      <div className="text-sm font-medium text-[#2F151B] truncate">
                         {t.title}
                       </div>
                       <div className="text-[11px] text-stone-400 mt-0.5">
@@ -852,7 +883,7 @@ export default function OrderDetail() {
                       onClick={() =>
                         go("customer", { id: order.customerId })
                       }
-                      className="text-sm font-semibold text-[#1F1430] hover:text-[#6A1FA0] transition-colors truncate block"
+                      className="text-sm font-semibold text-[#2F151B] hover:text-[#832138] transition-colors truncate block"
                     >
                       {order.customer.name}
                     </button>
@@ -888,7 +919,7 @@ export default function OrderDetail() {
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-[#E6DFEE]/70 space-y-2 text-[12px]">
+                <div className="pt-3 border-t border-[#EEDFE3]/70 space-y-2 text-[12px]">
                   <Row
                     label="Entry Source"
                     value={order.customer.entrySource}
@@ -947,7 +978,7 @@ export default function OrderDetail() {
                 <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
                 <span>
                   Created{" "}
-                  <span className="text-[#1F1430] font-medium">
+                  <span className="text-[#2F151B] font-medium">
                     {formatDate(order.createdAt)}
                   </span>
                 </span>
@@ -956,16 +987,16 @@ export default function OrderDetail() {
                 <Clock className="w-3.5 h-3.5 text-stone-400" />
                 <span>
                   Last updated{" "}
-                  <span className="text-[#1F1430] font-medium">
+                  <span className="text-[#2F151B] font-medium">
                     {formatDate(order.createdAt)}
                   </span>
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-[#6A1FA0]" />
+                <Sparkles className="w-3.5 h-3.5 text-[#832138]" />
                 <span>
                   In production for{" "}
-                  <span className="text-[#1F1430] font-medium tabular-nums">
+                  <span className="text-[#2F151B] font-medium tabular-nums">
                     {daysInProduction} day{daysInProduction === 1 ? "" : "s"}
                   </span>
                 </span>
@@ -985,6 +1016,7 @@ export default function OrderDetail() {
             onOpenChange={setEditOpen}
             order={order}
             canEditMoney={canSeeMoney}
+            settings={settings}
             saving={editMut.isPending}
             onSave={(body) => editMut.mutate(body)}
           />
@@ -1046,10 +1078,10 @@ function Stat({
         <div
           className={cn(
             "mt-1 text-lg font-display font-semibold tabular-nums",
-            primary && "text-[#1F1430]",
+            primary && "text-[#2F151B]",
             tone === "ok" && "text-emerald-700",
             tone === "warn" && "text-amber-700",
-            !primary && !tone && "text-[#1F1430]"
+            !primary && !tone && "text-[#2F151B]"
           )}
         >
           {value}
@@ -1065,7 +1097,7 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   return (
     <div className="flex justify-between gap-3">
       <span className="text-stone-400">{label}</span>
-      <span className="text-[#1F1430] text-right">{value}</span>
+      <span className="text-[#2F151B] text-right">{value}</span>
     </div>
   );
 }
@@ -1482,6 +1514,7 @@ function EditOrderDialog({
   onOpenChange,
   order,
   canEditMoney,
+  settings,
   saving,
   onSave,
 }: {
@@ -1489,6 +1522,7 @@ function EditOrderDialog({
   onOpenChange: (v: boolean) => void;
   order: Order;
   canEditMoney: boolean;
+  settings: Settings | undefined;
   saving: boolean;
   onSave: (body: Record<string, unknown>) => void;
 }) {
@@ -1498,6 +1532,17 @@ function EditOrderDialog({
   const [sellingPrice, setSellingPrice] = useState(String(order.sellingPrice ?? 0));
   const [fabricCost, setFabricCost] = useState(String(order.fabricCost ?? 0));
   const [labourCost, setLabourCost] = useState(String(order.labourCost ?? 0));
+  const [otherCost, setOtherCost] = useState(String(order.otherCost ?? 0));
+  const [markupPercent, setMarkupPercent] = useState(
+    String(order.markupPercent ?? defaultMarkupPercent(settings))
+  );
+  // True Costing suggestion for the figures currently in the form.
+  const editTrueCost =
+    (Number(fabricCost) || 0) +
+    (Number(labourCost) || 0) +
+    (Number(otherCost) || 0) +
+    orderOverheadMargin({ fabricCost: Number(fabricCost) || 0 }, settings);
+  const editSuggested = suggestedPriceFor(editTrueCost, Number(markupPercent) || 0);
 
   function reset() {
     setGarmentDesign(order.garmentDesign);
@@ -1506,6 +1551,8 @@ function EditOrderDialog({
     setSellingPrice(String(order.sellingPrice ?? 0));
     setFabricCost(String(order.fabricCost ?? 0));
     setLabourCost(String(order.labourCost ?? 0));
+    setOtherCost(String(order.otherCost ?? 0));
+    setMarkupPercent(String(order.markupPercent ?? defaultMarkupPercent(settings)));
   }
 
   const valid = garmentDesign.trim().length > 0;
@@ -1558,9 +1605,9 @@ function EditOrderDialog({
             </div>
           </div>
           {canEditMoney && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="eo-price">Selling price</Label>
+                <Label htmlFor="eo-price">Final selling price</Label>
                 <Input
                   id="eo-price"
                   type="number"
@@ -1572,6 +1619,31 @@ function EditOrderDialog({
                 />
               </div>
               <div className="grid gap-1.5">
+                <Label htmlFor="eo-markup">Mark-up on true cost (%)</Label>
+                <Input
+                  id="eo-markup"
+                  type="number"
+                  min={0}
+                  step="0.5"
+                  inputMode="decimal"
+                  value={markupPercent}
+                  onChange={(e) => setMarkupPercent(e.target.value)}
+                />
+              </div>
+              <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[#EEDFE3] bg-[#FCF8F9] px-3 py-2 text-xs text-stone-600">
+                <span>
+                  True cost <strong className="tabular-nums">{formatCurrency(editTrueCost, settings?.currency)}</strong> · suggested price{" "}
+                  <strong className="tabular-nums text-[#832138]">{formatCurrency(editSuggested, settings?.currency)}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSellingPrice(String(editSuggested))}
+                  className="font-medium text-[#832138] underline underline-offset-2"
+                >
+                  Use suggested price
+                </button>
+              </div>
+              <div className="grid gap-1.5">
                 <Label htmlFor="eo-fabric">Fabric cost</Label>
                 <Input
                   id="eo-fabric"
@@ -1581,6 +1653,18 @@ function EditOrderDialog({
                   inputMode="decimal"
                   value={fabricCost}
                   onChange={(e) => setFabricCost(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="eo-other">Other costs</Label>
+                <Input
+                  id="eo-other"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={otherCost}
+                  onChange={(e) => setOtherCost(e.target.value)}
                 />
               </div>
               <div className="grid gap-1.5">
@@ -1615,6 +1699,9 @@ function EditOrderDialog({
                       sellingPrice: Number(sellingPrice) || 0,
                       fabricCost: Number(fabricCost) || 0,
                       labourCost: Number(labourCost) || 0,
+                      otherCost: Number(otherCost) || 0,
+                      markupPercent: Number(markupPercent) || 0,
+                      suggestedPrice: editTrueCost > 0 ? editSuggested : null,
                     }
                   : {}),
               })
