@@ -82,11 +82,11 @@ function initialOf(name: string): string {
 function gradientFor(name: string): string {
   // Deterministic burgundy-leaning gradient avatar.
   const palettes = [
-    "from-[#832138] to-[#6C1C2F]",
-    "from-[#832138] to-[#b45309]",
-    "from-[#6C1C2F] to-[#0e7490]",
-    "from-[#832138] to-[#4A6B53]",
-    "from-[#6C1C2F] to-[#832138]",
+    "from-[#800020] to-[#650019]",
+    "from-[#800020] to-[#b45309]",
+    "from-[#650019] to-[#0e7490]",
+    "from-[#800020] to-[#4A6B53]",
+    "from-[#650019] to-[#800020]",
   ];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
@@ -339,8 +339,8 @@ function OwnerCertificate() {
                     className={cn(
                       "group shrink-0 flex items-center gap-3 rounded-xl border px-3 py-2 transition-all duration-200",
                       active
-                        ? "bg-[#832138] border-[#6C1C2F] text-white"
-                        : "bg-white border-[#EEDFE3] text-[#2F151B] hover:border-[#832138]/30 hover:bg-[#FCF8F9] elevate-sm lift"
+                        ? "bg-[#800020] border-[#650019] text-white"
+                        : "bg-white border-[#EEDFE3] text-[#2F151B] hover:border-[#800020]/30 hover:bg-[#FCF8F9] elevate-sm lift"
                     )}
                   >
                     <span
@@ -666,8 +666,8 @@ function IssuePanel({
       <Separator className="my-5" />
 
       <div className="rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-        <div className="w-9 h-9 rounded-full bg-[#832138]/8 border border-[#832138]/15 flex items-center justify-center shrink-0">
-          <GraduationCap className="w-4 h-4 text-[#832138]" />
+        <div className="w-9 h-9 rounded-full bg-[#800020]/8 border border-[#800020]/15 flex items-center justify-center shrink-0">
+          <GraduationCap className="w-4 h-4 text-[#800020]" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-[#2F151B]">
@@ -718,7 +718,7 @@ function SummaryStat({
       <div
         className={cn(
           "mt-1 font-display font-semibold tabular-nums",
-          accent ? "text-[#832138]" : "text-[#2F151B]",
+          accent ? "text-[#800020]" : "text-[#2F151B]",
           "text-2xl"
         )}
       >
@@ -787,7 +787,7 @@ function IssueDialog({
       <DialogContent className="max-w-lg no-print">
         <DialogHeader>
           <DialogTitle className="font-display text-xl text-[#2F151B] flex items-center gap-2">
-            <Award className="w-5 h-5 text-[#832138]" />
+            <Award className="w-5 h-5 text-[#800020]" />
             Issue certificate
           </DialogTitle>
           <p className="text-xs text-stone-500 -mt-1">
@@ -867,7 +867,7 @@ function IssueDialog({
               <button
                 type="button"
                 onClick={() => setSkillsAchieved(prefilledSkills)}
-                className="text-[11px] text-[#832138] hover:underline"
+                className="text-[11px] text-[#800020] hover:underline"
               >
                 Reset to proficient skills
               </button>
@@ -952,7 +952,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
 
   return (
     <div
-      className="cert-card bg-white border-4 border-[#832138] rounded-lg elevate-lg relative overflow-hidden mx-auto"
+      className="cert-card bg-white border-4 border-[#800020] rounded-lg elevate-lg relative overflow-hidden mx-auto"
       style={{
         maxWidth: "920px",
         minHeight: "640px",
@@ -961,7 +961,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
     >
       {/* Inner border ornament */}
       <div
-        className="absolute inset-3 border border-[#832138]/25 rounded-md pointer-events-none"
+        className="absolute inset-3 border border-[#800020]/25 rounded-md pointer-events-none"
         aria-hidden
       />
       {/* Subtle background flourish */}
@@ -969,7 +969,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         className="absolute inset-0 pointer-events-none opacity-[0.04]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 50% 18%, #832138 0%, transparent 45%)",
+            "radial-gradient(circle at 50% 18%, #800020 0%, transparent 45%)",
         }}
         aria-hidden
       />
@@ -984,7 +984,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         <Scissors
           key={pos}
           className={cn(
-            "absolute w-4 h-4 text-[#832138]/30 pointer-events-none",
+            "absolute w-4 h-4 text-[#800020]/30 pointer-events-none",
             pos
           )}
           aria-hidden
@@ -995,8 +995,8 @@ function CertificateCard({ cert }: { cert: Certificate }) {
       <div className="relative z-10 flex flex-col items-center text-center h-full">
         {/* Studio mark */}
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full border-2 border-[#832138] flex items-center justify-center bg-white">
-            <Scissors className="w-5 h-5 text-[#832138]" />
+          <div className="w-12 h-12 rounded-full border-2 border-[#800020] flex items-center justify-center bg-white">
+            <Scissors className="w-5 h-5 text-[#800020]" />
           </div>
           <div
             className="font-display font-semibold text-[#2F151B] mt-2.5"
@@ -1012,7 +1012,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         {/* Title block */}
         <div className="mt-8 sm:mt-10">
           <h1
-            className="font-display font-semibold text-[#832138] leading-[1.05]"
+            className="font-display font-semibold text-[#800020] leading-[1.05]"
             style={{ fontSize: "clamp(30px, 4.2vw, 48px)" }}
           >
             Certificate of Apprenticeship
@@ -1030,7 +1030,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
           >
             {cert.trainee?.fullName ?? "Trainee"}
           </div>
-          <div className="w-48 h-px bg-[#832138]/40 mx-auto mt-2" />
+          <div className="w-48 h-px bg-[#800020]/40 mx-auto mt-2" />
         </div>
 
         {/* Body */}
@@ -1039,7 +1039,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
           style={{ fontSize: "clamp(13px, 1.1vw, 15px)", lineHeight: 1.7 }}
         >
           has successfully completed the{" "}
-          <span className="italic text-[#832138] font-medium">
+          <span className="italic text-[#800020] font-medium">
             {cert.programName}
           </span>
           , a{" "}
@@ -1048,7 +1048,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
           </span>
           -week apprenticeship programme in bespoke tailoring and design.
           {honorsText && (
-            <span className="block mt-2 font-medium text-[#832138]">
+            <span className="block mt-2 font-medium text-[#800020]">
               {honorsText}
             </span>
           )}
@@ -1064,7 +1064,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
               {skills.map((s) => (
                 <span
                   key={s}
-                  className="inline-flex items-center gap-1 rounded-md border border-[#832138]/20 bg-[#832138]/5 text-[#832138] px-2.5 py-1 text-xs"
+                  className="inline-flex items-center gap-1 rounded-md border border-[#800020]/20 bg-[#800020]/5 text-[#800020] px-2.5 py-1 text-xs"
                 >
                   <Check className="w-3 h-3 opacity-70" />
                   {s}
@@ -1097,19 +1097,19 @@ function CertificateCard({ cert }: { cert: Certificate }) {
             {/* Faux seal */}
             <div className="flex flex-col items-center">
               <div
-                className="w-20 h-20 rounded-full border-2 border-[#832138] flex items-center justify-center bg-white relative"
+                className="w-20 h-20 rounded-full border-2 border-[#800020] flex items-center justify-center bg-white relative"
                 style={{ transform: "rotate(-6deg)" }}
                 aria-hidden
               >
-                <div className="absolute inset-1 rounded-full border border-[#832138]/30" />
+                <div className="absolute inset-1 rounded-full border border-[#800020]/30" />
                 <div className="flex flex-col items-center">
                   <span
-                    className="font-display font-semibold text-[#832138] leading-none"
+                    className="font-display font-semibold text-[#800020] leading-none"
                     style={{ fontSize: "clamp(16px, 1.8vw, 20px)" }}
                   >
                     MS
                   </span>
-                  <span className="text-[8px] uppercase tracking-[0.16em] text-[#832138]/70 mt-0.5">
+                  <span className="text-[8px] uppercase tracking-[0.16em] text-[#800020]/70 mt-0.5">
                     {year}
                   </span>
                 </div>

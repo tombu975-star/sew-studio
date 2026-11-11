@@ -14,7 +14,7 @@ const HUE = {
   neutral: "#776267", // tailor's slate — not yet started / low priority
   pending: "#B45309", // warm amber — awaiting action, scheduled, learning
   info: "#2F5FC4", // blue — early-stage, informational
-  progress: "#832138", // brand burgundy — confirmed, actively underway
+  progress: "#800020", // brand burgundy — confirmed, actively underway
   active: "#2E7D4F", // green — active / available
   alteration: "#D4472A", // vermilion (kept clearly apart from the burgundy brand colour) — the spec's "Alteration Flag /
   // Urgent": needs hands-on rework, rejected, declined.

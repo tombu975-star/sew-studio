@@ -161,7 +161,7 @@ export default function NewOrder() {
       <div className="p-5 md:p-8 max-w-[820px] mx-auto w-full">
         <button
           onClick={() => go("orders")}
-          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#832138] transition mb-4"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
@@ -195,7 +195,7 @@ export default function NewOrder() {
     <div className="p-5 md:p-8 max-w-[1180px] mx-auto w-full">
       <button
         onClick={() => go("orders")}
-        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#832138] transition mb-4"
+        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
       </button>
@@ -213,7 +213,7 @@ export default function NewOrder() {
               <div className="space-y-4">
                 <div>
                   <Label>
-                    Customer <span className="text-[#832138]">*</span>
+                    Customer <span className="text-[#800020]">*</span>
                   </Label>
                   <Select value={customerId} onValueChange={setCustomerId}>
                     <SelectTrigger className="rounded-md mt-1.5 w-full bg-white">
@@ -247,7 +247,7 @@ export default function NewOrder() {
               <div className="space-y-4">
                 <div>
                   <Label>
-                    Garment description <span className="text-[#832138]">*</span>
+                    Garment description <span className="text-[#800020]">*</span>
                   </Label>
                   <Textarea
                     value={garmentDesign}
@@ -278,7 +278,7 @@ export default function NewOrder() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>
-                      Order date <span className="text-[#832138]">*</span>
+                      Order date <span className="text-[#800020]">*</span>
                     </Label>
                     <Input type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} className="rounded-md mt-1.5" />
                   </div>
@@ -375,7 +375,7 @@ export default function NewOrder() {
                   </div>
                   <div>
                     <Label>Suggested price ({currency})</Label>
-                    <div className="mt-1.5 flex h-9 items-center rounded-md border border-[#EEDFE3] bg-white px-3 text-sm font-semibold tabular-nums text-[#832138]">
+                    <div className="mt-1.5 flex h-9 items-center rounded-md border border-[#EEDFE3] bg-white px-3 text-sm font-semibold tabular-nums text-[#800020]">
                       {trueCost > 0 ? formatCurrency(suggestedPrice, currency) : "Add costs to see a price"}
                     </div>
                   </div>
@@ -408,7 +408,7 @@ export default function NewOrder() {
                           setPriceEdited(false);
                           setSellingPrice("");
                         }}
-                        className="font-medium text-[#832138] underline underline-offset-2"
+                        className="font-medium text-[#800020] underline underline-offset-2"
                       >
                         Use suggested price
                       </button>

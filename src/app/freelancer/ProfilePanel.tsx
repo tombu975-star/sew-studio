@@ -10,7 +10,7 @@ import { apiErrorMessage, apiPatch, apiPost } from "@/lib/api";
 import type { FreelancerProfile } from "./types";
 
 const SPECIALTIES = ["Beader", "Embroiderer", "Cutter", "Tailor", "Designer", "Photographer", "Other"];
-const input = "h-10 w-full rounded-md border border-[#E6D4D8] bg-white px-3 text-sm outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/15";
+const input = "h-10 w-full rounded-md border border-[#E6D4D8] bg-white px-3 text-sm outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15";
 const label = "mb-1 block text-xs font-medium text-stone-500";
 
 export function ProfilePanel({

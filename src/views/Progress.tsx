@@ -116,11 +116,11 @@ function initialOf(name: string): string {
 function gradientFor(name: string): string {
   // Deterministic burgundy-leaning gradient avatar.
   const palettes = [
-    "from-[#832138] to-[#6C1C2F]",
-    "from-[#832138] to-[#b45309]",
-    "from-[#6C1C2F] to-[#0e7490]",
-    "from-[#832138] to-[#4A6B53]",
-    "from-[#6C1C2F] to-[#832138]",
+    "from-[#800020] to-[#650019]",
+    "from-[#800020] to-[#b45309]",
+    "from-[#650019] to-[#0e7490]",
+    "from-[#800020] to-[#4A6B53]",
+    "from-[#650019] to-[#800020]",
   ];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
@@ -331,8 +331,8 @@ function OwnerProgress() {
                     className={cn(
                       "group shrink-0 flex items-center gap-3 rounded-xl border px-3 py-2 transition-all duration-200",
                       active
-                        ? "bg-[#832138] border-[#6C1C2F] text-white"
-                        : "bg-white border-[#EEDFE3] text-[#2F151B] hover:border-[#832138]/30 hover:bg-[#FCF8F9] elevate-sm lift"
+                        ? "bg-[#800020] border-[#650019] text-white"
+                        : "bg-white border-[#EEDFE3] text-[#2F151B] hover:border-[#800020]/30 hover:bg-[#FCF8F9] elevate-sm lift"
                     )}
                   >
                     <span
@@ -612,7 +612,7 @@ function ProgressBody({
       <div className="mb-6 flex justify-end animate-fade-in-up">
         <a
           href={`/api/portfolio/${traineeId}/pdf`}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#832138]/30 bg-[#832138]/5 px-4 py-2 text-sm font-medium text-[#832138] hover:bg-[#832138]/10 transition"
+          className="inline-flex items-center gap-2 rounded-lg border border-[#800020]/30 bg-[#800020]/5 px-4 py-2 text-sm font-medium text-[#800020] hover:bg-[#800020]/10 transition"
         >
           <Download className="w-4 h-4" />
           Download Portfolio (PDF)
@@ -788,7 +788,7 @@ function SkillMasteryCard({
                   {/* Progress hint bar */}
                   <div className="mt-2 h-1 w-full max-w-[220px] rounded-full bg-[#EEDFE3]/80 overflow-hidden">
                     <div
-                      className="h-full bg-[#832138] rounded-full transition-all"
+                      className="h-full bg-[#800020] rounded-full transition-all"
                       style={{ width: `${pct}%` }}
                       aria-hidden
                     />
@@ -874,7 +874,7 @@ function TrainingLogRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             {log.skill && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#832138] bg-[#832138]/8 border border-[#832138]/15 px-1.5 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#800020] bg-[#800020]/8 border border-[#800020]/15 px-1.5 py-0.5 rounded-md">
                 <Scissors className="w-3 h-3" /> {log.skill}
               </span>
             )}
@@ -1091,7 +1091,7 @@ function OrdersContributedCard({
                   {formatCurrency(order.sellingPrice)}
                 </span>
                 <StatusBadge status={order.status} />
-                <ArrowRight className="w-4 h-4 text-stone-300 group-hover:text-[#832138] transition-colors" />
+                <ArrowRight className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors" />
               </div>
             </button>
           </li>
@@ -1242,7 +1242,7 @@ function LogForm({
 
         <div className="grid gap-1.5">
           <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
-            Title <span className="text-[#832138]">*</span>
+            Title <span className="text-[#800020]">*</span>
           </Label>
           <Input
             value={title}
@@ -1326,8 +1326,8 @@ function MentorTrainingCard({
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Mentor */}
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#832138]/8 border border-[#832138]/15 flex items-center justify-center shrink-0">
-            <UserIcon className="w-5 h-5 text-[#832138]" />
+          <div className="w-10 h-10 rounded-full bg-[#800020]/8 border border-[#800020]/15 flex items-center justify-center shrink-0">
+            <UserIcon className="w-5 h-5 text-[#800020]" />
           </div>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
@@ -1341,8 +1341,8 @@ function MentorTrainingCard({
 
         {/* Programme length */}
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#832138]/8 border border-[#832138]/15 flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5 text-[#832138]" />
+          <div className="w-10 h-10 rounded-full bg-[#800020]/8 border border-[#800020]/15 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5 text-[#800020]" />
           </div>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
@@ -1359,14 +1359,14 @@ function MentorTrainingCard({
         <div className="mt-5">
           <div className="flex items-center justify-between text-xs mb-2">
             <span className="text-stone-500">Training progress</span>
-            <span className="font-medium text-[#832138] tabular-nums">
+            <span className="font-medium text-[#800020] tabular-nums">
               Week {weeksElapsed} of {durationWeeks}
             </span>
           </div>
           <ProgressBar
             value={trainingPercent}
             aria-label={`Training progress: week ${weeksElapsed} of ${durationWeeks}`}
-            className="h-2 bg-[#EEDFE3]/80 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-[#832138] [&>[data-slot=progress-indicator]]:to-[#6C1C2F]"
+            className="h-2 bg-[#EEDFE3]/80 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-[#800020] [&>[data-slot=progress-indicator]]:to-[#650019]"
           />
           <div className="flex items-center justify-between mt-2">
             <p className="text-[11px] text-stone-400">
@@ -1425,7 +1425,7 @@ function OverallAverageCard({
           </div>
           <div className="flex items-baseline gap-2 mt-3 flex-wrap">
             <div
-              className="font-display font-semibold text-[#832138] leading-none tabular-nums"
+              className="font-display font-semibold text-[#800020] leading-none tabular-nums"
               style={{ fontSize: "clamp(30px, 4vw, 44px)" }}
             >
               <AnimatedNumber value={avgPctValue} />
@@ -1434,7 +1434,7 @@ function OverallAverageCard({
             <LetterPill pct={avgPctValue} />
           </div>
           <p className="text-xs text-stone-500 mt-3 inline-flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-[#832138]" />
+            <TrendingUp className="w-3.5 h-3.5 text-[#800020]" />
             Letter grade{" "}
             <span className="font-medium text-[#2F151B]">
               {letterGrade(avgPctValue)}
@@ -1603,8 +1603,8 @@ function AssignmentRow({
 
       {/* Feedback */}
       {graded && task.feedback && (
-        <div className="mt-3 rounded-md bg-[#832138]/[0.04] border-l-2 border-[#832138]/30 pl-3 pr-3 py-2">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-[#832138] mb-1 inline-flex items-center gap-1">
+        <div className="mt-3 rounded-md bg-[#800020]/[0.04] border-l-2 border-[#800020]/30 pl-3 pr-3 py-2">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-[#800020] mb-1 inline-flex items-center gap-1">
             <Sparkles className="w-3 h-3" /> Mentor feedback
           </div>
           <p className="text-xs text-stone-600 whitespace-pre-wrap leading-relaxed">
@@ -1754,7 +1754,7 @@ function GradeForm({
           </div>
           <div className="grid gap-1.5">
             <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
-              Score <span className="text-[#832138]">*</span>
+              Score <span className="text-[#800020]">*</span>
             </Label>
             <Input
               type="number"
@@ -1768,8 +1768,8 @@ function GradeForm({
         </div>
 
         {livePct !== null && (
-          <div className="flex items-center gap-3 rounded-md bg-[#832138]/[0.04] border border-[#832138]/15 px-3 py-2">
-            <TrendingUp className="w-4 h-4 text-[#832138]" />
+          <div className="flex items-center gap-3 rounded-md bg-[#800020]/[0.04] border border-[#800020]/15 px-3 py-2">
+            <TrendingUp className="w-4 h-4 text-[#800020]" />
             <span className="text-sm font-medium text-[#2F151B] tabular-nums">
               {livePct}%
             </span>

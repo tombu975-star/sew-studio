@@ -22,7 +22,7 @@ const PAY_LABEL: Record<PayState, string> = {
 const PAY_STYLE: Record<PayState, string> = {
   paid: "border-emerald-600 text-emerald-700",
   part: "border-amber-600 text-amber-700",
-  unpaid: "border-[#832138] text-[#832138]",
+  unpaid: "border-[#800020] text-[#800020]",
 };
 
 /**
@@ -66,7 +66,7 @@ export function Invoice({
       aria-label={`Invoice ${invoiceNumber(order, settings?.invoicePrefix)}`}
     >
       {/* Accent rule */}
-      <div className="h-1.5 bg-[#832138]" />
+      <div className="h-1.5 bg-[#800020]" />
 
       <div className="p-5 sm:p-8 md:p-10">
         {/* Letterhead */}
@@ -196,7 +196,7 @@ export function Invoice({
             <div
               className={cn(
                 "mt-1 flex items-center justify-between rounded-md px-3 py-3",
-                balance > 0 ? "bg-[#832138] text-white" : "bg-emerald-700 text-white"
+                balance > 0 ? "bg-[#800020] text-white" : "bg-emerald-700 text-white"
               )}
             >
               <dt className="text-[11px] font-semibold uppercase tracking-[0.18em]">

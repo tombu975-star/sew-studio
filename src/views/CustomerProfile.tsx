@@ -177,7 +177,7 @@ export default function CustomerProfile() {
       <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
         <button
           onClick={() => go("customers")}
-          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#832138] mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Customers
         </button>
@@ -223,7 +223,7 @@ export default function CustomerProfile() {
       {/* Back link */}
       <button
         onClick={() => go("customers")}
-        className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#832138] mb-4 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Customers
       </button>
@@ -232,7 +232,7 @@ export default function CustomerProfile() {
       <div className="rounded-xl surface-premium border border-[#EEDFE3] elevate-md p-6 mb-6 animate-fade-in-up">
         <div className="flex flex-col md:flex-row md:items-start gap-5">
           <div
-            className="w-16 h-16 rounded-full bg-[#832138] flex items-center justify-center text-white font-display font-semibold text-2xl shrink-0"
+            className="w-16 h-16 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-2xl shrink-0"
             aria-hidden
           >
             {(customer.name || "?").charAt(0).toUpperCase()}
@@ -248,7 +248,7 @@ export default function CustomerProfile() {
               {customer.phone && (
                 <a
                   href={`tel:${customer.phone}`}
-                  className="inline-flex items-center gap-1.5 hover:text-[#832138] transition-colors"
+                  className="inline-flex items-center gap-1.5 hover:text-[#800020] transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5" /> {customer.phone}
                 </a>
@@ -256,7 +256,7 @@ export default function CustomerProfile() {
               {customer.email && (
                 <a
                   href={`mailto:${customer.email}`}
-                  className="inline-flex items-center gap-1.5 hover:text-[#832138] transition-colors"
+                  className="inline-flex items-center gap-1.5 hover:text-[#800020] transition-colors"
                 >
                   <Mail className="w-3.5 h-3.5" /> {customer.email}
                 </a>
@@ -292,7 +292,7 @@ export default function CustomerProfile() {
                   </span>
                 </span>
               )}
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#832138]/8 border border-[#832138]/20 px-2 py-0.5 text-[11px] text-[#832138]">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#800020]/8 border border-[#800020]/20 px-2 py-0.5 text-[11px] text-[#800020]">
                 <Sparkles className="w-3 h-3" />
                 <span className="font-semibold">
                   <AnimatedNumber value={customer.loyaltyPoints ?? 0} /> pts
@@ -345,7 +345,7 @@ export default function CustomerProfile() {
             <TabsTrigger
               key={t.v}
               value={t.v}
-              className="rounded-md data-[state=active]:bg-[#832138] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600"
+              className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600"
             >
               {t.l}
             </TabsTrigger>
@@ -484,7 +484,7 @@ export default function CustomerProfile() {
                     onClick={() => go("order", { id: o.id })}
                     className="group w-full flex flex-wrap items-center gap-3 px-5 py-4 text-left hover:bg-[#FCF8F9] transition-all focus:outline-none focus-visible:bg-[#FCF8F9]"
                   >
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#FAF0F2] border border-[#EEDFE3] flex items-center justify-center text-[#832138] shrink-0">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#FAF0F2] border border-[#EEDFE3] flex items-center justify-center text-[#800020] shrink-0">
                       {o.designImage ? (
                          
                         <img src={o.designImage} alt={`${o.garmentDesign} style`} loading="lazy" className="w-full h-full object-cover" />
@@ -573,7 +573,7 @@ export default function CustomerProfile() {
                           {c.conceptName}
                         </div>
                         {typeof c.matchPercent === "number" && (
-                          <span className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] bg-[#832138]/10 text-[#832138] px-2 py-0.5 rounded-md border border-[#832138]/25 font-semibold">
+                          <span className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] bg-[#800020]/10 text-[#800020] px-2 py-0.5 rounded-md border border-[#800020]/25 font-semibold">
                             {c.matchPercent}% match
                           </span>
                         )}
@@ -691,7 +691,7 @@ function Stars({ value }: { value: number }) {
           className={cn(
             "w-3.5 h-3.5",
             i < value
-              ? "fill-[#832138] text-[#832138]"
+              ? "fill-[#800020] text-[#800020]"
               : "fill-stone-200 text-stone-200"
           )}
         />
@@ -943,7 +943,7 @@ function EditPersonalDialog({
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="e-name" className="text-xs text-stone-600">
-              Name <span className="text-[#832138]">*</span>
+              Name <span className="text-[#800020]">*</span>
             </Label>
             <Input
               id="e-name"
@@ -1245,7 +1245,7 @@ function AddMeasurementDialog({
             <div className="flex items-center gap-4 text-xs">
               <span className="tabular-nums text-stone-500">{filled} of {MEASUREMENT_FIELDS.length} entered</span>
               {latest && (
-                <button type="button" onClick={copyPrevious} className="font-medium text-[#832138] hover:underline">
+                <button type="button" onClick={copyPrevious} className="font-medium text-[#800020] hover:underline">
                   Start from previous session
                 </button>
               )}
@@ -1304,7 +1304,7 @@ function AddMeasurementDialog({
                   id="m-posture"
                   value={form.posture}
                   onChange={(e) => set("posture", e.target.value)}
-                  className="mt-1 h-10 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#832138]/20"
+                  className="mt-1 h-10 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/20"
                 >
                   <option value="">Not noted</option>
                   {POSTURES.map((p) => (

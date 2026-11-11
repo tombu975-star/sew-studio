@@ -73,7 +73,7 @@ export function FirstSteps({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <p className="text-xs font-medium text-stone-500">Getting started</p>
-          <h2 className="font-display text-xl font-semibold text-[#391019]">Four steps to your first finished order</h2>
+          <h2 className="font-display text-xl font-semibold text-[#3B0010]">Four steps to your first finished order</h2>
         </div>
         <p className="text-xs tabular-nums text-stone-500">{doneCount} of 4 done</p>
       </div>
@@ -90,20 +90,20 @@ export function FirstSteps({
                 s.done
                   ? "border-emerald-200 bg-emerald-50/50"
                   : isCurrent
-                  ? "border-[#832138]/40 bg-[#FAF0F2]"
+                  ? "border-[#800020]/40 bg-[#FAF0F2]"
                   : "border-[#EEDFE3] bg-white"
               )}
             >
               <span
                 className={cn(
                   "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                  s.done ? "bg-emerald-100 text-emerald-700" : isCurrent ? "bg-[#832138] text-white" : "bg-stone-100 text-stone-500"
+                  s.done ? "bg-emerald-100 text-emerald-700" : isCurrent ? "bg-[#800020] text-white" : "bg-stone-100 text-stone-500"
                 )}
               >
                 {s.done ? <Check className="size-4" /> : <Icon className="size-4" />}
               </span>
               <span className="min-w-0 flex-1">
-                <span className={cn("block text-sm font-medium", s.done ? "text-stone-500 line-through decoration-stone-300" : "text-[#391019]")}>
+                <span className={cn("block text-sm font-medium", s.done ? "text-stone-500 line-through decoration-stone-300" : "text-[#3B0010]")}>
                   {s.title}
                 </span>
                 {!s.done && <span className="block text-xs leading-relaxed text-stone-500">{s.note}</span>}
@@ -114,7 +114,7 @@ export function FirstSteps({
                   onClick={s.run}
                   className={cn(
                     "inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
-                    isCurrent ? "bg-[#832138] text-white hover:bg-[#6C1C2F]" : "border border-[#E6D4D8] text-[#391019] hover:bg-[#FCF8F9]"
+                    isCurrent ? "bg-[#800020] text-white hover:bg-[#650019]" : "border border-[#E6D4D8] text-[#3B0010] hover:bg-[#FCF8F9]"
                   )}
                 >
                   {s.cta}

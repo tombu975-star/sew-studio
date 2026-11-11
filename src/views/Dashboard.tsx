@@ -141,8 +141,8 @@ const STATUS_CATEGORY_COLOR: Record<string, string> = {
   Enquiry: "text-stone-700",
   Quoted: "text-stone-700",
   Consultation: "text-stone-700",
-  Confirmed: "text-[#6C1C2F]",
-  "Deposit Paid": "text-[#6C1C2F]",
+  Confirmed: "text-[#650019]",
+  "Deposit Paid": "text-[#650019]",
   "In Production": "text-[#794652]",
   Fitting: "text-[#8A5A2B]",
   Alterations: "text-[#8A5A2B]",
@@ -153,7 +153,7 @@ const STATUS_CATEGORY_COLOR: Record<string, string> = {
 
 /* ---------- gradient avatar palette ---------- */
 const AVATAR_GRADIENTS = [
-  "from-[#832138] to-[#832138]",
+  "from-[#800020] to-[#800020]",
   "from-[#583F45] to-[#583F45]",
   "from-[#8a5a2b] to-[#8a5a2b]",
   "from-[#4d6b4a] to-[#4d6b4a]",
@@ -546,13 +546,13 @@ function MainDashboard() {
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
       : m.healthStatus === "Needs Attention"
       ? "bg-amber-50 text-amber-700 border-amber-200"
-      : "bg-[#832138]/10 text-[#832138] border-[#832138]/30";
+      : "bg-[#800020]/10 text-[#800020] border-[#800020]/30";
   const healthDotClass =
     m.healthStatus === "On Track"
       ? "bg-emerald-500"
       : m.healthStatus === "Needs Attention"
       ? "bg-amber-500"
-      : "bg-[#832138]";
+      : "bg-[#800020]";
 
   return (
     <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
@@ -650,7 +650,7 @@ function MainDashboard() {
               action={
                 <button
                   onClick={() => go("orders")}
-                  className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
+                  className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
                 >
                   View all
                   <ChevronRight className="w-3 h-3" />
@@ -673,9 +673,9 @@ function MainDashboard() {
                     <button
                       key={o.id}
                       onClick={() => go("order", { id: o.id })}
-                      className="text-left shrink-0 w-60 rounded-lg border border-[#EEDFE3] p-4 lift hover:border-[#832138]/30 transition group bg-white"
+                      className="text-left shrink-0 w-60 rounded-lg border border-[#EEDFE3] p-4 lift hover:border-[#800020]/30 transition group bg-white"
                     >
-                      <p className="text-sm font-medium text-[#2F151B] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#832138]">
+                      <p className="text-sm font-medium text-[#2F151B] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#800020]">
                         {o.garmentDesign || "Untitled garment"}
                       </p>
                       <p className="text-xs text-stone-400 mt-2">
@@ -697,7 +697,7 @@ function MainDashboard() {
               {m.statusCounts.map(({ status, count }) => (
                 <div
                   key={status}
-                  className="rounded-lg border border-[#EEDFE3] px-3.5 py-3 hover:border-[#832138]/30 transition-colors bg-[#FFFFFF]"
+                  className="rounded-lg border border-[#EEDFE3] px-3.5 py-3 hover:border-[#800020]/30 transition-colors bg-[#FFFFFF]"
                 >
                   <div
                     className={`font-display text-2xl font-semibold leading-none tabular-nums ${
@@ -720,7 +720,7 @@ function MainDashboard() {
             action={
               <button
                 onClick={() => go("fittings")}
-                className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
               >
                 All fittings
                 <ChevronRight className="w-3 h-3" />
@@ -745,7 +745,7 @@ function MainDashboard() {
                       className="flex items-center justify-between px-5 py-3.5 w-full text-left hover:bg-[#FAF0F2] transition group"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#2F151B] group-hover:text-[#832138] truncate">
+                        <p className="text-sm font-medium text-[#2F151B] group-hover:text-[#800020] truncate">
                           {order?.garmentDesign?.slice(0, 48) || "Order fitting"}
                         </p>
                         <p className="text-xs text-stone-400 mt-0.5">
@@ -770,7 +770,7 @@ function MainDashboard() {
           action={
             <button
               onClick={() => go("tasks")}
-              className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
+              className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
             >
               {staff ? "Open" : "All tasks"}
               <ChevronRight className="w-3 h-3" />
@@ -780,7 +780,7 @@ function MainDashboard() {
         >
           {staff ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="font-display text-6xl font-semibold text-[#832138] leading-none">
+              <div className="font-display text-6xl font-semibold text-[#800020] leading-none">
                 <AnimatedNumber value={m.openTasks.length} />
               </div>
               <p className="text-xs text-stone-400 mt-3">
@@ -831,14 +831,14 @@ function MainDashboard() {
                     <div className="mt-1.5 h-1 w-full max-w-[140px] rounded-full bg-[#EEDFE3] overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
-                          overCapacity ? "bg-[#8E3232]" : "bg-[#832138]"
+                          overCapacity ? "bg-[#8E3232]" : "bg-[#800020]"
                         }`}
                         style={{ width: `${Math.max(4, capacityPct)}%` }}
                       />
                     </div>
                   </div>
                   <span
-                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#832138] rounded-full"
+                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#800020] rounded-full"
                     title={`${openTasks} open task${openTasks !== 1 ? "s" : ""}`}
                   >
                     {openTasks}
@@ -884,12 +884,12 @@ function MainDashboard() {
                       >
                         <stop
                           offset="0%"
-                          stopColor="#832138"
+                          stopColor="#800020"
                           stopOpacity={0.35}
                         />
                         <stop
                           offset="100%"
-                          stopColor="#832138"
+                          stopColor="#800020"
                           stopOpacity={0.02}
                         />
                       </linearGradient>
@@ -930,7 +930,7 @@ function MainDashboard() {
                     <Area
                       type="monotone"
                       dataKey="total"
-                      stroke="#832138"
+                      stroke="#800020"
                       strokeWidth={2}
                       fill="url(#burgundyGrad)"
                     />
@@ -1000,12 +1000,12 @@ function MainDashboard() {
           <div className="mb-4">
             <SectionCard
               title="AI Trend Suggestions"
-              action={<Sparkles className="w-4 h-4 text-[#832138]" />}
+              action={<Sparkles className="w-4 h-4 text-[#800020]" />}
             >
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#832138]/10 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4 text-[#832138]" />
+                  <div className="w-10 h-10 rounded-full bg-[#800020]/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#800020]" />
                   </div>
                   <p className="text-sm text-stone-600 leading-snug flex-1">
                     Generate AI insights from your studio's recent orders,
@@ -1058,7 +1058,7 @@ function MainDashboard() {
       {canCreateOrders() && (
         <button
           onClick={() => go("new-order")}
-          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#832138] text-white flex items-center justify-center shadow-lg hover:bg-[#6C1C2F] transition"
+          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#800020] text-white flex items-center justify-center shadow-lg hover:bg-[#650019] transition"
           aria-label="New Custom Order"
         >
           <Plus className="w-6 h-6" />
@@ -1082,7 +1082,7 @@ function HealthMetric({
   format: "currency" | "plain";
 }) {
   return (
-    <div className="rounded-lg border border-[#EEDFE3] p-3.5 bg-white hover:border-[#832138]/20 transition">
+    <div className="rounded-lg border border-[#EEDFE3] p-3.5 bg-white hover:border-[#800020]/20 transition">
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-3.5 h-3.5 text-stone-400" />
         <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
@@ -1142,7 +1142,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
       action={
         <button
           onClick={() => go("progress")}
-          className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
+          className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
         >
           All trainees
           <ChevronRight className="w-3 h-3" />
@@ -1179,7 +1179,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                   {(t.fullName || t.email || "?").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
+                  <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#800020] transition-colors">
                     {t.fullName || t.email}
                   </p>
                   <p className="text-[11px] text-stone-400">
@@ -1205,7 +1205,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                     </span>
                   )}
                   {stats.total === 0 && (
-                    <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#832138] transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors" />
                   )}
                 </div>
               </button>
@@ -1386,7 +1386,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("progress")}
-                className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
               >
                 View progress
                 <ChevronRight className="w-3 h-3" />
@@ -1416,8 +1416,8 @@ function TraineeDashboard({ userId }: { userId: string }) {
                     key={s.skill}
                     className="flex items-center gap-3 px-5 py-3.5"
                   >
-                    <div className="w-8 h-8 rounded-md bg-[#832138]/8 border border-[#832138]/15 flex items-center justify-center shrink-0">
-                      <Scissors className="w-3.5 h-3.5 text-[#832138]" />
+                    <div className="w-8 h-8 rounded-md bg-[#800020]/8 border border-[#800020]/15 flex items-center justify-center shrink-0">
+                      <Scissors className="w-3.5 h-3.5 text-[#800020]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-[#2F151B] truncate">
@@ -1448,7 +1448,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("orders")}
-                className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
               >
                 All orders
                 <ChevronRight className="w-3 h-3" />
@@ -1484,7 +1484,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
+                        <div className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#800020] transition-colors">
                           {o.garmentDesign || "Untitled garment"}
                         </div>
                         <div className="text-[11px] text-stone-400 truncate">
@@ -1516,7 +1516,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("community")}
-                className="text-[11px] text-[#832138] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
               >
                 Wall
                 <ChevronRight className="w-3 h-3" />
@@ -1548,7 +1548,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                     className="w-full text-left px-5 py-3.5 hover:bg-[#FAF0F2] transition group"
                   >
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-[#832138] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-[#800020] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
                         {(p.authorName || "?").charAt(0).toUpperCase()}
                       </div>
                       <span className="text-[11px] text-stone-500 truncate">
@@ -1559,7 +1559,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                       </span>
                     </div>
                     {p.title && (
-                      <div className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
+                      <div className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#800020] transition-colors">
                         {p.title}
                       </div>
                     )}

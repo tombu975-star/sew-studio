@@ -87,7 +87,7 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
   };
 
   const submitClass = cn(
-    "h-12 w-full rounded-xl bg-[#832138] text-white shadow-[0_8px_18px_rgba(131,33,56,0.2)] hover:bg-[#6C1C2F] sm:h-[52px]",
+    "h-12 w-full rounded-xl bg-[#800020] text-white shadow-[0_8px_18px_rgba(131,33,56,0.2)] hover:bg-[#650019] sm:h-[52px]",
     phoneButton
   );
 
@@ -101,7 +101,7 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
     >
       <PhoneTabs mode={mode} onSwitch={switchMode} />
       <section key={mode} id={`panel-${mode}`} role="tabpanel" aria-labelledby={`tab-${mode}`} className="animate-fade-in">
-        <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#832138] sm:block">
+        <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#800020] sm:block">
           {registering ? "Join the network" : "Freelancer portal"}
         </p>
         <h2 className="font-serif text-2xl font-medium tracking-tight text-[#2F151B] max-sm:sr-only sm:mt-3 sm:text-4xl">
@@ -135,7 +135,7 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
                 <Select value={specialty} onValueChange={setSpecialty}>
                   <SelectTrigger
                     id="fl-specialty"
-                    className="h-12 w-full rounded-xl border-[#ECDEE1] bg-white text-base font-normal data-[size=default]:h-12 sm:h-[52px] sm:data-[size=default]:h-[52px] text-[#2F151B] focus:border-[#832138] focus:ring-4 focus:ring-[#832138]/10 sm:text-sm max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)]"
+                    className="h-12 w-full rounded-xl border-[#ECDEE1] bg-white text-base font-normal data-[size=default]:h-12 sm:h-[52px] sm:data-[size=default]:h-[52px] text-[#2F151B] focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/10 sm:text-sm max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)]"
                   >
                     <SelectValue placeholder="Specialty" />
                   </SelectTrigger>
@@ -168,10 +168,10 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 pt-0.5 text-xs">
               <label className="inline-flex cursor-pointer items-center gap-2 text-[#776267] max-sm:text-white/90">
                 <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
-                  className="size-4 shrink-0 accent-[#832138] max-sm:accent-white" />
+                  className="size-4 shrink-0 accent-[#800020] max-sm:accent-white" />
                 Keep me signed in
               </label>
-              <a href="/forgot-password" className="font-medium text-[#832138] underline-offset-4 hover:underline max-sm:text-white">
+              <a href="/forgot-password" className="font-medium text-[#800020] underline-offset-4 hover:underline max-sm:text-white">
                 Forgot password?
               </a>
             </div>
@@ -188,13 +188,13 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
           <p className="text-[13px] leading-5 text-[#776267] max-sm:hidden sm:text-sm sm:leading-6">
             {registering ? "Already have an account?" : "New freelancer?"}{" "}
             <button type="button" onClick={() => switchMode(registering ? "login" : "register")}
-              className="font-semibold text-[#832138] underline-offset-4 hover:underline">
+              className="font-semibold text-[#800020] underline-offset-4 hover:underline">
               {registering ? "Back to sign in" : "Create an account"} <span aria-hidden="true">→</span>
             </button>
           </p>
           <p className="mt-2.5 text-[13px] leading-5 text-[#776267] max-sm:mt-0 max-sm:text-white/85 sm:mt-5 sm:text-sm sm:leading-6">
             Running a studio?{" "}
-            <a href="/" className="font-medium text-[#832138] underline-offset-4 hover:underline max-sm:text-white max-sm:underline">
+            <a href="/" className="font-medium text-[#800020] underline-offset-4 hover:underline max-sm:text-white max-sm:underline">
               Studio sign in
             </a>
           </p>

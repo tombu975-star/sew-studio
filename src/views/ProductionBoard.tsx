@@ -54,7 +54,7 @@ const BOARD_COLUMNS: ColumnDef[] = [
 ];
 
 const AVATAR_GRADIENTS = [
-  "from-[#832138] to-[#832138]",
+  "from-[#800020] to-[#800020]",
   "from-[#5F464C] to-[#5F464C]",
   "from-[#4d6b4a] to-[#4d6b4a]",
   "from-[#8a5a2b] to-[#8a5a2b]",
@@ -307,7 +307,7 @@ function Column({
       className={cn(
         "w-[85vw] max-w-80 sm:w-80 shrink-0 snap-start rounded-xl border bg-[#FCF8F9]/60 elevate-sm flex flex-col transition-colors",
         isOver
-          ? "border-[#832138]/50 ring-2 ring-[#832138]/15"
+          ? "border-[#800020]/50 ring-2 ring-[#800020]/15"
           : "border-[#EEDFE3]"
       )}
     >
@@ -387,7 +387,7 @@ function Card({
       onClick={onClick}
       className={cn(
         "rounded-lg bg-white border border-[#EEDFE3] p-3.5 elevate-sm lift cursor-grab active:cursor-grabbing",
-        (dragging || overlay) && "shadow-lg border-[#832138]/40",
+        (dragging || overlay) && "shadow-lg border-[#800020]/40",
         overlay && "rotate-1"
       )}
     >
@@ -435,10 +435,10 @@ function Card({
         <StatusBadge status={order.status} />
         {order.priority === "High" && (
           <span
-            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#832138] font-semibold"
+            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#800020] font-semibold"
             title="High priority"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#832138]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
             High
           </span>
         )}
@@ -455,7 +455,7 @@ function Card({
             <div
               className={cn(
                 "h-full rounded-full transition-all",
-                paidPct >= 100 ? "bg-emerald-500" : "bg-[#832138]"
+                paidPct >= 100 ? "bg-emerald-500" : "bg-[#800020]"
               )}
               style={{ width: `${paidPct}%` }}
             />

@@ -44,11 +44,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const AVATAR_GRADIENTS = [
-  "from-[#832138] to-[#832138]",
+  "from-[#800020] to-[#800020]",
   "from-[#5F464C] to-[#5F464C]",
   "from-[#4d6b4a] to-[#4d6b4a]",
   "from-[#8a5a2b] to-[#8a5a2b]",
-  "from-[#832138] to-[#832138]",
+  "from-[#800020] to-[#800020]",
 ];
 
 function initials(name: string) {
@@ -340,12 +340,12 @@ export default function Orders() {
                               {initials(o.customer?.name || "?")}
                             </div>
                             <div className="min-w-0">
-                              <div className="truncate font-medium text-[#2F151B] group-hover:text-[#832138] transition-colors">
+                              <div className="truncate font-medium text-[#2F151B] group-hover:text-[#800020] transition-colors">
                                 {o.customer?.name || "—"}
                               </div>
                               {o.priority === "High" && (
-                                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-[#832138] font-semibold">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#832138]" />
+                                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-[#800020] font-semibold">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
                                   Priority
                                 </span>
                               )}
@@ -388,7 +388,7 @@ export default function Orders() {
                             <td
                               className={cn(
                                 "px-4 py-3.5 text-right font-semibold tabular-nums whitespace-nowrap",
-                                settled ? "text-emerald-700" : balance > 0 ? "text-[#832138]" : "text-stone-400"
+                                settled ? "text-emerald-700" : balance > 0 ? "text-[#800020]" : "text-stone-400"
                               )}
                             >
                               {settled ? "Settled" : formatCurrency(balance)}
@@ -449,7 +449,7 @@ export default function Orders() {
                           </div>
                           <div className="text-right">
                             <div className="text-[9px] uppercase tracking-wide text-stone-400">Balance</div>
-                            <div className={cn("font-semibold", settled ? "text-emerald-700" : balance > 0 ? "text-[#832138]" : "text-stone-400")}>
+                            <div className={cn("font-semibold", settled ? "text-emerald-700" : balance > 0 ? "text-[#800020]" : "text-stone-400")}>
                               {settled ? "Settled" : formatCurrency(balance)}
                             </div>
                           </div>
@@ -467,7 +467,7 @@ export default function Orders() {
       {/* Back link */}
       <button
         onClick={() => go("dashboard")}
-        className="mt-6 inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#832138] transition"
+        className="mt-6 inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard
       </button>

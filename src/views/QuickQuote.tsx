@@ -170,7 +170,7 @@ export default function QuickQuote() {
         title="Quick Quote"
         subtitle="Estimate a garment price in seconds."
         actions={
-          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#832138]/8 border border-[#832138]/15 text-[#832138]">
+          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#800020]/8 border border-[#800020]/15 text-[#800020]">
             <Zap className="w-4 h-4" />
           </span>
         }
@@ -335,12 +335,12 @@ export default function QuickQuote() {
 
             <Separator />
 
-            <div className="mt-1 p-4 rounded-md border border-[#832138]/15 bg-gradient-to-br from-[#832138]/5 to-transparent">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[#832138]">
+            <div className="mt-1 p-4 rounded-md border border-[#800020]/15 bg-gradient-to-br from-[#800020]/5 to-transparent">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[#800020]">
                 Total
               </p>
               <p
-                className="font-display font-semibold text-[#832138] leading-tight tabular-nums"
+                className="font-display font-semibold text-[#800020] leading-tight tabular-nums"
                 style={{ fontSize: "clamp(28px, 3vw, 40px)" }}
               >
                 <AnimatedNumber value={calc.total} format="currency" />

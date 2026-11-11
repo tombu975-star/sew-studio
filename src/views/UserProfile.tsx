@@ -41,10 +41,10 @@ const ROLE_NAMES: Record<string, string> = {
 };
 
 const ROLE_ACCENT: Record<string, string> = {
-  madam: "#832138",
+  madam: "#800020",
   staff: "#0E7490",
-  trainer: "#832138",
-  trainee: "#6C1C2F",
+  trainer: "#800020",
+  trainee: "#650019",
   freelancer: "#794652",
 };
 
@@ -161,12 +161,12 @@ export default function UserProfile() {
 
   const profile = profileQuery.data;
   const showEditForm = isSelf || canEditOthers;
-  const accent = ROLE_ACCENT[profile?.role || ""] || "#832138";
+  const accent = ROLE_ACCENT[profile?.role || ""] || "#800020";
 
   return (
     <div className="mx-auto w-full max-w-[900px] p-5 md:p-8">
       {selectedId && (
-        <button onClick={() => go("team")} className="mb-5 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-[#832138] transition-colors">
+        <button onClick={() => go("team")} className="mb-5 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-[#800020] transition-colors">
           <ArrowLeft className="size-4" /> Team
         </button>
       )}
@@ -179,7 +179,7 @@ export default function UserProfile() {
       ) : profileQuery.isError || !profile ? (
         <>
           <div className="mb-6 flex items-center gap-4">
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#832138] text-white">
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#800020] text-white">
               <UserRound className="size-6" />
             </div>
             <div>
@@ -257,7 +257,7 @@ export default function UserProfile() {
                 <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
                   <label className="text-xs font-medium text-stone-600">
                     Full name
-                    <input required value={fullName} onChange={(event) => setFullName(event.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm text-[#2F151B] outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/10" />
+                    <input required value={fullName} onChange={(event) => setFullName(event.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm text-[#2F151B] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10" />
                   </label>
                   <label className="text-xs font-medium text-stone-600">
                     Email
@@ -267,12 +267,12 @@ export default function UserProfile() {
                     Phone
                     <span className="relative mt-2 block">
                       <Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-stone-400" />
-                      <input type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} className="h-11 w-full rounded-md border border-[#EEDFE3] pl-9 pr-3 text-sm text-[#2F151B] outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/10" />
+                      <input type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} className="h-11 w-full rounded-md border border-[#EEDFE3] pl-9 pr-3 text-sm text-[#2F151B] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10" />
                     </span>
                   </label>
                   <label className="text-xs font-medium text-stone-600">
                     Gender
-                    <select value={gender} onChange={(event) => setGender(event.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] bg-white px-3 text-sm text-[#2F151B] outline-none focus:border-[#832138]">
+                    <select value={gender} onChange={(event) => setGender(event.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] bg-white px-3 text-sm text-[#2F151B] outline-none focus:border-[#800020]">
                       <option value="">Not specified</option>
                       <option value="Female">Female</option>
                       <option value="Male">Male</option>
@@ -343,7 +343,7 @@ export default function UserProfile() {
                           autoComplete="current-password"
                           value={currentPassword}
                           onChange={(event) => setCurrentPassword(event.target.value)}
-                          className="h-11 w-full rounded-md border border-[#EEDFE3] pl-3 pr-10 text-sm text-[#2F151B] outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/10"
+                          className="h-11 w-full rounded-md border border-[#EEDFE3] pl-3 pr-10 text-sm text-[#2F151B] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10"
                         />
                         <button
                           type="button"
@@ -365,7 +365,7 @@ export default function UserProfile() {
                           autoComplete="new-password"
                           value={newPassword}
                           onChange={(event) => setNewPassword(event.target.value)}
-                          className="h-11 w-full rounded-md border border-[#EEDFE3] pl-3 pr-10 text-sm text-[#2F151B] outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/10"
+                          className="h-11 w-full rounded-md border border-[#EEDFE3] pl-3 pr-10 text-sm text-[#2F151B] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10"
                         />
                         <button
                           type="button"
@@ -386,7 +386,7 @@ export default function UserProfile() {
                         autoComplete="new-password"
                         value={confirmPassword}
                         onChange={(event) => setConfirmPassword(event.target.value)}
-                        className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm text-[#2F151B] outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/10"
+                        className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm text-[#2F151B] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10"
                       />
                     </label>
                     <p className="text-[11px] text-stone-400 sm:col-span-2">Use at least 8 characters.</p>

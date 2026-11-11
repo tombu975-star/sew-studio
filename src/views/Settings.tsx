@@ -293,7 +293,7 @@ export default function Settings() {
                 aria-current={tab === t.key ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm whitespace-nowrap transition",
-                  tab === t.key ? "bg-[#832138] text-white font-medium" : "text-stone-600 hover:bg-stone-50"
+                  tab === t.key ? "bg-[#800020] text-white font-medium" : "text-stone-600 hover:bg-stone-50"
                 )}
               >
                 <t.icon className="w-4 h-4 shrink-0" />
@@ -460,7 +460,7 @@ export default function Settings() {
                   <span className="text-xs font-semibold uppercase tracking-wide text-stone-500 flex-1">
                     Monthly total
                   </span>
-                  <span className="text-sm font-semibold tabular-nums text-[#832138]">
+                  <span className="text-sm font-semibold tabular-nums text-[#800020]">
                     {formatCurrency(overheadItemsTotal)}
                   </span>
                   <span className="w-6 h-6 shrink-0" />
@@ -530,7 +530,7 @@ export default function Settings() {
                   {formatCurrency(effectiveOverheadPerOrder, currency)} overhead ÷{" "}
                   {overheadRecoveryBasis > 0 ? formatCurrency(overheadRecoveryBasis, currency) : "direct costs"}
                 </span>
-                <span className="text-sm font-semibold text-[#832138] tabular-nums">
+                <span className="text-sm font-semibold text-[#800020] tabular-nums">
                   {overheadRecoveryBasis > 0 ? `${recoveryRate.toFixed(1)}%` : "Not set"}
                 </span>
               </div>
@@ -599,7 +599,7 @@ export default function Settings() {
               <span className="text-xs font-medium text-stone-500">
                 Total monthly overhead right now
               </span>
-              <span className="text-sm font-semibold text-[#832138] tabular-nums">
+              <span className="text-sm font-semibold text-[#800020] tabular-nums">
                 {formatCurrency(effectiveOverheadPerOrder)}
               </span>
             </div>

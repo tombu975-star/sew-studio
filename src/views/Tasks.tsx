@@ -561,7 +561,7 @@ export default function Tasks() {
       {isError ? (
         <SectionCard title="Error">
           <div className="flex items-center gap-2 text-sm text-stone-500">
-            <AlertCircle className="w-4 h-4 text-[#832138]" />
+            <AlertCircle className="w-4 h-4 text-[#800020]" />
             Could not load tasks. Please try again.
           </div>
         </SectionCard>
@@ -614,8 +614,8 @@ export default function Tasks() {
                     <Icon
                       className={cn(
                         "w-3.5 h-3.5",
-                        col === "To Do" && "text-[#832138]",
-                        col === "In Progress" && "text-[#6C1C2F]",
+                        col === "To Do" && "text-[#800020]",
+                        col === "In Progress" && "text-[#650019]",
                         col === "Done" && "text-[#4A6B53]"
                       )}
                     />
@@ -772,7 +772,7 @@ function TaskCard({
               onClick={onEdit}
               aria-label="Edit task"
               title="Edit task"
-              className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#832138] hover:bg-[#832138]/5 transition"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#800020] hover:bg-[#800020]/5 transition"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
@@ -809,7 +809,7 @@ function TaskCard({
         <div className="flex items-center gap-2 min-w-0">
           {showStaff && staffName ? (
             <span className="inline-flex items-center gap-1.5 min-w-0">
-              <span className="w-5 h-5 rounded-full bg-[#832138]/10 text-[#832138] text-[10px] font-semibold flex items-center justify-center shrink-0">
+              <span className="w-5 h-5 rounded-full bg-[#800020]/10 text-[#800020] text-[10px] font-semibold flex items-center justify-center shrink-0">
                 {initial}
               </span>
               <span className="text-xs text-stone-500 truncate">
@@ -818,7 +818,7 @@ function TaskCard({
             </span>
           ) : !showStaff ? (
             <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-stone-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#832138]/40" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#800020]/40" />
               Your assignment
             </span>
           ) : (
@@ -847,7 +847,7 @@ function TaskCard({
 
       {/* Grading area — Done tasks show grade + feedback or "Awaiting grade". */}
       {isDone && isGraded && (
-        <div className="rounded-md bg-[#832138]/4 border-l-2 border-[#832138]/30 pl-3 pr-2 py-2 flex flex-col gap-1.5">
+        <div className="rounded-md bg-[#800020]/4 border-l-2 border-[#800020]/30 pl-3 pr-2 py-2 flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <ScoreBadge score={task.score!} max={task.maxScore!} />
             {task.gradedBy && (
@@ -1220,7 +1220,7 @@ function GradeForm({
     <>
       <DialogHeader>
         <DialogTitle className="font-display text-[#2F151B] flex items-center gap-2">
-          <span className="w-7 h-7 rounded-full bg-[#832138]/10 text-[#832138] flex items-center justify-center">
+          <span className="w-7 h-7 rounded-full bg-[#800020]/10 text-[#800020] flex items-center justify-center">
             <GraduationCap className="w-4 h-4" />
           </span>
           Grade assignment

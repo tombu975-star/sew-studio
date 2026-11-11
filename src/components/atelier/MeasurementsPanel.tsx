@@ -84,7 +84,7 @@ export function MeasurementsPanel({
               <button
                 type="button"
                 onClick={onUpdate}
-                className="mt-6 h-10 rounded-md bg-[#832138] px-5 text-sm font-medium text-white transition-colors hover:bg-[#6C1C2F]"
+                className="mt-6 h-10 rounded-md bg-[#800020] px-5 text-sm font-medium text-white transition-colors hover:bg-[#650019]"
               >
                 Record measurements
               </button>
@@ -131,7 +131,7 @@ export function MeasurementsPanel({
             <button
               type="button"
               onClick={onUpdate}
-              className="h-9 rounded-md bg-[#832138] px-4 text-sm font-medium text-white transition-colors hover:bg-[#6C1C2F]"
+              className="h-9 rounded-md bg-[#800020] px-4 text-sm font-medium text-white transition-colors hover:bg-[#650019]"
             >
               New session
             </button>
@@ -151,7 +151,7 @@ export function MeasurementsPanel({
             className={cn(
               "shrink-0 rounded-full border px-3 py-1 text-xs tabular-nums transition-colors",
               i === index
-                ? "border-[#832138] bg-[#832138]/5 font-medium text-[#832138]"
+                ? "border-[#800020] bg-[#800020]/5 font-medium text-[#800020]"
                 : "border-[#EEDFE3] text-stone-500 hover:border-stone-300 hover:text-[#2F151B]"
             )}
           >
@@ -225,7 +225,7 @@ export function MeasurementsPanel({
                         </td>
                         <td className="w-16 py-2 pl-3 text-right text-[11px] tabular-nums">
                           {d != null && d !== 0 ? (
-                            <span className={cn(Math.abs(d) >= 2 ? "font-medium text-[#832138]" : "text-stone-400")}>
+                            <span className={cn(Math.abs(d) >= 2 ? "font-medium text-[#800020]" : "text-stone-400")}>
                               {d > 0 ? "+" : "−"}
                               {formatValue(Math.abs(d), unit)}
                             </span>

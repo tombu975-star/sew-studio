@@ -77,21 +77,21 @@ const BOARD = [
 function ProductPreview() {
   return (
     <div aria-hidden="true" className="rounded-2xl border border-white/15 bg-white/10 p-3 shadow-2xl backdrop-blur-sm">
-      <div className="rounded-xl bg-[#FAF8FC] p-4 text-[#1F1430]">
+      <div className="rounded-xl bg-[#FCF8F5] p-4 text-[#2F151B]">
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold">Production board</p>
-          <span className="rounded-full bg-[#F0E8F7] px-2.5 py-1 text-[11px] font-semibold text-[#571A84]">5 active orders</span>
+          <span className="rounded-full bg-[#F5E8EB] px-2.5 py-1 text-[11px] font-semibold text-[#650019]">5 active orders</span>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-3">
           {BOARD.map((col) => (
-            <div key={col.stage} className="rounded-lg bg-[#F1ECF6] p-2.5">
+            <div key={col.stage} className="rounded-lg bg-[#FAF0F2] p-2.5">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B6178]">{col.stage}</p>
               <div className="mt-2 space-y-2">
                 {col.items.map((item) => (
-                  <div key={item} className="rounded-md border border-[#E6DFEE] bg-white p-2.5 shadow-sm">
+                  <div key={item} className="rounded-md border border-[#EADDE0] bg-white p-2.5 shadow-sm">
                     <p className="text-xs font-semibold leading-snug">{item}</p>
-                    <div className="mt-2 h-1 rounded-full bg-[#EBDDF6]">
-                      <div className="h-1 rounded-full bg-[#6A1FA0]" style={{ width: col.stage === "Cutting" ? "25%" : col.stage === "Sewing" ? "60%" : "90%" }} />
+                    <div className="mt-2 h-1 rounded-full bg-[#EBCFD7]">
+                      <div className="h-1 rounded-full bg-[#800020]" style={{ width: col.stage === "Cutting" ? "25%" : col.stage === "Sewing" ? "60%" : "90%" }} />
                     </div>
                   </div>
                 ))}
@@ -118,22 +118,22 @@ export default async function HomePage() {
   ].filter(Boolean) as [string, string][];
 
   return (
-    <div className={`${serif.variable} ${sans.variable} min-h-dvh bg-[#FAF8FC] font-[family-name:var(--font-sans-site)] text-[#1F1430] antialiased`}>
-      <header className="sticky top-0 z-40 border-b border-[#E6DFEE] bg-[#FAF8FC]/90 backdrop-blur">
+    <div className={`${serif.variable} ${sans.variable} min-h-dvh bg-[#FCF8F5] font-[family-name:var(--font-sans-site)] text-[#2F151B] antialiased`}>
+      <header className="sticky top-0 z-40 border-b border-[#EADDE0] bg-[#FCF8F5]/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
           <Link href="/" aria-label="Sewiness home" className="shrink-0">
             <BrandLogo width={104} />
           </Link>
-          <nav aria-label="Sections" className="hidden items-center gap-8 text-sm font-medium text-[#5E5470] md:flex">
-            {nav.map(([href, label]) => <a key={href} href={href} className="hover:text-[#6A1FA0]">{label}</a>)}
+          <nav aria-label="Sections" className="hidden items-center gap-8 text-sm font-medium text-[#80666D] md:flex">
+            {nav.map(([href, label]) => <a key={href} href={href} className="hover:text-[#800020]">{label}</a>)}
           </nav>
           <div className="flex items-center gap-2">
             {portals.some((p) => p.id === "client") && (
-              <Link href="/portal" className="hidden h-10 items-center rounded-lg px-3 text-sm font-medium text-[#571A84] hover:bg-[#F0E8F7] sm:inline-flex">
+              <Link href="/portal" className="hidden h-10 items-center rounded-lg px-3 text-sm font-medium text-[#650019] hover:bg-[#F5E8EB] sm:inline-flex">
                 {portals.find((p) => p.id === "client")?.cta}
               </Link>
             )}
-            <Link href="/studio" className="inline-flex h-10 items-center rounded-lg bg-[#6A1FA0] px-4 text-sm font-semibold text-white hover:bg-[#571A84]">
+            <Link href="/studio" className="inline-flex h-10 items-center rounded-lg bg-[#800020] px-4 text-sm font-semibold text-white hover:bg-[#650019]">
               Sign in
             </Link>
           </div>
@@ -143,7 +143,7 @@ export default async function HomePage() {
       <main>
         <section className="relative overflow-hidden bg-[#2A0F42] text-white">
           <img src="/atelier-login.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#571A84]/90 via-[#3A1259]/90 to-[#1F0833]/95" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#650019]/90 via-[#3A1259]/90 to-[#1F0833]/95" />
           <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 py-20 lg:grid-cols-[1.05fr_1fr] lg:py-28">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#D9BFEE]">{c.hero.eyebrow}</p>
@@ -154,7 +154,7 @@ export default async function HomePage() {
                 {c.hero.subheadline}
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href="/studio" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-6 text-sm font-semibold text-[#571A84] hover:bg-[#F6EFFB]">
+                <Link href="/studio" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-6 text-sm font-semibold text-[#650019] hover:bg-[#F6EFFB]">
                   {c.hero.primaryCta} <ArrowRight className="size-4" />
                 </Link>
                 {portals.length > 0 && (
@@ -171,22 +171,22 @@ export default async function HomePage() {
         {portals.length > 0 && (
           <section id="portals" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6A1FA0]">Portals</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#800020]">Portals</p>
               <h2 className={`${heading} mt-3 text-4xl font-semibold sm:text-5xl`}>{c.portals.heading}</h2>
-              {c.portals.intro && <p className="mt-4 text-[#5E5470]">{c.portals.intro}</p>}
+              {c.portals.intro && <p className="mt-4 text-[#80666D]">{c.portals.intro}</p>}
             </div>
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {portals.map((p) => {
                 const meta = PORTAL_META[p.id];
                 return (
-                  <Link key={p.id} href={meta.href} className="group flex flex-col rounded-2xl border border-[#E6DFEE] bg-white p-8 transition hover:border-[#C196E0] hover:shadow-lg">
-                    <span className="grid size-12 place-items-center rounded-xl bg-[#F0E8F7] text-[#6A1FA0]">
+                  <Link key={p.id} href={meta.href} className="group flex flex-col rounded-2xl border border-[#EADDE0] bg-white p-8 transition hover:border-[#C196E0] hover:shadow-lg">
+                    <span className="grid size-12 place-items-center rounded-xl bg-[#F5E8EB] text-[#800020]">
                       <meta.icon className="size-6" />
                     </span>
                     <h3 className={`${heading} mt-6 text-3xl font-semibold`}>{p.name}</h3>
                     {p.audience && <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-[#8838B8]">{p.audience}</p>}
-                    <p className="mt-4 flex-1 text-sm leading-relaxed text-[#5E5470]">{p.blurb}</p>
-                    <span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#571A84]">
+                    <p className="mt-4 flex-1 text-sm leading-relaxed text-[#80666D]">{p.blurb}</p>
+                    <span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#650019]">
                       {p.cta} <ArrowRight className="size-4 transition group-hover:translate-x-1" />
                     </span>
                   </Link>
@@ -197,10 +197,10 @@ export default async function HomePage() {
         )}
 
         {c.features.items.length > 0 && (
-          <section id="features" className="scroll-mt-20 border-y border-[#E6DFEE] bg-white">
+          <section id="features" className="scroll-mt-20 border-y border-[#EADDE0] bg-white">
             <div className="mx-auto max-w-6xl px-5 py-24">
               <div className="max-w-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6A1FA0]">Features</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#800020]">Features</p>
                 <h2 className={`${heading} mt-3 text-4xl font-semibold sm:text-5xl`}>{c.features.heading}</h2>
               </div>
               <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
@@ -208,11 +208,11 @@ export default async function HomePage() {
                   const Icon = FEATURE_ICON_MAP[f.icon];
                   return (
                     <div key={i}>
-                      <span className="grid size-10 place-items-center rounded-lg bg-[#F0E8F7] text-[#6A1FA0]">
+                      <span className="grid size-10 place-items-center rounded-lg bg-[#F5E8EB] text-[#800020]">
                         <Icon className="size-5" />
                       </span>
                       <h3 className="mt-4 text-base font-semibold">{f.title}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-[#5E5470]">{f.text}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-[#80666D]">{f.text}</p>
                     </div>
                   );
                 })}
@@ -224,15 +224,15 @@ export default async function HomePage() {
         {c.how.steps.length > 0 && (
           <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6A1FA0]">How it works</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#800020]">How it works</p>
               <h2 className={`${heading} mt-3 text-4xl font-semibold sm:text-5xl`}>{c.how.heading}</h2>
             </div>
             <ol className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {c.how.steps.map((st, i) => (
-                <li key={i} className="border-t-2 border-[#6A1FA0] pt-5">
+                <li key={i} className="border-t-2 border-[#800020] pt-5">
                   <span className={`${heading} text-4xl font-semibold text-[#A468CE]`}>{String(i + 1).padStart(2, "0")}</span>
                   <h3 className="mt-3 text-base font-semibold">{st.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[#5E5470]">{st.text}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-[#80666D]">{st.text}</p>
                 </li>
               ))}
             </ol>
@@ -242,25 +242,25 @@ export default async function HomePage() {
         <section id="plans" className="scroll-mt-20 bg-[#F3EEF8]">
           <div className="mx-auto max-w-6xl px-5 py-24">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6A1FA0]">Plans</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#800020]">Plans</p>
               <h2 className={`${heading} mt-3 text-4xl font-semibold sm:text-5xl`}>{c.plans.heading}</h2>
-              {c.plans.intro && <p className="mt-4 text-[#5E5470]">{c.plans.intro}</p>}
+              {c.plans.intro && <p className="mt-4 text-[#80666D]">{c.plans.intro}</p>}
             </div>
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {plans.map((plan) => (
-                <div key={plan.key} className={"flex flex-col rounded-2xl bg-white p-8 " + (plan.key === "pro" ? "border-2 border-[#6A1FA0] shadow-lg" : "border border-[#E6DFEE]")}>
-                  {plan.key === "pro" && <span className="mb-3 w-fit rounded-full bg-[#6A1FA0] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white">Most popular</span>}
+                <div key={plan.key} className={"flex flex-col rounded-2xl bg-white p-8 " + (plan.key === "pro" ? "border-2 border-[#800020] shadow-lg" : "border border-[#EADDE0]")}>
+                  {plan.key === "pro" && <span className="mb-3 w-fit rounded-full bg-[#800020] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white">Most popular</span>}
                   <h3 className={`${heading} text-3xl font-semibold`}>{plan.name}</h3>
-                  <p className="mt-2 text-sm text-[#5E5470]">{plan.summary}</p>
+                  <p className="mt-2 text-sm text-[#80666D]">{plan.summary}</p>
                   <ul className="mt-6 flex-1 space-y-3">
                     {plan.highlights.map((h) => (
                       <li key={h} className="flex gap-2.5 text-sm">
-                        <Check className="mt-0.5 size-4 shrink-0 text-[#6A1FA0]" />
+                        <Check className="mt-0.5 size-4 shrink-0 text-[#800020]" />
                         <span>{h}</span>
                       </li>
                     ))}
                   </ul>
-                  <Link href="/studio" className={"mt-8 inline-flex h-11 items-center justify-center rounded-lg text-sm font-semibold " + (plan.key === "pro" ? "bg-[#6A1FA0] text-white hover:bg-[#571A84]" : "border border-[#D9BFEE] text-[#571A84] hover:bg-[#F6EFFB]")}>
+                  <Link href="/studio" className={"mt-8 inline-flex h-11 items-center justify-center rounded-lg text-sm font-semibold " + (plan.key === "pro" ? "bg-[#800020] text-white hover:bg-[#650019]" : "border border-[#D9BFEE] text-[#650019] hover:bg-[#F6EFFB]")}>
                     {plan.key === "trial" ? "Start free trial" : "Get started"}
                   </Link>
                 </div>
@@ -271,16 +271,16 @@ export default async function HomePage() {
 
         {c.faq.items.length > 0 && (
           <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-5 py-24">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6A1FA0]">FAQ</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#800020]">FAQ</p>
             <h2 className={`${heading} mt-3 text-4xl font-semibold sm:text-5xl`}>{c.faq.heading}</h2>
-            <div className="mt-10 divide-y divide-[#E6DFEE] border-y border-[#E6DFEE]">
+            <div className="mt-10 divide-y divide-[#EADDE0] border-y border-[#EADDE0]">
               {c.faq.items.map((f, i) => (
                 <details key={i} className="group py-5">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold">
                     {f.q}
-                    <span aria-hidden="true" className="text-xl text-[#6A1FA0] transition group-open:rotate-45">+</span>
+                    <span aria-hidden="true" className="text-xl text-[#800020] transition group-open:rotate-45">+</span>
                   </summary>
-                  <p className="mt-3 text-sm leading-relaxed text-[#5E5470]">{f.a}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-[#80666D]">{f.a}</p>
                 </details>
               ))}
             </div>
@@ -288,10 +288,10 @@ export default async function HomePage() {
         )}
 
         <section className="mx-auto max-w-6xl px-5 pb-24">
-          <div className="rounded-3xl bg-gradient-to-br from-[#571A84] to-[#2A0F42] px-7 py-16 text-center text-white sm:px-14">
+          <div className="rounded-3xl bg-gradient-to-br from-[#650019] to-[#2A0F42] px-7 py-16 text-center text-white sm:px-14">
             <h2 className={`${heading} mx-auto max-w-2xl text-4xl font-semibold sm:text-5xl`}>{c.cta.heading}</h2>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href="/studio" className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-6 text-sm font-semibold text-[#571A84] hover:bg-[#F6EFFB]">
+              <Link href="/studio" className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-6 text-sm font-semibold text-[#650019] hover:bg-[#F6EFFB]">
                 Create your studio account
               </Link>
               {freelancerOn && (
@@ -304,17 +304,17 @@ export default async function HomePage() {
         </section>
       </main>
 
-      <footer className="border-t border-[#E6DFEE] bg-white">
+      <footer className="border-t border-[#EADDE0] bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <BrandLogo width={96} />
-            {c.footer.tagline && <p className="mt-2 text-sm text-[#5E5470]">{c.footer.tagline}</p>}
-            <p className="mt-2 text-xs text-[#5E5470]">© {new Date().getFullYear()} Sewiness. All rights reserved.</p>
-            {c.footer.contactEmail && <a href={`mailto:${c.footer.contactEmail}`} className="mt-1 inline-block text-xs font-medium text-[#6A1FA0] hover:underline">{c.footer.contactEmail}</a>}
+            {c.footer.tagline && <p className="mt-2 text-sm text-[#80666D]">{c.footer.tagline}</p>}
+            <p className="mt-2 text-xs text-[#80666D]">© {new Date().getFullYear()} Sewiness. All rights reserved.</p>
+            {c.footer.contactEmail && <a href={`mailto:${c.footer.contactEmail}`} className="mt-1 inline-block text-xs font-medium text-[#800020] hover:underline">{c.footer.contactEmail}</a>}
           </div>
-          <nav aria-label="Portals" className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-[#5E5470]">
+          <nav aria-label="Portals" className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-[#80666D]">
             {portals.map((p) => (
-              <Link key={p.id} href={p.id === "freelancer" ? "/freelancer" : PORTAL_META[p.id].href} className="hover:text-[#6A1FA0]">{p.name}</Link>
+              <Link key={p.id} href={p.id === "freelancer" ? "/freelancer" : PORTAL_META[p.id].href} className="hover:text-[#800020]">{p.name}</Link>
             ))}
           </nav>
         </div>

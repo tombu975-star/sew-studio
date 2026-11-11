@@ -227,7 +227,7 @@ function Tile({
       <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
         <Icon className="w-4 h-4 text-stone-400" /> {label}
       </div>
-      <p className={cn("mt-2 font-display text-2xl font-semibold tabular-nums", warn ? "text-amber-700" : "text-[#832138]")}>{value}</p>
+      <p className={cn("mt-2 font-display text-2xl font-semibold tabular-nums", warn ? "text-amber-700" : "text-[#800020]")}>{value}</p>
       <p className="mt-1 text-xs text-stone-500">{note}</p>
     </div>
   );

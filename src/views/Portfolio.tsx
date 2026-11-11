@@ -216,7 +216,7 @@ function GalleryCard({
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left rounded-lg overflow-hidden border border-[#EEDFE3] surface-premium elevate-sm lift group hover:border-[#832138]/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#832138]/30 animate-fade-in-up"
+      className="w-full text-left rounded-lg overflow-hidden border border-[#EEDFE3] surface-premium elevate-sm lift group hover:border-[#800020]/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/30 animate-fade-in-up"
       style={{ animationDelay: `${index * 50}ms` }}
       aria-label={`View ${garment} for ${customerName}`}
     >
@@ -255,7 +255,7 @@ function GalleryCard({
 
       {/* Info area */}
       <div className="p-3 space-y-1">
-        <p className="font-medium text-sm text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
+        <p className="font-medium text-sm text-[#2F151B] truncate group-hover:text-[#800020] transition-colors">
           {garment}
         </p>
         <div className="flex items-center gap-1 text-xs text-stone-500">

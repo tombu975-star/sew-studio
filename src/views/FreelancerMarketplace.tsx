@@ -37,7 +37,7 @@ interface Post {
 }
 
 const input =
-  "w-full h-10 px-3 rounded-md border border-[#EEDFE3] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#832138]/20";
+  "w-full h-10 px-3 rounded-md border border-[#EEDFE3] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#800020]/20";
 const btn = "h-9 px-3 rounded-md text-xs font-medium border transition-colors disabled:opacity-50";
 
 /** Shop-side: browse registered freelancers and post open jobs they can apply to. */
@@ -107,7 +107,7 @@ export function FreelancerMarketplace() {
             <input className={input} type="date" value={due} onChange={(e) => setDue(e.target.value)} />
           </div>
           <button
-            className={`${btn} bg-[#832138] text-white border-[#832138]`}
+            className={`${btn} bg-[#800020] text-white border-[#800020]`}
             disabled={!task.trim() || publish.isPending}
             onClick={() => publish.mutate()}
           >
@@ -154,7 +154,7 @@ export function FreelancerMarketplace() {
                           </div>
                           {a.status === "Pending" && p.status === "Open" ? (
                             <div className="flex gap-2 shrink-0">
-                              <button className={`${btn} bg-[#832138] text-white border-[#832138]`} disabled={act.isPending}
+                              <button className={`${btn} bg-[#800020] text-white border-[#800020]`} disabled={act.isPending}
                                 onClick={() => act.mutate({ id: p.id, body: { action: "accept", applicationId: a.id } })}>
                                 Hire
                               </button>
@@ -200,7 +200,7 @@ export function FreelancerMarketplace() {
                 {f.linked ? (
                   <span className="text-xs text-emerald-600 shrink-0">On your roster</span>
                 ) : (
-                  <button className={`${btn} border-[#832138] text-[#832138]`} disabled={link.isPending} onClick={() => link.mutate(f.id)}>
+                  <button className={`${btn} border-[#800020] text-[#800020]`} disabled={link.isPending} onClick={() => link.mutate(f.id)}>
                     Add to roster
                   </button>
                 )}

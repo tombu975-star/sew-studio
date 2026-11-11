@@ -80,7 +80,7 @@ export function FreelancerDashboard({
       <header className="sticky top-0 z-30 border-b border-[#EEDFE3] bg-white/95 backdrop-blur-md pt-safe">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#832138] to-[#6C1C2F] text-white">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#800020] to-[#650019] text-white">
               <Scissors className="size-4" />
             </span>
             <div className="min-w-0 leading-tight">
@@ -96,7 +96,7 @@ export function FreelancerDashboard({
                 aria-current={tab === id ? "page" : undefined}
                 className={cn(
                   "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors",
-                  tab === id ? "bg-[#FAF0F2] text-[#6C1C2F]" : "text-stone-600 hover:bg-[#F7EFF1]"
+                  tab === id ? "bg-[#FAF0F2] text-[#650019]" : "text-stone-600 hover:bg-[#F7EFF1]"
                 )}
               >
                 <Icon className="size-4" /> {label}
@@ -106,7 +106,7 @@ export function FreelancerDashboard({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setTab("profile")}
-              className="grid size-9 place-items-center rounded-full bg-[#FAF0F2] text-xs font-semibold text-[#6C1C2F] md:hidden"
+              className="grid size-9 place-items-center rounded-full bg-[#FAF0F2] text-xs font-semibold text-[#650019] md:hidden"
               aria-label="Profile"
             >
               {initials || "F"}
@@ -138,9 +138,9 @@ export function FreelancerDashboard({
             return (
               <button key={id} onClick={() => setTab(id)} aria-current={active ? "page" : undefined}
                 className="relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-2 py-1.5">
-                {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#832138]" />}
-                <Icon className={cn("size-5", active ? "text-[#832138]" : "text-stone-400")} strokeWidth={active ? 2 : 1.5} />
-                <span className={cn("text-[10px] leading-tight", active ? "font-semibold text-[#832138]" : "text-stone-400")}>{label}</span>
+                {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#800020]" />}
+                <Icon className={cn("size-5", active ? "text-[#800020]" : "text-stone-400")} strokeWidth={active ? 2 : 1.5} />
+                <span className={cn("text-[10px] leading-tight", active ? "font-semibold text-[#800020]" : "text-stone-400")}>{label}</span>
               </button>
             );
           })}
@@ -212,7 +212,7 @@ function MyJobs({ profile, onBrowse }: { profile: FreelancerProfile; onBrowse: (
         {([["all", "All"], ["active", "Active"], ["Delivered", "Delivered"], ["Paid", "Paid"]] as [Filter, string][]).map(([k, label]) => (
           <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}
             className={cn("h-8 rounded-full border px-3.5 text-xs font-medium transition-colors",
-              filter === k ? "border-[#6C1C2F] bg-[#6C1C2F] text-white" : "border-[#E6D4D8] bg-white text-stone-600 hover:border-[#6C1C2F]")}>
+              filter === k ? "border-[#650019] bg-[#650019] text-white" : "border-[#E6D4D8] bg-white text-stone-600 hover:border-[#650019]")}>
             {label}
           </button>
         ))}
@@ -263,7 +263,7 @@ function MyJobs({ profile, onBrowse }: { profile: FreelancerProfile; onBrowse: (
                     <button key={s} disabled={updatingId === j.id || j.status === s} onClick={() => setStatus(j.id, s)}
                       aria-pressed={j.status === s}
                       className={cn("inline-flex h-8 items-center gap-1 rounded-md border px-2.5 text-xs font-medium transition-colors disabled:cursor-default",
-                        j.status === s ? "border-[#6C1C2F] bg-[#FAF0F2] text-[#6C1C2F]" : "border-[#E6D4D8] bg-white text-stone-600 hover:border-[#6C1C2F] disabled:opacity-50")}>
+                        j.status === s ? "border-[#650019] bg-[#FAF0F2] text-[#650019]" : "border-[#E6D4D8] bg-white text-stone-600 hover:border-[#650019] disabled:opacity-50")}>
                       {j.status === s && <CheckCircle2 className="size-3.5" />} {s}
                     </button>
                   ))}

@@ -99,7 +99,7 @@ const CHANNEL_META: Record<
 // Direction tag — Auto = stone neutral, Manual = burgundy accent.
 const DIRECTION_META: Record<string, { label: string; class: string }> = {
   auto: { label: "Auto", class: "bg-stone-100 text-stone-500 border-stone-200" },
-  manual: { label: "Manual", class: "bg-[#832138]/8 text-[#832138] border-[#832138]/20" },
+  manual: { label: "Manual", class: "bg-[#800020]/8 text-[#800020] border-[#800020]/20" },
 };
 
 export function PortalClient() {
@@ -153,9 +153,9 @@ export function PortalClient() {
   if (!token && !loading) {
     return (
       <div className="min-h-dvh flex flex-col bg-[#FCF8F9]">
-        <div className="relative h-[38vh] min-h-[260px] overflow-hidden bg-[#832138]">
+        <div className="relative h-[38vh] min-h-[260px] overflow-hidden bg-[#800020]">
           <img src="/atelier-login.jpg" alt="Atelier" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#832138]/85 via-[#6C1C2F]/65 to-[#2F151B]/80" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#800020]/85 via-[#650019]/65 to-[#2F151B]/80" />
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-[#FCF8F9]" />
           <div className="relative h-full flex flex-col items-center justify-center text-white px-6 text-center">
             <div className="w-14 h-14 rounded-full border border-white/40 flex items-center justify-center backdrop-blur-sm bg-white/5 animate-fade-in-up">
@@ -194,11 +194,11 @@ export function PortalClient() {
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value)}
                 placeholder="e.g. a1b2c3d4e5f6..."
-                className="w-full h-12 bg-white border border-[#EEDFE3] rounded-xl px-4 text-sm text-[#2F151B] placeholder-stone-400 focus:outline-none focus:border-[#832138] focus:ring-4 focus:ring-[#832138]/8 transition-all elevate-sm"
+                className="w-full h-12 bg-white border border-[#EEDFE3] rounded-xl px-4 text-sm text-[#2F151B] placeholder-stone-400 focus:outline-none focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/8 transition-all elevate-sm"
               />
               <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 h-12 px-5 bg-[#832138] text-white text-sm font-medium rounded-xl hover:bg-[#6C1C2F] transition-all elevate-burgundy hover:translate-y-[-1px] group"
+                className="w-full inline-flex items-center justify-center gap-2 h-12 px-5 bg-[#800020] text-white text-sm font-medium rounded-xl hover:bg-[#650019] transition-all elevate-burgundy hover:translate-y-[-1px] group"
               >
                 Track my order
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
@@ -216,10 +216,10 @@ export function PortalClient() {
   if (loading) {
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FCF8F9] gap-4">
-        <div className="w-12 h-12 rounded-full border border-[#832138] flex items-center justify-center">
-          <Scissors className="w-5 h-5 text-[#832138]" />
+        <div className="w-12 h-12 rounded-full border border-[#800020] flex items-center justify-center">
+          <Scissors className="w-5 h-5 text-[#800020]" />
         </div>
-        <Loader2 className="w-5 h-5 animate-spin text-[#832138]" />
+        <Loader2 className="w-5 h-5 animate-spin text-[#800020]" />
         <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400">Loading your orders…</p>
       </div>
     );
@@ -228,14 +228,14 @@ export function PortalClient() {
   if (error || !data) {
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FCF8F9] gap-4 px-6 text-center">
-        <div className="w-14 h-14 rounded-full bg-[#832138]/8 flex items-center justify-center">
-          <AlertCircle className="w-6 h-6 text-[#832138]" />
+        <div className="w-14 h-14 rounded-full bg-[#800020]/8 flex items-center justify-center">
+          <AlertCircle className="w-6 h-6 text-[#800020]" />
         </div>
         <p className="font-display text-xl font-semibold text-[#2F151B]">Link not found</p>
         <p className="text-sm text-stone-500 max-w-xs">
           {error || "This tracking link is invalid or has expired."}
         </p>
-        <a href="/portal" className="mt-2 inline-flex items-center gap-2 text-sm text-[#832138] font-medium hover:underline">
+        <a href="/portal" className="mt-2 inline-flex items-center gap-2 text-sm text-[#800020] font-medium hover:underline">
           <ArrowRight className="w-4 h-4 rotate-180" /> Try a different link
         </a>
       </div>
@@ -248,9 +248,9 @@ export function PortalClient() {
   return (
     <div className="min-h-dvh bg-[#FCF8F9]">
       {/* Header band */}
-      <div className="relative overflow-hidden bg-[#832138]">
+      <div className="relative overflow-hidden bg-[#800020]">
         <img src="/atelier-login.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#832138]/90 to-[#2F151B]/85" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#800020]/90 to-[#2F151B]/85" />
         <div className="relative px-6 py-10 md:py-14 max-w-3xl mx-auto text-white">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center backdrop-blur-sm bg-white/5">
@@ -289,12 +289,12 @@ export function PortalClient() {
                     key={n.id}
                     className={`flex gap-3 p-3 rounded-lg border transition-all ${
                       !n.readAt
-                        ? "bg-[#832138]/4 border-[#832138]/15"
+                        ? "bg-[#800020]/4 border-[#800020]/15"
                         : "bg-white border-[#EEDFE3]"
                     }`}
                   >
-                    <div className="w-9 h-9 rounded-full bg-[#832138]/8 flex items-center justify-center shrink-0">
-                      <Icon className="w-4 h-4 text-[#832138]" />
+                    <div className="w-9 h-9 rounded-full bg-[#800020]/8 flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4 text-[#800020]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
@@ -328,7 +328,7 @@ export function PortalClient() {
                         </p>
                       )}
                     </div>
-                    {!n.readAt && <span className="w-2 h-2 rounded-full bg-[#832138] shrink-0 mt-1.5" />}
+                    {!n.readAt && <span className="w-2 h-2 rounded-full bg-[#800020] shrink-0 mt-1.5" />}
                   </div>
                 );
               })}
@@ -430,13 +430,13 @@ export function PortalClient() {
         <SectionCard title="Need help?">
           <div className="flex flex-wrap gap-3">
             {data.customer.phone && (
-              <a href={`tel:${data.customer.phone}`} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#EEDFE3] bg-white text-sm text-[#2F151B] hover:border-[#832138]/30 transition elevate-sm">
-                <Phone className="w-4 h-4 text-[#832138]" /> Call the studio
+              <a href={`tel:${data.customer.phone}`} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#EEDFE3] bg-white text-sm text-[#2F151B] hover:border-[#800020]/30 transition elevate-sm">
+                <Phone className="w-4 h-4 text-[#800020]" /> Call the studio
               </a>
             )}
             {data.customer.email && (
-              <a href="mailto:studio" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#EEDFE3] bg-white text-sm text-[#2F151B] hover:border-[#832138]/30 transition elevate-sm">
-                <Mail className="w-4 h-4 text-[#832138]" /> Email us
+              <a href="mailto:studio" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#EEDFE3] bg-white text-sm text-[#2F151B] hover:border-[#800020]/30 transition elevate-sm">
+                <Mail className="w-4 h-4 text-[#800020]" /> Email us
               </a>
             )}
           </div>
@@ -490,7 +490,7 @@ export function PortalClient() {
             <div className="space-y-4">
               {data.shop.policies.depositPolicyText && (
                 <div className="flex gap-3">
-                  <ShieldCheck className="w-4 h-4 text-[#832138] shrink-0 mt-0.5" />
+                  <ShieldCheck className="w-4 h-4 text-[#800020] shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-medium text-[#2F151B] mb-0.5">Deposit policy</p>
                     <p className="text-xs text-stone-500 leading-relaxed">{data.shop.policies.depositPolicyText}</p>
@@ -499,7 +499,7 @@ export function PortalClient() {
               )}
               {data.shop.policies.alterationsPolicyText && (
                 <div className="flex gap-3">
-                  <ScissorsIcon className="w-4 h-4 text-[#832138] shrink-0 mt-0.5" />
+                  <ScissorsIcon className="w-4 h-4 text-[#800020] shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-medium text-[#2F151B] mb-0.5">Alterations policy</p>
                     <p className="text-xs text-stone-500 leading-relaxed">{data.shop.policies.alterationsPolicyText}</p>
@@ -508,7 +508,7 @@ export function PortalClient() {
               )}
               {data.shop.policies.cancellationPolicyText && (
                 <div className="flex gap-3">
-                  <AlertCircle className="w-4 h-4 text-[#832138] shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-[#800020] shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-medium text-[#2F151B] mb-0.5">Cancellation policy</p>
                     <p className="text-xs text-stone-500 leading-relaxed">{data.shop.policies.cancellationPolicyText}</p>

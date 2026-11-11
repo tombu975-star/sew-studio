@@ -53,17 +53,17 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="h-11 w-full rounded-md border border-[#EEDFE3] bg-white pl-10 pr-3 text-sm text-[#2F151B] outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/15"
+                className="h-11 w-full rounded-md border border-[#EEDFE3] bg-white pl-10 pr-3 text-sm text-[#2F151B] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15"
               />
             </div>
-            {error && <p role="alert" className="rounded-md border border-[#832138]/20 bg-[#832138]/5 px-3.5 py-2.5 text-sm text-[#832138]">{error}</p>}
-            <button disabled={loading} className="h-11 w-full rounded-md bg-[#832138] text-sm font-medium text-white hover:bg-[#6C1C2F] disabled:opacity-60">
+            {error && <p role="alert" className="rounded-md border border-[#800020]/20 bg-[#800020]/5 px-3.5 py-2.5 text-sm text-[#800020]">{error}</p>}
+            <button disabled={loading} className="h-11 w-full rounded-md bg-[#800020] text-sm font-medium text-white hover:bg-[#650019] disabled:opacity-60">
               {loading ? "Sending…" : "Send reset link"}
             </button>
           </form>
         )}
 
-        <a href="/" className="mt-6 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-[#832138]">
+        <a href="/" className="mt-6 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-[#800020]">
           <ArrowLeft className="size-4" /> Back to sign in
         </a>
       </section>

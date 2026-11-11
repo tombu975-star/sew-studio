@@ -11,7 +11,7 @@ type AdminSettings = {
 };
 type Release = { id: string; version: string; releaseNotes: string; status: "draft" | "published" | "archived"; createdAt: string; publishedAt?: string | null };
 type AuditEntry = { id: string; action: string; entity: string; details: Record<string, unknown>; createdAt: string; adminEmail?: string; adminName?: string };
-const EMPTY: AdminSettings = { appVersion: "", releaseNotes: "", brandName: "", loginHeading: "", loginDescription: "", loginFooter: "", primaryColor: "#6C1C2F", accentColor: "#832138", backgroundColor: "#F9F2F4", updatedAt: "" };
+const EMPTY: AdminSettings = { appVersion: "", releaseNotes: "", brandName: "", loginHeading: "", loginDescription: "", loginFooter: "", primaryColor: "#650019", accentColor: "#800020", backgroundColor: "#F9F2F4", updatedAt: "" };
 const inputClass = "mt-1.5 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal outline-none transition focus:border-[#527564] focus:ring-4 focus:ring-[#527564]/10";
 
 export function PlatformExperienceAdmin() {

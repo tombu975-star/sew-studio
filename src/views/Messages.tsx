@@ -165,7 +165,7 @@ const DIRECTION_META: Record<
   },
   manual: {
     label: "Manual",
-    class: "bg-[#832138]/8 text-[#832138] border-[#832138]/20",
+    class: "bg-[#800020]/8 text-[#800020] border-[#800020]/20",
   },
 };
 
@@ -478,7 +478,7 @@ function MessageRow({ message }: { message: CustomerNotification }) {
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 mt-2.5">
             {message.customer && (
               <span className="inline-flex items-center gap-1.5 min-w-0">
-                <span className="w-5 h-5 rounded-full bg-[#832138] text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
+                <span className="w-5 h-5 rounded-full bg-[#800020] text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
                   {initial}
                 </span>
                 <span className="text-[11px] text-stone-600 truncate">
@@ -597,7 +597,7 @@ function SendMessageDialog({
       <DialogContent className="sm:max-w-md rounded-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-[#2F151B] flex items-center gap-2">
-            <span className="w-7 h-7 rounded-full bg-[#832138]/10 text-[#832138] flex items-center justify-center">
+            <span className="w-7 h-7 rounded-full bg-[#800020]/10 text-[#800020] flex items-center justify-center">
               <Send className="w-4 h-4" />
             </span>
             Send new message
@@ -612,7 +612,7 @@ function SendMessageDialog({
           {/* Customer */}
           <div className="grid gap-1.5">
             <Label htmlFor="msg-customer">
-              Customer <span className="text-[#832138]">*</span>
+              Customer <span className="text-[#800020]">*</span>
             </Label>
             <Select value={customerId} onValueChange={handleCustomerChange}>
               <SelectTrigger id="msg-customer" className="w-full bg-white">
@@ -715,7 +715,7 @@ function SendMessageDialog({
           {/* Body */}
           <div className="grid gap-1.5">
             <Label htmlFor="msg-body">
-              Message <span className="text-[#832138]">*</span>
+              Message <span className="text-[#800020]">*</span>
             </Label>
             <Textarea
               id="msg-body"

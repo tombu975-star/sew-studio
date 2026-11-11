@@ -62,8 +62,8 @@
   --color-purple-300: #DC9AAA;
   --color-purple-400: #C86E83;
   --color-purple-500: #98374D;
-  --color-purple-600: #832138;
-  --color-purple-700: #6C1C2F;
+  --color-purple-600: #800020;
+  --color-purple-700: #650019;
   --color-purple-800: #561625;
   --color-purple-900: #41111C;
   --color-purple-950: #2A0911;
@@ -73,8 +73,8 @@
   --color-violet-300: #DC9AAA;
   --color-violet-400: #C86E83;
   --color-violet-500: #98374D;
-  --color-violet-600: #832138;
-  --color-violet-700: #6C1C2F;
+  --color-violet-600: #800020;
+  --color-violet-700: #650019;
   --color-violet-800: #561625;
   --color-violet-900: #41111C;
   --color-violet-950: #2A0911;
@@ -84,8 +84,8 @@
   --color-fuchsia-300: #DC9AAA;
   --color-fuchsia-400: #C86E83;
   --color-fuchsia-500: #98374D;
-  --color-fuchsia-600: #832138;
-  --color-fuchsia-700: #6C1C2F;
+  --color-fuchsia-600: #800020;
+  --color-fuchsia-700: #650019;
   --color-fuchsia-800: #561625;
   --color-fuchsia-900: #41111C;
   --color-fuchsia-950: #2A0911;
@@ -95,21 +95,21 @@
   --color-blue-300: #DC9AAA;
   --color-blue-400: #C86E83;
   --color-blue-500: #98374D;
-  --color-blue-600: #832138;
-  --color-blue-700: #6C1C2F;
+  --color-blue-600: #800020;
+  --color-blue-700: #650019;
   --color-blue-800: #561625;
   --color-blue-900: #41111C;
   --color-blue-950: #2A0911;
   --color-indigo-50: #FAF0F2;
   --color-indigo-100: #F5DEE4;
   --color-indigo-500: #98374D;
-  --color-indigo-600: #832138;
-  --color-indigo-700: #6C1C2F;
+  --color-indigo-600: #800020;
+  --color-indigo-700: #650019;
   --color-sky-50: #FAF0F2;
   --color-sky-100: #F5DEE4;
   --color-sky-500: #98374D;
-  --color-sky-600: #832138;
-  --color-sky-700: #6C1C2F;
+  --color-sky-600: #800020;
+  --color-sky-700: #650019;
   --color-slate-50: #FCF8F9;
   --color-slate-100: #F7EFF1;
   --color-slate-200: #EEE0E3;
@@ -149,27 +149,27 @@
   --card-foreground: #2F151B;
   --popover: #ffffff;
   --popover-foreground: #2F151B;
-  --primary: #6C1C2F;
+  --primary: #650019;
   --primary-foreground: #ffffff;
   --secondary: #F7EFF1;
   --secondary-foreground: #2F151B;
   --muted: #F7EFF1;
   --muted-foreground: #776267;
   --accent: #F7EDEF;
-  --accent-foreground: #6C1C2F;
+  --accent-foreground: #650019;
   --destructive: #B42318;
   --destructive-foreground: #FFFFFF;
   --border: #E6D4D8;
   --input: #DAC4C9;
-  --ring: #6C1C2F;
+  --ring: #650019;
   --gold: #8A6414;
   --green: #4A6B53;
-  --chart-1: #832138;
+  --chart-1: #800020;
   --chart-2: #C9972B;
   --chart-3: #4A6B53;
   --chart-4: #0e7490;
   --chart-5: #8E3232;
-  --sidebar: #391019;
+  --sidebar: #3B0010;
   --sidebar-foreground: #FCF8F9;
   --sidebar-primary: #E3B64F;
   --sidebar-primary-foreground: #FFFFFF;
@@ -186,7 +186,7 @@
   --card-foreground: #F7EFF1;
   --popover: #3F2229;
   --popover-foreground: #F7EFF1;
-  --primary: #832138;
+  --primary: #800020;
   --primary-foreground: #FFFFFF;
   --secondary: #583F45;
   --secondary-foreground: #F7EFF1;
@@ -198,15 +198,15 @@
   --destructive-foreground: #FAF0F0;
   --border: #583F45;
   --input: #583F45;
-  --ring: #832138;
+  --ring: #800020;
   --sidebar: #3F2229;
   --sidebar-foreground: #F7EFF1;
-  --sidebar-primary: #832138;
+  --sidebar-primary: #800020;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #583F45;
   --sidebar-accent-foreground: #F7EFF1;
   --sidebar-border: #583F45;
-  --sidebar-ring: #832138;
+  --sidebar-ring: #800020;
 }
 
 @layer base {
@@ -347,7 +347,7 @@
   }
   /* Premium gradient text */
   .text-gradient-burgundy {
-    color: #832138;
+    color: #800020;
   }
   /* Premium surface for elevated panels */
   .surface-premium {
@@ -360,7 +360,7 @@
   h1, h2, h3 { text-wrap: balance; letter-spacing: -0.005em; }
   /* Figures line up in columns everywhere money / measurements appear. */
   table, dl, .tabular-nums { font-variant-numeric: tabular-nums; }
-  :focus-visible { outline: 2px solid #832138; outline-offset: 2px; }
+  :focus-visible { outline: 2px solid #800020; outline-offset: 2px; }
   input:focus-visible, textarea:focus-visible, select:focus-visible, [role="combobox"]:focus-visible { outline-offset: 0; }
 }
 
@@ -426,8 +426,8 @@
 :root {
   --atelier-ink: #2F151B;
   --atelier-muted: #806B70;
-  --atelier-burgundy: #6C1C2F;
-  --atelier-burgundy-2: #832138;
+  --atelier-burgundy: #650019;
+  --atelier-burgundy-2: #800020;
   --atelier-rose: #FAF0F2;
   --atelier-gold: #C9972B;
   --atelier-line: #EADDE0;
@@ -526,4 +526,105 @@ main [class*="rounded-full"][class*="text-"] { letter-spacing: .005em; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   main *, nav *, header * { transition-duration: .01ms !important; }
+}
+
+
+/* ── SEWINESS · BURGUNDY SIGNATURE SYSTEM ─────────────────────────
+   Final brand pass shared by studio, admin, customer, freelancer,
+   tracking and public-facing pages. */
+:root {
+  --atelier-ink: #2F151B;
+  --atelier-muted: #80666D;
+  --atelier-burgundy: #800020;
+  --atelier-burgundy-2: #650019;
+  --atelier-burgundy-deep: #3B0010;
+  --atelier-rose: #FAF0F2;
+  --atelier-rose-2: #F5E5E9;
+  --atelier-gold: #C99A48;
+  --atelier-line: #EADDE0;
+  --atelier-canvas: #FCF8F5;
+  --atelier-card-shadow: 0 8px 26px rgba(82, 0, 24, .065), 0 2px 6px rgba(47, 21, 27, .035);
+  --primary: #800020;
+  --ring: #800020;
+  --sidebar: #3B0010;
+  --sidebar-accent: #650019;
+}
+.dark {
+  --primary: #A83A55;
+  --ring: #A83A55;
+  --sidebar: #26000B;
+}
+body {
+  background:
+    radial-gradient(ellipse at 8% 0%, rgba(128, 0, 32, .045), transparent 34rem),
+    var(--atelier-canvas);
+}
+::selection { background: rgba(128, 0, 32, .18); color: #3B0010; }
+
+/* Consistent brand treatment for primary actions while preserving
+   semantic success/warning/danger controls and custom icon buttons. */
+main button[class*="bg-primary"],
+main a[class*="bg-primary"],
+main button[class*="bg-[#800020]"],
+main a[class*="bg-[#800020]"] {
+  box-shadow: 0 5px 14px rgba(128, 0, 32, .16);
+}
+main button[class*="bg-primary"]:hover,
+main a[class*="bg-primary"]:hover {
+  filter: brightness(.94);
+  transform: translateY(-1px);
+}
+main [class*="border-primary"] { border-color: #800020; }
+main [class*="text-primary"] { color: #800020; }
+
+/* Elevated app surfaces feel like one deliberately designed product. */
+main [class*="rounded-2xl"][class*="bg-white"],
+main [class*="rounded-xl"][class*="bg-white"] {
+  border-color: #EADDE0;
+  box-shadow: var(--atelier-card-shadow);
+}
+main [class*="bg-slate-50"],
+main [class*="bg-stone-50"] { background-color: #FCF8F9; }
+main [class*="bg-purple-50"],
+main [class*="bg-violet-50"],
+main [class*="bg-fuchsia-50"] { background-color: #FAF0F2; }
+
+/* Navigation and page headers: crisp, quiet, and unmistakably branded. */
+header, nav {
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  backdrop-filter: saturate(140%) blur(14px);
+}
+main h1, main h2 {
+  color: #3B0010;
+}
+main h1 { font-weight: 700; }
+main h2 { font-weight: 650; }
+main a:not([class*="bg-"]) { text-underline-offset: 3px; }
+main a[class*="text-blue-"],
+main a[class*="text-violet-"],
+main a[class*="text-purple-"] { color: #800020; }
+
+/* Public marketing site: align the standalone landing page with the
+   same burgundy/ivory identity as the signed-in application. */
+body:has(> div > header) { color: #2F151B; }
+body:has(> div > header) a[class*="bg-[#800020]"],
+body:has(> div > header) a[class*="bg-[#650019]"] {
+  box-shadow: 0 8px 22px rgba(128, 0, 32, .18);
+}
+body:has(> div > header) [class*="bg-[#FAF8FC]"],
+body:has(> div > header) [class*="bg-[#FCF8F5]"] { background-color: #FCF8F5; }
+body:has(> div > header) [class*="text-[#800020]"],
+body:has(> div > header) [class*="text-[#650019]"] { color: #800020; }
+
+/* Motion is subtle and functional rather than decorative. */
+main [class*="rounded-xl"], main [class*="rounded-2xl"] {
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+main [class*="rounded-xl"][class*="border"]:hover,
+main [class*="rounded-2xl"][class*="border"]:hover {
+  border-color: #D8BAC2;
+}
+@media (max-width: 639px) {
+  main [class*="rounded-2xl"][class*="bg-white"],
+  main [class*="rounded-xl"][class*="bg-white"] { border-radius: 14px; }
 }

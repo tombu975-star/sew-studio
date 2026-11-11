@@ -39,7 +39,7 @@ export function extractApiError(err: unknown, fallback: string): string {
 }
 
 export const inputClass =
-  "h-12 w-full rounded-xl border border-[#ECDEE1] bg-white px-4 text-base text-[#2F151B] outline-none transition placeholder:text-[#B1979D] focus:border-[#832138] focus:ring-4 focus:ring-[#832138]/10 sm:h-[52px] sm:text-sm " +
+  "h-12 w-full rounded-xl border border-[#ECDEE1] bg-white px-4 text-base text-[#2F151B] outline-none transition placeholder:text-[#B1979D] focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/10 sm:h-[52px] sm:text-sm " +
   // phones: white pill with an icon on the left, as in the reference design
   "max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)] max-sm:placeholder:text-[#937B80] max-sm:focus:ring-white/35";
 
@@ -130,7 +130,7 @@ export function LoginPage() {
       <PhoneTabs mode={mode} onSwitch={switchMode} />
       {mode === "login" ? (
         <section key="login" id="panel-login" role="tabpanel" aria-labelledby="tab-login" className="animate-fade-in">
-          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#832138] sm:block">
+          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#800020] sm:block">
             Your studio, in good hands
           </p>
           <h2 className="font-serif text-[28px] font-medium tracking-tight text-[#2F151B] max-sm:sr-only sm:mt-3 sm:text-[42px]">
@@ -174,13 +174,13 @@ export function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(event) => setRememberMe(event.target.checked)}
-                  className="size-4 shrink-0 accent-[#832138] max-sm:accent-white"
+                  className="size-4 shrink-0 accent-[#800020] max-sm:accent-white"
                 />
                 Keep me signed in
               </label>
               <a
                 href="/forgot-password"
-                className="font-medium text-[#832138] underline-offset-4 hover:underline max-sm:text-white"
+                className="font-medium text-[#800020] underline-offset-4 hover:underline max-sm:text-white"
               >
                 Forgot password?
               </a>
@@ -192,7 +192,7 @@ export function LoginPage() {
               type="submit"
               size="lg"
               loading={submitting}
-              className={cn("h-12 w-full rounded-xl bg-[#832138] text-white shadow-[0_8px_18px_rgba(131,33,56,0.2)] hover:bg-[#6C1C2F] sm:h-[52px]", phoneButton)}
+              className={cn("h-12 w-full rounded-xl bg-[#800020] text-white shadow-[0_8px_18px_rgba(131,33,56,0.2)] hover:bg-[#650019] sm:h-[52px]", phoneButton)}
             >
               {submitting ? "Signing in…" : "Sign in"}
             </PremiumButton>
@@ -205,7 +205,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => switchMode("register")}
-              className="mt-2 text-sm font-semibold text-[#832138] underline-offset-4 hover:underline max-sm:hidden"
+              className="mt-2 text-sm font-semibold text-[#800020] underline-offset-4 hover:underline max-sm:hidden"
             >
               Create a shop account <span aria-hidden="true">→</span>
             </button>
@@ -213,7 +213,7 @@ export function LoginPage() {
               Work with studios as a freelancer?{" "}
               <a
                 href="/freelancer"
-                className="font-medium text-[#832138] underline-offset-4 hover:underline max-sm:text-white max-sm:underline"
+                className="font-medium text-[#800020] underline-offset-4 hover:underline max-sm:text-white max-sm:underline"
               >
                 Freelancer sign in
               </a>
@@ -222,7 +222,7 @@ export function LoginPage() {
         </section>
       ) : (
         <section key="register" id="panel-register" role="tabpanel" aria-labelledby="tab-register" className="animate-fade-in">
-          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#832138] sm:block">
+          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#800020] sm:block">
             Start creating
           </p>
           <h2 className="font-serif text-2xl font-medium tracking-tight text-[#2F151B] max-sm:sr-only sm:mt-3 sm:text-4xl">
@@ -296,7 +296,7 @@ export function LoginPage() {
               <Select value={gender} onValueChange={setGender}>
                 <SelectTrigger
                   id="gender"
-                  className="h-12 w-full rounded-xl border-[#ECDEE1] bg-white text-base font-normal data-[size=default]:h-12 sm:h-[52px] sm:data-[size=default]:h-[52px] text-[#2F151B] focus:border-[#832138] focus:ring-4 focus:ring-[#832138]/10 sm:text-sm max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)]"
+                  className="h-12 w-full rounded-xl border-[#ECDEE1] bg-white text-base font-normal data-[size=default]:h-12 sm:h-[52px] sm:data-[size=default]:h-[52px] text-[#2F151B] focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/10 sm:text-sm max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)]"
                 >
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
@@ -314,7 +314,7 @@ export function LoginPage() {
               type="submit"
               size="lg"
               loading={submitting}
-              className={cn("h-12 w-full rounded-xl bg-[#832138] text-white shadow-[0_8px_18px_rgba(131,33,56,0.2)] hover:bg-[#6C1C2F] sm:h-[52px]", phoneButton)}
+              className={cn("h-12 w-full rounded-xl bg-[#800020] text-white shadow-[0_8px_18px_rgba(131,33,56,0.2)] hover:bg-[#650019] sm:h-[52px]", phoneButton)}
             >
               {submitting ? "Creating your shop…" : "Create shop"}
             </PremiumButton>
@@ -325,7 +325,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => switchMode("login")}
-              className="font-medium text-[#832138] underline-offset-4 hover:underline"
+              className="font-medium text-[#800020] underline-offset-4 hover:underline"
             >
               Back to sign in
             </button>
@@ -358,7 +358,7 @@ export function Field({
       {/* On phones the placeholder and icon carry the label; screen readers still get it */}
       <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-semibold text-[#4F3138] max-sm:sr-only sm:mb-2">
         {label}
-        {required && <span className="ml-0.5 text-[#832138]" aria-hidden="true">*</span>}
+        {required && <span className="ml-0.5 text-[#800020]" aria-hidden="true">*</span>}
       </label>
       <div className="relative">
         {Icon && (

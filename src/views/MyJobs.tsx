@@ -284,7 +284,7 @@ function ActiveJobRow({
       >
         <DesignThumb src={order.designImage} alt={order.garmentDesign} size="sm" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
+          <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#800020] transition-colors">
             {order.garmentDesign}
           </p>
           <p className="text-xs text-stone-500 mt-0.5 truncate">
@@ -307,7 +307,7 @@ function ActiveJobRow({
             </span>
           </div>
         </div>
-        <Briefcase className="w-4 h-4 text-stone-300 group-hover:text-[#832138] transition-colors shrink-0" />
+        <Briefcase className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors shrink-0" />
       </button>
     </li>
   );
@@ -376,7 +376,7 @@ function CompletedCard({
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#832138] transition-colors">
+        <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#800020] transition-colors">
           {order.garmentDesign}
         </p>
         <p className="text-xs text-stone-500 mt-0.5 truncate">

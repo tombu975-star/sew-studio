@@ -206,7 +206,7 @@ function CustomerPicker({ onPick }: { onPick: (id: string) => void }) {
         <div className="w-full max-w-lg">
           <SectionCard bodyClassName="p-0 overflow-hidden">
             {/* Gradient hero with icon */}
-            <div className="relative bg-gradient-to-br from-[#832138] via-[#6C1C2F] to-[#4a0010] px-7 py-9 text-center overflow-hidden">
+            <div className="relative bg-gradient-to-br from-[#800020] via-[#650019] to-[#4a0010] px-7 py-9 text-center overflow-hidden">
               {/* Decorative grain overlay */}
               <div
                 className="absolute inset-0 opacity-[0.12] pointer-events-none"
@@ -254,7 +254,7 @@ function CustomerPicker({ onPick }: { onPick: (id: string) => void }) {
                   {customers?.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       <span className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#832138]/10 text-[#832138] text-[10px] font-semibold inline-flex items-center justify-center">
+                        <span className="w-5 h-5 rounded-full bg-[#800020]/10 text-[#800020] text-[10px] font-semibold inline-flex items-center justify-center">
                           {initials(c.name)}
                         </span>
                         {c.name}
@@ -270,7 +270,7 @@ function CustomerPicker({ onPick }: { onPick: (id: string) => void }) {
                 </p>
               )}
               <div className="flex items-center gap-2 pt-3 text-[11px] text-stone-400">
-                <Sparkles className="w-3 h-3 text-[#832138]/60" />
+                <Sparkles className="w-3 h-3 text-[#800020]/60" />
                 <span>
                   The AI uses each client&apos;s profile, measurements, and
                   history as design context.
@@ -546,7 +546,7 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
       {/* Back link */}
       <button
         onClick={() => go("customer", { id: customerId })}
-        className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#832138] mb-5 transition group animate-fade-in"
+        className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#800020] mb-5 transition group animate-fade-in"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />{" "}
         Back to {customer.name}
@@ -558,7 +558,7 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
         title="Style Assist"
         subtitle="Generate bespoke concepts, visualize them, and convert to orders."
         actions={
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#832138]/8 text-[#832138] text-[11px] font-semibold uppercase tracking-[0.18em] border border-[#832138]/15">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#800020]/8 text-[#800020] text-[11px] font-semibold uppercase tracking-[0.18em] border border-[#800020]/15">
             <Sparkles className="w-3 h-3" />
             AI-powered
           </span>
@@ -615,7 +615,7 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
           {drafts.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 px-1">
-                <Sparkles className="w-3.5 h-3.5 text-[#832138]" />
+                <Sparkles className="w-3.5 h-3.5 text-[#800020]" />
                 <span className="text-[11px] uppercase tracking-[0.22em] text-stone-500 font-semibold">
                   Fresh Concepts · {drafts.length}
                 </span>
@@ -646,7 +646,7 @@ function StyleAssistForCustomer({ customerId }: { customerId: string }) {
           {savedConcepts.length > 0 && (
             <div className="space-y-4 pt-2">
               <div className="flex items-center gap-2 px-1">
-                <Star className="w-3.5 h-3.5 text-[#832138]" />
+                <Star className="w-3.5 h-3.5 text-[#800020]" />
                 <span className="text-[11px] uppercase tracking-[0.22em] text-stone-500 font-semibold">
                   Saved Concepts · {savedConcepts.length}
                 </span>
@@ -726,7 +726,7 @@ function CustomerStyleProfile({
   return (
     <SectionCard bodyClassName="p-0">
       {/* Gradient avatar hero */}
-      <div className="relative bg-gradient-to-br from-[#832138] via-[#6C1C2F] to-[#4a0010] px-5 py-6 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-[#800020] via-[#650019] to-[#4a0010] px-5 py-6 overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.1] pointer-events-none"
           style={{
@@ -765,7 +765,7 @@ function CustomerStyleProfile({
               {styleChips.map((s) => (
                 <span
                   key={s}
-                  className="rounded-md bg-[#832138]/8 text-[#832138] px-2 py-1 text-xs font-medium"
+                  className="rounded-md bg-[#800020]/8 text-[#800020] px-2 py-1 text-xs font-medium"
                 >
                   {s}
                 </span>
@@ -899,7 +899,7 @@ function CustomerStyleProfile({
                             className={cn(
                               "w-3 h-3",
                               i < f.rating
-                                ? "text-[#832138] fill-[#832138]"
+                                ? "text-[#800020] fill-[#800020]"
                                 : "text-stone-300"
                             )}
                           />
@@ -1025,7 +1025,7 @@ function TintedNote({
         "rounded-md border-l-2 pl-3 py-1.5",
         subtle
           ? "bg-stone-50 border-stone-300"
-          : "bg-[#832138]/4 border-[#832138]/30"
+          : "bg-[#800020]/4 border-[#800020]/30"
       )}
     >
       <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-0.5">
@@ -1061,7 +1061,7 @@ function DesignRequestForm({
       title="Design Request"
       action={
         <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-stone-400">
-          <Scissors className="w-3 h-3 text-[#832138]" />
+          <Scissors className="w-3 h-3 text-[#800020]" />
           Brief
         </span>
       }
@@ -1170,7 +1170,7 @@ function DesignRequestForm({
       <div className="flex flex-wrap items-center justify-between gap-3 mt-5 pt-4 border-t border-[#EEDFE3]/70">
         <p className="text-[11px] text-stone-400 leading-relaxed max-w-md">
           The AI will craft three bespoke concepts using{" "}
-          <span className="text-[#832138] font-medium">
+          <span className="text-[#800020] font-medium">
             this client&apos;s profile
           </span>{" "}
           as design context.
@@ -1212,7 +1212,7 @@ function Field({
         className="text-[11px] uppercase tracking-[0.16em] text-stone-500 font-semibold"
       >
         {label}
-        {required && <span className="text-[#832138] ml-0.5">*</span>}
+        {required && <span className="text-[#800020] ml-0.5">*</span>}
       </Label>
       {children}
     </div>
@@ -1295,7 +1295,7 @@ function ConceptCard({
         {concept.matchPercent != null && (
           <div className="relative shrink-0">
             {/* Burgundy gradient pill */}
-            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-white px-2.5 py-1.5 rounded-full bg-[#832138]">
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-white px-2.5 py-1.5 rounded-full bg-[#800020]">
               <Sparkles className="w-3 h-3" />
               {concept.matchPercent}% match
             </div>
@@ -1311,7 +1311,7 @@ function ConceptCard({
               <>
                 {!imageLoaded && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="w-6 h-6 text-[#832138] animate-spin" />
+                    <Loader2 className="w-6 h-6 text-[#800020] animate-spin" />
                   </div>
                 )}
                 <img
@@ -1331,10 +1331,10 @@ function ConceptCard({
               // Shimmer + spinner overlay
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                 <div className="absolute inset-0 shimmer opacity-50" />
-                <div className="relative w-14 h-14 rounded-full bg-white/80 border border-[#832138]/20 backdrop-blur-sm flex items-center justify-center elevate-sm">
-                  <Loader2 className="w-6 h-6 text-[#832138] animate-spin" />
+                <div className="relative w-14 h-14 rounded-full bg-white/80 border border-[#800020]/20 backdrop-blur-sm flex items-center justify-center elevate-sm">
+                  <Loader2 className="w-6 h-6 text-[#800020] animate-spin" />
                 </div>
-                <p className="relative text-[10px] uppercase tracking-[0.22em] text-[#832138] font-semibold">
+                <p className="relative text-[10px] uppercase tracking-[0.22em] text-[#800020] font-semibold">
                   Painting your concept…
                 </p>
                 <p className="relative text-[10px] text-stone-400 max-w-[200px] text-center">
@@ -1349,11 +1349,11 @@ function ConceptCard({
                 className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group hover:bg-[#f5f0eb]/60 transition"
                 aria-label="Visualize concept"
               >
-                <div className="w-14 h-14 rounded-full bg-white border border-[#832138]/30 flex items-center justify-center group-hover:bg-[#832138] group-hover:border-[#832138] transition elevate-sm">
-                  <Wand2 className="w-5 h-5 text-[#832138] group-hover:text-white transition" />
+                <div className="w-14 h-14 rounded-full bg-white border border-[#800020]/30 flex items-center justify-center group-hover:bg-[#800020] group-hover:border-[#800020] transition elevate-sm">
+                  <Wand2 className="w-5 h-5 text-[#800020] group-hover:text-white transition" />
                 </div>
                 <div className="text-center">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#832138] font-semibold">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#800020] font-semibold">
                     Visualize Concept
                   </p>
                   <p className="text-[10px] text-stone-400 max-w-[200px] mt-1 leading-relaxed">
@@ -1378,7 +1378,7 @@ function ConceptCard({
             {specs.map((s) => (
               <div key={s.label} className="min-w-0">
                 <dt className="flex items-center gap-1 text-[9px] uppercase tracking-[0.18em] text-stone-400 font-semibold">
-                  {s.icon && <s.icon className="w-2.5 h-2.5 text-[#832138]/60" />}
+                  {s.icon && <s.icon className="w-2.5 h-2.5 text-[#800020]/60" />}
                   {s.label}
                 </dt>
                 <dd className="text-[13px] text-[#2F151B] mt-0.5 break-words leading-snug">
@@ -1391,8 +1391,8 @@ function ConceptCard({
 
         {/* Why this may work */}
         {concept.whyThisMayWork && (
-          <div className="bg-[#832138]/4 border-l-2 border-[#832138]/30 pl-3 py-2 rounded-r-md">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-[#832138] font-semibold mb-1">
+          <div className="bg-[#800020]/4 border-l-2 border-[#800020]/30 pl-3 py-2 rounded-r-md">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#800020] font-semibold mb-1">
               Why this may work
             </p>
             <p className="text-[13px] text-[#2F151B] leading-relaxed">
@@ -1407,7 +1407,7 @@ function ConceptCard({
             {concept.fitConsiderations && (
               <div>
                 <p className="flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-stone-400 font-semibold mb-1">
-                  <Scissors className="w-3 h-3 text-[#832138]/60" />
+                  <Scissors className="w-3 h-3 text-[#800020]/60" />
                   Fit Considerations
                 </p>
                 <p className="text-xs text-stone-600 leading-relaxed">
@@ -1418,7 +1418,7 @@ function ConceptCard({
             {concept.designDirection && (
               <div>
                 <p className="flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-stone-400 font-semibold mb-1">
-                  <Sparkles className="w-3 h-3 text-[#832138]/60" />
+                  <Sparkles className="w-3 h-3 text-[#800020]/60" />
                   Design Direction
                 </p>
                 <p className="text-xs text-stone-600 leading-relaxed">
@@ -1444,7 +1444,7 @@ function ConceptCard({
                   className={cn(
                     "text-[11px] px-2.5 py-1 rounded-full border transition",
                     reason === r
-                      ? "bg-[#832138] text-white border-[#832138]"
+                      ? "bg-[#800020] text-white border-[#800020]"
                       : "border-[#EEDFE3] text-stone-500 hover:border-stone-300 bg-white"
                   )}
                 >

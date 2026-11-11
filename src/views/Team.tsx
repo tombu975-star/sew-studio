@@ -227,7 +227,7 @@ export default function Team() {
         actions={
           owner ? (
             <div className="hidden md:flex items-center gap-2 rounded-full border border-[#EEDFE3] bg-white pl-2 pr-3 py-1.5 elevate-sm">
-              <span className="w-6 h-6 rounded-full bg-[#832138] flex items-center justify-center text-white text-[11px] font-display font-semibold">
+              <span className="w-6 h-6 rounded-full bg-[#800020] flex items-center justify-center text-white text-[11px] font-display font-semibold">
                 {initialOf(owner.fullName)}
               </span>
               <div className="leading-tight">
@@ -272,19 +272,19 @@ export default function Team() {
         <TabsList className="bg-white border border-[#EEDFE3] rounded-lg h-auto p-1 overflow-x-auto max-w-full inline-flex w-auto gap-0.5">
           <TabsTrigger
             value="staff"
-            className="rounded-md data-[state=active]:bg-[#832138] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Staff &amp; Trainers
           </TabsTrigger>
           <TabsTrigger
             value="trainees"
-            className="rounded-md data-[state=active]:bg-[#832138] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Trainees
           </TabsTrigger>
           <TabsTrigger
             value="freelancers"
-            className="rounded-md data-[state=active]:bg-[#832138] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Freelancers
           </TabsTrigger>
@@ -496,7 +496,7 @@ function StaffTrainersCard({
                 className="group flex items-center gap-4 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-[#832138] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                   aria-hidden
                 >
                   {initialOf(u.fullName)}
@@ -507,7 +507,7 @@ function StaffTrainersCard({
                       {u.fullName}
                     </span>
                     {isOwner && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#832138] bg-[#832138]/8 border border-[#832138]/15 px-1.5 py-0.5 rounded-md">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#800020] bg-[#800020]/8 border border-[#800020]/15 px-1.5 py-0.5 rounded-md">
                         <Crown className="w-3 h-3" /> Owner
                       </span>
                     )}
@@ -566,7 +566,7 @@ function StaffTrainersCard({
                       onClick={() => onEdit(u)}
                       aria-label={`Edit details for ${u.fullName}`}
                       title="Edit details"
-                      className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#EEDFE3] bg-white text-xs text-stone-600 hover:text-[#832138] hover:border-[#832138]/40 hover:bg-[#FAF0F2] transition-colors"
+                      className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#EEDFE3] bg-white text-xs text-stone-600 hover:text-[#800020] hover:border-[#800020]/40 hover:bg-[#FAF0F2] transition-colors"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">Edit</span>
@@ -666,7 +666,7 @@ function FreelancersCard({
                 className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-[#832138] flex items-center justify-center text-white shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white shrink-0 shadow-sm"
                   aria-hidden
                 >
                   <SpecialtyIcon className="w-5 h-5" />
@@ -678,7 +678,7 @@ function FreelancersCard({
                     </span>
                     {f.verified && <VerifiedBadge />}
                     {f.specialty && (
-                      <span className="inline-flex items-center rounded-md bg-[#832138]/8 text-[#832138] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] border border-[#832138]/15">
+                      <span className="inline-flex items-center rounded-md bg-[#800020]/8 text-[#800020] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] border border-[#800020]/15">
                         {f.specialty}
                       </span>
                     )}
@@ -743,7 +743,7 @@ function FreelancersCard({
                     onClick={() => setEditFreelancer(f)}
                     aria-label={`Working terms for ${f.name}`}
                     title="Edit details"
-                    className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#EEDFE3] bg-white text-xs text-stone-600 hover:text-[#832138] hover:border-[#832138]/40 hover:bg-[#FAF0F2] transition-colors"
+                    className="shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#EEDFE3] bg-white text-xs text-stone-600 hover:text-[#800020] hover:border-[#800020]/40 hover:bg-[#FAF0F2] transition-colors"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Edit</span>
@@ -912,7 +912,7 @@ function TraineesCard({
                   className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
                 >
                   <div
-                    className="w-11 h-11 rounded-full bg-[#832138] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                    className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                     aria-hidden
                   >
                     {initialOf(t.fullName)}
@@ -988,7 +988,7 @@ function TraineesCard({
                                 <span className="text-stone-300" aria-hidden>
                                   ·
                                 </span>
-                                <span className="inline-flex items-center gap-1 text-[#832138] font-medium">
+                                <span className="inline-flex items-center gap-1 text-[#800020] font-medium">
                                   <span className="tabular-nums">
                                     Week {weeksElapsed}
                                   </span>
@@ -1019,7 +1019,7 @@ function TraineesCard({
                           aria-label={`${t.fullName} training progress`}
                         >
                           <div
-                            className="h-full bg-[#832138] rounded-full transition-all duration-500"
+                            className="h-full bg-[#800020] rounded-full transition-all duration-500"
                             style={{
                               width: `${
                                 progressPct === 0 ? 1 : progressPct
@@ -1090,12 +1090,12 @@ function TraineesCard({
                       {(t as any).canAccessOrders || (t as any).canAccessBoard ? (
                         <>
                           {(t as any).canAccessOrders && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#832138] bg-[#832138]/8 border border-[#832138]/15 rounded px-1.5 py-0.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#800020] bg-[#800020]/8 border border-[#800020]/15 rounded px-1.5 py-0.5">
                               <ShoppingBag className="w-2.5 h-2.5" /> Orders
                             </span>
                           )}
                           {(t as any).canAccessBoard && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#832138] bg-[#832138]/8 border border-[#832138]/15 rounded px-1.5 py-0.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#800020] bg-[#800020]/8 border border-[#800020]/15 rounded px-1.5 py-0.5">
                               <LayoutGrid className="w-2.5 h-2.5" /> Board
                             </span>
                           )}
@@ -2278,7 +2278,7 @@ function EditTraineeDialog({
           </div>
 
           <div className="rounded-md bg-[#FAF0F2] border border-[#EEDFE3] px-3 py-2.5 flex items-start gap-2">
-            <CalendarDays className="w-3.5 h-3.5 text-[#832138] shrink-0 mt-0.5" />
+            <CalendarDays className="w-3.5 h-3.5 text-[#800020] shrink-0 mt-0.5" />
             <p className="text-[11px] text-stone-500 leading-relaxed">
               The training duration + start date drive the progress bar on the
               trainee&rsquo;s card and the &ldquo;Week X of Y&rdquo; schedule
@@ -2289,7 +2289,7 @@ function EditTraineeDialog({
           {/* Trainee access permissions */}
           <div className="rounded-md border border-[#EEDFE3] divide-y divide-[#EEDFE3]">
             <div className="px-3 py-2 bg-[#FCF8F9] flex items-center gap-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#832138]" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#800020]" />
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
                 Studio access permissions
               </p>
@@ -2387,7 +2387,7 @@ function Field({
     <div className="space-y-1.5">
       <Label className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500 flex items-center gap-1">
         {label}
-        {required && <span className="text-[#832138]">*</span>}
+        {required && <span className="text-[#800020]">*</span>}
       </Label>
       {children}
     </div>

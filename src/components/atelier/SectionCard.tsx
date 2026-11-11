@@ -25,7 +25,7 @@ export function SectionCard({
     <div
       className={cn(
         "rounded-xl border border-[#E6D4D8] bg-white shadow-xs",
-        accent && "border-l-2 border-l-[#6C1C2F]",
+        accent && "border-l-2 border-l-[#650019]",
         className
       )}
     >

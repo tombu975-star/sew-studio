@@ -184,7 +184,7 @@ export default function Fittings() {
       {isError ? (
         <SectionCard title="Error">
           <div className="flex items-center gap-2 text-sm text-stone-500">
-            <AlertCircle className="w-4 h-4 text-[#832138]" />
+            <AlertCircle className="w-4 h-4 text-[#800020]" />
             Could not load fittings. Please try again.
           </div>
         </SectionCard>
@@ -324,7 +324,7 @@ function FittingRow({
           <div className="flex items-center gap-1.5">
             <span
               className={cn(
-                "w-1.5 h-1.5 rounded-full bg-[#832138]/60 shrink-0"
+                "w-1.5 h-1.5 rounded-full bg-[#800020]/60 shrink-0"
               )}
               aria-hidden
             />

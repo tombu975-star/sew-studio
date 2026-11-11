@@ -30,7 +30,7 @@ export function PageHeader({
           </p>
         )}
         <h1
-          className="font-semibold text-[#391019] leading-tight tracking-tight"
+          className="font-semibold text-[#3B0010] leading-tight tracking-tight"
           style={{ fontSize: "clamp(24px, 2.5vw, 30px)" }}
         >
           {title}

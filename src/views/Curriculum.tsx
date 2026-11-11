@@ -80,7 +80,7 @@ function Field({
     <div className="space-y-1.5">
       <Label className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500 flex items-center gap-1">
         {label}
-        {required && <span className="text-[#832138]">*</span>}
+        {required && <span className="text-[#800020]">*</span>}
       </Label>
       {children}
     </div>
@@ -91,7 +91,7 @@ function Field({
 
 const STATUS_STYLE: Record<UnitStatus, { pill: string; icon: string }> = {
   "not-started": { pill: "bg-slate-100 text-slate-600 border-slate-200", icon: "text-slate-300" },
-  "in-progress": { pill: "bg-blue-50 text-blue-700 border-blue-200", icon: "text-[#832138]" },
+  "in-progress": { pill: "bg-blue-50 text-blue-700 border-blue-200", icon: "text-[#800020]" },
   "needs-work": { pill: "bg-amber-50 text-amber-800 border-amber-200", icon: "text-amber-500" },
   competent: { pill: "bg-emerald-50 text-emerald-800 border-emerald-200", icon: "text-emerald-600" },
 };
@@ -129,7 +129,7 @@ function Bar({ value, label, tone = "blue" }: { value: number; label: string; to
       className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
     >
       <div
-        className={cn("h-full rounded-full transition-[width] duration-500", tone === "green" ? "bg-emerald-500" : "bg-[#832138]")}
+        className={cn("h-full rounded-full transition-[width] duration-500", tone === "green" ? "bg-emerald-500" : "bg-[#800020]")}
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -150,7 +150,7 @@ function Ring({ value, size = 88 }: { value: number; size?: number }) {
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="#832138"
+          stroke="#800020"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
@@ -158,7 +158,7 @@ function Ring({ value, size = 88 }: { value: number; size?: number }) {
           className="transition-[stroke-dashoffset] duration-700"
         />
       </svg>
-      <span className="absolute inset-0 grid place-items-center text-lg font-semibold tabular-nums text-[#391019]">
+      <span className="absolute inset-0 grid place-items-center text-lg font-semibold tabular-nums text-[#3B0010]">
         {pct}%
       </span>
     </div>
@@ -263,14 +263,14 @@ function LearnerView() {
             <p className="text-xs font-medium text-slate-500">{allDone ? "Course complete" : "Continue learning"}</p>
             {allDone ? (
               <>
-                <p className="mt-1 text-sm font-semibold text-[#391019]">You've shown competence in every unit.</p>
+                <p className="mt-1 text-sm font-semibold text-[#3B0010]">You've shown competence in every unit.</p>
                 <PremiumButton className="mt-3" size="sm" onClick={() => go("certificate")}>
                   View certificate <ArrowRight className="w-4 h-4" />
                 </PremiumButton>
               </>
             ) : progress.next ? (
               <>
-                <p className="mt-1 text-sm font-semibold text-[#391019]">
+                <p className="mt-1 text-sm font-semibold text-[#3B0010]">
                   {progress.next.unit.code ? `${progress.next.unit.code} · ` : ""}
                   {progress.next.unit.title}
                 </p>
@@ -285,7 +285,7 @@ function LearnerView() {
             <p className="text-xs font-medium text-slate-500">Next due</p>
             {progress.nextDue ? (
               <>
-                <p className="mt-1 text-sm font-semibold text-[#391019]">{progress.nextDue.title}</p>
+                <p className="mt-1 text-sm font-semibold text-[#3B0010]">{progress.nextDue.title}</p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
                   <CalendarClock className="size-3.5" aria-hidden="true" />
                   {progress.nextDue.dueDate ? `Due ${formatDate(progress.nextDue.dueDate)}` : "No due date set"}
@@ -345,10 +345,10 @@ function CourseHeader({
     <section aria-labelledby="course-title" className="rounded-lg border border-[#E6D4D8] bg-white p-5 md:p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <span className="inline-flex rounded-full bg-[#832138]/10 px-2 py-0.5 text-xs font-medium text-[#6C1C2F]">
+          <span className="inline-flex rounded-full bg-[#800020]/10 px-2 py-0.5 text-xs font-medium text-[#650019]">
             {program.level}
           </span>
-          <h2 id="course-title" className="mt-2 text-xl font-semibold tracking-tight text-[#391019]">
+          <h2 id="course-title" className="mt-2 text-xl font-semibold tracking-tight text-[#3B0010]">
             {program.name}
           </h2>
           {program.description && <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-600">{program.description}</p>}
@@ -378,7 +378,7 @@ function CourseHeader({
         <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-2">
           <Ring value={progress.completionPct} />
           <p className="text-xs text-slate-500 sm:text-center">
-            <span className="font-semibold text-[#391019]">{progress.competent}</span> of {progress.totalUnits} units competent
+            <span className="font-semibold text-[#3B0010]">{progress.competent}</span> of {progress.totalUnits} units competent
           </p>
         </div>
       </div>
@@ -405,7 +405,7 @@ function Stat({ label, value, children }: { label: string; value: string; childr
   return (
     <div className="space-y-1.5">
       <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-sm font-semibold tabular-nums text-[#391019]">{value}</p>
+      <p className="text-sm font-semibold tabular-nums text-[#3B0010]">{value}</p>
       {children}
     </div>
   );
@@ -452,7 +452,7 @@ function CourseContent({
   return (
     <section aria-labelledby="content-title">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h2 id="content-title" className="text-base font-semibold text-[#391019]">
+        <h2 id="content-title" className="text-base font-semibold text-[#3B0010]">
           Course content
         </h2>
         {progress.units.length > 4 && (
@@ -482,9 +482,9 @@ function CourseContent({
                 onClick={() => setFilter(c.key)}
                 className={cn(
                   "h-8 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#832138]/40",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40",
                   filter === c.key
-                    ? "border-[#832138] bg-[#832138] text-white"
+                    ? "border-[#800020] bg-[#800020] text-white"
                     : "border-[#E6D4D8] bg-white text-slate-600 hover:border-slate-300"
                 )}
               >
@@ -552,11 +552,11 @@ function UnitRow({
           onClick={onToggle}
           aria-expanded={open}
           aria-controls={panelId}
-          className="flex w-full items-center gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#832138]/40 md:gap-4 md:p-5"
+          className="flex w-full items-center gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#800020]/40 md:gap-4 md:p-5"
         >
           <StatusIcon status={u.status} />
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-[#391019]">
+            <span className="block text-sm font-semibold text-[#3B0010]">
               <span className="text-slate-400">{index}. </span>
               {u.unit.code ? <span className="text-slate-400">{u.unit.code} · </span> : null}
               {u.unit.title}
@@ -598,7 +598,7 @@ function UnitRow({
               <ul className="space-y-1.5">
                 {outcomes.map((o, i) => (
                   <li key={i} className="flex gap-2 text-sm leading-relaxed text-slate-700">
-                    <span className="mt-2 size-1 shrink-0 rounded-full bg-[#832138]" aria-hidden="true" />
+                    <span className="mt-2 size-1 shrink-0 rounded-full bg-[#800020]" aria-hidden="true" />
                     {o}
                   </li>
                 ))}
@@ -633,7 +633,7 @@ function UnitRow({
                   return (
                     <li key={t.id} className="flex flex-col gap-1 p-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#391019]">{t.title}</p>
+                        <p className="text-sm font-medium text-[#3B0010]">{t.title}</p>
                         <p className="mt-0.5 text-xs text-slate-500">
                           {t.status}
                           {t.dueDate && t.status !== "Done" ? ` · due ${formatDate(t.dueDate)}` : ""}
@@ -743,7 +743,7 @@ function ManagerView() {
             ].map(([label, value]) => (
               <div key={label as string} className="rounded-lg border border-[#E6D4D8] bg-white p-4">
                 <dt className="text-xs text-slate-500">{label}</dt>
-                <dd className="mt-1 text-xl font-semibold tabular-nums text-[#391019]">{value}</dd>
+                <dd className="mt-1 text-xl font-semibold tabular-nums text-[#3B0010]">{value}</dd>
               </div>
             ))}
           </dl>
@@ -804,7 +804,7 @@ function ManagerView() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
-              className="bg-[#832138] hover:bg-[#6C1C2F]"
+              className="bg-[#800020] hover:bg-[#650019]"
             >
               Delete
             </AlertDialogAction>
@@ -858,11 +858,11 @@ function ProgramCard({
           onClick={onToggle}
           aria-expanded={expanded}
           aria-controls={panelId}
-          className="min-w-0 flex-1 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#832138]/40"
+          className="min-w-0 flex-1 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40"
         >
           <span className="flex flex-wrap items-center gap-2">
-            <span className="text-base font-semibold text-[#391019]">{program.name}</span>
-            <span className="rounded-full bg-[#832138]/10 px-2 py-0.5 text-xs font-medium text-[#6C1C2F]">{program.level}</span>
+            <span className="text-base font-semibold text-[#3B0010]">{program.name}</span>
+            <span className="rounded-full bg-[#800020]/10 px-2 py-0.5 text-xs font-medium text-[#650019]">{program.level}</span>
           </span>
           {program.description && <span className="mt-1.5 block max-w-xl text-sm text-slate-600">{program.description}</span>}
           <span className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
@@ -884,7 +884,7 @@ function ProgramCard({
             type="button"
             onClick={onEdit}
             aria-label={`Edit ${program.name}`}
-            className="rounded-md p-2 text-slate-400 transition hover:bg-[#FAF0F2] hover:text-[#832138] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#832138]/40"
+            className="rounded-md p-2 text-slate-400 transition hover:bg-[#FAF0F2] hover:text-[#800020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40"
           >
             <Pencil className="size-4" />
           </button>
@@ -919,7 +919,7 @@ function ProgramCard({
                 {learners.map(({ user, p }) => (
                   <li key={user.id} className="flex items-center gap-4 p-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[#391019]">{user.fullName}</p>
+                      <p className="truncate text-sm font-medium text-[#3B0010]">{user.fullName}</p>
                       <p className="text-xs text-slate-500">
                         {p.competent} of {p.totalUnits} units competent · {p.assignmentsDone}/{p.assignmentsTotal} assignments
                       </p>
@@ -978,7 +978,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
     <div className="rounded-md border border-[#EEDFE3] bg-white p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-[#391019]">
+          <p className="text-sm font-semibold text-[#3B0010]">
             {unit.code ? <span className="text-slate-400">{unit.code} · </span> : null}
             {unit.title}
           </p>
@@ -993,7 +993,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
             type="button"
             onClick={() => setEditOpen(true)}
             aria-label={`Edit ${unit.title}`}
-            className="rounded-md p-1.5 text-slate-400 transition hover:bg-[#FAF0F2] hover:text-[#832138] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#832138]/40"
+            className="rounded-md p-1.5 text-slate-400 transition hover:bg-[#FAF0F2] hover:text-[#800020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40"
           >
             <Pencil className="size-3.5" />
           </button>
@@ -1016,7 +1016,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
           <ul className="space-y-1">
             {outcomes.map((o, i) => (
               <li key={i} className="flex gap-2 text-sm text-slate-700">
-                <span className="mt-2 size-1 shrink-0 rounded-full bg-[#832138]" aria-hidden="true" /> {o}
+                <span className="mt-2 size-1 shrink-0 rounded-full bg-[#800020]" aria-hidden="true" /> {o}
               </li>
             ))}
           </ul>
@@ -1050,7 +1050,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-[#832138] hover:bg-[#6C1C2F]">
+            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-[#800020] hover:bg-[#650019]">
               Remove
             </AlertDialogAction>
           </AlertDialogFooter>

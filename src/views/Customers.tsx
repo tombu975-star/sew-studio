@@ -307,8 +307,8 @@ export default function Customers() {
                 className={
                   "rounded-lg border px-3 py-2 text-xs flex items-center gap-2 transition-all lift " +
                   (sourceFilter === src
-                    ? "border-[#832138]/40 bg-[#832138]/5"
-                    : "border-[#EEDFE3] bg-white hover:border-[#832138]/30")
+                    ? "border-[#800020]/40 bg-[#800020]/5"
+                    : "border-[#EEDFE3] bg-white hover:border-[#800020]/30")
                 }
               >
                 <span className="text-stone-500">{src}</span>
@@ -384,7 +384,7 @@ export default function Customers() {
                 className="group w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[#FCF8F9] transition-all focus:outline-none focus-visible:bg-[#FCF8F9]"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-[#832138] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
                   aria-hidden
                 >
                   {(c.name || "?").charAt(0).toUpperCase()}
@@ -423,7 +423,7 @@ export default function Customers() {
                       {c._orderCount === 1 ? "order" : "orders"}
                     </span>
                   </span>
-                  <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#832138] transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#800020] transition-colors" />
                 </div>
               </button>
             ))}
@@ -528,7 +528,7 @@ function AddCustomerDialog({
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="c-name" className="text-xs text-stone-600">
-              Name <span className="text-[#832138]">*</span>
+              Name <span className="text-[#800020]">*</span>
             </Label>
             <Input
               id="c-name"
@@ -663,8 +663,8 @@ function AddCustomerDialog({
                     className={
                       "text-[11px] px-2.5 py-1 rounded-md border transition-all " +
                       (active
-                        ? "bg-[#832138]/10 border-[#832138]/40 text-[#832138]"
-                        : "bg-white border-[#EEDFE3] text-stone-600 hover:border-[#832138]/30")
+                        ? "bg-[#800020]/10 border-[#800020]/40 text-[#800020]"
+                        : "bg-white border-[#EEDFE3] text-stone-600 hover:border-[#800020]/30")
                     }
                   >
                     {style}

@@ -44,10 +44,10 @@ export function LearningTabs({ current }: { current: ViewKey }) {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "-mb-px inline-flex h-11 items-center gap-2 border-b-2 px-3.5 text-sm font-medium transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#832138]/40 focus-visible:ring-offset-1",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40 focus-visible:ring-offset-1",
                   active
-                    ? "border-[#832138] text-[#391019]"
-                    : "border-transparent text-slate-500 hover:text-[#391019]"
+                    ? "border-[#800020] text-[#3B0010]"
+                    : "border-transparent text-slate-500 hover:text-[#3B0010]"
                 )}
               >
                 <t.icon className="size-4" aria-hidden="true" />

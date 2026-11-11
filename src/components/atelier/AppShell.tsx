@@ -227,10 +227,10 @@ const ROLE_LABELS: Record<Role, string> = {
 // tell whose seat you're sitting in without it fighting the gold brand
 // accent used for every interactive/active state.
 const ROLE_ACCENT: Record<Role, string> = {
-  madam: "#832138",
+  madam: "#800020",
   staff: "#0E7490", // teal — operations
   trainer: "#B87A64", // rose clay — training & assessment
-  trainee: "#6C1C2F", // deep burgundy — learning & portfolio
+  trainee: "#650019", // deep burgundy — learning & portfolio
   freelancer: "#794652", // wine — assigned jobs
 };
 
@@ -524,7 +524,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
           <button
             onClick={() => go("profile")}
-            className="w-11 h-11 rounded-full bg-[#FCF8F9] text-[#832138] flex items-center justify-center text-sm font-semibold shrink-0 ring-2 justify-self-end"
+            className="w-11 h-11 rounded-full bg-[#FCF8F9] text-[#800020] flex items-center justify-center text-sm font-semibold shrink-0 ring-2 justify-self-end"
             style={{ ["--tw-ring-color" as string]: roleAccent }}
             title={`${user?.fullName} · My profile`}
           >
@@ -593,16 +593,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 relative min-w-0 flex-1 max-w-[72px]"
               >
                 {active && (
-                  <span className="absolute top-0 w-8 h-0.5 bg-[#832138] rounded-full" />
+                  <span className="absolute top-0 w-8 h-0.5 bg-[#800020] rounded-full" />
                 )}
                 <Icon
-                  className={cn("w-5 h-5 transition-colors shrink-0", active ? "text-[#832138]" : "text-stone-400")}
+                  className={cn("w-5 h-5 transition-colors shrink-0", active ? "text-[#800020]" : "text-stone-400")}
                   strokeWidth={active ? 2 : 1.5}
                 />
                 <span
                   className={cn(
                     "text-[9px] leading-tight transition-colors truncate w-full text-center",
-                    active ? "text-[#832138] font-semibold" : "text-stone-400"
+                    active ? "text-[#800020] font-semibold" : "text-stone-400"
                   )}
                 >
                   {label}
@@ -616,7 +616,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 min-w-0 flex-1 max-w-[72px]"
             >
               <MoreHorizontal
-                className={cn("w-5 h-5 shrink-0", moreOpen ? "text-[#832138]" : "text-stone-400")}
+                className={cn("w-5 h-5 shrink-0", moreOpen ? "text-[#800020]" : "text-stone-400")}
                 strokeWidth={1.5}
               />
               <span className="text-[9px] leading-tight text-stone-400">More</span>
@@ -658,11 +658,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                     view === "profile"
-                      ? "bg-[#832138]/8 text-[#832138] font-medium"
+                      ? "bg-[#800020]/8 text-[#800020] font-medium"
                       : "text-stone-600 hover:bg-[#FCF8F9]"
                   )}
                 >
-                  <div className="w-7 h-7 rounded-full bg-[#832138] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-[#800020] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
                     {(user?.fullName || "?").charAt(0).toUpperCase()}
                   </div>
                   <span className="flex-1 text-left truncate">{user?.fullName || "My profile"}</span>
@@ -693,7 +693,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             className={cn(
                               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                               active
-                                ? "bg-[#832138]/8 text-[#832138] font-medium"
+                                ? "bg-[#800020]/8 text-[#800020] font-medium"
                                 : "text-stone-600 hover:bg-[#FCF8F9]"
                             )}
                           >
@@ -714,7 +714,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     setMoreOpen(false);
                     logout();
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-lg text-sm text-stone-500 hover:bg-[#FCF8F9] hover:text-[#832138] transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-lg text-sm text-stone-500 hover:bg-[#FCF8F9] hover:text-[#800020] transition-colors"
                 >
                   <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
                   <span className="flex-1 text-left">Sign out</span>

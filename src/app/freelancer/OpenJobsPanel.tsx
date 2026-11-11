@@ -22,7 +22,7 @@ interface OpenJob {
   myApplication: { status: string; message?: string | null; proposedCost?: number | null } | null;
 }
 
-const input = "h-10 w-full rounded-md border border-[#E6D4D8] bg-white px-3 text-sm outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/15";
+const input = "h-10 w-full rounded-md border border-[#E6D4D8] bg-white px-3 text-sm outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15";
 
 /** Freelancer-side: jobs shops have posted that nobody is assigned to yet. */
 export function OpenJobsPanel({ canApply = true }: { canApply?: boolean }) {
@@ -68,7 +68,7 @@ export function OpenJobsPanel({ canApply = true }: { canApply?: boolean }) {
       {([["browse", "Browse jobs"], ["applied", "My requests"]] as const).map(([k, label]) => (
         <button key={k} role="tab" aria-selected={view === k} onClick={() => setView(k)}
           className={`h-8 rounded-full border px-3.5 text-xs font-medium transition-colors ${
-            view === k ? "border-[#6C1C2F] bg-[#6C1C2F] text-white" : "border-[#E6D4D8] bg-white text-stone-600 hover:border-[#6C1C2F]"}`}>
+            view === k ? "border-[#650019] bg-[#650019] text-white" : "border-[#E6D4D8] bg-white text-stone-600 hover:border-[#650019]"}`}>
           {label}
         </button>
       ))}
@@ -124,7 +124,7 @@ export function OpenJobsPanel({ canApply = true }: { canApply?: boolean }) {
             <div className="mt-3 space-y-2.5">
               <textarea rows={3} maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)}
                 placeholder="Why you're a good fit (optional)"
-                className="w-full rounded-md border border-[#E6D4D8] bg-white px-3 py-2 text-sm outline-none focus:border-[#832138] focus:ring-2 focus:ring-[#832138]/15" />
+                className="w-full rounded-md border border-[#E6D4D8] bg-white px-3 py-2 text-sm outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/15" />
               <input className={input} type="number" min="0" inputMode="decimal" placeholder="Your price in GHS (optional)" value={cost} onChange={(e) => setCost(e.target.value)} />
               <div className="flex gap-2">
                 <PremiumButton size="sm" loading={busy === j.id} onClick={() => apply(j.id)}>Send application</PremiumButton>

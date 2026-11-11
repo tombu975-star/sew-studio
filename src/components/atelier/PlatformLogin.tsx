@@ -28,7 +28,7 @@ export function PlatformLogin({
       style={{ "--login-bg": settings.backgroundColor } as React.CSSProperties}
     >
       <div className="mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-[#5C1626] sm:bg-[#FCF8F9] sm:h-auto sm:min-h-dvh sm:grid-rows-none sm:rounded-[24px] sm:shadow-[0_24px_80px_rgba(57,16,25,0.12)] lg:min-h-[calc(100dvh-48px)] lg:grid-cols-[1.05fr_.95fr]">
-        <aside className="relative isolate h-[31dvh] max-h-[380px] min-h-[150px] overflow-hidden bg-[#391019] [@media(min-height:760px)]:h-[40dvh] sm:h-auto sm:max-h-none sm:min-h-[340px] lg:min-h-[720px]">
+        <aside className="relative isolate h-[31dvh] max-h-[380px] min-h-[150px] overflow-hidden bg-[#3B0010] [@media(min-height:760px)]:h-[40dvh] sm:h-auto sm:max-h-none sm:min-h-[340px] lg:min-h-[720px]">
           <Image
             src="/atelier-login.jpg"
             alt=""
@@ -37,7 +37,7 @@ export function PlatformLogin({
             sizes="(max-width: 1023px) 100vw, 55vw"
             className="object-cover object-[center_22%] sm:object-[center_38%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#230A10]/55 via-[#391019]/10 to-[#230A10]/75 max-sm:hidden" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#230A10]/55 via-[#3B0010]/10 to-[#230A10]/75 max-sm:hidden" />
           {/* Phones: red-tinted photo that melts into the panel, like the reference */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#3D101A]/45 via-[#5C1626]/55 to-[#5C1626] sm:hidden" />
           <svg

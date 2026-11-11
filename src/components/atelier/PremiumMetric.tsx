@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 type Tone = "violet" | "green" | "amber" | "blue";
 
 const TONES: Record<Tone, { card: string; tile: string; value: string }> = {
-  violet: { card: "bg-[#FAEFF1] border-[#F1D9DE]", tile: "bg-white/70 text-[#832138]", value: "text-[#391019]" },
+  violet: { card: "bg-[#FAEFF1] border-[#F1D9DE]", tile: "bg-white/70 text-[#800020]", value: "text-[#3B0010]" },
   green: { card: "bg-[#EEF7F1] border-[#D5E9DC]", tile: "bg-white/70 text-[#2E7D4F]", value: "text-[#17331F]" },
   amber: { card: "bg-[#FDF5E6] border-[#F1E0BA]", tile: "bg-white/70 text-[#9A6A0E]", value: "text-[#3D2A06]" },
   blue: { card: "bg-[#EEF3FD] border-[#D6E2F8]", tile: "bg-white/70 text-[#2F5FC4]", value: "text-[#14264F]" },
@@ -53,7 +53,7 @@ export function PremiumMetric({
           <span
             className={cn(
               "grid size-9 shrink-0 place-items-center rounded-lg",
-              t ? t.tile : accent ? "bg-[#FAEFF1] text-[#832138]" : "bg-[#F7EFF1] text-[#776267]"
+              t ? t.tile : accent ? "bg-[#FAEFF1] text-[#800020]" : "bg-[#F7EFF1] text-[#776267]"
             )}
           >
             <Icon className="size-[18px]" />
@@ -65,7 +65,7 @@ export function PremiumMetric({
         <div
           className={cn(
             "font-display font-semibold leading-none tabular-nums",
-            t ? t.value : accent ? "text-[#6C1C2F]" : "text-[#391019]"
+            t ? t.value : accent ? "text-[#650019]" : "text-[#3B0010]"
           )}
           style={{ fontSize: "clamp(22px, 12cqw, 36px)" }}
         >
@@ -114,7 +114,7 @@ export function Sparkline({
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ");
-  const color = accent ? "#832138" : "#776267";
+  const color = accent ? "#800020" : "#776267";
   return (
     <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className={cn("relative mt-3 h-7 w-full", className)}>
       <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />

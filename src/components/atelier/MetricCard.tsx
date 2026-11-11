@@ -29,7 +29,7 @@ export function MetricCard({
         <div
           className={cn(
             "font-display font-semibold leading-none",
-            accent ? "text-[#832138]" : "text-[#2F151B]"
+            accent ? "text-[#800020]" : "text-[#2F151B]"
           )}
           style={{ fontSize: "clamp(26px, 3vw, 38px)" }}
         >

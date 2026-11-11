@@ -32,7 +32,7 @@ export function EmptyState({
           </div>
         </div>
       )}
-      <p className="text-base font-semibold text-[#391019] leading-snug">{title}</p>
+      <p className="text-base font-semibold text-[#3B0010] leading-snug">{title}</p>
       {description && (
         <p className="text-sm leading-relaxed text-slate-600 mt-1.5 max-w-sm">{description}</p>
       )}

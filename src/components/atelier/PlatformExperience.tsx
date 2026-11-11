@@ -21,8 +21,8 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   loginHeading: "Welcome back",
   loginDescription: "Sign in to manage your studio’s customers, orders and daily work.",
   loginFooter: "Sewiness · Atelier management system",
-  primaryColor: "#6C1C2F",
-  accentColor: "#832138",
+  primaryColor: "#650019",
+  accentColor: "#800020",
   backgroundColor: "#F9F2F4",
 };
 
