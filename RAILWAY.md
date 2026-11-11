@@ -17,9 +17,9 @@ service. There is no other hosted backend.
   SHA-256 digest is stored (`private.sessions`). The `private` schema is not
   reachable by the request roles. Failed logins are rate-limited per email+IP.
 - **Pictures:** stored in the `uploads` table and served from `/api/files/<id>`.
-- **Password reset emails** go out through the Google Apps Script web app set
-  in `GOOGLE_APPS_SCRIPT_URL` / `GOOGLE_APPS_SCRIPT_SECRET` (the same one used
-  for customer notifications). Without it, reset links cannot be delivered.
+- **Email** (password resets, freelancer verification) is sent by the app itself.
+  Set up ONE provider below. If none is set, the app logs
+  `[mailer] No email provider is configured` and no email goes out.
 
 ## Variables on the app service
 
@@ -28,7 +28,7 @@ service. There is no other hosted backend.
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
 | `NODE_ENV` | `production` |
 | `NEXT_PUBLIC_APP_URL` | the public https address of the app (used in reset links) |
-| `GOOGLE_APPS_SCRIPT_URL`, `GOOGLE_APPS_SCRIPT_SECRET` | optional, for email/WhatsApp/SMS |
+| `GOOGLE_APPS_SCRIPT_URL`, `GOOGLE_APPS_SCRIPT_SECRET` | optional, customer WhatsApp/SMS/email notifications (and an email fallback) |
 | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` | optional, for Style Assist |
 
 ## Deploys
@@ -63,4 +63,31 @@ With a throwaway migrated database:
 
 ```bash
 DATABASE_URL=postgresql://... npx tsx tests/db-layer.test.ts
+```
+
+## Email setup
+
+Choose one. Both are tested; the app tries Resend first, then SMTP.
+
+**A. Gmail or any SMTP mailbox** (works straight away, sends to anyone)
+
+| Variable | Value |
+| --- | --- |
+| `SMTP_HOST` | `smtp.gmail.com` |
+| `SMTP_PORT` | `465` |
+| `SMTP_USER` | the mailbox, e.g. `you@gmail.com` |
+| `SMTP_PASS` | a Gmail *App password* (Google account > Security > 2-Step Verification > App passwords), not your normal password |
+| `EMAIL_FROM` | `Sewiness <you@gmail.com>` |
+
+**B. Resend** (best for a custom domain)
+
+| Variable | Value |
+| --- | --- |
+| `RESEND_API_KEY` | from resend.com |
+| `EMAIL_FROM` | `Sewiness <no-reply@your-verified-domain>` (the domain must be verified in Resend) |
+
+Check it from your machine, which prints the provider used and any exact error:
+
+```bash
+railway run npm run email:test -- you@example.com
 ```

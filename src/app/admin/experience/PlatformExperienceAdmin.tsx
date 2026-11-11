@@ -11,7 +11,7 @@ type AdminSettings = {
 };
 type Release = { id: string; version: string; releaseNotes: string; status: "draft" | "published" | "archived"; createdAt: string; publishedAt?: string | null };
 type AuditEntry = { id: string; action: string; entity: string; details: Record<string, unknown>; createdAt: string; adminEmail?: string; adminName?: string };
-const EMPTY: AdminSettings = { appVersion: "", releaseNotes: "", brandName: "", loginHeading: "", loginDescription: "", loginFooter: "", primaryColor: "#1D4ED8", accentColor: "#2563EB", backgroundColor: "#F4F6F8", updatedAt: "" };
+const EMPTY: AdminSettings = { appVersion: "", releaseNotes: "", brandName: "", loginHeading: "", loginDescription: "", loginFooter: "", primaryColor: "#571A84", accentColor: "#6A1FA0", backgroundColor: "#F6F2F9", updatedAt: "" };
 const inputClass = "mt-1.5 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal outline-none transition focus:border-[#527564] focus:ring-4 focus:ring-[#527564]/10";
 
 export function PlatformExperienceAdmin() {
@@ -80,8 +80,8 @@ export function PlatformExperienceAdmin() {
     finally { setWorkingReleaseId(null); }
   }
 
-  if (checking || (authorized && loading)) return <main className="grid min-h-dvh place-items-center bg-[#F6F7F9]"><Loader2 className="size-6 animate-spin text-[#416A59]" aria-label="Loading platform controls" /></main>;
-  if (!authorized) return <main className="grid min-h-dvh place-items-center bg-[#F6F7F9] px-5"><section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-sm"><ShieldCheck className="mx-auto size-8 text-[#416A59]" /><h1 className="mt-4 text-xl font-semibold">Platform administrator sign-in required</h1><p className="mt-2 text-sm text-slate-500">Sign in at the admin portal, then return to manage releases and experience settings.</p><a className="mt-5 inline-flex h-10 items-center rounded-lg bg-[#315B4A] px-4 text-sm font-medium text-white" href="/admin">Open admin portal</a></section></main>;
+  if (checking || (authorized && loading)) return <main className="grid min-h-dvh place-items-center bg-[#F7F4FA]"><Loader2 className="size-6 animate-spin text-[#416A59]" aria-label="Loading platform controls" /></main>;
+  if (!authorized) return <main className="grid min-h-dvh place-items-center bg-[#F7F4FA] px-5"><section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-sm"><ShieldCheck className="mx-auto size-8 text-[#416A59]" /><h1 className="mt-4 text-xl font-semibold">Platform administrator sign-in required</h1><p className="mt-2 text-sm text-slate-500">Sign in at the admin portal, then return to manage releases and experience settings.</p><a className="mt-5 inline-flex h-10 items-center rounded-lg bg-[#315B4A] px-4 text-sm font-medium text-white" href="/admin">Open admin portal</a></section></main>;
 
   const textField = (key: keyof AdminSettings, label: string, hint: string, multiline = false, maxLength?: number) => (
     <label className="block text-sm font-medium text-slate-700">{label}
@@ -91,7 +91,7 @@ export function PlatformExperienceAdmin() {
   );
 
   return (
-    <main className="min-h-dvh bg-[#F6F7F9] px-4 py-8 text-slate-900 sm:px-8">
+    <main className="min-h-dvh bg-[#F7F4FA] px-4 py-8 text-slate-900 sm:px-8">
       <div className="mx-auto max-w-5xl">
         <a href="/admin" className="text-sm font-medium text-[#315B4A] hover:underline">← Back to platform admin</a>
         <header className="mt-5"><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-[#527564]">Platform operations</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Experience, releases & audit</h1><p className="mt-2 max-w-3xl text-sm text-slate-500">Manage platform presentation, prepare release snapshots, publish or restore a previous configuration, and review administrator changes. Code deployments remain controlled by your deployment pipeline.</p></header>

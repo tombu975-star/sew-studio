@@ -116,11 +116,11 @@ function initialOf(name: string): string {
 function gradientFor(name: string): string {
   // Deterministic burgundy-leaning gradient avatar.
   const palettes = [
-    "from-[#2563EB] to-[#1D4ED8]",
-    "from-[#2563EB] to-[#b45309]",
-    "from-[#1D4ED8] to-[#0e7490]",
-    "from-[#2563EB] to-[#4A6B53]",
-    "from-[#1D4ED8] to-[#2563EB]",
+    "from-[#6A1FA0] to-[#571A84]",
+    "from-[#6A1FA0] to-[#b45309]",
+    "from-[#571A84] to-[#0e7490]",
+    "from-[#6A1FA0] to-[#4A6B53]",
+    "from-[#571A84] to-[#6A1FA0]",
   ];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
@@ -243,7 +243,7 @@ function OwnerProgress() {
         subtitle="Review your trainees' skill journeys."
         actions={
           user ? (
-            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white pl-2 pr-3 py-1.5 elevate-sm">
+            <div className="hidden md:flex items-center gap-2 rounded-full border border-[#E6DFEE] bg-white pl-2 pr-3 py-1.5 elevate-sm">
               <span
                 className={cn(
                   "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-display font-semibold",
@@ -256,7 +256,7 @@ function OwnerProgress() {
                 <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
                   {user.role === "trainer" ? "Trainer" : "Owner"}
                 </div>
-                <div className="text-xs font-medium text-[#0F172A]">
+                <div className="text-xs font-medium text-[#1F1430]">
                   {user.fullName}
                 </div>
               </div>
@@ -331,8 +331,8 @@ function OwnerProgress() {
                     className={cn(
                       "group shrink-0 flex items-center gap-3 rounded-xl border px-3 py-2 transition-all duration-200",
                       active
-                        ? "bg-[#2563EB] border-[#1D4ED8] text-white"
-                        : "bg-white border-[#E2E8F0] text-[#0F172A] hover:border-[#2563EB]/30 hover:bg-[#F8FAFC] elevate-sm lift"
+                        ? "bg-[#6A1FA0] border-[#571A84] text-white"
+                        : "bg-white border-[#E6DFEE] text-[#1F1430] hover:border-[#6A1FA0]/30 hover:bg-[#FAF8FC] elevate-sm lift"
                     )}
                   >
                     <span
@@ -404,7 +404,7 @@ function SelectedTraineeHeader({
   onClear: () => void;
 }) {
   return (
-    <div className="surface-premium border border-[#E2E8F0] rounded-lg elevate-sm lift p-5 mb-6 flex items-center gap-4 animate-fade-in-up">
+    <div className="surface-premium border border-[#E6DFEE] rounded-lg elevate-sm lift p-5 mb-6 flex items-center gap-4 animate-fade-in-up">
       <div
         className={cn(
           "w-14 h-14 rounded-full bg-gradient-to-br flex items-center justify-center text-white font-display font-semibold text-xl shrink-0 shadow-sm",
@@ -416,7 +416,7 @@ function SelectedTraineeHeader({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <h2 className="font-display font-semibold text-[#0F172A] text-xl leading-tight">
+          <h2 className="font-display font-semibold text-[#1F1430] text-xl leading-tight">
             {trainee.fullName}
           </h2>
           <StatusBadge status="Trainee" />
@@ -612,7 +612,7 @@ function ProgressBody({
       <div className="mb-6 flex justify-end animate-fade-in-up">
         <a
           href={`/api/portfolio/${traineeId}/pdf`}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#2563EB]/30 bg-[#2563EB]/5 px-4 py-2 text-sm font-medium text-[#2563EB] hover:bg-[#2563EB]/10 transition"
+          className="inline-flex items-center gap-2 rounded-lg border border-[#6A1FA0]/30 bg-[#6A1FA0]/5 px-4 py-2 text-sm font-medium text-[#6A1FA0] hover:bg-[#6A1FA0]/10 transition"
         >
           <Download className="w-4 h-4" />
           Download Portfolio (PDF)
@@ -696,7 +696,7 @@ function ProgressBody({
               }
             />
           ) : (
-            <div className="divide-y divide-[#E2E8F0]/70">
+            <div className="divide-y divide-[#E6DFEE]/70">
               {logs.map((log, idx) => (
                 <TrainingLogRow
                   key={log.id}
@@ -757,7 +757,7 @@ function SkillMasteryCard({
           description="Once training entries are logged, this overview groups them by skill."
         />
       ) : (
-        <ul className="divide-y divide-[#E2E8F0]/70">
+        <ul className="divide-y divide-[#E6DFEE]/70">
           {skillGroups.map((group, idx) => {
             const proficientCount = group.logs.filter(
               (l) => l.status === "Proficient"
@@ -768,12 +768,12 @@ function SkillMasteryCard({
             return (
               <li
                 key={group.skill}
-                className="flex items-center gap-4 px-5 py-4 hover:bg-[#F8FAFC] transition-colors animate-fade-in-up"
+                className="flex items-center gap-4 px-5 py-4 hover:bg-[#FAF8FC] transition-colors animate-fade-in-up"
                 style={{ animationDelay: `${Math.min(idx, 8) * 50}ms` }}
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-[#0F172A]">
+                    <span className="font-medium text-[#1F1430]">
                       {group.skill}
                     </span>
                     <StatusBadge status={group.latest.status} />
@@ -786,9 +786,9 @@ function SkillMasteryCard({
                     {STATUS_HINT[group.latest.status]}
                   </p>
                   {/* Progress hint bar */}
-                  <div className="mt-2 h-1 w-full max-w-[220px] rounded-full bg-[#E2E8F0]/80 overflow-hidden">
+                  <div className="mt-2 h-1 w-full max-w-[220px] rounded-full bg-[#E6DFEE]/80 overflow-hidden">
                     <div
-                      className="h-full bg-[#2563EB] rounded-full transition-all"
+                      className="h-full bg-[#6A1FA0] rounded-full transition-all"
                       style={{ width: `${pct}%` }}
                       aria-hidden
                     />
@@ -849,7 +849,7 @@ function TrainingLogRow({
 
   return (
     <div
-      className="group px-5 py-4 hover:bg-[#F8FAFC] transition-colors animate-fade-in-up"
+      className="group px-5 py-4 hover:bg-[#FAF8FC] transition-colors animate-fade-in-up"
       style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
     >
       <div className="flex items-start gap-4">
@@ -860,7 +860,7 @@ function TrainingLogRow({
               month: "short",
             })}
           </div>
-          <div className="font-display font-semibold text-[#0F172A] text-lg leading-none tabular-nums">
+          <div className="font-display font-semibold text-[#1F1430] text-lg leading-none tabular-nums">
             {new Date(log.date).getDate()}
           </div>
           <div className="text-[10px] text-stone-400 tabular-nums mt-0.5">
@@ -868,17 +868,17 @@ function TrainingLogRow({
           </div>
         </div>
 
-        <Separator orientation="vertical" className="h-16 bg-[#E2E8F0]/70" />
+        <Separator orientation="vertical" className="h-16 bg-[#E6DFEE]/70" />
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             {log.skill && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#2563EB] bg-[#2563EB]/8 border border-[#2563EB]/15 px-1.5 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#6A1FA0] bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 px-1.5 py-0.5 rounded-md">
                 <Scissors className="w-3 h-3" /> {log.skill}
               </span>
             )}
-            <span className="font-medium text-[#0F172A]">{log.title}</span>
+            <span className="font-medium text-[#1F1430]">{log.title}</span>
           </div>
           {log.note && (
             <p className="text-xs text-stone-500 mt-1.5 whitespace-pre-wrap leading-relaxed">
@@ -979,7 +979,7 @@ function MyTasksCard({
           description="When the atelier assigns you a task, it will appear here."
         />
       ) : (
-        <ul className="divide-y divide-[#E2E8F0]/70">
+        <ul className="divide-y divide-[#E6DFEE]/70">
           {tasks.map((task) => {
             const overdue =
               task.status !== "Done" &&
@@ -988,11 +988,11 @@ function MyTasksCard({
             return (
               <li
                 key={task.id}
-                className="px-5 py-3.5 flex items-center gap-4 hover:bg-[#F8FAFC] transition-colors"
+                className="px-5 py-3.5 flex items-center gap-4 hover:bg-[#FAF8FC] transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-[#0F172A] text-sm">
+                    <span className="font-medium text-[#1F1430] text-sm">
                       {task.title}
                     </span>
                     {task.priority && (
@@ -1063,17 +1063,17 @@ function OrdersContributedCard({
       title="Orders I've contributed to"
       bodyClassName="p-0"
     >
-      <ul className="divide-y divide-[#E2E8F0]/70">
+      <ul className="divide-y divide-[#E6DFEE]/70">
         {orders.map((order) => (
           <li key={order.id}>
             <button
               type="button"
               onClick={() => go("order", { id: order.id })}
-              className="w-full text-left px-5 py-3.5 flex items-center gap-4 hover:bg-[#F8FAFC] transition-colors group"
+              className="w-full text-left px-5 py-3.5 flex items-center gap-4 hover:bg-[#FAF8FC] transition-colors group"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-[#0F172A] text-sm">
+                  <span className="font-medium text-[#1F1430] text-sm">
                     {order.garmentDesign}
                   </span>
                   {order.customer && (
@@ -1087,11 +1087,11 @@ function OrdersContributedCard({
                 </p>
               </div>
               <div className="shrink-0 flex items-center gap-3">
-                <span className="text-sm font-medium text-[#0F172A] tabular-nums">
+                <span className="text-sm font-medium text-[#1F1430] tabular-nums">
                   {formatCurrency(order.sellingPrice)}
                 </span>
                 <StatusBadge status={order.status} />
-                <ArrowRight className="w-4 h-4 text-stone-300 group-hover:text-[#2563EB] transition-colors" />
+                <ArrowRight className="w-4 h-4 text-stone-300 group-hover:text-[#6A1FA0] transition-colors" />
               </div>
             </button>
           </li>
@@ -1242,7 +1242,7 @@ function LogForm({
 
         <div className="grid gap-1.5">
           <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
-            Title <span className="text-[#2563EB]">*</span>
+            Title <span className="text-[#6A1FA0]">*</span>
           </Label>
           <Input
             value={title}
@@ -1326,14 +1326,14 @@ function MentorTrainingCard({
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Mentor */}
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#2563EB]/8 border border-[#2563EB]/15 flex items-center justify-center shrink-0">
-            <UserIcon className="w-5 h-5 text-[#2563EB]" />
+          <div className="w-10 h-10 rounded-full bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 flex items-center justify-center shrink-0">
+            <UserIcon className="w-5 h-5 text-[#6A1FA0]" />
           </div>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
               Mentor
             </div>
-            <div className="font-medium text-[#0F172A] mt-0.5 truncate">
+            <div className="font-medium text-[#1F1430] mt-0.5 truncate">
               {mentorName ?? "Not assigned"}
             </div>
           </div>
@@ -1341,14 +1341,14 @@ function MentorTrainingCard({
 
         {/* Programme length */}
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#2563EB]/8 border border-[#2563EB]/15 flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5 text-[#2563EB]" />
+          <div className="w-10 h-10 rounded-full bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5 text-[#6A1FA0]" />
           </div>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
               Programme length
             </div>
-            <div className="font-medium text-[#0F172A] mt-0.5 tabular-nums">
+            <div className="font-medium text-[#1F1430] mt-0.5 tabular-nums">
               {durationWeeks ? `${durationWeeks} weeks` : "—"}
             </div>
           </div>
@@ -1359,14 +1359,14 @@ function MentorTrainingCard({
         <div className="mt-5">
           <div className="flex items-center justify-between text-xs mb-2">
             <span className="text-stone-500">Training progress</span>
-            <span className="font-medium text-[#2563EB] tabular-nums">
+            <span className="font-medium text-[#6A1FA0] tabular-nums">
               Week {weeksElapsed} of {durationWeeks}
             </span>
           </div>
           <ProgressBar
             value={trainingPercent}
             aria-label={`Training progress: week ${weeksElapsed} of ${durationWeeks}`}
-            className="h-2 bg-[#E2E8F0]/80 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-[#2563EB] [&>[data-slot=progress-indicator]]:to-[#1D4ED8]"
+            className="h-2 bg-[#E6DFEE]/80 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-[#6A1FA0] [&>[data-slot=progress-indicator]]:to-[#571A84]"
           />
           <div className="flex items-center justify-between mt-2">
             <p className="text-[11px] text-stone-400">
@@ -1378,7 +1378,7 @@ function MentorTrainingCard({
           </div>
         </div>
       ) : (
-        <div className="mt-5 rounded-md bg-stone-50 border border-[#E2E8F0] px-3 py-2.5">
+        <div className="mt-5 rounded-md bg-stone-50 border border-[#E6DFEE] px-3 py-2.5">
           <p className="text-xs text-stone-500 italic">
             Training duration not set —{" "}
             {isTraineeMode
@@ -1425,7 +1425,7 @@ function OverallAverageCard({
           </div>
           <div className="flex items-baseline gap-2 mt-3 flex-wrap">
             <div
-              className="font-display font-semibold text-[#2563EB] leading-none tabular-nums"
+              className="font-display font-semibold text-[#6A1FA0] leading-none tabular-nums"
               style={{ fontSize: "clamp(30px, 4vw, 44px)" }}
             >
               <AnimatedNumber value={avgPctValue} />
@@ -1434,9 +1434,9 @@ function OverallAverageCard({
             <LetterPill pct={avgPctValue} />
           </div>
           <p className="text-xs text-stone-500 mt-3 inline-flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-[#2563EB]" />
+            <TrendingUp className="w-3.5 h-3.5 text-[#6A1FA0]" />
             Letter grade{" "}
-            <span className="font-medium text-[#0F172A]">
+            <span className="font-medium text-[#1F1430]">
               {letterGrade(avgPctValue)}
             </span>{" "}
             — {LETTER_HINT[letterGrade(avgPctValue)]}.
@@ -1505,7 +1505,7 @@ function AssignmentsGradesCard({
   return (
     <>
       <SectionCard title="Assignments & grades" bodyClassName="p-0">
-        <ul className="divide-y divide-[#E2E8F0]/70">
+        <ul className="divide-y divide-[#E6DFEE]/70">
           {sorted.map((task, idx) => (
             <AssignmentRow
               key={task.id}
@@ -1550,14 +1550,14 @@ function AssignmentRow({
 
   return (
     <li
-      className="px-5 py-4 hover:bg-[#F8FAFC] transition-colors animate-fade-in-up"
+      className="px-5 py-4 hover:bg-[#FAF8FC] transition-colors animate-fade-in-up"
       style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
     >
       {/* Header row: title + meta badges */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-[180px]">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-[#0F172A] text-sm">
+            <span className="font-medium text-[#1F1430] text-sm">
               {task.title}
             </span>
             {task.priority && <StatusBadge status={task.priority} />}
@@ -1603,8 +1603,8 @@ function AssignmentRow({
 
       {/* Feedback */}
       {graded && task.feedback && (
-        <div className="mt-3 rounded-md bg-[#2563EB]/[0.04] border-l-2 border-[#2563EB]/30 pl-3 pr-3 py-2">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-[#2563EB] mb-1 inline-flex items-center gap-1">
+        <div className="mt-3 rounded-md bg-[#6A1FA0]/[0.04] border-l-2 border-[#6A1FA0]/30 pl-3 pr-3 py-2">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-[#6A1FA0] mb-1 inline-flex items-center gap-1">
             <Sparkles className="w-3 h-3" /> Mentor feedback
           </div>
           <p className="text-xs text-stone-600 whitespace-pre-wrap leading-relaxed">
@@ -1730,8 +1730,8 @@ function GradeForm({
       </DialogHeader>
 
       <div className="grid gap-4">
-        <div className="rounded-md bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-2.5">
-          <p className="text-sm font-medium text-[#0F172A]">{task.title}</p>
+        <div className="rounded-md bg-[#FAF8FC] border border-[#E6DFEE] px-3 py-2.5">
+          <p className="text-sm font-medium text-[#1F1430]">{task.title}</p>
           {task.order?.customer && (
             <p className="text-xs text-stone-400 mt-0.5 truncate">
               {task.order.customer.name} · {task.order.garmentDesign}
@@ -1754,7 +1754,7 @@ function GradeForm({
           </div>
           <div className="grid gap-1.5">
             <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
-              Score <span className="text-[#2563EB]">*</span>
+              Score <span className="text-[#6A1FA0]">*</span>
             </Label>
             <Input
               type="number"
@@ -1768,9 +1768,9 @@ function GradeForm({
         </div>
 
         {livePct !== null && (
-          <div className="flex items-center gap-3 rounded-md bg-[#2563EB]/[0.04] border border-[#2563EB]/15 px-3 py-2">
-            <TrendingUp className="w-4 h-4 text-[#2563EB]" />
-            <span className="text-sm font-medium text-[#0F172A] tabular-nums">
+          <div className="flex items-center gap-3 rounded-md bg-[#6A1FA0]/[0.04] border border-[#6A1FA0]/15 px-3 py-2">
+            <TrendingUp className="w-4 h-4 text-[#6A1FA0]" />
+            <span className="text-sm font-medium text-[#1F1430] tabular-nums">
               {livePct}%
             </span>
             <LetterPill pct={livePct} />

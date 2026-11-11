@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   poweredByHeader: false,
-  serverExternalPackages: ["pg", "@node-rs/argon2"],
+  serverExternalPackages: ["pg", "@node-rs/argon2", "nodemailer"],
   compress: true,
   experimental: {
     // Import only the icons / chart parts / helpers a view really uses,

@@ -142,8 +142,8 @@ const STATUS_CATEGORY_COLOR: Record<string, string> = {
   Enquiry: "text-stone-700",
   Quoted: "text-stone-700",
   Consultation: "text-stone-700",
-  Confirmed: "text-[#1D4ED8]",
-  "Deposit Paid": "text-[#1D4ED8]",
+  Confirmed: "text-[#571A84]",
+  "Deposit Paid": "text-[#571A84]",
   "In Production": "text-[#7A4568]",
   Fitting: "text-[#8A5A2B]",
   Alterations: "text-[#8A5A2B]",
@@ -154,11 +154,11 @@ const STATUS_CATEGORY_COLOR: Record<string, string> = {
 
 /* ---------- gradient avatar palette ---------- */
 const AVATAR_GRADIENTS = [
-  "from-[#2563EB] to-[#2563EB]",
-  "from-[#334155] to-[#334155]",
+  "from-[#6A1FA0] to-[#6A1FA0]",
+  "from-[#483E59] to-[#483E59]",
   "from-[#8a5a2b] to-[#8a5a2b]",
   "from-[#4d6b4a] to-[#4d6b4a]",
-  "from-[#3d5166] to-[#3d5166]",
+  "from-[#4F4560] to-[#4F4560]",
   "from-[#6b3f5e] to-[#6b3f5e]",
 ];
 
@@ -545,13 +545,13 @@ function MainDashboard() {
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
       : m.healthStatus === "Needs Attention"
       ? "bg-amber-50 text-amber-700 border-amber-200"
-      : "bg-[#2563EB]/10 text-[#2563EB] border-[#2563EB]/30";
+      : "bg-[#6A1FA0]/10 text-[#6A1FA0] border-[#6A1FA0]/30";
   const healthDotClass =
     m.healthStatus === "On Track"
       ? "bg-emerald-500"
       : m.healthStatus === "Needs Attention"
       ? "bg-amber-500"
-      : "bg-[#2563EB]";
+      : "bg-[#6A1FA0]";
 
   return (
     <div className="p-5 md:p-8 max-w-[1400px] mx-auto w-full">
@@ -602,6 +602,7 @@ function MainDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 animate-fade-in-up">
           <PremiumMetric
             label="Sales This Month"
+            tone="violet"
             accent
             icon={TrendingUp}
             spark={m.salesSpark}
@@ -612,6 +613,7 @@ function MainDashboard() {
           />
           <PremiumMetric
             label="Money Received"
+            tone="green"
             accent
             icon={Wallet}
             spark={m.paymentsSpark}
@@ -622,6 +624,7 @@ function MainDashboard() {
           />
           <PremiumMetric
             label="Outstanding"
+            tone="amber"
             icon={AlertCircle}
             accent={m.outstandingOverThreshold}
             sub={
@@ -633,6 +636,7 @@ function MainDashboard() {
           />
           <PremiumMetric
             label="Estimated Profit"
+            tone="blue"
             icon={Sparkles}
             sub="Sales − fabric − labour − overhead"
             value={<AnimatedNumber value={m.profit} format="currency" />}
@@ -651,7 +655,7 @@ function MainDashboard() {
               action={
                 <button
                   onClick={() => go("orders")}
-                  className="text-[11px] text-[#2563EB] font-medium hover:underline flex items-center gap-1"
+                  className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
                 >
                   View all
                   <ChevronRight className="w-3 h-3" />
@@ -674,9 +678,9 @@ function MainDashboard() {
                     <button
                       key={o.id}
                       onClick={() => go("order", { id: o.id })}
-                      className="text-left shrink-0 w-60 rounded-lg border border-[#E2E8F0] p-4 lift hover:border-[#2563EB]/30 transition group bg-white"
+                      className="text-left shrink-0 w-60 rounded-lg border border-[#E6DFEE] p-4 lift hover:border-[#6A1FA0]/30 transition group bg-white"
                     >
-                      <p className="text-sm font-medium text-[#0F172A] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#2563EB]">
+                      <p className="text-sm font-medium text-[#1F1430] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#6A1FA0]">
                         {o.garmentDesign || "Untitled garment"}
                       </p>
                       <p className="text-xs text-stone-400 mt-2">
@@ -698,7 +702,7 @@ function MainDashboard() {
               {m.statusCounts.map(({ status, count }) => (
                 <div
                   key={status}
-                  className="rounded-lg border border-[#E2E8F0] px-3.5 py-3 hover:border-[#2563EB]/30 transition-colors bg-[#FFFFFF]"
+                  className="rounded-lg border border-[#E6DFEE] px-3.5 py-3 hover:border-[#6A1FA0]/30 transition-colors bg-[#FFFFFF]"
                 >
                   <div
                     className={`font-display text-2xl font-semibold leading-none tabular-nums ${
@@ -721,7 +725,7 @@ function MainDashboard() {
             action={
               <button
                 onClick={() => go("fittings")}
-                className="text-[11px] text-[#2563EB] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
               >
                 All fittings
                 <ChevronRight className="w-3 h-3" />
@@ -736,17 +740,17 @@ function MainDashboard() {
                 description="Add one from an order's detail page."
               />
             ) : (
-              <div className="divide-y divide-[#E2E8F0]">
+              <div className="divide-y divide-[#E6DFEE]">
                 {m.upcomingFittings.map((f) => {
                   const order = m.orders.find((o) => o.id === f.orderId);
                   return (
                     <button
                       key={f.id}
                       onClick={() => order && go("order", { id: order.id })}
-                      className="flex items-center justify-between px-5 py-3.5 w-full text-left hover:bg-[#EFF6FF] transition group"
+                      className="flex items-center justify-between px-5 py-3.5 w-full text-left hover:bg-[#F6EFFB] transition group"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#0F172A] group-hover:text-[#2563EB] truncate">
+                        <p className="text-sm font-medium text-[#1F1430] group-hover:text-[#6A1FA0] truncate">
                           {order?.garmentDesign?.slice(0, 48) || "Order fitting"}
                         </p>
                         <p className="text-xs text-stone-400 mt-0.5">
@@ -771,7 +775,7 @@ function MainDashboard() {
           action={
             <button
               onClick={() => go("tasks")}
-              className="text-[11px] text-[#2563EB] font-medium hover:underline flex items-center gap-1"
+              className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
             >
               {staff ? "Open" : "All tasks"}
               <ChevronRight className="w-3 h-3" />
@@ -781,7 +785,7 @@ function MainDashboard() {
         >
           {staff ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="font-display text-6xl font-semibold text-[#2563EB] leading-none">
+              <div className="font-display text-6xl font-semibold text-[#6A1FA0] leading-none">
                 <AnimatedNumber value={m.openTasks.length} />
               </div>
               <p className="text-xs text-stone-400 mt-3">
@@ -804,11 +808,11 @@ function MainDashboard() {
               description="Add staff in Settings to see workload here."
             />
           ) : (
-            <div className="divide-y divide-[#E2E8F0]">
+            <div className="divide-y divide-[#E6DFEE]">
               {m.staffWorkload.map(({ user, openTasks, activeOrders, capacityPct, overCapacity }) => (
                 <div
                   key={user.id}
-                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#EFF6FF] transition"
+                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F6EFFB] transition"
                 >
                   <div
                     className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(
@@ -818,7 +822,7 @@ function MainDashboard() {
                     {(user.fullName || user.email || "?").charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#0F172A] truncate">
+                    <p className="text-sm font-medium text-[#1F1430] truncate">
                       {user.fullName || user.email}
                     </p>
                     <p
@@ -829,17 +833,17 @@ function MainDashboard() {
                       {activeOrders} active order{activeOrders !== 1 ? "s" : ""}
                       {overCapacity ? " — over capacity" : ""}
                     </p>
-                    <div className="mt-1.5 h-1 w-full max-w-[140px] rounded-full bg-[#E2E8F0] overflow-hidden">
+                    <div className="mt-1.5 h-1 w-full max-w-[140px] rounded-full bg-[#E6DFEE] overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
-                          overCapacity ? "bg-[#8E3232]" : "bg-[#2563EB]"
+                          overCapacity ? "bg-[#8E3232]" : "bg-[#6A1FA0]"
                         }`}
                         style={{ width: `${Math.max(4, capacityPct)}%` }}
                       />
                     </div>
                   </div>
                   <span
-                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#2563EB] rounded-full"
+                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#6A1FA0] rounded-full"
                     title={`${openTasks} open task${openTasks !== 1 ? "s" : ""}`}
                   >
                     {openTasks}
@@ -862,7 +866,7 @@ function MainDashboard() {
               action={
                 <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
                   Last 6 months · Total{" "}
-                  <span className="text-[#0F172A] font-semibold tabular-nums">
+                  <span className="text-[#1F1430] font-semibold tabular-nums">
                     {formatCurrency(m.totalReceived6m)}
                   </span>
                 </span>
@@ -885,29 +889,29 @@ function MainDashboard() {
                       >
                         <stop
                           offset="0%"
-                          stopColor="#2563EB"
+                          stopColor="#6A1FA0"
                           stopOpacity={0.35}
                         />
                         <stop
                           offset="100%"
-                          stopColor="#2563EB"
+                          stopColor="#6A1FA0"
                           stopOpacity={0.02}
                         />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
-                      stroke="#E2E8F0"
+                      stroke="#E6DFEE"
                       strokeDasharray="3 3"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="label"
-                      tick={{ fontSize: 11, fill: "#94A3B8" }}
-                      axisLine={{ stroke: "#E2E8F0" }}
+                      tick={{ fontSize: 11, fill: "#7B6F8C" }}
+                      axisLine={{ stroke: "#E6DFEE" }}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 11, fill: "#94A3B8" }}
+                      tick={{ fontSize: 11, fill: "#7B6F8C" }}
                       axisLine={false}
                       tickLine={false}
                       width={64}
@@ -921,17 +925,17 @@ function MainDashboard() {
                         "Received",
                       ]}
                       contentStyle={{
-                        border: "1px solid #E2E8F0",
+                        border: "1px solid #E6DFEE",
                         borderRadius: 8,
                         fontSize: 12,
-                        background: "#EFF6FF",
+                        background: "#FFFFFF",
                       }}
-                      labelStyle={{ color: "#0F172A", fontWeight: 600 }}
+                      labelStyle={{ color: "#1F1430", fontWeight: 600 }}
                     />
                     <Area
                       type="monotone"
                       dataKey="total"
-                      stroke="#2563EB"
+                      stroke="#6A1FA0"
                       strokeWidth={2}
                       fill="url(#burgundyGrad)"
                     />
@@ -987,7 +991,7 @@ function MainDashboard() {
                 {m.attentionItems.map((item, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-2.5 text-sm p-2.5 -mx-2.5 rounded-md hover:bg-[#EFF6FF] transition lift"
+                    className="flex items-start gap-2.5 text-sm p-2.5 -mx-2.5 rounded-md hover:bg-[#F6EFFB] transition lift"
                   >
                     <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                     <span className="text-stone-700 leading-snug">{item}</span>
@@ -1001,12 +1005,12 @@ function MainDashboard() {
           <div className="mb-4">
             <SectionCard
               title="AI Trend Suggestions"
-              action={<Sparkles className="w-4 h-4 text-[#2563EB]" />}
+              action={<Sparkles className="w-4 h-4 text-[#6A1FA0]" />}
             >
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#2563EB]/10 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4 text-[#2563EB]" />
+                  <div className="w-10 h-10 rounded-full bg-[#6A1FA0]/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#6A1FA0]" />
                   </div>
                   <p className="text-sm text-stone-600 leading-snug flex-1">
                     Generate AI insights from your studio's recent orders,
@@ -1024,7 +1028,7 @@ function MainDashboard() {
                 </div>
 
                 {insights && insights.length > 0 && (
-                  <ul className="space-y-2.5 border-t border-[#E2E8F0] pt-4">
+                  <ul className="space-y-2.5 border-t border-[#E6DFEE] pt-4">
                     {insights.map((s, i) => (
                       <li
                         key={i}
@@ -1041,7 +1045,7 @@ function MainDashboard() {
                 )}
 
                 {insights && insights.length === 0 && (
-                  <div className="border-t border-[#E2E8F0] pt-4">
+                  <div className="border-t border-[#E6DFEE] pt-4">
                     <EmptyState
                       icon={Sparkles}
                       title="No suggestions returned"
@@ -1059,7 +1063,7 @@ function MainDashboard() {
       {canCreateOrders() && (
         <button
           onClick={() => go("new-order")}
-          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-lg hover:bg-[#1D4ED8] transition"
+          className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#6A1FA0] text-white flex items-center justify-center shadow-lg hover:bg-[#571A84] transition"
           aria-label="New Custom Order"
         >
           <Plus className="w-6 h-6" />
@@ -1083,14 +1087,14 @@ function HealthMetric({
   format: "currency" | "plain";
 }) {
   return (
-    <div className="rounded-lg border border-[#E2E8F0] p-3.5 bg-white hover:border-[#2563EB]/20 transition">
+    <div className="rounded-lg border border-[#E6DFEE] p-3.5 bg-white hover:border-[#6A1FA0]/20 transition">
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-3.5 h-3.5 text-stone-400" />
         <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
           {label}
         </span>
       </div>
-      <div className="font-display font-semibold text-xl text-[#0F172A] tabular-nums">
+      <div className="font-display font-semibold text-xl text-[#1F1430] tabular-nums">
         <AnimatedNumber value={value} format={format} />
       </div>
     </div>
@@ -1143,7 +1147,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
       action={
         <button
           onClick={() => go("progress")}
-          className="text-[11px] text-[#2563EB] font-medium hover:underline flex items-center gap-1"
+          className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
         >
           All trainees
           <ChevronRight className="w-3 h-3" />
@@ -1158,7 +1162,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
           description="Add trainees from the Team view to follow their progress."
         />
       ) : (
-        <div className="divide-y divide-[#E2E8F0]">
+        <div className="divide-y divide-[#E6DFEE]">
           {trainees.map((t) => {
             const stats = perTrainee.get(t.id) ?? {
               total: 0,
@@ -1170,7 +1174,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
               <button
                 key={t.id}
                 onClick={() => go("progress", { id: t.id })}
-                className="flex items-center gap-3 px-5 py-3.5 w-full text-left hover:bg-[#EFF6FF] transition group"
+                className="flex items-center gap-3 px-5 py-3.5 w-full text-left hover:bg-[#F6EFFB] transition group"
               >
                 <div
                   className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(
@@ -1180,7 +1184,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                   {(t.fullName || t.email || "?").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#0F172A] truncate group-hover:text-[#2563EB] transition-colors">
+                  <p className="text-sm font-medium text-[#1F1430] truncate group-hover:text-[#6A1FA0] transition-colors">
                     {t.fullName || t.email}
                   </p>
                   <p className="text-[11px] text-stone-400">
@@ -1206,7 +1210,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                     </span>
                   )}
                   {stats.total === 0 && (
-                    <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#2563EB] transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-[#6A1FA0] transition-colors" />
                   )}
                 </div>
               </button>
@@ -1387,7 +1391,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("progress")}
-                className="text-[11px] text-[#2563EB] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
               >
                 View progress
                 <ChevronRight className="w-3 h-3" />
@@ -1411,17 +1415,17 @@ function TraineeDashboard({ userId }: { userId: string }) {
                 }
               />
             ) : (
-              <div className="divide-y divide-[#E2E8F0]/70">
+              <div className="divide-y divide-[#E6DFEE]/70">
                 {skills.slice(0, 5).map((s) => (
                   <div
                     key={s.skill}
                     className="flex items-center gap-3 px-5 py-3.5"
                   >
-                    <div className="w-8 h-8 rounded-md bg-[#2563EB]/8 border border-[#2563EB]/15 flex items-center justify-center shrink-0">
-                      <Scissors className="w-3.5 h-3.5 text-[#2563EB]" />
+                    <div className="w-8 h-8 rounded-md bg-[#6A1FA0]/8 border border-[#6A1FA0]/15 flex items-center justify-center shrink-0">
+                      <Scissors className="w-3.5 h-3.5 text-[#6A1FA0]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-[#0F172A] truncate">
+                      <div className="text-sm font-medium text-[#1F1430] truncate">
                         {s.skill}
                       </div>
                       <div className="text-[11px] text-stone-400 tabular-nums">
@@ -1449,7 +1453,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("orders")}
-                className="text-[11px] text-[#2563EB] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
               >
                 All orders
                 <ChevronRight className="w-3 h-3" />
@@ -1464,16 +1468,16 @@ function TraineeDashboard({ userId }: { userId: string }) {
                 description="When the studio assigns you a garment, it'll appear here for you to follow."
               />
             ) : (
-              <div className="divide-y divide-[#E2E8F0]/70">
+              <div className="divide-y divide-[#E6DFEE]/70">
                 {myOrders.map((o) => {
                   const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
                   return (
                     <button
                       key={o.id}
                       onClick={() => go("order", { id: o.id })}
-                      className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-[#EFF6FF] transition group"
+                      className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-[#F6EFFB] transition group"
                     >
-                      <div className="w-11 h-11 rounded-md overflow-hidden bg-[#EFF6FF] border border-[#E2E8F0] flex items-center justify-center shrink-0">
+                      <div className="w-11 h-11 rounded-md overflow-hidden bg-[#F6EFFB] border border-[#E6DFEE] flex items-center justify-center shrink-0">
                         {o.designImage ? (
                           <img
                             src={o.designImage}
@@ -1485,7 +1489,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-[#0F172A] truncate group-hover:text-[#2563EB] transition-colors">
+                        <div className="text-sm font-medium text-[#1F1430] truncate group-hover:text-[#6A1FA0] transition-colors">
                           {o.garmentDesign || "Untitled garment"}
                         </div>
                         <div className="text-[11px] text-stone-400 truncate">
@@ -1517,7 +1521,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("community")}
-                className="text-[11px] text-[#2563EB] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#6A1FA0] font-medium hover:underline flex items-center gap-1"
               >
                 Wall
                 <ChevronRight className="w-3 h-3" />
@@ -1541,15 +1545,15 @@ function TraineeDashboard({ userId }: { userId: string }) {
                 }
               />
             ) : (
-              <div className="divide-y divide-[#E2E8F0]/70">
+              <div className="divide-y divide-[#E6DFEE]/70">
                 {recentPosts.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => go("community")}
-                    className="w-full text-left px-5 py-3.5 hover:bg-[#EFF6FF] transition group"
+                    className="w-full text-left px-5 py-3.5 hover:bg-[#F6EFFB] transition group"
                   >
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-[#2563EB] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-[#6A1FA0] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
                         {(p.authorName || "?").charAt(0).toUpperCase()}
                       </div>
                       <span className="text-[11px] text-stone-500 truncate">
@@ -1560,7 +1564,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                       </span>
                     </div>
                     {p.title && (
-                      <div className="text-sm font-medium text-[#0F172A] truncate group-hover:text-[#2563EB] transition-colors">
+                      <div className="text-sm font-medium text-[#1F1430] truncate group-hover:text-[#6A1FA0] transition-colors">
                         {p.title}
                       </div>
                     )}

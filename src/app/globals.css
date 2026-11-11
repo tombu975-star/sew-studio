@@ -44,81 +44,146 @@
   --radius-lg: 0.625rem;
   --radius-xl: 0.875rem;
 
-  --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
-  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.05);
-  --shadow-md: 0 8px 20px -8px rgb(15 23 42 / 0.12), 0 2px 6px -2px rgb(15 23 42 / 0.06);
-  --shadow-lg: 0 20px 40px -16px rgb(15 23 42 / 0.18), 0 6px 12px -6px rgb(15 23 42 / 0.08);
-  --shadow-blue: 0 4px 12px rgb(37 99 235 / 0.2);
+  --shadow-xs: 0 1px 2px 0 rgb(31 20 48 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(31 20 48 / 0.06), 0 1px 2px -1px rgb(31 20 48 / 0.05);
+  --shadow-md: 0 8px 20px -8px rgb(31 20 48 / 0.12), 0 2px 6px -2px rgb(31 20 48 / 0.06);
+  --shadow-lg: 0 20px 40px -16px rgb(31 20 48 / 0.18), 0 6px 12px -6px rgb(31 20 48 / 0.08);
+  --shadow-blue: 0 4px 12px rgb(106 31 160 / 0.2);
+}
+
+/* Sewiness palette. The default blue / slate / stone scales are re-pointed at the
+   brand plum and a plum-tinted neutral, so every utility class in the app
+   (text-slate-600, bg-blue-50, border-stone-200 ...) follows the brand. */
+@theme {
+  --color-purple-50: #F6EFFB;
+  --color-purple-100: #EBDDF6;
+  --color-purple-200: #D9BFEE;
+  --color-purple-300: #C196E0;
+  --color-purple-400: #A468CE;
+  --color-purple-500: #8838B8;
+  --color-purple-600: #6A1FA0;
+  --color-purple-700: #571A84;
+  --color-purple-800: #451569;
+  --color-purple-900: #33104F;
+  --color-purple-950: #1F0833;
+  --color-blue-50: #F6EFFB;
+  --color-blue-100: #EBDDF6;
+  --color-blue-200: #D9BFEE;
+  --color-blue-300: #C196E0;
+  --color-blue-400: #A468CE;
+  --color-blue-500: #8838B8;
+  --color-blue-600: #6A1FA0;
+  --color-blue-700: #571A84;
+  --color-blue-800: #451569;
+  --color-blue-900: #33104F;
+  --color-blue-950: #1F0833;
+  --color-indigo-50: #F6EFFB;
+  --color-indigo-100: #EBDDF6;
+  --color-indigo-500: #8838B8;
+  --color-indigo-600: #6A1FA0;
+  --color-indigo-700: #571A84;
+  --color-sky-50: #F6EFFB;
+  --color-sky-100: #EBDDF6;
+  --color-sky-500: #8838B8;
+  --color-sky-600: #6A1FA0;
+  --color-sky-700: #571A84;
+  --color-slate-50: #FAF8FC;
+  --color-slate-100: #F3EFF7;
+  --color-slate-200: #E7E0EE;
+  --color-slate-300: #D4CAE0;
+  --color-slate-400: #A599B5;
+  --color-slate-500: #6F6480;
+  --color-slate-600: #5F5472;
+  --color-slate-700: #483E59;
+  --color-slate-800: #30273F;
+  --color-slate-900: #1F1430;
+  --color-slate-950: #140B22;
+  --color-stone-50: #FAF8FC;
+  --color-stone-100: #F3EFF7;
+  --color-stone-200: #E7E0EE;
+  --color-stone-300: #D4CAE0;
+  --color-stone-400: #A599B5;
+  --color-stone-500: #6F6480;
+  --color-stone-600: #5F5472;
+  --color-stone-700: #483E59;
+  --color-stone-800: #30273F;
+  --color-stone-900: #1F1430;
+  --color-stone-950: #140B22;
+  --color-gold-50: #FBF3DC;
+  --color-gold-100: #F6E6B8;
+  --color-gold-400: #E3B64F;
+  --color-gold-500: #C9972B;
+  --color-gold-700: #8A6414;
 }
 
 :root {
   --font-body: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
   --font-display: var(--font-body);
   --radius: 0.375rem;
-  --background: #F4F6F8;
-  --foreground: #0F172A;
+  --background: #F6F2F9;
+  --foreground: #1F1430;
   --card: #ffffff;
-  --card-foreground: #0F172A;
+  --card-foreground: #1F1430;
   --popover: #ffffff;
-  --popover-foreground: #0F172A;
-  --primary: #1D4ED8;
+  --popover-foreground: #1F1430;
+  --primary: #571A84;
   --primary-foreground: #ffffff;
-  --secondary: #F1F5F9;
-  --secondary-foreground: #0F172A;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  --accent: #EFF4FA;
-  --accent-foreground: #1D4ED8;
+  --secondary: #F3EFF7;
+  --secondary-foreground: #1F1430;
+  --muted: #F3EFF7;
+  --muted-foreground: #6B6178;
+  --accent: #F3ECF8;
+  --accent-foreground: #571A84;
   --destructive: #B42318;
   --destructive-foreground: #FFFFFF;
-  --border: #D8DEE7;
-  --input: #C8D0DB;
-  --ring: #1D4ED8;
-  --gold: #b45309;
+  --border: #DDD3E7;
+  --input: #CFC3DB;
+  --ring: #571A84;
+  --gold: #8A6414;
   --green: #4A6B53;
-  --chart-1: #2563EB;
-  --chart-2: #b45309;
+  --chart-1: #6A1FA0;
+  --chart-2: #C9972B;
   --chart-3: #4A6B53;
   --chart-4: #0e7490;
   --chart-5: #8E3232;
-  --sidebar: #17263C;
-  --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #93C5FD;
+  --sidebar: #2A0F45;
+  --sidebar-foreground: #FAF8FC;
+  --sidebar-primary: #E3B64F;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #243751;
+  --sidebar-accent: #43196B;
   --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: #2C3C53;
-  --sidebar-ring: #93C5FD;
+  --sidebar-border: #3A1A5C;
+  --sidebar-ring: #E3B64F;
 }
 
 .dark {
-  --background: #0B1120;
-  --foreground: #F1F5F9;
-  --card: #1E293B;
-  --card-foreground: #F1F5F9;
-  --popover: #1E293B;
-  --popover-foreground: #F1F5F9;
-  --primary: #2563EB;
+  --background: #140B22;
+  --foreground: #F3EFF7;
+  --card: #2D2140;
+  --card-foreground: #F3EFF7;
+  --popover: #2D2140;
+  --popover-foreground: #F3EFF7;
+  --primary: #6A1FA0;
   --primary-foreground: #FFFFFF;
-  --secondary: #334155;
-  --secondary-foreground: #F1F5F9;
-  --muted: #334155;
-  --muted-foreground: #94A3B8;
-  --accent: #334155;
-  --accent-foreground: #F1F5F9;
+  --secondary: #483E59;
+  --secondary-foreground: #F3EFF7;
+  --muted: #483E59;
+  --muted-foreground: #A296B2;
+  --accent: #483E59;
+  --accent-foreground: #F3EFF7;
   --destructive: #8E3232;
   --destructive-foreground: #FAF0F0;
-  --border: #334155;
-  --input: #334155;
-  --ring: #2563EB;
-  --sidebar: #1E293B;
-  --sidebar-foreground: #F1F5F9;
-  --sidebar-primary: #2563EB;
+  --border: #483E59;
+  --input: #483E59;
+  --ring: #6A1FA0;
+  --sidebar: #2D2140;
+  --sidebar-foreground: #F3EFF7;
+  --sidebar-primary: #6A1FA0;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #334155;
-  --sidebar-accent-foreground: #F1F5F9;
-  --sidebar-border: #334155;
-  --sidebar-ring: #2563EB;
+  --sidebar-accent: #483E59;
+  --sidebar-accent-foreground: #F3EFF7;
+  --sidebar-border: #483E59;
+  --sidebar-ring: #6A1FA0;
 }
 
 @layer base {
@@ -216,14 +281,14 @@
   .lift {
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
   }
-  .lift:hover { border-color: #B8C5D6; }
+  .lift:hover { border-color: #C7BAD6; }
   /* Subtle shimmer for skeletons */
   @keyframes shimmer {
     0% { background-position: -1000px 0; }
     100% { background-position: 1000px 0; }
   }
   .shimmer {
-    background: linear-gradient(90deg, #F1F5F9 0%, #E2E8F0 50%, #F1F5F9 100%);
+    background: linear-gradient(90deg, #F3EFF7 0%, #E6DFEE 50%, #F3EFF7 100%);
     background-size: 1000px 100%;
     animation: shimmer 2.2s infinite linear;
   }
@@ -251,15 +316,15 @@
     background: transparent;
   }
   .scroll-slim::-webkit-scrollbar-thumb {
-    background: #BFDBFE;
+    background: #E3CFF2;
     border-radius: 9999px;
   }
   .scroll-slim::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
+    background: #A296B2;
   }
   /* Premium gradient text */
   .text-gradient-burgundy {
-    color: #2563EB;
+    color: #6A1FA0;
   }
   /* Premium surface for elevated panels */
   .surface-premium {
@@ -272,7 +337,7 @@
   h1, h2, h3 { text-wrap: balance; letter-spacing: -0.005em; }
   /* Figures line up in columns everywhere money / measurements appear. */
   table, dl, .tabular-nums { font-variant-numeric: tabular-nums; }
-  :focus-visible { outline: 2px solid #2563EB; outline-offset: 2px; }
+  :focus-visible { outline: 2px solid #6A1FA0; outline-offset: 2px; }
   input:focus-visible, textarea:focus-visible, select:focus-visible, [role="combobox"]:focus-visible { outline-offset: 0; }
 }
 
@@ -287,11 +352,11 @@
   }
   input::placeholder,
   textarea::placeholder {
-    color: #94A3B8;
+    color: #A296B2;
   }
-  ::selection { background: rgb(37 99 235 / 0.16); }
+  ::selection { background: rgb(106 31 160 / 0.16); }
   table thead th {
-    color: #64748B;
+    color: #6B6178;
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.04em;
@@ -301,7 +366,7 @@
     transition: background-color 120ms ease;
   }
   table tbody tr:hover {
-    background-color: #F8FAFC;
+    background-color: #FAF8FC;
   }
 }
 @media (prefers-reduced-motion: reduce) {

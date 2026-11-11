@@ -20,8 +20,8 @@ export function FreelancerPortalClient() {
 
   if (checking) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="w-6 h-6 animate-spin text-[#2563EB]" />
+      <div className="min-h-dvh flex items-center justify-center bg-[#FAF8FC]">
+        <Loader2 className="w-6 h-6 animate-spin text-[#6A1FA0]" />
       </div>
     );
   }

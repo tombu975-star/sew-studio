@@ -87,7 +87,7 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
   };
 
   const submitClass = cn(
-    "h-12 w-full rounded-xl bg-[#782f43] text-white shadow-[0_8px_18px_rgba(120,47,67,0.2)] hover:bg-[#632638] sm:h-[52px]",
+    "h-12 w-full rounded-xl bg-[#6A1FA0] text-white shadow-[0_8px_18px_rgba(106,31,160,0.2)] hover:bg-[#571A84] sm:h-[52px]",
     phoneButton
   );
 
@@ -101,13 +101,13 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
     >
       <PhoneTabs mode={mode} onSwitch={switchMode} />
       <section key={mode} id={`panel-${mode}`} role="tabpanel" aria-labelledby={`tab-${mode}`} className="animate-fade-in">
-        <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a3b50] sm:block">
+        <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6A1FA0] sm:block">
           {registering ? "Join the network" : "Freelancer portal"}
         </p>
-        <h2 className="font-serif text-2xl font-medium tracking-tight text-[#302623] max-sm:sr-only sm:mt-3 sm:text-4xl">
+        <h2 className="font-serif text-2xl font-medium tracking-tight text-[#1F1430] max-sm:sr-only sm:mt-3 sm:text-4xl">
           {registering ? "Create your freelancer account" : "Sign in"}
         </h2>
-        <p className="mt-1 text-[13px] leading-5 text-[#756a64] max-sm:hidden sm:mt-2 sm:text-sm sm:leading-6">
+        <p className="mt-1 text-[13px] leading-5 text-[#6B6178] max-sm:hidden sm:mt-2 sm:text-sm sm:leading-6">
           {registering
             ? "Studios can find you, and you can apply for the jobs they post."
             : "See your commissions and the jobs studios have posted."}
@@ -135,11 +135,11 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
                 <Select value={specialty} onValueChange={setSpecialty}>
                   <SelectTrigger
                     id="fl-specialty"
-                    className="h-12 w-full rounded-xl border-[#e7dfd8] bg-white text-base font-normal data-[size=default]:h-12 sm:h-[52px] sm:data-[size=default]:h-[52px] text-[#292321] focus:border-[#8a3b50] focus:ring-4 focus:ring-[#8a3b50]/10 sm:text-sm max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(60,8,18,0.22)]"
+                    className="h-12 w-full rounded-xl border-[#E5DEEC] bg-white text-base font-normal data-[size=default]:h-12 sm:h-[52px] sm:data-[size=default]:h-[52px] text-[#1F1430] focus:border-[#6A1FA0] focus:ring-4 focus:ring-[#6A1FA0]/10 sm:text-sm max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(30,8,60,0.22)]"
                   >
                     <SelectValue placeholder="Specialty" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-[#e7dfd8]">
+                  <SelectContent className="rounded-xl border-[#E5DEEC]">
                     {SPECIALTIES.map((sp) => (
                       <SelectItem key={sp} value={sp} className="text-sm">{sp}</SelectItem>
                     ))}
@@ -166,12 +166,12 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
 
           {!registering && (
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 pt-0.5 text-xs">
-              <label className="inline-flex cursor-pointer items-center gap-2 text-[#756a64] max-sm:text-white/90">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-[#6B6178] max-sm:text-white/90">
                 <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
-                  className="size-4 shrink-0 accent-[#8a3b50] max-sm:accent-white" />
+                  className="size-4 shrink-0 accent-[#6A1FA0] max-sm:accent-white" />
                 Keep me signed in
               </label>
-              <a href="/forgot-password" className="font-medium text-[#81384b] underline-offset-4 hover:underline max-sm:text-white">
+              <a href="/forgot-password" className="font-medium text-[#6A1FA0] underline-offset-4 hover:underline max-sm:text-white">
                 Forgot password?
               </a>
             </div>
@@ -184,17 +184,17 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
           </PremiumButton>
         </form>
 
-        <div className="mt-4 border-t border-[#eee7e1] pt-4 max-sm:border-0 max-sm:pt-0 max-sm:text-center sm:mt-8 sm:pt-6">
-          <p className="text-[13px] leading-5 text-[#756a64] max-sm:hidden sm:text-sm sm:leading-6">
+        <div className="mt-4 border-t border-[#EDE7F3] pt-4 max-sm:border-0 max-sm:pt-0 max-sm:text-center sm:mt-8 sm:pt-6">
+          <p className="text-[13px] leading-5 text-[#6B6178] max-sm:hidden sm:text-sm sm:leading-6">
             {registering ? "Already have an account?" : "New freelancer?"}{" "}
             <button type="button" onClick={() => switchMode(registering ? "login" : "register")}
-              className="font-semibold text-[#81384b] underline-offset-4 hover:underline">
+              className="font-semibold text-[#6A1FA0] underline-offset-4 hover:underline">
               {registering ? "Back to sign in" : "Create an account"} <span aria-hidden="true">→</span>
             </button>
           </p>
-          <p className="mt-2.5 text-[13px] leading-5 text-[#756a64] max-sm:mt-0 max-sm:text-white/85 sm:mt-5 sm:text-sm sm:leading-6">
+          <p className="mt-2.5 text-[13px] leading-5 text-[#6B6178] max-sm:mt-0 max-sm:text-white/85 sm:mt-5 sm:text-sm sm:leading-6">
             Running a studio?{" "}
-            <a href="/" className="font-medium text-[#81384b] underline-offset-4 hover:underline max-sm:text-white max-sm:underline">
+            <a href="/" className="font-medium text-[#6A1FA0] underline-offset-4 hover:underline max-sm:text-white max-sm:underline">
               Studio sign in
             </a>
           </p>

@@ -9,13 +9,13 @@ type Size = "sm" | "md" | "lg" | "icon";
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "text-white bg-[#1D4ED8] hover:bg-[#1E40AF] active:bg-[#1E3A8A]",
+    "text-white bg-[#6A1FA0] shadow-xs hover:bg-[#571A84] active:bg-[#451569]",
   secondary:
-    "bg-[#344054] text-white hover:bg-[#1D2939]",
+    "bg-[#3A2D52] text-white hover:bg-[#2A1F40]",
   ghost:
-    "bg-transparent text-stone-600 hover:bg-[#F1F5F9] hover:text-[#0F172A]",
+    "bg-transparent text-stone-600 hover:bg-[#F3EFF7] hover:text-[#1F1430]",
   outline:
-    "bg-white border border-[#B8C2CF] text-[#243247] hover:border-[#1D4ED8] hover:bg-[#F8FAFC] active:bg-[#EEF2F6]",
+    "bg-white border border-[#C4B8D3] text-[#30273F] hover:border-[#571A84] hover:bg-[#FAF8FC] active:bg-[#F0EBF5]",
   danger:
     "bg-[#B42318] text-white hover:bg-[#912018]",
 };
@@ -54,7 +54,7 @@ export const PremiumButton = forwardRef<
       ref={ref}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex items-center justify-center font-medium rounded-md transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap select-none",
+        "inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#571A84]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap select-none",
         VARIANTS[variant],
         SIZES[size],
         className

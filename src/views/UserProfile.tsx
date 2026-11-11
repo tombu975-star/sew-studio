@@ -41,10 +41,10 @@ const ROLE_NAMES: Record<string, string> = {
 };
 
 const ROLE_ACCENT: Record<string, string> = {
-  madam: "#2563EB",
+  madam: "#6A1FA0",
   staff: "#0E7490",
-  trainer: "#2563EB",
-  trainee: "#1D4ED8",
+  trainer: "#6A1FA0",
+  trainee: "#571A84",
   freelancer: "#7A4568",
 };
 
@@ -161,12 +161,12 @@ export default function UserProfile() {
 
   const profile = profileQuery.data;
   const showEditForm = isSelf || canEditOthers;
-  const accent = ROLE_ACCENT[profile?.role || ""] || "#2563EB";
+  const accent = ROLE_ACCENT[profile?.role || ""] || "#6A1FA0";
 
   return (
     <div className="mx-auto w-full max-w-[900px] p-5 md:p-8">
       {selectedId && (
-        <button onClick={() => go("team")} className="mb-5 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-[#2563EB] transition-colors">
+        <button onClick={() => go("team")} className="mb-5 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-[#6A1FA0] transition-colors">
           <ArrowLeft className="size-4" /> Team
         </button>
       )}
@@ -179,12 +179,12 @@ export default function UserProfile() {
       ) : profileQuery.isError || !profile ? (
         <>
           <div className="mb-6 flex items-center gap-4">
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#2563EB] text-white">
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#6A1FA0] text-white">
               <UserRound className="size-6" />
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400">Account</p>
-              <h1 className="font-display text-2xl font-semibold text-[#0F172A]">Profile</h1>
+              <h1 className="font-display text-2xl font-semibold text-[#1F1430]">Profile</h1>
             </div>
           </div>
           <SectionCard title="Profile unavailable">
@@ -196,7 +196,7 @@ export default function UserProfile() {
         <>
           {/* ─── Premium profile header banner ──────────────────── */}
           <div
-            className="relative overflow-hidden rounded-2xl border border-[#E2E8F0] elevate-sm mb-6"
+            className="relative overflow-hidden rounded-2xl border border-[#E6DFEE] elevate-sm mb-6"
             style={{
               background: "#ffffff",
             }}
@@ -209,7 +209,7 @@ export default function UserProfile() {
                     src={profile.avatarUrl}
                     alt={`${profile.fullName} profile picture`}
                     onError={() => setAvatarBroken(true)}
-                    className="size-24 rounded-2xl object-cover border border-[#E2E8F0]"
+                    className="size-24 rounded-2xl object-cover border border-[#E6DFEE]"
                   />
                 ) : (
                   <div
@@ -227,7 +227,7 @@ export default function UserProfile() {
                 <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mb-1">
                   {isSelf ? "My profile" : "Team profile"}
                 </p>
-                <h1 className="font-display text-2xl font-semibold text-[#0F172A] truncate">{profile.fullName}</h1>
+                <h1 className="font-display text-2xl font-semibold text-[#1F1430] truncate">{profile.fullName}</h1>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span
                     className="rounded-full border px-3 py-1 text-xs font-medium"
@@ -257,22 +257,22 @@ export default function UserProfile() {
                 <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
                   <label className="text-xs font-medium text-stone-600">
                     Full name
-                    <input required value={fullName} onChange={(event) => setFullName(event.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#E2E8F0] px-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10" />
+                    <input required value={fullName} onChange={(event) => setFullName(event.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#E6DFEE] px-3 text-sm text-[#1F1430] outline-none focus:border-[#6A1FA0] focus:ring-2 focus:ring-[#6A1FA0]/10" />
                   </label>
                   <label className="text-xs font-medium text-stone-600">
                     Email
-                    <span className="mt-2 flex h-11 items-center gap-2 rounded-md border border-[#E2E8F0] bg-stone-50 px-3 text-sm font-normal text-stone-500"><Mail className="size-4" />{profile.email}</span>
+                    <span className="mt-2 flex h-11 items-center gap-2 rounded-md border border-[#E6DFEE] bg-stone-50 px-3 text-sm font-normal text-stone-500"><Mail className="size-4" />{profile.email}</span>
                   </label>
                   <label className="text-xs font-medium text-stone-600">
                     Phone
                     <span className="relative mt-2 block">
                       <Phone className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-stone-400" />
-                      <input type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} className="h-11 w-full rounded-md border border-[#E2E8F0] pl-9 pr-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10" />
+                      <input type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} className="h-11 w-full rounded-md border border-[#E6DFEE] pl-9 pr-3 text-sm text-[#1F1430] outline-none focus:border-[#6A1FA0] focus:ring-2 focus:ring-[#6A1FA0]/10" />
                     </span>
                   </label>
                   <label className="text-xs font-medium text-stone-600">
                     Gender
-                    <select value={gender} onChange={(event) => setGender(event.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#E2E8F0] bg-white px-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB]">
+                    <select value={gender} onChange={(event) => setGender(event.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#E6DFEE] bg-white px-3 text-sm text-[#1F1430] outline-none focus:border-[#6A1FA0]">
                       <option value="">Not specified</option>
                       <option value="Female">Female</option>
                       <option value="Male">Male</option>
@@ -300,9 +300,9 @@ export default function UserProfile() {
                 </form>
               ) : (
                 <dl className="grid gap-5 sm:grid-cols-2">
-                  <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Email</dt><dd className="mt-1 text-sm text-[#0F172A]">{profile.email}</dd></div>
-                  <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Phone</dt><dd className="mt-1 text-sm text-[#0F172A]">{profile.phone || "Not provided"}</dd></div>
-                  <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Gender</dt><dd className="mt-1 text-sm text-[#0F172A]">{profile.gender || "Not provided"}</dd></div>
+                  <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Email</dt><dd className="mt-1 text-sm text-[#1F1430]">{profile.email}</dd></div>
+                  <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Phone</dt><dd className="mt-1 text-sm text-[#1F1430]">{profile.phone || "Not provided"}</dd></div>
+                  <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Gender</dt><dd className="mt-1 text-sm text-[#1F1430]">{profile.gender || "Not provided"}</dd></div>
                 </dl>
               )}
             </SectionCard>
@@ -311,10 +311,10 @@ export default function UserProfile() {
               <SectionCard title="Training" action={<GraduationCap className="size-4 text-stone-400" />}>
                 <dl className="grid gap-5 sm:grid-cols-2">
                   {profile.trainingDurationWeeks && (
-                    <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Duration</dt><dd className="mt-1 text-sm text-[#0F172A]">{profile.trainingDurationWeeks} weeks</dd></div>
+                    <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Duration</dt><dd className="mt-1 text-sm text-[#1F1430]">{profile.trainingDurationWeeks} weeks</dd></div>
                   )}
                   {profile.trainingStartedAt && (
-                    <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Started</dt><dd className="mt-1 text-sm text-[#0F172A]">{formatDate(profile.trainingStartedAt)}</dd></div>
+                    <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Started</dt><dd className="mt-1 text-sm text-[#1F1430]">{formatDate(profile.trainingStartedAt)}</dd></div>
                   )}
                 </dl>
               </SectionCard>
@@ -343,7 +343,7 @@ export default function UserProfile() {
                           autoComplete="current-password"
                           value={currentPassword}
                           onChange={(event) => setCurrentPassword(event.target.value)}
-                          className="h-11 w-full rounded-md border border-[#E2E8F0] pl-3 pr-10 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                          className="h-11 w-full rounded-md border border-[#E6DFEE] pl-3 pr-10 text-sm text-[#1F1430] outline-none focus:border-[#6A1FA0] focus:ring-2 focus:ring-[#6A1FA0]/10"
                         />
                         <button
                           type="button"
@@ -365,7 +365,7 @@ export default function UserProfile() {
                           autoComplete="new-password"
                           value={newPassword}
                           onChange={(event) => setNewPassword(event.target.value)}
-                          className="h-11 w-full rounded-md border border-[#E2E8F0] pl-3 pr-10 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                          className="h-11 w-full rounded-md border border-[#E6DFEE] pl-3 pr-10 text-sm text-[#1F1430] outline-none focus:border-[#6A1FA0] focus:ring-2 focus:ring-[#6A1FA0]/10"
                         />
                         <button
                           type="button"
@@ -386,7 +386,7 @@ export default function UserProfile() {
                         autoComplete="new-password"
                         value={confirmPassword}
                         onChange={(event) => setConfirmPassword(event.target.value)}
-                        className="mt-2 h-11 w-full rounded-md border border-[#E2E8F0] px-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                        className="mt-2 h-11 w-full rounded-md border border-[#E6DFEE] px-3 text-sm text-[#1F1430] outline-none focus:border-[#6A1FA0] focus:ring-2 focus:ring-[#6A1FA0]/10"
                       />
                     </label>
                     <p className="text-[11px] text-stone-400 sm:col-span-2">Use at least 8 characters.</p>

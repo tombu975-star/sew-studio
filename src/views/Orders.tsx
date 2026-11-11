@@ -44,11 +44,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const AVATAR_GRADIENTS = [
-  "from-[#2563EB] to-[#2563EB]",
-  "from-[#3d5166] to-[#3d5166]",
+  "from-[#6A1FA0] to-[#6A1FA0]",
+  "from-[#4F4560] to-[#4F4560]",
   "from-[#4d6b4a] to-[#4d6b4a]",
   "from-[#8a5a2b] to-[#8a5a2b]",
-  "from-[#2563EB] to-[#2563EB]",
+  "from-[#6A1FA0] to-[#6A1FA0]",
 ];
 
 function initials(name: string) {
@@ -291,7 +291,7 @@ export default function Orders() {
                   )}
                 </colgroup>
                 <thead>
-                  <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]/60 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                  <tr className="border-b border-[#E6DFEE] bg-[#FAF8FC]/60 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
                     <th className="px-4 py-3 text-left font-semibold">Invoice</th>
                     <th className="px-3 py-3 text-left font-semibold">Customer</th>
                     <th className="px-3 py-3 text-left font-semibold">Garment</th>
@@ -307,7 +307,7 @@ export default function Orders() {
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8F0]/70">
+                <tbody className="divide-y divide-[#E6DFEE]/70">
                   {rows.map((o) => {
                     const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
                     const balance = Math.max(0, (Number(o.sellingPrice) || 0) - o.paid);
@@ -324,7 +324,7 @@ export default function Orders() {
                         }}
                         tabIndex={0}
                         role="link"
-                        className="group cursor-pointer align-middle hover:bg-[#F8FAFC] focus-visible:bg-[#F8FAFC] focus-visible:outline-none transition-colors"
+                        className="group cursor-pointer align-middle hover:bg-[#FAF8FC] focus-visible:bg-[#FAF8FC] focus-visible:outline-none transition-colors"
                       >
                         <td className="px-4 py-3.5 text-[12px] font-medium tabular-nums text-stone-600 whitespace-nowrap">
                           {invoiceNumber(o, invoicePrefix)}
@@ -340,12 +340,12 @@ export default function Orders() {
                               {initials(o.customer?.name || "?")}
                             </div>
                             <div className="min-w-0">
-                              <div className="truncate font-medium text-[#0F172A] group-hover:text-[#2563EB] transition-colors">
+                              <div className="truncate font-medium text-[#1F1430] group-hover:text-[#6A1FA0] transition-colors">
                                 {o.customer?.name || "—"}
                               </div>
                               {o.priority === "High" && (
-                                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-[#2563EB] font-semibold">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
+                                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-[#6A1FA0] font-semibold">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#6A1FA0]" />
                                   Priority
                                 </span>
                               )}
@@ -353,7 +353,7 @@ export default function Orders() {
                           </div>
                         </td>
                         <td className="px-3 py-3.5">
-                          <div className="truncate text-[#0F172A]">{o.garmentDesign || "—"}</div>
+                          <div className="truncate text-[#1F1430]">{o.garmentDesign || "—"}</div>
                           {o.assignedStaff && (
                             <div className="truncate text-[11px] text-stone-400">
                               {o.assignedStaff.fullName}
@@ -379,7 +379,7 @@ export default function Orders() {
                         </td>
                         {canSeeMoney && (
                           <>
-                            <td className="px-3 py-3.5 text-right font-medium tabular-nums text-[#0F172A] whitespace-nowrap">
+                            <td className="px-3 py-3.5 text-right font-medium tabular-nums text-[#1F1430] whitespace-nowrap">
                               {formatCurrency(o.sellingPrice)}
                             </td>
                             <td className="px-3 py-3.5 text-right tabular-nums text-stone-600 whitespace-nowrap">
@@ -388,7 +388,7 @@ export default function Orders() {
                             <td
                               className={cn(
                                 "px-4 py-3.5 text-right font-semibold tabular-nums whitespace-nowrap",
-                                settled ? "text-emerald-700" : balance > 0 ? "text-[#2563EB]" : "text-stone-400"
+                                settled ? "text-emerald-700" : balance > 0 ? "text-[#6A1FA0]" : "text-stone-400"
                               )}
                             >
                               {settled ? "Settled" : formatCurrency(balance)}
@@ -403,20 +403,20 @@ export default function Orders() {
             </div>
 
             {/* Mobile: one card per invoice */}
-            <ul className="xl:hidden divide-y divide-[#E2E8F0]/70 md:divide-y-0 md:grid md:grid-cols-2 md:gap-3 md:p-4">
+            <ul className="xl:hidden divide-y divide-[#E6DFEE]/70 md:divide-y-0 md:grid md:grid-cols-2 md:gap-3 md:p-4">
               {rows.map((o) => {
                 const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
                 const balance = Math.max(0, (Number(o.sellingPrice) || 0) - o.paid);
                 const settled = o.sellingPrice > 0 && balance === 0;
                 return (
-                  <li key={o.id} className="md:border md:border-[#E2E8F0] md:rounded-lg md:overflow-hidden md:bg-white">
+                  <li key={o.id} className="md:border md:border-[#E6DFEE] md:rounded-lg md:overflow-hidden md:bg-white">
                     <button
                       onClick={() => go("order", { id: o.id })}
-                      className="w-full h-full text-left px-4 py-4 active:bg-[#F8FAFC] hover:bg-[#F8FAFC] transition-colors"
+                      className="w-full h-full text-left px-4 py-4 active:bg-[#FAF8FC] hover:bg-[#FAF8FC] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="truncate font-medium text-[#0F172A]">
+                          <div className="truncate font-medium text-[#1F1430]">
                             {o.customer?.name || "—"}
                           </div>
                           <div className="truncate text-[13px] text-stone-600">
@@ -438,10 +438,10 @@ export default function Orders() {
                         </span>
                       </div>
                       {canSeeMoney && (
-                        <div className="mt-2.5 grid grid-cols-3 gap-2 rounded-md bg-[#F8FAFC] px-3 py-2 text-[12px] tabular-nums">
+                        <div className="mt-2.5 grid grid-cols-3 gap-2 rounded-md bg-[#FAF8FC] px-3 py-2 text-[12px] tabular-nums">
                           <div>
                             <div className="text-[9px] uppercase tracking-wide text-stone-400">Amount</div>
-                            <div className="font-medium text-[#0F172A]">{formatCurrency(o.sellingPrice)}</div>
+                            <div className="font-medium text-[#1F1430]">{formatCurrency(o.sellingPrice)}</div>
                           </div>
                           <div>
                             <div className="text-[9px] uppercase tracking-wide text-stone-400">Paid</div>
@@ -449,7 +449,7 @@ export default function Orders() {
                           </div>
                           <div className="text-right">
                             <div className="text-[9px] uppercase tracking-wide text-stone-400">Balance</div>
-                            <div className={cn("font-semibold", settled ? "text-emerald-700" : balance > 0 ? "text-[#2563EB]" : "text-stone-400")}>
+                            <div className={cn("font-semibold", settled ? "text-emerald-700" : balance > 0 ? "text-[#6A1FA0]" : "text-stone-400")}>
                               {settled ? "Settled" : formatCurrency(balance)}
                             </div>
                           </div>
@@ -467,7 +467,7 @@ export default function Orders() {
       {/* Back link */}
       <button
         onClick={() => go("dashboard")}
-        className="mt-6 inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#2563EB] transition"
+        className="mt-6 inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard
       </button>

@@ -75,7 +75,7 @@ export function PlanSettingsPanel() {
     <div className="space-y-5">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[.14em] text-[#8E3232]">Studio plan</p>
-        <h2 className="mt-1 font-display text-xl font-semibold text-[#0F172A]">Choose the right space to grow</h2>
+        <h2 className="mt-1 font-display text-xl font-semibold text-[#1F1430]">Choose the right space to grow</h2>
         <p className="mt-1 max-w-2xl text-sm leading-relaxed text-stone-500">
           Your plan controls the tools and team size available to this studio. Request an upgrade and our team will follow up to activate it.
         </p>
@@ -89,7 +89,7 @@ export function PlanSettingsPanel() {
             </span>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Current plan</p>
-              <p className="mt-0.5 text-lg font-semibold capitalize text-[#0F172A]">{data.plan}</p>
+              <p className="mt-0.5 text-lg font-semibold capitalize text-[#1F1430]">{data.plan}</p>
               <p className="mt-1 text-sm text-stone-500">
                 {data.plan === "trial"
                   ? data.trialExpired
@@ -104,7 +104,7 @@ export function PlanSettingsPanel() {
               <UsersRound className="size-4" />
               Studio members
             </div>
-            <p className="font-semibold text-[#0F172A]">
+            <p className="font-semibold text-[#1F1430]">
               {data.memberCount}
               <span className="font-normal text-stone-500">
                 {data.maxMembers === null ? " · unlimited" : ` / ${data.maxMembers}`}
@@ -164,7 +164,7 @@ export function PlanSettingsPanel() {
                 </span>
               )}
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-base font-semibold text-[#0F172A]">{plan.name}</h3>
+                <h3 className="text-base font-semibold text-[#1F1430]">{plan.name}</h3>
                 {isCurrent && (
                   <span className="rounded-full bg-[#8E3232]/10 px-2 py-1 text-[10px] font-semibold text-[#8E3232]">
                     Your plan

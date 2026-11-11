@@ -154,7 +154,7 @@ export default function CustomerProfile() {
     return (
       <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
         <div className="h-4 w-32 bg-stone-100 rounded shimmer mb-4" />
-        <div className="rounded-xl surface-premium border border-[#E2E8F0] p-6 mb-6 flex gap-5 elevate-sm">
+        <div className="rounded-xl surface-premium border border-[#E6DFEE] p-6 mb-6 flex gap-5 elevate-sm">
           <div className="w-16 h-16 rounded-full shimmer" />
           <div className="flex-1 space-y-3">
             <div className="h-7 w-56 shimmer rounded" />
@@ -177,7 +177,7 @@ export default function CustomerProfile() {
       <div className="p-5 md:p-8 max-w-[1200px] mx-auto w-full">
         <button
           onClick={() => go("customers")}
-          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#2563EB] mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#6A1FA0] mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Customers
         </button>
@@ -223,23 +223,23 @@ export default function CustomerProfile() {
       {/* Back link */}
       <button
         onClick={() => go("customers")}
-        className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#2563EB] mb-4 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-[#6A1FA0] mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Customers
       </button>
 
       {/* Premium customer header (hero band) */}
-      <div className="rounded-xl surface-premium border border-[#E2E8F0] elevate-md p-6 mb-6 animate-fade-in-up">
+      <div className="rounded-xl surface-premium border border-[#E6DFEE] elevate-md p-6 mb-6 animate-fade-in-up">
         <div className="flex flex-col md:flex-row md:items-start gap-5">
           <div
-            className="w-16 h-16 rounded-full bg-[#2563EB] flex items-center justify-center text-white font-display font-semibold text-2xl shrink-0"
+            className="w-16 h-16 rounded-full bg-[#6A1FA0] flex items-center justify-center text-white font-display font-semibold text-2xl shrink-0"
             aria-hidden
           >
             {(customer.name || "?").charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <h1
-              className="font-display font-semibold text-[#0F172A] leading-[1.05]"
+              className="font-display font-semibold text-[#1F1430] leading-[1.05]"
               style={{ fontSize: "clamp(28px, 4vw, 36px)" }}
             >
               {customer.name}
@@ -248,7 +248,7 @@ export default function CustomerProfile() {
               {customer.phone && (
                 <a
                   href={`tel:${customer.phone}`}
-                  className="inline-flex items-center gap-1.5 hover:text-[#2563EB] transition-colors"
+                  className="inline-flex items-center gap-1.5 hover:text-[#6A1FA0] transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5" /> {customer.phone}
                 </a>
@@ -256,7 +256,7 @@ export default function CustomerProfile() {
               {customer.email && (
                 <a
                   href={`mailto:${customer.email}`}
-                  className="inline-flex items-center gap-1.5 hover:text-[#2563EB] transition-colors"
+                  className="inline-flex items-center gap-1.5 hover:text-[#6A1FA0] transition-colors"
                 >
                   <Mail className="w-3.5 h-3.5" /> {customer.email}
                 </a>
@@ -283,16 +283,16 @@ export default function CustomerProfile() {
                 <StatusBadge status={customer.customerType} />
               )}
               {customer.entrySource && (
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#EFF6FF] border border-[#E2E8F0] px-2 py-0.5 text-[11px] text-stone-600">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#F6EFFB] border border-[#E6DFEE] px-2 py-0.5 text-[11px] text-stone-600">
                   <span className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
                     Source
                   </span>
-                  <span className="font-medium text-[#0F172A]">
+                  <span className="font-medium text-[#1F1430]">
                     {customer.entrySource}
                   </span>
                 </span>
               )}
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#2563EB]/8 border border-[#2563EB]/20 px-2 py-0.5 text-[11px] text-[#2563EB]">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#6A1FA0]/8 border border-[#6A1FA0]/20 px-2 py-0.5 text-[11px] text-[#6A1FA0]">
                 <Sparkles className="w-3 h-3" />
                 <span className="font-semibold">
                   <AnimatedNumber value={customer.loyaltyPoints ?? 0} /> pts
@@ -334,7 +334,7 @@ export default function CustomerProfile() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="bg-white border border-[#E2E8F0] rounded-lg h-auto p-1 overflow-x-auto scroll-slim max-w-full inline-flex w-auto gap-0.5">
+        <TabsList className="bg-white border border-[#E6DFEE] rounded-lg h-auto p-1 overflow-x-auto scroll-slim max-w-full inline-flex w-auto gap-0.5">
           {[
             { v: "overview", l: "Overview" },
             { v: "measurements", l: "Measurements" },
@@ -345,7 +345,7 @@ export default function CustomerProfile() {
             <TabsTrigger
               key={t.v}
               value={t.v}
-              className="rounded-md data-[state=active]:bg-[#2563EB] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600"
+              className="rounded-md data-[state=active]:bg-[#6A1FA0] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600"
             >
               {t.l}
             </TabsTrigger>
@@ -403,7 +403,7 @@ export default function CustomerProfile() {
                 {feedback.slice(0, 5).map((f) => (
                   <li
                     key={f.id}
-                    className="border-l-2 border-[#E2E8F0] pl-3"
+                    className="border-l-2 border-[#E6DFEE] pl-3"
                   >
                     <div className="flex items-center gap-2">
                       <Stars value={f.rating} />
@@ -477,14 +477,14 @@ export default function CustomerProfile() {
                 }
               />
             ) : (
-              <div className="divide-y divide-[#E2E8F0]/70">
+              <div className="divide-y divide-[#E6DFEE]/70">
                 {orders.map((o) => (
                   <button
                     key={o.id}
                     onClick={() => go("order", { id: o.id })}
-                    className="group w-full flex flex-wrap items-center gap-3 px-5 py-4 text-left hover:bg-[#F8FAFC] transition-all focus:outline-none focus-visible:bg-[#F8FAFC]"
+                    className="group w-full flex flex-wrap items-center gap-3 px-5 py-4 text-left hover:bg-[#FAF8FC] transition-all focus:outline-none focus-visible:bg-[#FAF8FC]"
                   >
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#EFF6FF] border border-[#E2E8F0] flex items-center justify-center text-[#2563EB] shrink-0">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#F6EFFB] border border-[#E6DFEE] flex items-center justify-center text-[#6A1FA0] shrink-0">
                       {o.designImage ? (
                          
                         <img src={o.designImage} alt={`${o.garmentDesign} style`} loading="lazy" className="w-full h-full object-cover" />
@@ -493,7 +493,7 @@ export default function CustomerProfile() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-[#0F172A] truncate">
+                      <div className="font-medium text-[#1F1430] truncate">
                         {o.garmentDesign}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-500 mt-0.5">
@@ -508,7 +508,7 @@ export default function CustomerProfile() {
                     </div>
                     <StatusBadge status={o.status} />
                     <div className="text-right min-w-[90px]">
-                      <div className="text-sm font-semibold text-[#0F172A] tabular-nums">
+                      <div className="text-sm font-semibold text-[#1F1430] tabular-nums">
                         {formatCurrency(o.sellingPrice)}
                       </div>
                     </div>
@@ -554,12 +554,12 @@ export default function CustomerProfile() {
                   <div
                     key={c.id}
                     className={cn(
-                      "rounded-lg border border-[#E2E8F0] surface-premium lift overflow-hidden flex flex-col",
+                      "rounded-lg border border-[#E6DFEE] surface-premium lift overflow-hidden flex flex-col",
                       c.status === "Rejected" && "opacity-60"
                     )}
                   >
                     {c.imageUrl && (
-                      <div className="aspect-[3/4] w-full bg-[#EFF6FF] border-b border-[#E2E8F0]">
+                      <div className="aspect-[3/4] w-full bg-[#F6EFFB] border-b border-[#E6DFEE]">
                         <img
                           src={c.imageUrl}
                           alt={c.conceptName}
@@ -569,11 +569,11 @@ export default function CustomerProfile() {
                     )}
                     <div className="p-4 flex-1 flex flex-col">
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="font-display text-base text-[#0F172A] leading-tight">
+                        <div className="font-display text-base text-[#1F1430] leading-tight">
                           {c.conceptName}
                         </div>
                         {typeof c.matchPercent === "number" && (
-                          <span className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] bg-[#2563EB]/10 text-[#2563EB] px-2 py-0.5 rounded-md border border-[#2563EB]/25 font-semibold">
+                          <span className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] bg-[#6A1FA0]/10 text-[#6A1FA0] px-2 py-0.5 rounded-md border border-[#6A1FA0]/25 font-semibold">
                             {c.matchPercent}% match
                           </span>
                         )}
@@ -607,7 +607,7 @@ export default function CustomerProfile() {
                         )}
                       </div>
                       {c.whyThisMayWork && (
-                        <div className="mt-auto text-xs text-stone-600 italic bg-[#EFF6FF] border border-[#E2E8F0]/70 rounded-md p-2.5">
+                        <div className="mt-auto text-xs text-stone-600 italic bg-[#F6EFFB] border border-[#E6DFEE]/70 rounded-md p-2.5">
                           {c.whyThisMayWork}
                         </div>
                       )}
@@ -691,7 +691,7 @@ function Stars({ value }: { value: number }) {
           className={cn(
             "w-3.5 h-3.5",
             i < value
-              ? "fill-[#2563EB] text-[#2563EB]"
+              ? "fill-[#6A1FA0] text-[#6A1FA0]"
               : "fill-stone-200 text-stone-200"
           )}
         />
@@ -712,7 +712,7 @@ function Fact({
       <dt className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
         {label}
       </dt>
-      <dd className="text-sm text-[#0F172A] mt-1">{value || "—"}</dd>
+      <dd className="text-sm text-[#1F1430] mt-1">{value || "—"}</dd>
     </div>
   );
 }
@@ -744,7 +744,7 @@ function ChipList({
           {items.map((item, i) => (
             <span
               key={`${item}-${i}`}
-              className="inline-flex items-center rounded-md bg-[#EFF6FF] border border-[#E2E8F0] px-2 py-0.5 text-xs text-stone-700"
+              className="inline-flex items-center rounded-md bg-[#F6EFFB] border border-[#E6DFEE] px-2 py-0.5 text-xs text-stone-700"
             >
               {item}
             </span>
@@ -933,7 +933,7 @@ function EditPersonalDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl text-[#0F172A]">
+          <DialogTitle className="font-display text-xl text-[#1F1430]">
             Edit Customer
           </DialogTitle>
           <DialogDescription className="text-stone-500">
@@ -943,7 +943,7 @@ function EditPersonalDialog({
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="e-name" className="text-xs text-stone-600">
-              Name <span className="text-[#2563EB]">*</span>
+              Name <span className="text-[#6A1FA0]">*</span>
             </Label>
             <Input
               id="e-name"
@@ -1218,15 +1218,15 @@ function AddMeasurementDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[92dvh] gap-0 overflow-y-auto rounded-lg p-0 sm:max-w-[720px]">
-        <DialogHeader className="border-b border-[#E2E8F0] px-6 py-4 text-left">
-          <DialogTitle className="font-display text-xl text-[#0F172A]">New measurement session</DialogTitle>
+        <DialogHeader className="border-b border-[#E6DFEE] px-6 py-4 text-left">
+          <DialogTitle className="font-display text-xl text-[#1F1430]">New measurement session</DialogTitle>
           <DialogDescription className="text-stone-500">
             ISO 8559-1 body dimensions. Saved in centimetres; enter in whichever unit you are reading off the tape.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] bg-[#EFF6FF] px-6 py-3">
-            <div role="group" aria-label="Entry unit" className="inline-flex rounded-md border border-[#E2E8F0] bg-white p-0.5 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E6DFEE] bg-[#F6EFFB] px-6 py-3">
+            <div role="group" aria-label="Entry unit" className="inline-flex rounded-md border border-[#E6DFEE] bg-white p-0.5 text-xs">
               {(["cm", "in"] as const).map((u) => (
                 <button
                   key={u}
@@ -1235,7 +1235,7 @@ function AddMeasurementDialog({
                   aria-pressed={unit === u}
                   className={
                     "h-7 min-w-9 rounded px-2.5 font-medium transition-colors " +
-                    (unit === u ? "bg-[#0F172A] text-white" : "text-stone-500 hover:text-[#0F172A]")
+                    (unit === u ? "bg-[#1F1430] text-white" : "text-stone-500 hover:text-[#1F1430]")
                   }
                 >
                   {u}
@@ -1245,7 +1245,7 @@ function AddMeasurementDialog({
             <div className="flex items-center gap-4 text-xs">
               <span className="tabular-nums text-stone-500">{filled} of {MEASUREMENT_FIELDS.length} entered</span>
               {latest && (
-                <button type="button" onClick={copyPrevious} className="font-medium text-[#2563EB] hover:underline">
+                <button type="button" onClick={copyPrevious} className="font-medium text-[#6A1FA0] hover:underline">
                   Start from previous session
                 </button>
               )}
@@ -1255,7 +1255,7 @@ function AddMeasurementDialog({
           <div className="space-y-6 px-6 py-5">
             {FIELD_GROUPS.map((group) => (
               <fieldset key={group}>
-                <legend className="mb-2 w-full border-b border-[#0F172A] pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0F172A]">
+                <legend className="mb-2 w-full border-b border-[#1F1430] pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1F1430]">
                   {group}
                 </legend>
                 <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-2">
@@ -1266,7 +1266,7 @@ function AddMeasurementDialog({
                     return (
                       <div key={f.key}>
                         <Label htmlFor={`m-${f.key}`} className="flex items-baseline justify-between text-xs text-stone-600">
-                          <span className={f.core ? "font-medium text-[#0F172A]" : undefined}>{f.label}</span>
+                          <span className={f.core ? "font-medium text-[#1F1430]" : undefined}>{f.label}</span>
                         </Label>
                         <div className="relative mt-1">
                           <Input
@@ -1304,7 +1304,7 @@ function AddMeasurementDialog({
                   id="m-posture"
                   value={form.posture}
                   onChange={(e) => set("posture", e.target.value)}
-                  className="mt-1 h-10 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20"
+                  className="mt-1 h-10 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#6A1FA0]/20"
                 >
                   <option value="">Not noted</option>
                   {POSTURES.map((p) => (
@@ -1326,7 +1326,7 @@ function AddMeasurementDialog({
             </div>
           </div>
 
-          <DialogFooter className="sticky bottom-0 gap-2 border-t border-[#E2E8F0] bg-white px-6 py-3">
+          <DialogFooter className="sticky bottom-0 gap-2 border-t border-[#E6DFEE] bg-white px-6 py-3">
             <PremiumButton type="button" variant="outline" size="md" onClick={() => handleOpenChange(false)} disabled={saving}>
               Cancel
             </PremiumButton>

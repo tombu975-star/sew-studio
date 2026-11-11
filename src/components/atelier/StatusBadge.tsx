@@ -11,16 +11,16 @@ import { cn } from "@/lib/utils";
  * alteration flag · positive · final · financial.
  */
 const HUE = {
-  neutral: "#64748B", // tailor's slate — not yet started / low priority
+  neutral: "#6B6178", // tailor's slate — not yet started / low priority
   pending: "#B45309", // warm amber — awaiting action, scheduled, learning
-  info: "#475569", // dusty slate — early-stage, informational
-  progress: "#1D4ED8", // deeper slate — confirmed, actively underway
-  active: "#2563EB",
+  info: "#2F5FC4", // blue — early-stage, informational
+  progress: "#6A1FA0", // brand plum — confirmed, actively underway
+  active: "#2E7D4F", // green — active / available
   alteration: "#8E3232", // vintage crimson — the spec's "Alteration Flag /
   // Urgent": needs hands-on rework, rejected, declined.
   positive: "#4A6B53", // sage olive — the spec's "Ready for Review / Completed".
   final: "#2F6B63", // deep teal — delivered / completed milestone.
-  financial: "#7A4568", // plum — money-stage statuses.
+  financial: "#8A6414", // gold — money-stage statuses.
 } as const;
 
 const STATUS_HUE: Record<string, keyof typeof HUE> = {

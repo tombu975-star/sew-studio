@@ -184,7 +184,7 @@ export default function Fittings() {
       {isError ? (
         <SectionCard title="Error">
           <div className="flex items-center gap-2 text-sm text-stone-500">
-            <AlertCircle className="w-4 h-4 text-[#2563EB]" />
+            <AlertCircle className="w-4 h-4 text-[#6A1FA0]" />
             Could not load fittings. Please try again.
           </div>
         </SectionCard>
@@ -210,7 +210,7 @@ export default function Fittings() {
                 description="When you schedule a fitting for an order, it will appear here."
               />
             ) : (
-              <ul className="divide-y divide-[#E2E8F0]/70">
+              <ul className="divide-y divide-[#E6DFEE]/70">
                 {upcoming.map((f) => (
                   <FittingRow
                     key={f.id}
@@ -234,7 +234,7 @@ export default function Fittings() {
                 description="Completed and altered fittings will show up here."
               />
             ) : (
-              <ul className="divide-y divide-[#E2E8F0]/70">
+              <ul className="divide-y divide-[#E6DFEE]/70">
                 {recent.map((f) => (
                   <FittingRow
                     key={f.id}
@@ -274,7 +274,7 @@ function DateChip({ iso }: { iso: string }) {
   const d = new Date(iso);
   if (isNaN(d.getTime())) {
     return (
-      <div className="w-11 h-11 rounded-md bg-[#EFF6FF] border border-[#E2E8F0] flex items-center justify-center text-[10px] text-stone-400">
+      <div className="w-11 h-11 rounded-md bg-[#F6EFFB] border border-[#E6DFEE] flex items-center justify-center text-[10px] text-stone-400">
         —
       </div>
     );
@@ -282,11 +282,11 @@ function DateChip({ iso }: { iso: string }) {
   const month = d.toLocaleDateString("en-GB", { month: "short" });
   const day = d.getDate();
   return (
-    <div className="w-11 h-11 shrink-0 rounded-md bg-[#EFF6FF] border border-[#E2E8F0] flex flex-col items-center justify-center leading-none">
+    <div className="w-11 h-11 shrink-0 rounded-md bg-[#F6EFFB] border border-[#E6DFEE] flex flex-col items-center justify-center leading-none">
       <span className="text-[9px] uppercase tracking-[0.14em] text-stone-400 mt-1">
         {month}
       </span>
-      <span className="font-display font-semibold text-[#0F172A] text-base mt-0.5">
+      <span className="font-display font-semibold text-[#1F1430] text-base mt-0.5">
         {day}
       </span>
     </div>
@@ -311,20 +311,20 @@ function FittingRow({
       <button
         onClick={onClick}
         className={cn(
-          "flex-1 min-w-0 text-left flex items-center gap-3 sm:gap-4 pl-4 sm:pl-5 pr-3 py-3.5 hover:bg-[#EFF6FF] transition group",
+          "flex-1 min-w-0 text-left flex items-center gap-3 sm:gap-4 pl-4 sm:pl-5 pr-3 py-3.5 hover:bg-[#F6EFFB] transition group",
           overdue && "bg-amber-50/60 hover:bg-amber-50"
         )}
       >
         <DateChip iso={fitting.date} />
 
         <div className="flex-1 min-w-0 grid gap-1">
-          <p className="text-sm font-medium text-[#0F172A] truncate">
+          <p className="text-sm font-medium text-[#1F1430] truncate">
             {garment}
           </p>
           <div className="flex items-center gap-1.5">
             <span
               className={cn(
-                "w-1.5 h-1.5 rounded-full bg-[#2563EB]/60 shrink-0"
+                "w-1.5 h-1.5 rounded-full bg-[#6A1FA0]/60 shrink-0"
               )}
               aria-hidden
             />

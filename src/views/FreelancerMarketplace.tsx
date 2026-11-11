@@ -36,7 +36,7 @@ interface Post {
 }
 
 const input =
-  "w-full h-10 px-3 rounded-md border border-[#E2E8F0] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20";
+  "w-full h-10 px-3 rounded-md border border-[#E6DFEE] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#6A1FA0]/20";
 const btn = "h-9 px-3 rounded-md text-xs font-medium border transition-colors disabled:opacity-50";
 
 /** Shop-side: browse registered freelancers and post open jobs they can apply to. */
@@ -99,14 +99,14 @@ export function FreelancerMarketplace() {
             rows={3}
             maxLength={2000}
             placeholder="What needs doing? e.g. Hand-bead the neckline of a kente gown"
-            className="w-full px-3 py-2 rounded-md border border-[#E2E8F0] text-sm"
+            className="w-full px-3 py-2 rounded-md border border-[#E6DFEE] text-sm"
           />
           <div className="grid grid-cols-2 gap-3">
             <input className={input} type="number" min="0" placeholder="Budget (optional)" value={budget} onChange={(e) => setBudget(e.target.value)} />
             <input className={input} type="date" value={due} onChange={(e) => setDue(e.target.value)} />
           </div>
           <button
-            className={`${btn} bg-[#2563EB] text-white border-[#2563EB]`}
+            className={`${btn} bg-[#6A1FA0] text-white border-[#6A1FA0]`}
             disabled={!task.trim() || publish.isPending}
             onClick={() => publish.mutate()}
           >
@@ -119,7 +119,7 @@ export function FreelancerMarketplace() {
         {posts.length === 0 ? (
           <p className="p-4 text-sm text-stone-500">No posts yet. Freelancers see open jobs and can apply.</p>
         ) : (
-          <ul className="divide-y divide-[#E2E8F0]">
+          <ul className="divide-y divide-[#E6DFEE]">
             {posts.map((p) => (
               <li key={p.id} className="p-4 space-y-2">
                 <div className="flex items-start justify-between gap-3">
@@ -132,7 +132,7 @@ export function FreelancerMarketplace() {
                     </p>
                   </div>
                   {p.status === "Open" && (
-                    <button className={`${btn} border-[#E2E8F0] text-stone-600`} onClick={() => act.mutate({ id: p.id, body: { action: "close" } })}>
+                    <button className={`${btn} border-[#E6DFEE] text-stone-600`} onClick={() => act.mutate({ id: p.id, body: { action: "close" } })}>
                       Close
                     </button>
                   )}
@@ -142,7 +142,7 @@ export function FreelancerMarketplace() {
                 ) : (
                   <ul className="space-y-2">
                     {p.applications.map((a) => (
-                      <li key={a.id} className="rounded-md bg-[#F8FAFC] border border-[#E2E8F0] p-3">
+                      <li key={a.id} className="rounded-md bg-[#FAF8FC] border border-[#E6DFEE] p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="flex flex-wrap items-center gap-2 text-sm font-medium">{a.name}{a.specialty ? ` · ${a.specialty}` : ""}{a.verified && <VerifiedBadge />}</p>
@@ -152,11 +152,11 @@ export function FreelancerMarketplace() {
                           </div>
                           {a.status === "Pending" && p.status === "Open" ? (
                             <div className="flex gap-2 shrink-0">
-                              <button className={`${btn} bg-[#2563EB] text-white border-[#2563EB]`} disabled={act.isPending}
+                              <button className={`${btn} bg-[#6A1FA0] text-white border-[#6A1FA0]`} disabled={act.isPending}
                                 onClick={() => act.mutate({ id: p.id, body: { action: "accept", applicationId: a.id } })}>
                                 Hire
                               </button>
-                              <button className={`${btn} border-[#E2E8F0] text-stone-600`} disabled={act.isPending}
+                              <button className={`${btn} border-[#E6DFEE] text-stone-600`} disabled={act.isPending}
                                 onClick={() => act.mutate({ id: p.id, body: { action: "decline", applicationId: a.id } })}>
                                 Decline
                               </button>
@@ -176,7 +176,7 @@ export function FreelancerMarketplace() {
       </SectionCard>
 
       <SectionCard title="Find verified freelancers" bodyClassName="p-0">
-        <div className="p-4 border-b border-[#E2E8F0]">
+        <div className="p-4 border-b border-[#E6DFEE]">
           <input className={input} placeholder="Search by name, specialty or skill" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
         {directoryQ.isLoading ? (
@@ -188,7 +188,7 @@ export function FreelancerMarketplace() {
             {q ? "No freelancers match your search." : "No freelancers have registered yet. Share your freelancer sign-up link: /freelancer?mode=register"}
           </p>
         ) : (
-          <ul className="divide-y divide-[#E2E8F0]">
+          <ul className="divide-y divide-[#E6DFEE]">
             {directory.map((f) => (
               <li key={f.id} className="p-4 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -198,7 +198,7 @@ export function FreelancerMarketplace() {
                 {f.linked ? (
                   <span className="text-xs text-emerald-600 shrink-0">On your roster</span>
                 ) : (
-                  <button className={`${btn} border-[#2563EB] text-[#2563EB]`} disabled={link.isPending} onClick={() => link.mutate(f.id)}>
+                  <button className={`${btn} border-[#6A1FA0] text-[#6A1FA0]`} disabled={link.isPending} onClick={() => link.mutate(f.id)}>
                     Add to roster
                   </button>
                 )}

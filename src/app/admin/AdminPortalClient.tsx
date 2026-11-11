@@ -100,7 +100,7 @@ export function AdminPortalClient() {
 
   if (checking) {
     return (
-      <div className="min-h-dvh grid place-items-center bg-[#F6F7F9]">
+      <div className="min-h-dvh grid place-items-center bg-[#F7F4FA]">
         <Loader2 className="size-6 animate-spin text-[#416A59]" aria-label="Loading admin portal" />
       </div>
     );
@@ -130,7 +130,7 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (admin: AdminProfile) => void 
   }
 
   return (
-    <main className="min-h-dvh flex items-center justify-center bg-[#F6F7F9] px-5 py-10">
+    <main className="min-h-dvh flex items-center justify-center bg-[#F7F4FA] px-5 py-10">
       <div className="w-full max-w-[410px]">
         <div className="mb-7 flex items-center gap-3">
           <div className="grid size-12 place-items-center rounded-2xl bg-[#315B4A] text-white shadow-sm"><ShieldCheck className="size-5" /></div>
@@ -233,7 +233,7 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
   ];
 
   return (
-    <div className="min-h-dvh bg-[#F6F7F9] text-slate-900">
+    <div className="min-h-dvh bg-[#F7F4FA] text-slate-900">
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-[248px] flex-col border-r border-slate-200 bg-white px-4 py-5 transition-transform lg:translate-x-0 ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center gap-3 px-2 pb-8">
           <div className="grid size-10 place-items-center rounded-xl bg-[#315B4A] text-white"><ShieldCheck className="size-5" /></div>
@@ -427,7 +427,7 @@ function ShopDetailPanel({ shopId, onClose, onChanged }: { shopId: string; onClo
   }
 
   return <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/40" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <section role="dialog" aria-modal="true" aria-label={shop?.name || "Studio details"} className="flex h-full w-full max-w-[560px] flex-col bg-[#F6F7F9] shadow-2xl">
+    <section role="dialog" aria-modal="true" aria-label={shop?.name || "Studio details"} className="flex h-full w-full max-w-[560px] flex-col bg-[#F7F4FA] shadow-2xl">
       <div className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4"><div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-[#527564]">Studio account</p><h2 className="mt-0.5 truncate font-display text-xl font-semibold text-slate-900">{shop?.name || (loading ? "Loading studio…" : "Studio details")}</h2></div><button onClick={onClose} aria-label="Close studio details" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="size-4" /></button></div>
       {loading ? <div className="grid flex-1 place-items-center"><Loader2 className="size-5 animate-spin text-[#416A59]" /></div> : !shop ? <div className="m-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error || "Studio not found."}<button onClick={load} className="ml-2 underline">Retry</button></div> : <div className="flex-1 space-y-5 overflow-y-auto p-5">
         {error && <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800"><AlertCircle className="size-4 shrink-0" />{error}</div>}

@@ -142,7 +142,7 @@ export default function NewOrder() {
       <div className="p-5 md:p-8 max-w-[820px] mx-auto w-full">
         <button
           onClick={() => go("orders")}
-          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#2563EB] transition mb-4"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition mb-4"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
@@ -176,7 +176,7 @@ export default function NewOrder() {
     <div className="p-5 md:p-8 max-w-[1180px] mx-auto w-full">
       <button
         onClick={() => go("orders")}
-        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#2563EB] transition mb-4"
+        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition mb-4"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
       </button>
@@ -194,7 +194,7 @@ export default function NewOrder() {
               <div className="space-y-4">
                 <div>
                   <Label>
-                    Customer <span className="text-[#2563EB]">*</span>
+                    Customer <span className="text-[#6A1FA0]">*</span>
                   </Label>
                   <Select value={customerId} onValueChange={setCustomerId}>
                     <SelectTrigger className="rounded-md mt-1.5 w-full bg-white">
@@ -228,7 +228,7 @@ export default function NewOrder() {
               <div className="space-y-4">
                 <div>
                   <Label>
-                    Garment description <span className="text-[#2563EB]">*</span>
+                    Garment description <span className="text-[#6A1FA0]">*</span>
                   </Label>
                   <Textarea
                     value={garmentDesign}
@@ -259,7 +259,7 @@ export default function NewOrder() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>
-                      Order date <span className="text-[#2563EB]">*</span>
+                      Order date <span className="text-[#6A1FA0]">*</span>
                     </Label>
                     <Input type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} className="rounded-md mt-1.5" />
                   </div>
@@ -321,7 +321,7 @@ export default function NewOrder() {
                 </div>
                 <p className="text-[11px] text-stone-500">
                   Overhead margin to recover on this order:{" "}
-                  <span className="font-medium text-[#0F172A]">{formatCurrency(overhead, currency)}</span>
+                  <span className="font-medium text-[#1F1430]">{formatCurrency(overhead, currency)}</span>
                   {overheadRate > 0 ? ` (${overheadRate.toFixed(1)}% of fabric / materials cost, excluding labour)` : " (flat per-order overhead — set a monthly cost base in Settings for the percentage method)"}
                 </p>
               </div>
@@ -360,30 +360,30 @@ export default function NewOrder() {
             <dl className="space-y-2.5">
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Customer</dt>
-                  <dd className="text-right font-medium text-[#0F172A]">{selectedCustomer?.name || "—"}</dd>
+                  <dd className="text-right font-medium text-[#1F1430]">{selectedCustomer?.name || "—"}</dd>
                 </div>
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Garment</dt>
-                  <dd className="text-right font-medium text-[#0F172A]"><span className="line-clamp-2">{garmentDesign.trim() || "—"}</span></dd>
+                  <dd className="text-right font-medium text-[#1F1430]"><span className="line-clamp-2">{garmentDesign.trim() || "—"}</span></dd>
                 </div>
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Delivery</dt>
-                  <dd className="text-right font-medium text-[#0F172A]">{deliveryDate || "Not set"}</dd>
+                  <dd className="text-right font-medium text-[#1F1430]">{deliveryDate || "Not set"}</dd>
                 </div>
             </dl>
-            <div className="my-4 h-px bg-[#E2E8F0]" />
+            <div className="my-4 h-px bg-[#E6DFEE]" />
             <dl className="space-y-2.5">
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Selling price</dt>
-                  <dd className="text-right font-medium text-[#0F172A]">{formatCurrency(price, currency)}</dd>
+                  <dd className="text-right font-medium text-[#1F1430]">{formatCurrency(price, currency)}</dd>
                 </div>
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Deposit due ({depositPercent}%)</dt>
-                  <dd className="text-right font-medium text-[#0F172A]">{formatCurrency(depositDue, currency)}</dd>
+                  <dd className="text-right font-medium text-[#1F1430]">{formatCurrency(depositDue, currency)}</dd>
                 </div>
                 <div className="flex items-start justify-between gap-3 text-sm">
                   <dt className="text-stone-500">Balance on collection</dt>
-                  <dd className="text-right font-medium text-[#0F172A]">{formatCurrency(balanceDue, currency)}</dd>
+                  <dd className="text-right font-medium text-[#1F1430]">{formatCurrency(balanceDue, currency)}</dd>
                 </div>
             </dl>
             <div className={cn("mt-4 flex items-center justify-between gap-3 rounded-md border p-3", estMargin >= 0 ? "bg-emerald-50/60 border-emerald-200" : "bg-amber-50/60 border-amber-200")}>
@@ -407,7 +407,7 @@ export default function NewOrder() {
                       return (
                         <div key={key}>
                           <dt className="text-stone-400">{FIELD_BY_KEY[key].label.replace(/ \(.*\)$/, "")}</dt>
-                          <dd className="font-semibold tabular-nums text-[#0F172A]">{cm != null ? `${formatValue(cm, "cm")} cm` : "—"}</dd>
+                          <dd className="font-semibold tabular-nums text-[#1F1430]">{cm != null ? `${formatValue(cm, "cm")} cm` : "—"}</dd>
                         </div>
                       );
                     })}

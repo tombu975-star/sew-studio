@@ -78,3 +78,17 @@ view so applications stay visible after a job is filled or closed, with the stud
   that were still on the old "Madam Studio" defaults.
 - Icons: save the official logo as public/brand/sewsiness-logo.svg (or .png) and run `npm run icons`
   to regenerate all favicons/app icons. Until then the old icon files remain.
+
+---
+# Sewiness visual redesign (inspired by the dashboard showcase)
+
+Purely visual: no routes, data, permissions or behaviour changed.
+- Palette: deep plum sidebar, brand purple (#6A1FA0) for actions/links, gold accent, plum-tinted
+  neutrals. The Tailwind blue/indigo/sky/slate/stone scales are re-pointed in globals.css, and every
+  hard-coded blue/slate hex in src was migrated, so all pages follow the brand.
+- Sidebar: Sewiness emblem, filled violet active item. Metric cards: tinted tone + icon tile.
+  Cards, buttons and tables share one radius/shadow/header style. Status colours re-spaced into
+  distinct families (progress = plum, active = green, financial = gold, info = blue).
+- Login, forgot/reset password and freelancer sign-in moved from burgundy to the plum theme.
+- Migration 027 moves the platform login backdrop default to the new tint.
+- Contrast checked: body/muted text, buttons, nav and status colours meet WCAG AA.

@@ -225,7 +225,7 @@ export class AuthApi {
         body: `Use this link to choose a new password. It works once and expires in one hour.\n\n${link}\n\nIf you did not ask for this, you can ignore this message.`,
         type: "password_reset",
       });
-      if (!sent) console.warn("[auth] Password reset requested but no email channel is configured.");
+      if (!sent) console.warn("[auth] A password reset link was created but the email could not be delivered (see the [mailer] log line above).");
     }
     return { data: {}, error: null };
   }

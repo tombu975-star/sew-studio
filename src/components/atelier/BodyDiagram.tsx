@@ -17,8 +17,8 @@ export function BodyDiagram({
   className?: string;
 }) {
   const ink = "#53433E";
-  const line = "#94A3B8";
-  const arrow = "#64748B";
+  const line = "#A296B2";
+  const arrow = "#6B6178";
 
   return (
     <svg

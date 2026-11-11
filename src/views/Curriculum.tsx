@@ -80,7 +80,7 @@ function Field({
     <div className="space-y-1.5">
       <Label className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500 flex items-center gap-1">
         {label}
-        {required && <span className="text-[#2563EB]">*</span>}
+        {required && <span className="text-[#6A1FA0]">*</span>}
       </Label>
       {children}
     </div>
@@ -91,7 +91,7 @@ function Field({
 
 const STATUS_STYLE: Record<UnitStatus, { pill: string; icon: string }> = {
   "not-started": { pill: "bg-slate-100 text-slate-600 border-slate-200", icon: "text-slate-300" },
-  "in-progress": { pill: "bg-blue-50 text-blue-700 border-blue-200", icon: "text-[#2563EB]" },
+  "in-progress": { pill: "bg-blue-50 text-blue-700 border-blue-200", icon: "text-[#6A1FA0]" },
   "needs-work": { pill: "bg-amber-50 text-amber-800 border-amber-200", icon: "text-amber-500" },
   competent: { pill: "bg-emerald-50 text-emerald-800 border-emerald-200", icon: "text-emerald-600" },
 };
@@ -129,7 +129,7 @@ function Bar({ value, label, tone = "blue" }: { value: number; label: string; to
       className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
     >
       <div
-        className={cn("h-full rounded-full transition-[width] duration-500", tone === "green" ? "bg-emerald-500" : "bg-[#2563EB]")}
+        className={cn("h-full rounded-full transition-[width] duration-500", tone === "green" ? "bg-emerald-500" : "bg-[#6A1FA0]")}
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -144,13 +144,13 @@ function Ring({ value, size = 88 }: { value: number; size?: number }) {
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} role="img" aria-label={`${pct}% of the course complete`} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#E2E8F0" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#E6DFEE" strokeWidth={stroke} />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="#2563EB"
+          stroke="#6A1FA0"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
@@ -158,7 +158,7 @@ function Ring({ value, size = 88 }: { value: number; size?: number }) {
           className="transition-[stroke-dashoffset] duration-700"
         />
       </svg>
-      <span className="absolute inset-0 grid place-items-center text-lg font-semibold tabular-nums text-[#17263C]">
+      <span className="absolute inset-0 grid place-items-center text-lg font-semibold tabular-nums text-[#2A0F45]">
         {pct}%
       </span>
     </div>
@@ -259,18 +259,18 @@ function LearnerView() {
       {/* Continue / next due */}
       {progress.totalUnits > 0 && (
         <section aria-label="What to do next" className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-lg border border-[#D8DEE7] bg-white p-4">
+          <div className="rounded-lg border border-[#DDD3E7] bg-white p-4">
             <p className="text-xs font-medium text-slate-500">{allDone ? "Course complete" : "Continue learning"}</p>
             {allDone ? (
               <>
-                <p className="mt-1 text-sm font-semibold text-[#17263C]">You've shown competence in every unit.</p>
+                <p className="mt-1 text-sm font-semibold text-[#2A0F45]">You've shown competence in every unit.</p>
                 <PremiumButton className="mt-3" size="sm" onClick={() => go("certificate")}>
                   View certificate <ArrowRight className="w-4 h-4" />
                 </PremiumButton>
               </>
             ) : progress.next ? (
               <>
-                <p className="mt-1 text-sm font-semibold text-[#17263C]">
+                <p className="mt-1 text-sm font-semibold text-[#2A0F45]">
                   {progress.next.unit.code ? `${progress.next.unit.code} · ` : ""}
                   {progress.next.unit.title}
                 </p>
@@ -281,11 +281,11 @@ function LearnerView() {
               </>
             ) : null}
           </div>
-          <div className="rounded-lg border border-[#D8DEE7] bg-white p-4">
+          <div className="rounded-lg border border-[#DDD3E7] bg-white p-4">
             <p className="text-xs font-medium text-slate-500">Next due</p>
             {progress.nextDue ? (
               <>
-                <p className="mt-1 text-sm font-semibold text-[#17263C]">{progress.nextDue.title}</p>
+                <p className="mt-1 text-sm font-semibold text-[#2A0F45]">{progress.nextDue.title}</p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
                   <CalendarClock className="size-3.5" aria-hidden="true" />
                   {progress.nextDue.dueDate ? `Due ${formatDate(progress.nextDue.dueDate)}` : "No due date set"}
@@ -342,13 +342,13 @@ function CourseHeader({
   const hasStarted = !!me?.trainingStartedAt;
 
   return (
-    <section aria-labelledby="course-title" className="rounded-lg border border-[#D8DEE7] bg-white p-5 md:p-6">
+    <section aria-labelledby="course-title" className="rounded-lg border border-[#DDD3E7] bg-white p-5 md:p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <span className="inline-flex rounded-full bg-[#2563EB]/10 px-2 py-0.5 text-xs font-medium text-[#1D4ED8]">
+          <span className="inline-flex rounded-full bg-[#6A1FA0]/10 px-2 py-0.5 text-xs font-medium text-[#571A84]">
             {program.level}
           </span>
-          <h2 id="course-title" className="mt-2 text-xl font-semibold tracking-tight text-[#17263C]">
+          <h2 id="course-title" className="mt-2 text-xl font-semibold tracking-tight text-[#2A0F45]">
             {program.name}
           </h2>
           {program.description && <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-600">{program.description}</p>}
@@ -378,12 +378,12 @@ function CourseHeader({
         <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-2">
           <Ring value={progress.completionPct} />
           <p className="text-xs text-slate-500 sm:text-center">
-            <span className="font-semibold text-[#17263C]">{progress.competent}</span> of {progress.totalUnits} units competent
+            <span className="font-semibold text-[#2A0F45]">{progress.competent}</span> of {progress.totalUnits} units competent
           </p>
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[#EDF1F6] pt-4 sm:gap-4">
+      <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[#F0EBF5] pt-4 sm:gap-4">
         <Stat label="Assignments" value={`${progress.assignmentsDone}/${progress.assignmentsTotal}`}>
           <Bar
             label="Assignments done"
@@ -405,7 +405,7 @@ function Stat({ label, value, children }: { label: string; value: string; childr
   return (
     <div className="space-y-1.5">
       <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-sm font-semibold tabular-nums text-[#17263C]">{value}</p>
+      <p className="text-sm font-semibold tabular-nums text-[#2A0F45]">{value}</p>
       {children}
     </div>
   );
@@ -452,7 +452,7 @@ function CourseContent({
   return (
     <section aria-labelledby="content-title">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h2 id="content-title" className="text-base font-semibold text-[#17263C]">
+        <h2 id="content-title" className="text-base font-semibold text-[#2A0F45]">
           Course content
         </h2>
         {progress.units.length > 4 && (
@@ -482,10 +482,10 @@ function CourseContent({
                 onClick={() => setFilter(c.key)}
                 className={cn(
                   "h-8 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6A1FA0]/40",
                   filter === c.key
-                    ? "border-[#2563EB] bg-[#2563EB] text-white"
-                    : "border-[#D8DEE7] bg-white text-slate-600 hover:border-slate-300"
+                    ? "border-[#6A1FA0] bg-[#6A1FA0] text-white"
+                    : "border-[#DDD3E7] bg-white text-slate-600 hover:border-slate-300"
                 )}
               >
                 {c.label} <span className="tabular-nums opacity-80">{counts[c.key]}</span>
@@ -545,18 +545,18 @@ function UnitRow({
   const panelId = `unit-${u.unit.id}`;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#D8DEE7] bg-white">
+    <div className="overflow-hidden rounded-lg border border-[#DDD3E7] bg-white">
       <h3>
         <button
           type="button"
           onClick={onToggle}
           aria-expanded={open}
           aria-controls={panelId}
-          className="flex w-full items-center gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2563EB]/40 md:gap-4 md:p-5"
+          className="flex w-full items-center gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#6A1FA0]/40 md:gap-4 md:p-5"
         >
           <StatusIcon status={u.status} />
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-[#17263C]">
+            <span className="block text-sm font-semibold text-[#2A0F45]">
               <span className="text-slate-400">{index}. </span>
               {u.unit.code ? <span className="text-slate-400">{u.unit.code} · </span> : null}
               {u.unit.title}
@@ -585,7 +585,7 @@ function UnitRow({
       </h3>
 
       {open && (
-        <div id={panelId} role="region" aria-label={`${u.unit.title} details`} className="space-y-5 border-t border-[#EDF1F6] bg-[#F8FAFC] p-4 md:p-5">
+        <div id={panelId} role="region" aria-label={`${u.unit.title} details`} className="space-y-5 border-t border-[#F0EBF5] bg-[#FAF8FC] p-4 md:p-5">
           <div className="sm:hidden">
             <StatusPill status={u.status} />
           </div>
@@ -598,7 +598,7 @@ function UnitRow({
               <ul className="space-y-1.5">
                 {outcomes.map((o, i) => (
                   <li key={i} className="flex gap-2 text-sm leading-relaxed text-slate-700">
-                    <span className="mt-2 size-1 shrink-0 rounded-full bg-[#2563EB]" aria-hidden="true" />
+                    <span className="mt-2 size-1 shrink-0 rounded-full bg-[#6A1FA0]" aria-hidden="true" />
                     {o}
                   </li>
                 ))}
@@ -627,13 +627,13 @@ function UnitRow({
             {u.tasks.length === 0 ? (
               <p className="text-sm text-slate-500">Nothing has been assigned for this unit yet. Your trainer will add work as you go.</p>
             ) : (
-              <ul className="divide-y divide-[#E2E8F0] rounded-md border border-[#E2E8F0] bg-white">
+              <ul className="divide-y divide-[#E6DFEE] rounded-md border border-[#E6DFEE] bg-white">
                 {u.tasks.map((t) => {
                   const pct = t.score != null && t.maxScore ? Math.round((t.score / t.maxScore) * 100) : null;
                   return (
                     <li key={t.id} className="flex flex-col gap-1 p-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#17263C]">{t.title}</p>
+                        <p className="text-sm font-medium text-[#2A0F45]">{t.title}</p>
                         <p className="mt-0.5 text-xs text-slate-500">
                           {t.status}
                           {t.dueDate && t.status !== "Done" ? ` · due ${formatDate(t.dueDate)}` : ""}
@@ -741,9 +741,9 @@ function ManagerView() {
               ["Nominal hours", totals.hours],
               ["Trainees enrolled", totals.enrolled],
             ].map(([label, value]) => (
-              <div key={label as string} className="rounded-lg border border-[#D8DEE7] bg-white p-4">
+              <div key={label as string} className="rounded-lg border border-[#DDD3E7] bg-white p-4">
                 <dt className="text-xs text-slate-500">{label}</dt>
-                <dd className="mt-1 text-xl font-semibold tabular-nums text-[#17263C]">{value}</dd>
+                <dd className="mt-1 text-xl font-semibold tabular-nums text-[#2A0F45]">{value}</dd>
               </div>
             ))}
           </dl>
@@ -804,7 +804,7 @@ function ManagerView() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
-              className="bg-[#2563EB] hover:bg-[#1D4ED8]"
+              className="bg-[#6A1FA0] hover:bg-[#571A84]"
             >
               Delete
             </AlertDialogAction>
@@ -851,18 +851,18 @@ function ProgramCard({
     : null;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#D8DEE7] bg-white">
+    <div className="overflow-hidden rounded-lg border border-[#DDD3E7] bg-white">
       <div className="flex items-start gap-2 p-4 md:p-5">
         <button
           type="button"
           onClick={onToggle}
           aria-expanded={expanded}
           aria-controls={panelId}
-          className="min-w-0 flex-1 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+          className="min-w-0 flex-1 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6A1FA0]/40"
         >
           <span className="flex flex-wrap items-center gap-2">
-            <span className="text-base font-semibold text-[#17263C]">{program.name}</span>
-            <span className="rounded-full bg-[#2563EB]/10 px-2 py-0.5 text-xs font-medium text-[#1D4ED8]">{program.level}</span>
+            <span className="text-base font-semibold text-[#2A0F45]">{program.name}</span>
+            <span className="rounded-full bg-[#6A1FA0]/10 px-2 py-0.5 text-xs font-medium text-[#571A84]">{program.level}</span>
           </span>
           {program.description && <span className="mt-1.5 block max-w-xl text-sm text-slate-600">{program.description}</span>}
           <span className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
@@ -884,7 +884,7 @@ function ProgramCard({
             type="button"
             onClick={onEdit}
             aria-label={`Edit ${program.name}`}
-            className="rounded-md p-2 text-slate-400 transition hover:bg-[#EFF6FF] hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+            className="rounded-md p-2 text-slate-400 transition hover:bg-[#F6EFFB] hover:text-[#6A1FA0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6A1FA0]/40"
           >
             <Pencil className="size-4" />
           </button>
@@ -909,17 +909,17 @@ function ProgramCard({
       </div>
 
       {expanded && (
-        <div id={panelId} className="space-y-6 border-t border-[#EDF1F6] bg-[#F8FAFC] p-4 md:p-5">
+        <div id={panelId} className="space-y-6 border-t border-[#F0EBF5] bg-[#FAF8FC] p-4 md:p-5">
           <section aria-label="Trainee progress">
             <h4 className="mb-2 text-xs font-semibold text-slate-600">Trainee progress</h4>
             {learners.length === 0 ? (
               <p className="text-sm text-slate-500">No trainees are enrolled in this programme yet.</p>
             ) : (
-              <ul className="divide-y divide-[#E2E8F0] rounded-md border border-[#E2E8F0] bg-white">
+              <ul className="divide-y divide-[#E6DFEE] rounded-md border border-[#E6DFEE] bg-white">
                 {learners.map(({ user, p }) => (
                   <li key={user.id} className="flex items-center gap-4 p-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[#17263C]">{user.fullName}</p>
+                      <p className="truncate text-sm font-medium text-[#2A0F45]">{user.fullName}</p>
                       <p className="text-xs text-slate-500">
                         {p.competent} of {p.totalUnits} units competent · {p.assignmentsDone}/{p.assignmentsTotal} assignments
                       </p>
@@ -975,10 +975,10 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
   const criteria = splitLines(unit.assessmentCriteria);
 
   return (
-    <div className="rounded-md border border-[#E2E8F0] bg-white p-4">
+    <div className="rounded-md border border-[#E6DFEE] bg-white p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-[#17263C]">
+          <p className="text-sm font-semibold text-[#2A0F45]">
             {unit.code ? <span className="text-slate-400">{unit.code} · </span> : null}
             {unit.title}
           </p>
@@ -993,7 +993,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
             type="button"
             onClick={() => setEditOpen(true)}
             aria-label={`Edit ${unit.title}`}
-            className="rounded-md p-1.5 text-slate-400 transition hover:bg-[#EFF6FF] hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+            className="rounded-md p-1.5 text-slate-400 transition hover:bg-[#F6EFFB] hover:text-[#6A1FA0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6A1FA0]/40"
           >
             <Pencil className="size-3.5" />
           </button>
@@ -1016,7 +1016,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
           <ul className="space-y-1">
             {outcomes.map((o, i) => (
               <li key={i} className="flex gap-2 text-sm text-slate-700">
-                <span className="mt-2 size-1 shrink-0 rounded-full bg-[#2563EB]" aria-hidden="true" /> {o}
+                <span className="mt-2 size-1 shrink-0 rounded-full bg-[#6A1FA0]" aria-hidden="true" /> {o}
               </li>
             ))}
           </ul>
@@ -1050,7 +1050,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-[#2563EB] hover:bg-[#1D4ED8]">
+            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-[#6A1FA0] hover:bg-[#571A84]">
               Remove
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1137,7 +1137,7 @@ function ProgramFormDialog({
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               placeholder="Bespoke Tailoring Apprenticeship"
-              className="h-10 bg-white border-[#E2E8F0] rounded-md"
+              className="h-10 bg-white border-[#E6DFEE] rounded-md"
             />
           </Field>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -1146,7 +1146,7 @@ function ProgramFormDialog({
                 value={form.level}
                 onChange={(e) => set("level", e.target.value)}
                 placeholder="e.g. Beginner, NVTI Grade II, GTQF Level 3"
-                className="h-10 bg-white border-[#E2E8F0] rounded-md"
+                className="h-10 bg-white border-[#E6DFEE] rounded-md"
               />
             </Field>
             <Field label="Duration (weeks)" required>
@@ -1156,7 +1156,7 @@ function ProgramFormDialog({
                 step="1"
                 value={form.durationWeeks}
                 onChange={(e) => set("durationWeeks", e.target.value)}
-                className="h-10 bg-white border-[#E2E8F0] rounded-md tabular-nums"
+                className="h-10 bg-white border-[#E6DFEE] rounded-md tabular-nums"
               />
             </Field>
           </div>
@@ -1165,7 +1165,7 @@ function ProgramFormDialog({
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
               placeholder="What this program covers and who it's for."
-              className="bg-white border-[#E2E8F0] rounded-md min-h-[80px]"
+              className="bg-white border-[#E6DFEE] rounded-md min-h-[80px]"
             />
           </Field>
           <DialogFooter>
@@ -1273,7 +1273,7 @@ function UnitFormDialog({
                 value={form.title}
                 onChange={(e) => set("title", e.target.value)}
                 placeholder="Pattern Drafting Fundamentals"
-                className="h-10 bg-white border-[#E2E8F0] rounded-md"
+                className="h-10 bg-white border-[#E6DFEE] rounded-md"
               />
             </Field>
             <Field label="Unit code">
@@ -1281,7 +1281,7 @@ function UnitFormDialog({
                 value={form.code}
                 onChange={(e) => set("code", e.target.value)}
                 placeholder="CU-01"
-                className="h-10 bg-white border-[#E2E8F0] rounded-md"
+                className="h-10 bg-white border-[#E6DFEE] rounded-md"
               />
             </Field>
             <Field label="Nominal hrs">
@@ -1290,7 +1290,7 @@ function UnitFormDialog({
                 min="0"
                 value={form.nominalHours}
                 onChange={(e) => set("nominalHours", e.target.value)}
-                className="h-10 bg-white border-[#E2E8F0] rounded-md tabular-nums"
+                className="h-10 bg-white border-[#E6DFEE] rounded-md tabular-nums"
               />
             </Field>
           </div>
@@ -1299,7 +1299,7 @@ function UnitFormDialog({
               value={form.learningOutcomes}
               onChange={(e) => set("learningOutcomes", e.target.value)}
               placeholder={"Draft a basic bodice block from measurements\nAdjust darts for fit"}
-              className="bg-white border-[#E2E8F0] rounded-md min-h-[90px]"
+              className="bg-white border-[#E6DFEE] rounded-md min-h-[90px]"
             />
           </Field>
           <Field label="Assessment criteria" required>
@@ -1307,7 +1307,7 @@ function UnitFormDialog({
               value={form.assessmentCriteria}
               onChange={(e) => set("assessmentCriteria", e.target.value)}
               placeholder={"Block matches measurements within 0.5cm\nDarts sit correctly on the stand"}
-              className="bg-white border-[#E2E8F0] rounded-md min-h-[90px]"
+              className="bg-white border-[#E6DFEE] rounded-md min-h-[90px]"
             />
           </Field>
           <DialogFooter>

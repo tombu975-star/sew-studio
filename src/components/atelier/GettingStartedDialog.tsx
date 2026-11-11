@@ -36,7 +36,7 @@ export function GettingStartedDialog({
       <DialogContent className="max-w-[calc(100%-2rem)] gap-5 rounded-xl p-5 sm:max-w-md sm:p-6">
         <DialogHeader className="text-left">
           <p className="text-xs font-medium text-slate-500">Getting started</p>
-          <DialogTitle className="text-lg font-semibold tracking-tight text-[#17263C]">
+          <DialogTitle className="text-lg font-semibold tracking-tight text-[#2A0F45]">
             Recommended first steps
           </DialogTitle>
           <DialogDescription className="text-sm leading-relaxed text-stone-600">
@@ -60,7 +60,7 @@ export function GettingStartedDialog({
                 {s.done ? <Check className="size-3.5" /> : i + 1}
               </span>
               <span>
-                <span className="block text-sm font-medium text-[#17263C]">{s.title}</span>
+                <span className="block text-sm font-medium text-[#2A0F45]">{s.title}</span>
                 <span className="block text-xs leading-relaxed text-stone-500">{s.note}</span>
               </span>
             </li>

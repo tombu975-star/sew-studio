@@ -72,8 +72,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const AVATAR_GRADIENTS = [
-  "from-[#2563EB] to-[#2563EB]",
-  "from-[#3d5166] to-[#3d5166]",
+  "from-[#6A1FA0] to-[#6A1FA0]",
+  "from-[#4F4560] to-[#4F4560]",
   "from-[#4d6b4a] to-[#4d6b4a]",
   "from-[#8a5a2b] to-[#8a5a2b]",
 ];
@@ -297,7 +297,7 @@ export default function OrderDetail() {
       <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
         <button
           onClick={() => go("orders")}
-          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#2563EB] transition mb-4"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition mb-4"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
@@ -326,11 +326,11 @@ export default function OrderDetail() {
       <div className="p-5 md:p-8 max-w-[1300px] mx-auto w-full">
         <button
           onClick={() => go("orders")}
-          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#2563EB] transition mb-4"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition mb-4"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
-        <div className="h-28 w-full rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shimmer mb-6" />
+        <div className="h-28 w-full rounded-xl bg-[#FAF8FC] border border-[#E6DFEE] shimmer mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
             <SkeletonCard />
@@ -419,11 +419,11 @@ export default function OrderDetail() {
                   <span>Payment progress</span>
                   <span className="tabular-nums">{paidPct}%</span>
                 </div>
-                <div className="h-2 w-full bg-[#E2E8F0] rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-[#E6DFEE] rounded-full overflow-hidden">
                   <div
                     className={cn(
                       "h-full rounded-full transition-all",
-                      paidPct >= 100 ? "bg-emerald-500" : "bg-[#2563EB]"
+                      paidPct >= 100 ? "bg-emerald-500" : "bg-[#6A1FA0]"
                     )}
                     style={{ width: `${paidPct}%` }}
                   />
@@ -436,7 +436,7 @@ export default function OrderDetail() {
                 Payments
               </div>
               {order.payments && order.payments.length > 0 ? (
-                <div className="divide-y divide-[#E2E8F0]/70 border border-[#E2E8F0] rounded-md overflow-hidden">
+                <div className="divide-y divide-[#E6DFEE]/70 border border-[#E6DFEE] rounded-md overflow-hidden">
                   {order.payments
                     .slice()
                     .sort(
@@ -446,14 +446,14 @@ export default function OrderDetail() {
                     .map((p) => (
                       <div
                         key={p.id}
-                        className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-[#F8FAFC]/60"
+                        className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-[#FAF8FC]/60"
                       >
                         <div className="min-w-0 flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                           </div>
                           <div className="min-w-0">
-                            <div className="text-sm font-semibold text-[#0F172A] tabular-nums">
+                            <div className="text-sm font-semibold text-[#1F1430] tabular-nums">
                               {formatCurrency(p.amount, currency)}
                             </div>
                             <div className="text-[11px] text-stone-400">
@@ -512,9 +512,9 @@ export default function OrderDetail() {
                   value={order.assignedStaff?.fullName || "Unassigned"}
                 />
               </div>
-              <div className="rounded-md border border-[#E2E8F0] bg-[#EFF6FF] p-3.5 text-[12px] text-stone-600 leading-relaxed">
+              <div className="rounded-md border border-[#E6DFEE] bg-[#F6EFFB] p-3.5 text-[12px] text-stone-600 leading-relaxed">
                 <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-1.5">
-                  <Sparkles className="w-3 h-3 text-[#2563EB]" />
+                  <Sparkles className="w-3 h-3 text-[#6A1FA0]" />
                   Note
                 </div>
                 Financial details are managed by the studio. Focus on the
@@ -532,7 +532,7 @@ export default function OrderDetail() {
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 print:hidden">
         <button
           onClick={() => go("orders")}
-          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#2563EB] transition"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#6A1FA0] transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
         </button>
@@ -581,7 +581,7 @@ export default function OrderDetail() {
       <div
         role="tablist"
         aria-label="Order sections"
-        className="mb-6 flex gap-1 border-b border-[#E2E8F0] overflow-x-auto scroll-slim print:hidden"
+        className="mb-6 flex gap-1 border-b border-[#E6DFEE] overflow-x-auto scroll-slim print:hidden"
       >
         {TABS.map(({ key, label, icon: Icon }) => (
           <button
@@ -592,8 +592,8 @@ export default function OrderDetail() {
             className={cn(
               "inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors",
               activeTab === key
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-stone-500 hover:text-[#0F172A]"
+                ? "border-[#6A1FA0] text-[#6A1FA0]"
+                : "border-transparent text-stone-500 hover:text-[#1F1430]"
             )}
           >
             <Icon className="w-4 h-4" />
@@ -625,12 +625,12 @@ export default function OrderDetail() {
           <img
             src={order.designImage}
             alt={order.garmentDesign || "Design image"}
-            className="w-full aspect-video rounded-xl object-cover elevate-md bg-[#EFF6FF]"
+            className="w-full aspect-video rounded-xl object-cover elevate-md bg-[#F6EFFB]"
           />
           {canSeeMoney && (
             <button
               onClick={() => setImageDialogOpen(true)}
-              className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/95 backdrop-blur border border-[#E2E8F0] rounded-md hover:bg-white transition elevate-sm"
+              className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/95 backdrop-blur border border-[#E6DFEE] rounded-md hover:bg-white transition elevate-sm"
             >
               <Pencil className="w-3 h-3" /> Edit image
             </button>
@@ -639,12 +639,12 @@ export default function OrderDetail() {
       ) : canSeeMoney ? (
         <button
           onClick={() => setImageDialogOpen(true)}
-          className="w-full mb-6 aspect-video rounded-xl border-2 border-dashed border-[#E2E8F0] bg-[#EFF6FF] flex flex-col items-center justify-center gap-2 hover:border-[#2563EB]/40 hover:bg-[#F8FAFC] transition group animate-fade-in-up"
+          className="w-full mb-6 aspect-video rounded-xl border-2 border-dashed border-[#E6DFEE] bg-[#F6EFFB] flex flex-col items-center justify-center gap-2 hover:border-[#6A1FA0]/40 hover:bg-[#FAF8FC] transition group animate-fade-in-up"
         >
-          <div className="w-10 h-10 rounded-full bg-white border border-[#E2E8F0] flex items-center justify-center">
-            <ImageIcon className="w-4 h-4 text-stone-400 group-hover:text-[#2563EB] transition" />
+          <div className="w-10 h-10 rounded-full bg-white border border-[#E6DFEE] flex items-center justify-center">
+            <ImageIcon className="w-4 h-4 text-stone-400 group-hover:text-[#6A1FA0] transition" />
           </div>
-          <span className="text-xs text-stone-500 group-hover:text-[#2563EB] font-medium">
+          <span className="text-xs text-stone-500 group-hover:text-[#6A1FA0] font-medium">
             Add a design image
           </span>
           <span className="text-[10px] text-stone-400">
@@ -654,11 +654,11 @@ export default function OrderDetail() {
       ) : null}
 
       {/* Premium header band */}
-      <div className="rounded-xl elevate-md surface-premium border border-[#E2E8F0] p-6 mb-6 animate-fade-in-up">
+      <div className="rounded-xl elevate-md surface-premium border border-[#E6DFEE] p-6 mb-6 animate-fade-in-up">
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
           <div className="min-w-0 flex-1">
             <h1
-              className="font-display font-semibold text-[#0F172A] leading-[1.1]"
+              className="font-display font-semibold text-[#1F1430] leading-[1.1]"
               style={{ fontSize: "clamp(26px, 3.4vw, 34px)" }}
             >
               {order.garmentDesign}
@@ -675,7 +675,7 @@ export default function OrderDetail() {
               >
                 {initials(order.customer?.name || "?")}
               </div>
-              <span className="text-sm text-[#2563EB] hover:underline font-medium">
+              <span className="text-sm text-[#6A1FA0] hover:underline font-medium">
                 {order.customer?.name || "—"}
               </span>
             </button>
@@ -759,10 +759,10 @@ export default function OrderDetail() {
                 {order.fittings.map((f) => (
                   <div
                     key={f.id}
-                    className="flex items-start justify-between gap-3 p-3.5 border border-[#E2E8F0] rounded-md hover:bg-[#F8FAFC]/50 transition-colors"
+                    className="flex items-start justify-between gap-3 p-3.5 border border-[#E6DFEE] rounded-md hover:bg-[#FAF8FC]/50 transition-colors"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-[#0F172A] flex items-center gap-1.5">
+                      <div className="text-sm font-medium text-[#1F1430] flex items-center gap-1.5">
                         <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
                         {formatDate(f.date)}
                       </div>
@@ -795,10 +795,10 @@ export default function OrderDetail() {
                 {order.tasks.map((t) => (
                   <div
                     key={t.id}
-                    className="flex items-center justify-between gap-3 p-3.5 border border-[#E2E8F0] rounded-md hover:bg-[#F8FAFC]/50 transition-colors"
+                    className="flex items-center justify-between gap-3 p-3.5 border border-[#E6DFEE] rounded-md hover:bg-[#FAF8FC]/50 transition-colors"
                   >
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-[#0F172A] truncate">
+                      <div className="text-sm font-medium text-[#1F1430] truncate">
                         {t.title}
                       </div>
                       <div className="text-[11px] text-stone-400 mt-0.5">
@@ -852,7 +852,7 @@ export default function OrderDetail() {
                       onClick={() =>
                         go("customer", { id: order.customerId })
                       }
-                      className="text-sm font-semibold text-[#0F172A] hover:text-[#2563EB] transition-colors truncate block"
+                      className="text-sm font-semibold text-[#1F1430] hover:text-[#6A1FA0] transition-colors truncate block"
                     >
                       {order.customer.name}
                     </button>
@@ -888,7 +888,7 @@ export default function OrderDetail() {
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-[#E2E8F0]/70 space-y-2 text-[12px]">
+                <div className="pt-3 border-t border-[#E6DFEE]/70 space-y-2 text-[12px]">
                   <Row
                     label="Entry Source"
                     value={order.customer.entrySource}
@@ -947,7 +947,7 @@ export default function OrderDetail() {
                 <CalendarDays className="w-3.5 h-3.5 text-stone-400" />
                 <span>
                   Created{" "}
-                  <span className="text-[#0F172A] font-medium">
+                  <span className="text-[#1F1430] font-medium">
                     {formatDate(order.createdAt)}
                   </span>
                 </span>
@@ -956,16 +956,16 @@ export default function OrderDetail() {
                 <Clock className="w-3.5 h-3.5 text-stone-400" />
                 <span>
                   Last updated{" "}
-                  <span className="text-[#0F172A] font-medium">
+                  <span className="text-[#1F1430] font-medium">
                     {formatDate(order.createdAt)}
                   </span>
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+                <Sparkles className="w-3.5 h-3.5 text-[#6A1FA0]" />
                 <span>
                   In production for{" "}
-                  <span className="text-[#0F172A] font-medium tabular-nums">
+                  <span className="text-[#1F1430] font-medium tabular-nums">
                     {daysInProduction} day{daysInProduction === 1 ? "" : "s"}
                   </span>
                 </span>
@@ -1046,10 +1046,10 @@ function Stat({
         <div
           className={cn(
             "mt-1 text-lg font-display font-semibold tabular-nums",
-            primary && "text-[#0F172A]",
+            primary && "text-[#1F1430]",
             tone === "ok" && "text-emerald-700",
             tone === "warn" && "text-amber-700",
-            !primary && !tone && "text-[#0F172A]"
+            !primary && !tone && "text-[#1F1430]"
           )}
         >
           {value}
@@ -1065,7 +1065,7 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   return (
     <div className="flex justify-between gap-3">
       <span className="text-stone-400">{label}</span>
-      <span className="text-[#0F172A] text-right">{value}</span>
+      <span className="text-[#1F1430] text-right">{value}</span>
     </div>
   );
 }
