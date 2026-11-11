@@ -592,6 +592,45 @@ function MainDashboard() {
         <FirstSteps {...firstStepsProps} className="mb-4 animate-fade-in-up" />
       )}
 
+      {/* ---------- Atelier quick actions ---------- */}
+      {owner && (
+        <section aria-label="Quick actions" className="mb-5 rounded-2xl border border-[#EADDE0] bg-white p-4 shadow-sm md:p-5 animate-fade-in-up">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9A6B28]">Keep your studio moving</p>
+              <h2 className="mt-1 font-display text-lg font-semibold text-[#3B0010]">Quick actions</h2>
+            </div>
+            <span className="hidden rounded-full bg-[#FBF3DC] px-3 py-1 text-[11px] font-medium text-[#805B17] sm:inline-flex">
+              Your atelier, one place
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              { label: "New order", detail: "Start a client order", icon: ShoppingBag, action: () => go(m.customers.length > 0 ? "new-order" : "customers"), primary: true },
+              { label: "Add client", detail: "Grow your client book", icon: UserCheck, action: () => go("customers") },
+              { label: "Book fitting", detail: "Plan an appointment", icon: CalendarDays, action: () => go("fittings") },
+              { label: "Payments", detail: "Review money received", icon: Wallet, action: () => go("payments") },
+            ].map(({ label, detail, icon: Icon, action, primary }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={action}
+                className={`group flex min-h-[88px] items-center gap-3 rounded-xl border p-3 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9972B] ${primary ? "border-[#800020] bg-[#800020] text-white hover:bg-[#650019]" : "border-[#EADDE0] bg-[#FCF8F5] text-[#3B0010] hover:border-[#C9972B] hover:bg-[#FBF3DC]/50"}`}
+              >
+                <span className={`grid size-10 shrink-0 place-items-center rounded-lg ${primary ? "bg-white/12 text-[#F6D98A]" : "bg-[#F5E8EB] text-[#800020]"}`}>
+                  <Icon className="size-5" strokeWidth={1.8} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold">{label}</span>
+                  <span className={`mt-0.5 block text-[10px] leading-snug ${primary ? "text-white/70" : "text-[#80666D]"}`}>{detail}</span>
+                </span>
+                <ArrowRight className={`ml-auto hidden size-4 shrink-0 transition group-hover:translate-x-0.5 sm:block ${primary ? "text-white/70" : "text-[#9A6B28]"}`} />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ---------- Money row (Madam only) ---------- */}
       {!staff && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 animate-fade-in-up">

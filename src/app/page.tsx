@@ -307,7 +307,7 @@ export default async function HomePage() {
       <footer className="border-t border-[#EADDE0] bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <BrandLogo width={96} />
+            <BrandLogo width={150} />
             {c.footer.tagline && <p className="mt-2 text-sm text-[#80666D]">{c.footer.tagline}</p>}
             <p className="mt-2 text-xs text-[#80666D]">© {new Date().getFullYear()} Sewsiness. All rights reserved.</p>
             {c.footer.contactEmail && <a href={`mailto:${c.footer.contactEmail}`} className="mt-1 inline-block text-xs font-medium text-[#800020] hover:underline">{c.footer.contactEmail}</a>}

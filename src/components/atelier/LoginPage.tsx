@@ -39,9 +39,9 @@ export function extractApiError(err: unknown, fallback: string): string {
 }
 
 export const inputClass =
-  "h-12 w-full rounded-xl border border-[#ECDEE1] bg-white px-4 text-base text-[#2F151B] outline-none transition placeholder:text-[#B1979D] focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/10 sm:h-[52px] sm:text-sm " +
+  "h-12 w-full rounded-xl border border-[#ECDEE1] bg-white px-4 text-base text-[#2F151B] outline-none transition placeholder:text-[#7A6268] focus:border-[#800020] focus:ring-4 focus:ring-[#800020]/10 sm:h-[52px] sm:text-sm " +
   // phones: white pill with an icon on the left, as in the reference design
-  "max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)] max-sm:placeholder:text-[#937B80] max-sm:focus:ring-white/35";
+  "max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)] max-sm:placeholder:text-[#7A6268] max-sm:focus:ring-white/35";
 
 export const phoneButton =
   "max-sm:rounded-full max-sm:bg-white max-sm:text-[#5C1626] max-sm:shadow-[0_8px_20px_rgba(49,10,19,0.3)] max-sm:hover:bg-purple-50 max-sm:focus-visible:ring-white/60 max-sm:focus-visible:ring-offset-[#5C1626]";
@@ -404,7 +404,7 @@ export function PasswordInput({
       <button
         type="button"
         onClick={onToggle}
-        className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-[#A99096] transition-colors hover:bg-[#F9F1F3] hover:text-[#5F464C] max-sm:rounded-full max-sm:text-[#937B80]"
+        className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-[#86696F] transition-colors hover:bg-[#F9F1F3] hover:text-[#5F464C] max-sm:rounded-full max-sm:text-[#7A6268]"
         aria-label={show ? "Hide password" : "Show password"}
       >
         {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}

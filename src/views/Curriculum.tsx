@@ -391,7 +391,7 @@ function CourseHeader({
           />
         </Stat>
         <Stat label="Average score" value={avg == null ? "Not graded" : `${avg}%`}>
-          <p className="text-[11px] text-slate-400">Pass {PASS_MARK}%</p>
+          <p className="text-[11px] text-slate-500">Pass {PASS_MARK}%</p>
         </Stat>
         <Stat label="Time in programme" value={hasStarted ? `Week ${weekNow}/${program.durationWeeks}` : "Not started"}>
           {hasStarted && <Bar label="Time elapsed" value={(weekNow / program.durationWeeks) * 100} tone="green" />}
@@ -457,7 +457,7 @@ function CourseContent({
         </h2>
         {progress.units.length > 4 && (
           <div className="relative md:w-64">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
             <Input
               type="search"
               value={query}
@@ -557,8 +557,8 @@ function UnitRow({
           <StatusIcon status={u.status} />
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold text-[#3B0010]">
-              <span className="text-slate-400">{index}. </span>
-              {u.unit.code ? <span className="text-slate-400">{u.unit.code} · </span> : null}
+              <span className="text-slate-500">{index}. </span>
+              {u.unit.code ? <span className="text-slate-500">{u.unit.code} · </span> : null}
               {u.unit.title}
             </span>
             <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
@@ -580,7 +580,7 @@ function UnitRow({
           <span className="hidden sm:block">
             <StatusPill status={u.status} />
           </span>
-          <ChevronDown className={cn("size-4 shrink-0 text-slate-400 transition-transform", open && "rotate-180")} aria-hidden="true" />
+          <ChevronDown className={cn("size-4 shrink-0 text-slate-500 transition-transform", open && "rotate-180")} aria-hidden="true" />
         </button>
       </h3>
 
@@ -751,7 +751,7 @@ function ManagerView() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             {programs.length > 3 ? (
               <div className="relative sm:w-72">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
                 <Input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search programmes" aria-label="Search programmes" className="pl-9" />
               </div>
             ) : (
@@ -884,7 +884,7 @@ function ProgramCard({
             type="button"
             onClick={onEdit}
             aria-label={`Edit ${program.name}`}
-            className="rounded-md p-2 text-slate-400 transition hover:bg-[#FAF0F2] hover:text-[#800020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40"
+            className="rounded-md p-2 text-slate-500 transition hover:bg-[#FAF0F2] hover:text-[#800020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40"
           >
             <Pencil className="size-4" />
           </button>
@@ -892,7 +892,7 @@ function ProgramCard({
             type="button"
             onClick={onDelete}
             aria-label={`Delete ${program.name}`}
-            className="rounded-md p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+            className="rounded-md p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
           >
             <Trash2 className="size-4" />
           </button>
@@ -901,7 +901,7 @@ function ProgramCard({
             onClick={onToggle}
             aria-label={expanded ? `Collapse ${program.name}` : `Expand ${program.name}`}
             tabIndex={-1}
-            className="rounded-md p-2 text-slate-400"
+            className="rounded-md p-2 text-slate-500"
           >
             <ChevronDown className={cn("size-4 transition-transform", expanded && "rotate-180")} />
           </button>
@@ -979,7 +979,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-[#3B0010]">
-            {unit.code ? <span className="text-slate-400">{unit.code} · </span> : null}
+            {unit.code ? <span className="text-slate-500">{unit.code} · </span> : null}
             {unit.title}
           </p>
           {unit.nominalHours != null && (
@@ -993,7 +993,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
             type="button"
             onClick={() => setEditOpen(true)}
             aria-label={`Edit ${unit.title}`}
-            className="rounded-md p-1.5 text-slate-400 transition hover:bg-[#FAF0F2] hover:text-[#800020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40"
+            className="rounded-md p-1.5 text-slate-500 transition hover:bg-[#FAF0F2] hover:text-[#800020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40"
           >
             <Pencil className="size-3.5" />
           </button>
@@ -1001,7 +1001,7 @@ function UnitCard({ unit }: { unit: CompetencyUnit }) {
             type="button"
             onClick={() => setConfirmOpen(true)}
             aria-label={`Remove ${unit.title}`}
-            className="rounded-md p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+            className="rounded-md p-1.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
           >
             <Trash2 className="size-3.5" />
           </button>

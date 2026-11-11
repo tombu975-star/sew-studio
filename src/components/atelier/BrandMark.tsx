@@ -7,7 +7,7 @@ export function BrandMark({ className, size = 36 }: { className?: string; size?:
     <Image
       src="/brand/sewsiness-mark.png"
       alt=""
-      width={Math.round(size * 0.6)}
+      width={Math.round(size * 0.45)}
       height={size}
       className={cn("h-auto w-auto object-contain", className)}
       style={{ height: size, width: "auto" }}
@@ -22,7 +22,7 @@ export function BrandLogo({ className, width = 220 }: { className?: string; widt
       src="/brand/sewsiness-wordmark.png"
       alt="Sewsiness"
       width={width}
-      height={Math.round(width * 0.5)}
+      height={Math.round(width * 0.564)}
       priority
       className={cn("h-auto", className)}
       style={{ width, height: "auto" }}

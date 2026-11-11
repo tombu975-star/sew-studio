@@ -1109,7 +1109,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
                   >
                     MS
                   </span>
-                  <span className="text-[8px] uppercase tracking-[0.16em] text-[#800020]/70 mt-0.5">
+                  <span className="text-[8px] uppercase tracking-[0.16em] text-[#800020] mt-0.5">
                     {year}
                   </span>
                 </div>

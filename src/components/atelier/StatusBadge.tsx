@@ -67,6 +67,14 @@ const STATUS_HUE: Record<string, keyof typeof HUE> = {
   Trainee: "active",
 };
 
+/** Deeper shade of a status colour for the label, so the words stay readable
+ *  (4.5:1 or better) on the pale tint behind them. */
+function readable(hex: string, amount = 0.22) {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = (shift: number) => Math.round(((n >> shift) & 255) * (1 - amount));
+  return `rgb(${ch(16)}, ${ch(8)}, ${ch(0)})`;
+}
+
 export function StatusBadge({
   status,
   className,
@@ -85,7 +93,7 @@ export function StatusBadge({
       )}
       style={{
         backgroundColor: `${hex}14`,
-        color: hex,
+        color: readable(hex),
         borderColor: `${hex}33`,
       }}
     >

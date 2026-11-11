@@ -556,7 +556,7 @@ function StaffTrainersCard({
                   )}
                   <StatusBadge status={roleLabel(u.role)} />
                   {isOwner && (
-                    <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-stone-300">
+                    <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-stone-500">
                       Permanent
                     </span>
                   )}

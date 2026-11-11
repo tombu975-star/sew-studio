@@ -738,7 +738,7 @@ function ChipList({
         {label}
       </div>
       {items.length === 0 ? (
-        <div className="text-sm text-stone-300">—</div>
+        <div className="text-sm text-stone-500">—</div>
       ) : (
         <div className="flex flex-wrap gap-1.5">
           {items.map((item, i) => (

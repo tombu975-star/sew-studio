@@ -324,7 +324,7 @@ function Column({
       {/* Cards */}
       <div className="max-h-[72vh] overflow-y-auto scroll-slim space-y-2.5 p-2.5">
         {cards.length === 0 ? (
-          <div className="text-[11px] text-stone-300 text-center py-8 italic">
+          <div className="text-[11px] text-stone-500 text-center py-8 italic">
             Drop orders here
           </div>
         ) : (
