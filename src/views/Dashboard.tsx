@@ -911,7 +911,7 @@ function MainDashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={m.incomeSeries}
-                    margin={{ top: 8, right: 8, bottom: 0, left: -8 }}
+                    margin={{ top: 8, right: 8, bottom: 0, left: 4 }}
                   >
                     <defs>
                       <linearGradient
@@ -948,7 +948,7 @@ function MainDashboard() {
                       tick={{ fontSize: 11, fill: "#8B7076" }}
                       axisLine={false}
                       tickLine={false}
-                      width={64}
+                      width={76}
                       tickFormatter={(v: number | string) =>
                         formatCurrency(Number(v))
                       }

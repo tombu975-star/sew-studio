@@ -22,7 +22,7 @@ export function BrandLogo({ className, width = 220 }: { className?: string; widt
       src="/brand/sewsiness-wordmark.png"
       alt="Sewsiness"
       width={width}
-      height={Math.round(width * 0.564)}
+      height={Math.round(width * 0.557)}
       priority
       className={cn("h-auto", className)}
       style={{ width, height: "auto" }}

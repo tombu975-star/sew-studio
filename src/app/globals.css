@@ -492,8 +492,10 @@ main [class*="rounded-full"][class*="text-"] { letter-spacing: .005em; }
   main > div[class*="max-w-"] { padding-left: 14px !important; padding-right: 14px !important; padding-top: 18px !important; padding-bottom: 26px !important; }
   main h1 { font-size: 1.55rem; }
   main h2 { font-size: 1.2rem; }
-  main [class*="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  main [class*="grid-cols-3"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Only a plain grid-cols-3/4 drops to two columns. [class~=] matches the whole
+     class, so "xl:grid-cols-3" (one column on a phone) is no longer caught by mistake. */
+  main [class~="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  main [class~="grid-cols-3"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   main [class*="gap-6"] { gap: 14px; }
   main [class*="gap-5"] { gap: 12px; }
   main [class*="mb-8"] { margin-bottom: 18px; }
