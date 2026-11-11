@@ -301,7 +301,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : null;
   const roleAccent = ROLE_ACCENT[role] || ROLE_ACCENT.staff;
   const activeMeta = VIEW_META[view] || VIEW_META.dashboard;
-  const ActiveIcon = activeMeta.icon;
 
   // Trainee access to Orders + Board is gated by trainer-granted permissions.
   // Default trainee sees only Tasks in the Studio section; permitted trainees see the granted items.
@@ -352,12 +351,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col md:flex-row">
+    <div className="min-h-dvh flex flex-col lg:flex-row">
       <ForcePasswordChange />
-      {/* ─── Desktop navigation ──────────────────────────────────
-          md–lg: a 72px icon rail so tablets keep their width for content.
-          lg+:   the full sectioned sidebar. */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[72px] lg:w-64 flex-col border-r border-sidebar-border bg-sidebar z-30">
+      {/* ─── Large-screen navigation ─────────────────────────────
+          Phones and tablets use the touch-first header + bottom navigation.
+          The full sectioned sidebar starts at the desktop breakpoint. */}
+      <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 flex-col border-r border-sidebar-border bg-sidebar z-30">
         {/* Brand */}
         <div className="px-3 lg:px-5 h-[76px] flex items-center border-b border-sidebar-border shrink-0">
           <button
@@ -506,18 +505,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ─── Mobile top bar ──────────────────────────────────────── */}
-      <header className="md:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#EEDFE3] bg-white/95 backdrop-blur-md">
+      <header className="lg:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#EEDFE3] bg-white/95 backdrop-blur-md">
         {/* Three equal columns keep the title dead-centre regardless of what
             sits on either side (spacer left, profile avatar right). */}
-        <div className="grid grid-cols-[2rem_minmax(0,1fr)_2rem] items-center gap-3 px-4 h-12">
-          <span aria-hidden="true" className="w-8 h-8" />
+        <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-3 px-4 h-14">
+          <span aria-hidden="true" className="w-11 h-11" />
           <button
             onClick={() => go("dashboard")}
             className="flex items-center justify-center gap-2 min-w-0 justify-self-center max-w-full"
             title={shopDisplayName}
           >
-            <div className="w-7 h-7 rounded-lg bg-[#832138] flex items-center justify-center shrink-0">
-              <ActiveIcon className="w-3.5 h-3.5 text-white" strokeWidth={2.25} />
+            <div className="grid size-8 shrink-0 place-items-center rounded-lg border border-[#EEDFE3] bg-white shadow-sm">
+              <BrandMark size={25} />
             </div>
             <span className="font-display text-base font-semibold text-[#2F151B] truncate min-w-0">
               {activeMeta.label}
@@ -525,7 +524,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
           <button
             onClick={() => go("profile")}
-            className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold shrink-0 ring-2 justify-self-end"
+            className="w-11 h-11 rounded-full bg-[#FCF8F9] text-[#832138] flex items-center justify-center text-sm font-semibold shrink-0 ring-2 justify-self-end"
             style={{ ["--tw-ring-color" as string]: roleAccent }}
             title={`${user?.fullName} · My profile`}
           >
@@ -535,7 +534,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* ─── Main ────────────────────────────────────────────────── */}
-      <main className="flex-1 md:pl-[72px] lg:pl-64 pl-safe pr-safe pb-mobile-nav md:pb-0 flex flex-col min-w-0 overflow-x-clip">
+      <main className="flex-1 lg:pl-64 pl-safe pr-safe pb-mobile-nav lg:pb-0 flex flex-col min-w-0 overflow-x-clip">
         {planAccess?.trialExpired ? (
           <div
             role="alert"
@@ -582,8 +581,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </main>
 
-      {/* ─── Mobile bottom nav (5 priority + More) ───────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#EEDFE3] bg-white/95 backdrop-blur-md">
+      {/* ─── Phone + tablet bottom navigation (priority + More) ── */}
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#EEDFE3] bg-white/95 backdrop-blur-md">
         <div className="flex items-center justify-around h-14">
           {mobileItems.map(({ to, label, icon: Icon }) => {
             const active = isActive(to);
@@ -629,7 +628,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ─── Mobile "More" sheet ─────────────────────────────────── */}
       {moreOpen && (
         <div
-          className="md:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-fade-in"
+          className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-fade-in"
           onClick={() => setMoreOpen(false)}
         >
           <div
