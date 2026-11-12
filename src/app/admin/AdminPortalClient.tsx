@@ -233,7 +233,7 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
   ];
 
   return (
-    <div className="min-h-dvh bg-[#FAF4F5] text-slate-900">
+    <div className="admin-shell min-h-dvh bg-[#FAF4F5] text-slate-900">
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-[248px] flex-col border-r border-slate-200 bg-white px-4 py-5 transition-transform lg:translate-x-0 ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center gap-3 px-2 pb-8">
           <div className="grid size-10 place-items-center rounded-xl bg-[#315B4A] text-white"><ShieldCheck className="size-5" /></div>

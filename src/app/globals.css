@@ -489,39 +489,39 @@ main [class*="rounded-full"][class*="text-"] { letter-spacing: .005em; }
 
 /* Mobile: compact, thumb-friendly, no squeezed desktop layouts */
 @media (max-width: 639px) {
-  main > div[class*="max-w-"] { padding-left: 14px !important; padding-right: 14px !important; padding-top: 18px !important; padding-bottom: 26px !important; }
-  main h1 { font-size: 1.55rem; }
-  main h2 { font-size: 1.2rem; }
+  .studio-shell main > div[class*="max-w-"] { padding-left: 14px !important; padding-right: 14px !important; padding-top: 18px !important; padding-bottom: 26px !important; }
+  .studio-shell main h1 { font-size: 1.55rem; }
+  .studio-shell main h2 { font-size: 1.2rem; }
   /* Only a plain grid-cols-3/4 drops to two columns. [class~=] matches the whole
      class, so "xl:grid-cols-3" (one column on a phone) is no longer caught by mistake. */
-  main [class~="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  main [class~="grid-cols-3"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  main [class*="gap-6"] { gap: 14px; }
-  main [class*="gap-5"] { gap: 12px; }
-  main [class*="mb-8"] { margin-bottom: 18px; }
-  main [class*="p-8"] { padding: 16px; }
-  main [class*="p-6"] { padding: 14px; }
-  main [class*="p-5"] { padding: 14px; }
-  main button { min-height: 40px; }
-  main input:not([type="checkbox"]):not([type="radio"]), main select { font-size: 16px; }
-  main table { min-width: 620px; }
-  main [class*="overflow-x-auto"] { max-width: 100%; }
-  main [class*="pb-mobile-nav"] { padding-bottom: calc(5.8rem + env(safe-area-inset-bottom)); }
+  .studio-shell main [class~="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .studio-shell main [class~="grid-cols-3"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .studio-shell main [class*="gap-6"] { gap: 14px; }
+  .studio-shell main [class*="gap-5"] { gap: 12px; }
+  .studio-shell main [class*="mb-8"] { margin-bottom: 18px; }
+  .studio-shell main [class*="p-8"] { padding: 16px; }
+  .studio-shell main [class*="p-6"] { padding: 14px; }
+  .studio-shell main [class*="p-5"] { padding: 14px; }
+  .studio-shell main button { min-height: 40px; }
+  .studio-shell main input:not([type="checkbox"]):not([type="radio"]), .studio-shell main select { font-size: 16px; }
+  .studio-shell main table { min-width: 620px; }
+  .studio-shell main [class*="overflow-x-auto"] { max-width: 100%; }
+  .studio-shell main [class*="pb-mobile-nav"] { padding-bottom: calc(5.8rem + env(safe-area-inset-bottom)); }
   /* Avoid cards and action rows overflowing narrow phone screens. */
-  main [class*="flex-row"] { min-width: 0; }
-  main [class*="truncate"] { min-width: 0; }
+  .studio-shell main [class*="flex-row"] { min-width: 0; }
+  .studio-shell main [class*="truncate"] { min-width: 0; }
 }
 
 /* Small tablets: use two-column workspaces with comfortable spacing. */
 @media (min-width: 640px) and (max-width: 1023px) {
-  main > div[class*="max-w-"] { padding-left: 22px !important; padding-right: 22px !important; padding-top: 24px !important; }
-  main [class*="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  main table { min-width: 680px; }
+  .studio-shell main > div[class*="max-w-"] { padding-left: 22px !important; padding-right: 22px !important; padding-top: 24px !important; }
+  .studio-shell main [class*="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .studio-shell main table { min-width: 680px; }
 }
 
 /* Larger tablets and desktop: maintain calm content width. */
 @media (min-width: 1024px) {
-  main > div[class*="max-w-"] { padding-top: 28px; }
+  .studio-shell main > div[class*="max-w-"] { padding-top: 28px; }
 }
 
 /* Respect users who prefer reduced motion. */
@@ -629,4 +629,87 @@ main [class*="rounded-2xl"][class*="border"]:hover {
 @media (max-width: 639px) {
   main [class*="rounded-2xl"][class*="bg-white"],
   main [class*="rounded-xl"][class*="bg-white"] { border-radius: 14px; }
+}
+
+/* Sewsiness premium application finish */
+.studio-shell > main {
+  background:
+    radial-gradient(ellipse at 88% 0%, rgba(128, 0, 32, .035), transparent 34rem),
+    #faf6f4;
+}
+.studio-shell > aside nav button[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: #e6c58d;
+}
+.studio-shell > main > div {
+  min-height: calc(100dvh - 1px);
+}
+.studio-shell > header {
+  box-shadow: 0 4px 20px rgba(59, 10, 24, .055);
+}
+/* Login screens: refined desktop surfaces while keeping the mobile-first form intact. */
+@media (min-width: 640px) {
+  main form input:not([type="checkbox"]),
+  main form [role="combobox"] {
+    transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+  }
+  main form input:not([type="checkbox"]):focus,
+  main form [role="combobox"]:focus-visible {
+    box-shadow: 0 0 0 4px rgba(128, 0, 32, .09);
+  }
+}
+
+
+/* ── RESPONSIVE FINISH: public site, studio, freelancer and admin ── */
+html, body { max-width: 100%; }
+img, video, canvas, svg { max-width: 100%; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+
+/* Tablet studio layouts: keep controls readable and stop long labels from
+   forcing the canvas wider than the viewport. */
+.studio-shell, .studio-shell main, .studio-shell main > div { min-width: 0; max-width: 100%; }
+.studio-shell main section, .studio-shell main article, .studio-shell main form { min-width: 0; }
+.studio-shell main [class*="min-w-"] { max-width: 100%; }
+.studio-shell main [class*="overflow-x-auto"] { max-width: 100%; overscroll-behavior-x: contain; }
+.studio-shell main input, .studio-shell main select, .studio-shell main textarea,
+.admin-shell main input, .admin-shell main select, .admin-shell main textarea { max-width: 100%; }
+.admin-shell main { min-width: 0; }
+.admin-shell main > * { min-width: 0; }
+
+@media (max-width: 639px) {
+  .studio-shell main > div[class*="max-w-"] { width: 100%; }
+  .studio-shell main [class*="grid-cols-3"] > *,
+  .studio-shell main [class*="grid-cols-4"] > * { min-width: 0; }
+  .studio-shell main [class*="flex-wrap"] { row-gap: .65rem; }
+  .studio-shell main [role="dialog"] { max-width: calc(100vw - 20px); max-height: calc(100dvh - 20px); overflow-y: auto; }
+  .studio-shell main table { white-space: nowrap; }
+  .admin-shell main { padding: 18px 14px 28px; }
+  .admin-shell main h1 { font-size: clamp(1.4rem, 6vw, 1.8rem); line-height: 1.15; }
+  .admin-shell main [class*="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-shell [role="dialog"] { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); overflow-y: auto; }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .studio-shell main > div[class*="max-w-"] { width: 100%; }
+  .studio-shell main [class*="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .studio-shell main [class*="flex-wrap"] { row-gap: .8rem; }
+  .admin-shell main { padding: 24px 22px 36px; }
+  .admin-shell main [class*="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1023px) {
+  .studio-shell main { overflow-x: clip; }
+  .studio-shell main table { display: block; width: 100%; max-width: 100%; overflow-x: auto; }
+  .studio-shell main [class*="sticky"] { scroll-margin-top: 4.5rem; }
+  .admin-shell aside { max-width: min(84vw, 300px); }
+}
+
+@media (min-width: 1024px) {
+  .studio-shell main > div[class*="max-w-"] { padding-left: 28px; padding-right: 28px; }
 }

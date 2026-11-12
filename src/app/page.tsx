@@ -1,256 +1,64 @@
 import type { Metadata } from "next";
-import { ArrowRight, ArrowUpRight, Boxes, Calculator, Check, ShoppingBag, TrendingUp, Users } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Boxes, Calculator, Check, Scissors, ShoppingBag, Sparkles, TrendingUp, Users, Wallet, Ruler, ClipboardList } from "lucide-react";
 import { SiteShell, eyebrow, heading } from "@/components/site/SiteShell";
 import { APP_FEATURES, AUDIENCE, CONTACT, MISSION, PRODUCT_GROUPS, SITE, VISION } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: { absolute: "Sewsiness | The brand behind the business of sewing" },
-  description:
-    "Business coaching, training, tools and an app for people who sew for a living. Learn to price properly, keep good records and pay yourself.",
+  description: "Business coaching, training, tools and an app for people who sew for a living. Learn to price properly, keep good records and pay yourself.",
 };
 
 const FEATURE_ICONS = [Calculator, Users, ShoppingBag, TrendingUp, Boxes];
+const autoGrid = "grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))]";
+const BOARD = [{ stage: "To cut", items: ["Two-piece suit", "Aso-ebi set"], progress: "25%" }, { stage: "In progress", items: ["Evening gown", "Kaftan"], progress: "62%" }, { stage: "Fitting", items: ["Wedding dress"], progress: "90%" }];
 
-// Auto-fitting grids: they stay one column on a phone and never squeeze.
-const autoGrid = "grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr))]";
-
-const BOARD = [
-  { stage: "Cutting", items: ["Two-piece suit", "Aso-ebi set"] },
-  { stage: "Sewing", items: ["Evening gown", "Kaftan"] },
-  { stage: "Fitting", items: ["Wedding dress"] },
-];
-
-function ProductPreview() {
-  return (
-    <div aria-hidden="true" className="rounded-2xl border border-white/15 bg-white/10 p-3 shadow-2xl backdrop-blur-sm">
-      <div className="rounded-xl bg-[#FCF8F5] p-4 text-[#2F151B]">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold">Production board</p>
-          <span className="rounded-full bg-[#F5E8EB] px-2.5 py-1 text-[11px] font-semibold text-[#650019]">5 active orders</span>
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {BOARD.map((col) => (
-            <div key={col.stage} className="rounded-lg bg-[#FAF0F2] p-2.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7A6C70]">{col.stage}</p>
-              <div className="mt-2 space-y-2">
-                {col.items.map((item) => (
-                  <div key={item} className="rounded-md border border-[#EADDE0] bg-white p-2.5 shadow-sm">
-                    <p className="text-xs font-semibold leading-snug">{item}</p>
-                    <div className="mt-2 h-1 rounded-full bg-[#EBCFD7]">
-                      <div className="h-1 rounded-full bg-[#800020]" style={{ width: col.stage === "Cutting" ? "25%" : col.stage === "Sewing" ? "60%" : "90%" }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+function DashboardPreview() {
+  return <div className="relative mx-auto w-full max-w-[590px]">
+    <div className="absolute -inset-5 rounded-[2.5rem] bg-[#e7c8ce]/20 blur-2xl" />
+    <div className="relative rotate-[1deg] rounded-[26px] border border-white/60 bg-white/95 p-3 shadow-[0_35px_90px_rgba(27,4,11,.38)] sm:p-5">
+      <div className="flex items-center justify-between border-b border-[#f0e5e7] px-2 pb-4"><div><p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#9a7a82]">Your workroom</p><p className="mt-1 font-serif text-2xl font-semibold text-[#35121d]">Studio overview</p></div><span className="rounded-full bg-[#f7edf0] px-3 py-1.5 text-[10px] font-bold text-[#800020]">● All systems ready</span></div>
+      <div className="grid grid-cols-3 gap-2.5 py-4 sm:gap-3"><div className="rounded-xl bg-[#fbf5f6] p-3"><Users className="size-4 text-[#800020]"/><p className="mt-3 text-xl font-bold text-[#35121d]">128</p><p className="text-[10px] text-[#917b80]">Clients</p></div><div className="rounded-xl bg-[#fbf5f6] p-3"><ShoppingBag className="size-4 text-[#800020]"/><p className="mt-3 text-xl font-bold text-[#35121d]">24</p><p className="text-[10px] text-[#917b80]">Active orders</p></div><div className="rounded-xl bg-[#fbf5f6] p-3"><Wallet className="size-4 text-[#800020]"/><p className="mt-3 text-xl font-bold text-[#35121d]">₵8.4k</p><p className="text-[10px] text-[#917b80]">This month</p></div></div>
+      <div className="rounded-xl border border-[#f0e5e7] p-3 sm:p-4"><div className="mb-3 flex items-center justify-between"><p className="text-xs font-bold text-[#35121d]">Production tracker</p><span className="text-[10px] font-semibold text-[#800020]">View board ↗</span></div><div className="grid grid-cols-3 gap-2 sm:gap-3">{BOARD.map((col) => <div key={col.stage} className="rounded-lg bg-[#fbf7f7] p-2"><p className="text-[9px] font-bold uppercase tracking-wider text-[#987f85] sm:text-[10px]">{col.stage}</p>{col.items.map((item) => <div key={item} className="mt-2 rounded-md border border-[#eee2e5] bg-white p-2"><p className="text-[9px] font-semibold leading-snug text-[#49333a] sm:text-[10px]">{item}</p><div className="mt-2 h-1 rounded-full bg-[#f0e2e6]"><div className="h-1 rounded-full bg-[#800020]" style={{ width: col.progress }}/></div></div>)}</div>)}</div></div>
+      <div className="mt-3 flex items-center justify-between rounded-xl bg-[#35121d] px-4 py-3 text-white"><div className="flex items-center gap-2"><Sparkles className="size-4 text-[#e7c48d]"/><span className="text-[10px] font-semibold sm:text-xs">A more organised way to run your craft.</span></div><span className="text-[10px] text-white/60">SEWSINESS</span></div>
     </div>
-  );
+    <div className="absolute -bottom-7 -left-5 hidden items-center gap-3 rounded-2xl border border-white/70 bg-white px-4 py-3 shadow-xl sm:flex"><span className="grid size-9 place-items-center rounded-xl bg-[#f7edf0] text-[#800020]"><Ruler className="size-4"/></span><div><p className="text-xs font-bold text-[#35121d]">Measurements saved</p><p className="text-[10px] text-[#927b82]">Every client, every detail</p></div></div>
+  </div>;
+}
+
+function SectionIntro({ label, title, copy }: { label: string; title: string; copy?: string }) {
+  return <div className="mx-auto max-w-2xl text-center"><p className={eyebrow}>{label}</p><h2 className={`${heading} mt-3 text-4xl font-semibold leading-[1.05] text-[#35121d] sm:text-5xl`}>{title}</h2>{copy && <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#80666D] sm:text-base">{copy}</p>}</div>;
 }
 
 export default function HomePage() {
-  return (
-    <SiteShell>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-[#3B0A18] text-white">
-        <img src="/atelier-login.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#650019]/90 via-[#4A0E20]/90 to-[#2A0610]/95" />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 py-20 lg:grid-cols-[1.05fr_1fr] lg:py-28">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#E6C3CB]">Business of sewing</p>
-            <h1 className={`${heading} mt-5 text-5xl font-semibold leading-[1.05] text-white sm:text-6xl`} style={{ color: "#fff" }}>{SITE.line}</h1>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-              Business coaching, training, tools and an app for people who sew for a living. The craft skill is
-              already there; we teach the business side: pricing, structure and systems.
-            </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <a href={SITE.appUrl} className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-6 text-sm font-semibold text-[#650019] hover:bg-[#FBF1F3]">
-                Create your studio account <ArrowRight className="size-4" />
-              </a>
-              <a href="#products" className="inline-flex h-12 items-center justify-center rounded-lg border border-white/30 px-6 text-sm font-semibold hover:bg-white/10">
-                See the products
-              </a>
-            </div>
-          </div>
-          <ProductPreview />
+  return <SiteShell>
+    <section className="relative isolate overflow-hidden bg-[#310b18] text-white">
+      <img src="/atelier-login.jpg" alt="" className="absolute inset-0 -z-20 h-full w-full object-cover object-center opacity-35" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(110deg,rgba(38,5,15,.98)_0%,rgba(67,9,27,.92)_48%,rgba(51,8,21,.78)_100%)]" />
+      <div className="pointer-events-none absolute -right-32 -top-40 -z-10 size-[34rem] rounded-full border border-white/10"/><div className="pointer-events-none absolute -right-12 -top-20 -z-10 size-[24rem] rounded-full border border-white/10"/>
+      <div className="mx-auto grid max-w-7xl items-center gap-16 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.95fr_1.05fr] lg:gap-12 lg:py-32">
+        <div className="max-w-2xl"><div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[.07] px-4 py-2 text-[10px] font-bold uppercase tracking-[.2em] text-[#efd8dc]"><Scissors className="size-3.5"/> Business of sewing, reimagined</div>
+          <h1 className={`${heading} mt-7 text-[3.4rem] font-semibold leading-[.98] tracking-tight text-white sm:text-7xl lg:text-[5.2rem]`}>{SITE.line}</h1>
+          <p className="mt-7 max-w-xl text-sm leading-7 text-white/75 sm:text-lg sm:leading-8">Business coaching, training, practical tools and a digital workroom for people who sew for a living. Your craft deserves a business that works just as beautifully.</p>
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row"><a href={SITE.appUrl} className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-[#f4e8d5] px-7 text-sm font-bold text-[#4b1424] shadow-xl transition hover:-translate-y-1 hover:bg-white">Create your studio account <ArrowRight className="size-4"/></a><a href="#app" className="inline-flex h-14 items-center justify-center gap-2 rounded-full border border-white/35 px-7 text-sm font-semibold text-white transition hover:bg-white/10">Explore the platform <ArrowUpRight className="size-4"/></a></div>
+          <div className="mt-12 flex flex-wrap gap-x-7 gap-y-3 border-t border-white/15 pt-6 text-[11px] font-medium text-white/65"><span className="flex items-center gap-2"><Check className="size-3.5 text-[#e6c58d]"/> Made for sewing businesses</span><span className="flex items-center gap-2"><Check className="size-3.5 text-[#e6c58d]"/> Built with African makers in mind</span></div>
         </div>
-      </section>
+        <DashboardPreview/>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#e6c58d]/50 to-transparent"/>
+    </section>
 
-      {/* Who we are */}
-      <section id="who" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24">
-        <div className="max-w-2xl">
-          <p className={eyebrow}>Who we are</p>
-          <h2 className={`${heading} mt-3 text-4xl font-semibold sm:text-5xl`}>Sewsiness is the brand behind the business of sewing</h2>
-          <p className="mt-4 leading-relaxed text-[#80666D]">
-            Many people who sew have the craft and were never taught the business: how to price, how to keep records,
-            how to pay themselves. We teach that, and we are building the tools to run it.
-          </p>
-          <p className="mt-3 leading-relaxed text-[#80666D]">
-            Sewsiness brings together training, practical tools, and an app, made for sewing businesses in Ghana and
-            beyond. It was shaped by years of running a real fashion business.
-          </p>
-        </div>
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
-          <div className="rounded-2xl border border-[#EADDE0] bg-white p-8">
-            <h3 className={`${heading} text-3xl font-semibold`}>Our mission</h3>
-            <p className="mt-4 text-sm leading-relaxed text-[#80666D]">{MISSION}</p>
-          </div>
-          <div className="rounded-2xl border border-[#EADDE0] bg-white p-8">
-            <h3 className={`${heading} text-3xl font-semibold`}>Our vision</h3>
-            <p className="mt-4 text-sm leading-relaxed text-[#80666D]">{VISION}</p>
-          </div>
-        </div>
-        <div className="mt-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#832138]">Who it is for</p>
-          <ul className="mt-3 flex flex-wrap gap-2.5">
-            {AUDIENCE.map((a) => (
-              <li key={a} className="rounded-full bg-[#F5E8EB] px-4 py-2 text-sm font-semibold text-[#650019]">{a}</li>
-            ))}
-          </ul>
-        </div>
-      </section>
+    <section className="border-b border-[#eadde0] bg-[#f5ece8]"><div className="mx-auto grid max-w-7xl gap-5 px-5 py-7 sm:grid-cols-3 sm:px-8">{[{n:"01",t:"Learn the business",d:"Build the confidence to price and plan."},{n:"02",t:"Organise your studio",d:"Keep clients, orders and records together."},{n:"03",t:"Grow with intention",d:"Make better decisions and build sustainably."}].map(x=><div key={x.n} className="flex items-start gap-4"><span className="font-serif text-3xl text-[#b78c70]">{x.n}</span><div><p className="text-sm font-bold text-[#3c1721]">{x.t}</p><p className="mt-1 text-xs leading-5 text-[#80666D]">{x.d}</p></div></div>)}</div></section>
 
-      {/* The app */}
-      <section id="app" className="scroll-mt-20 border-y border-[#EADDE0] bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-24">
-          <div className="max-w-2xl">
-            <p className={eyebrow}>The app</p>
-            <h2 className={`${heading} mt-3 text-4xl font-semibold sm:text-5xl`}>Run your sewing business in one place</h2>
-            <p className="mt-4 text-[#80666D]">Clients, measurements, orders, production and fittings.</p>
-          </div>
-          <div className={`mt-12 gap-x-10 gap-y-10 ${autoGrid}`}>
-            {APP_FEATURES.map((f, i) => {
-              const Icon = FEATURE_ICONS[i];
-              return (
-                <div key={f.name}>
-                  <span className="grid size-10 place-items-center rounded-lg bg-[#F5E8EB] text-[#800020]">
-                    <Icon className="size-5" />
-                  </span>
-                  <h3 className="mt-4 text-base font-semibold">{f.name}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[#80666D]">{f.text}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+    <section id="who" className="scroll-mt-24 px-5 py-24 sm:px-8 sm:py-32"><div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[.9fr_1.1fr] lg:items-center"><div><p className={eyebrow}>The story behind the stitches</p><h2 className={`${heading} mt-4 text-5xl font-semibold leading-[1.04] text-[#35121d] sm:text-6xl`}>Beautiful work deserves a <span className="text-[#9b5264]">beautifully run</span> business.</h2><p className="mt-6 text-sm leading-8 text-[#80666D] sm:text-base">Many people who sew have the craft and were never taught the business: how to price, keep records or pay themselves. We teach that, and we are building the tools to run it.</p><p className="mt-4 text-sm leading-8 text-[#80666D] sm:text-base">Sewsiness brings together training, practical tools and an app for sewing businesses in Ghana and beyond. It was shaped by years of running a real fashion business.</p><a href="#app" className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-[#800020]">Discover what we do <ArrowRight className="size-4"/></a></div><div className="grid gap-4 sm:grid-cols-2"><div className="rounded-[1.8rem] bg-[#3b0a18] p-8 text-white sm:translate-y-8"><Sparkles className="size-6 text-[#e7c48d]"/><h3 className={`${heading} mt-10 text-3xl font-semibold`}>Our mission</h3><p className="mt-4 text-sm leading-7 text-white/70">{MISSION}</p></div><div className="rounded-[1.8rem] border border-[#eadde0] bg-white p-8"><div className="grid size-11 place-items-center rounded-2xl bg-[#f7edf0] text-[#800020]"><TrendingUp className="size-5"/></div><h3 className={`${heading} mt-10 text-3xl font-semibold text-[#35121d]`}>Our vision</h3><p className="mt-4 text-sm leading-7 text-[#80666D]">{VISION}</p></div></div></div><div className="mx-auto mt-24 max-w-7xl border-t border-[#eadde0] pt-8"><p className={eyebrow}>Made for the people behind the garments</p><div className="mt-5 flex flex-wrap gap-2.5">{AUDIENCE.map(a=><span key={a} className="rounded-full border border-[#e8d7db] bg-white px-4 py-2.5 text-xs font-semibold text-[#6e3544]">{a}</span>)}</div></div></section>
 
-      {/* Try it and free training */}
-      <section id="training" className="scroll-mt-20 bg-[#F9F2F4]">
-        <div className="mx-auto max-w-6xl px-5 py-24">
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="flex flex-col rounded-2xl border-2 border-[#800020] bg-white p-8 shadow-lg">
-              <span className="mb-3 w-fit rounded-full bg-[#800020] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white">Free for two months</span>
-              <h3 className={`${heading} text-3xl font-semibold`}>Try it</h3>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-[#80666D]">
-                Free for two months, with every feature available at that time. After that, choose the plan that fits
-                your studio. Your records stay visible, and adding new entries requires a plan. The app is in early
-                testing.
-              </p>
-              <a href={SITE.appUrl} className="mt-8 inline-flex h-11 items-center justify-center rounded-lg bg-[#800020] text-sm font-semibold text-white hover:bg-[#650019]">
-                Create your studio account
-              </a>
-            </div>
-            <div className="flex flex-col rounded-2xl border border-[#EADDE0] bg-white p-8">
-              <span className="mb-3 w-fit rounded-full bg-[#F5E8EB] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#650019]">Sponsored by Sewsiness</span>
-              <h3 className={`${heading} text-3xl font-semibold`}>Free training</h3>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-[#80666D]">
-                New fashion graduates: join our free webinar series on getting your first paying clients. Sponsored by
-                Sewsiness.
-              </p>
-              {SITE.webinarFormUrl ? (
-                <a href={SITE.webinarFormUrl} className="mt-8 inline-flex h-11 items-center justify-center rounded-lg border border-[#E6C3CB] text-sm font-semibold text-[#650019] hover:bg-[#FBF1F3]">
-                  Sign up
-                </a>
-              ) : (
-                <>
-                  <span aria-disabled="true" className="mt-8 inline-flex h-11 cursor-not-allowed items-center justify-center rounded-lg border border-dashed border-[#E6C3CB] text-sm font-semibold text-[#650019]">
-                    Sign-up opens soon
-                  </span>
-                  <p className="mt-3 text-xs text-[#80666D]">
-                    Want to hear first? Join the <a href={CONTACT.community} className="font-semibold text-[#800020] underline">WhatsApp community</a>.
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+    <section id="app" className="scroll-mt-24 bg-white px-5 py-24 sm:px-8 sm:py-32"><div className="mx-auto max-w-7xl"><SectionIntro label="Your digital workroom" title="Less admin. More room to create." copy="Bring the moving parts of your sewing business into one calm, organised place. Spend less time chasing details and more time doing the work you love."/><div className={`mt-16 ${autoGrid}`}>{APP_FEATURES.map((f,i)=>{const Icon=FEATURE_ICONS[i]??ClipboardList;return <article key={f.name} className="group rounded-2xl border border-[#eee2e5] bg-[#fffdfc] p-7 transition duration-300 hover:-translate-y-1 hover:border-[#d8b6bf] hover:shadow-[0_20px_45px_rgba(69,17,32,.08)]"><span className="grid size-12 place-items-center rounded-2xl bg-[#f8edf0] text-[#800020] transition group-hover:bg-[#800020] group-hover:text-white"><Icon className="size-5"/></span><h3 className="mt-6 text-base font-bold text-[#35121d]">{f.name}</h3><p className="mt-2 text-sm leading-7 text-[#80666D]">{f.text}</p></article>})}</div><div className="mt-14 text-center"><a href={SITE.appUrl} className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-[#800020] px-7 py-4 text-sm font-bold text-white shadow-lg shadow-[#800020]/15 transition hover:-translate-y-0.5 hover:bg-[#650019]">Step into your studio <ArrowRight className="size-4"/></a></div></div></section>
 
-      {/* Products */}
-      <section id="products" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24">
-        <div className="max-w-2xl">
-          <p className={eyebrow}>Products</p>
-          <h2 className={`${heading} mt-3 text-4xl font-semibold sm:text-5xl`}>Guides, workbooks and templates</h2>
-          <p className="mt-4 text-[#80666D]">Each product opens on its Selar page.</p>
-        </div>
-        <div className={`mt-12 ${autoGrid}`}>
-          {PRODUCT_GROUPS.map((g) => (
-            <div key={g.title} className="rounded-2xl border border-[#EADDE0] bg-white p-6 sm:p-8">
-              <h3 className={`${heading} text-2xl font-semibold`}>{g.title}</h3>
-              <ul className="mt-4 divide-y divide-[#EADDE0]">
-                {g.products.map((p) => (
-                  <li key={p.name}>
-                    <a href={p.href} target="_blank" rel="noopener noreferrer" className="group flex min-h-14 items-center justify-between gap-3 py-3">
-                      <span className="flex min-w-0 items-center gap-1.5 text-sm font-semibold group-hover:text-[#800020] group-hover:underline">
-                        {p.name}
-                        <ArrowUpRight className="size-3.5 shrink-0 opacity-60" aria-hidden="true" />
-                        <span className="sr-only">(opens Selar)</span>
-                      </span>
-                      <span className={"shrink-0 rounded-full px-3 py-1 text-xs font-semibold " + (p.price === "Free" ? "bg-[#800020] text-white" : "bg-[#F5E8EB] text-[#650019]")}>
-                        {p.price}
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
+    <section id="training" className="scroll-mt-24 bg-[#f5ece8] px-5 py-24 sm:px-8 sm:py-32"><div className="mx-auto max-w-7xl"><SectionIntro label="Start where you are" title="Practical support for your next chapter" copy="Whether you are setting up your first studio or ready to run a more structured business, there is a place to begin."/><div className="mt-14 grid gap-5 md:grid-cols-2"><article className="relative overflow-hidden rounded-[1.8rem] bg-[#3b0a18] p-8 text-white sm:p-10"><div className="absolute -right-12 -top-12 size-56 rounded-full border border-white/10"/><span className="inline-flex rounded-full bg-[#e8c995] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#421523]">Free for two months</span><h3 className={`${heading} mt-7 text-4xl font-semibold`}>Try the studio app</h3><p className="mt-4 max-w-md text-sm leading-7 text-white/70">Explore every feature while you set up your studio. After the trial, choose the plan that fits. Your records stay visible, and the app is currently in early testing.</p><a href={SITE.appUrl} className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-[#650019] hover:bg-[#f8e9ec]">Create your account <ArrowRight className="size-4"/></a></article><article className="rounded-[1.8rem] border border-[#e6d6d8] bg-white p-8 sm:p-10"><span className="inline-flex rounded-full bg-[#f7edf0] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#800020]">Sponsored by Sewsiness</span><h3 className={`${heading} mt-7 text-4xl font-semibold text-[#35121d]`}>Free training for new fashion graduates</h3><p className="mt-4 max-w-md text-sm leading-7 text-[#80666D]">Join our free webinar series on getting your first paying clients, building confidence and turning your skill into a business.</p>{SITE.webinarFormUrl?<a href={SITE.webinarFormUrl} className="mt-8 inline-flex h-12 items-center gap-2 rounded-full border border-[#d9bdc4] px-6 text-sm font-bold text-[#800020] hover:bg-[#fbf3f5]">Reserve your place <ArrowUpRight className="size-4"/></a>:<div className="mt-8"><span className="text-sm font-semibold text-[#800020]">Sign-up opens soon</span><p className="mt-2 text-xs text-[#80666D]">Join our <a href={CONTACT.community} className="font-bold text-[#800020] underline">WhatsApp community</a> to hear first.</p></div>}</article></div></div></section>
 
-      {/* Contact */}
-      <section id="contact" className="scroll-mt-20 border-t border-[#EADDE0] bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-24">
-          <div className="max-w-2xl">
-            <p className={eyebrow}>Contact and follow</p>
-            <h2 className={`${heading} mt-3 text-4xl font-semibold sm:text-5xl`}>We would love to hear from you</h2>
-          </div>
-          <dl className={`mt-12 ${autoGrid}`}>
-            {[
-              { k: "General", v: CONTACT.generalEmail, href: `mailto:${CONTACT.generalEmail}` },
-              { k: "Help and support", v: CONTACT.supportEmail, href: `mailto:${CONTACT.supportEmail}` },
-              { k: "WhatsApp", v: CONTACT.whatsappDisplay, href: CONTACT.whatsappLink },
-              { k: "WhatsApp community", v: "Join the community", href: CONTACT.community },
-              { k: "TikTok", v: "@sewsiness.africa", href: CONTACT.tiktok },
-            ].map((c) => (
-              <div key={c.k} className="rounded-2xl border border-[#EADDE0] bg-[#FCF8F5] p-6">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-[#80666D]">{c.k}</dt>
-                <dd className="mt-2 break-words text-base font-semibold">
-                  <a href={c.href} className="text-[#800020] hover:underline">{c.v}</a>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
+    <section id="products" className="scroll-mt-24 px-5 py-24 sm:px-8 sm:py-32"><div className="mx-auto max-w-7xl"><SectionIntro label="The Sewsiness library" title="Tools to help you build with confidence" copy="Thoughtful guides, workbooks and templates to help you make stronger business decisions."/><div className={`mt-14 ${autoGrid}`}>{PRODUCT_GROUPS.map((g,i)=><article key={g.title} className="rounded-[1.5rem] border border-[#eadde0] bg-white p-7 shadow-[0_12px_35px_rgba(69,17,32,.035)]"><div className="flex items-center justify-between"><span className="grid size-11 place-items-center rounded-xl bg-[#f8edf0] text-[#800020]"><span className="font-serif text-xl">0{i+1}</span></span><ArrowUpRight className="size-4 text-[#b08b94]"/></div><h3 className={`${heading} mt-6 text-3xl font-semibold text-[#35121d]`}>{g.title}</h3><ul className="mt-5 divide-y divide-[#f0e6e8]">{g.products.map(p=><li key={p.name}><a href={p.href} target="_blank" rel="noopener noreferrer" className="group flex min-h-14 items-center justify-between gap-3 py-3"><span className="text-sm font-semibold text-[#62464e] transition group-hover:text-[#800020]">{p.name}</span><span className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-bold ${p.price==="Free"?"bg-[#800020] text-white":"bg-[#f7edf0] text-[#650019]"}`}>{p.price}</span></a></li>)}</ul></article>)}</div></div></section>
 
-      {/* Closing call to action */}
-      <section className="mx-auto max-w-6xl px-5 py-24">
-        <div className="rounded-3xl bg-gradient-to-br from-[#650019] to-[#3B0A18] px-7 py-16 text-center text-white sm:px-14">
-          <h2 className={`${heading} mx-auto max-w-2xl text-4xl font-semibold text-white sm:text-5xl`} style={{ color: "#fff" }}>Run your sewing business with confidence</h2>
-          <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-            <a href={SITE.appUrl} className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-6 text-sm font-semibold text-[#650019] hover:bg-[#FBF1F3]">
-              Create your studio account
-            </a>
-            <a href="#products" className="inline-flex h-12 items-center justify-center rounded-lg border border-white/30 px-6 text-sm font-semibold hover:bg-white/10">
-              See the products
-            </a>
-          </div>
-        </div>
-      </section>
-    </SiteShell>
-  );
+    <section id="contact" className="scroll-mt-24 bg-white px-5 py-24 sm:px-8 sm:py-32"><div className="mx-auto max-w-7xl"><div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr]"><div><p className={eyebrow}>Let's connect</p><h2 className={`${heading} mt-4 text-5xl font-semibold leading-tight text-[#35121d] sm:text-6xl`}>Your next stitch starts with a conversation.</h2><p className="mt-5 text-sm leading-7 text-[#80666D]">Questions about the platform, training or resources? We would love to hear from you.</p></div><div className={`content-start ${autoGrid}`}>{[{k:"General enquiries",v:CONTACT.generalEmail,href:`mailto:${CONTACT.generalEmail}`},{k:"Help & support",v:CONTACT.supportEmail,href:`mailto:${CONTACT.supportEmail}`},{k:"WhatsApp",v:CONTACT.whatsappDisplay,href:CONTACT.whatsappLink},{k:"Community",v:"Join the community",href:CONTACT.community},{k:"TikTok",v:"@sewsiness.africa",href:CONTACT.tiktok}].map(c=><a key={c.k} href={c.href} className="group rounded-2xl border border-[#eadde0] bg-[#fffdfc] p-5 transition hover:-translate-y-1 hover:border-[#d7b5be] hover:shadow-lg"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-[#987d84]">{c.k}</p><div className="mt-3 flex items-center justify-between gap-2"><span className="break-words text-sm font-bold text-[#5b303c] group-hover:text-[#800020]">{c.v}</span><ArrowUpRight className="size-4 shrink-0 text-[#b08b94]"/></div></a>)}</div></div></div></section>
+
+    <section className="px-5 py-16 sm:px-8 sm:py-24"><div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-[#350b19] px-7 py-16 text-center text-white sm:px-14 sm:py-20"><div className="absolute -right-20 -top-32 size-96 rounded-full border border-white/10"/><div className="absolute -bottom-52 -left-20 size-96 rounded-full border border-white/10"/><div className="relative"><p className="text-[10px] font-bold uppercase tracking-[.24em] text-[#e6c58d]">Make your craft count</p><h2 className={`${heading} mx-auto mt-4 max-w-3xl text-5xl font-semibold leading-[1.04] sm:text-6xl`}>Run your sewing business with confidence.</h2><p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-white/65">Bring your talent, your ambition and your ideas. We will help you build the business around them.</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><a href={SITE.appUrl} className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-[#f4e8d5] px-7 py-4 text-sm font-bold text-[#4b1424] hover:bg-white">Create your studio account <ArrowRight className="size-4"/></a><a href="#products" className="inline-flex h-13 items-center justify-center rounded-full border border-white/30 px-7 py-4 text-sm font-semibold text-white hover:bg-white/10">Explore resources</a></div></div></div></section>
+  </SiteShell>;
 }

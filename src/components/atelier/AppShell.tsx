@@ -369,14 +369,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col lg:flex-row">
+    <div className="studio-shell min-h-dvh flex flex-col lg:flex-row">
       <ForcePasswordChange />
       {/* ─── Large-screen navigation ─────────────────────────────
           Phones and tablets use the touch-first header + bottom navigation.
           The full sectioned sidebar starts at the desktop breakpoint. */}
-      <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 flex-col border-r border-sidebar-border bg-sidebar z-30">
+      <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-[272px] flex-col border-r border-sidebar-border bg-[linear-gradient(180deg,#3B0010_0%,#31000d_55%,#26000b_100%)] z-30 shadow-[12px_0_40px_rgba(35,5,14,.08)]">
         {/* Brand */}
-        <div className="px-3 lg:px-5 h-[76px] flex items-center border-b border-sidebar-border shrink-0">
+        <div className="px-4 lg:px-5 h-[82px] flex items-center border-b border-sidebar-border shrink-0">
           <button
             onClick={() => go("dashboard")}
             className="flex items-center gap-3 group w-full justify-center lg:justify-start"
@@ -403,7 +403,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Nav sections */}
         <nav
           aria-label="Primary"
-          className="flex-1 overflow-y-auto overflow-x-hidden scroll-slim px-2.5 lg:px-3 py-3"
+          className="flex-1 overflow-y-auto overflow-x-hidden scroll-slim px-3 lg:px-3.5 py-5"
         >
           {(() => {
             const BASICS = ["dashboard", "customers", "orders", "board"] as ViewKey[];
@@ -428,10 +428,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   aria-label={label}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group relative w-full flex items-center justify-center lg:justify-start gap-3 h-10 lg:h-9 lg:px-3 rounded-lg text-[13.5px] transition-colors duration-150",
+                    "group relative w-full flex items-center justify-center lg:justify-start gap-3 h-11 lg:h-10 lg:px-3.5 rounded-xl text-[13px] transition-all duration-200",
                     active
-                      ? "bg-[#972E46] text-white font-medium shadow-sm"
-                      : "text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/70"
+                      ? "bg-gradient-to-r from-[#8b1835] to-[#a33b53] text-white font-semibold shadow-[0_5px_16px_rgba(20,0,7,.18)] ring-1 ring-white/10"
+                      : "text-sidebar-foreground/65 hover:text-white hover:bg-white/[.07]"
                   )}
                 >
                   <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={active ? 2 : 1.6} />
@@ -523,7 +523,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ─── Mobile top bar ──────────────────────────────────────── */}
-      <header className="lg:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#EEDFE3] bg-white/95 backdrop-blur-md">
+      <header className="lg:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#EEDFE3] bg-white/95 shadow-[0_4px_20px_rgba(59,10,24,.05)] backdrop-blur-xl">
         {/* Logo on the left, page title in the middle, profile avatar on the
             right. The two outer columns are equal so the title stays centred. */}
         <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_4.75rem] items-center gap-2 px-4 h-14">
@@ -550,7 +550,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* ─── Main ────────────────────────────────────────────────── */}
-      <main className="flex-1 lg:pl-64 pl-safe pr-safe pb-mobile-nav lg:pb-0 flex flex-col min-w-0 overflow-x-clip">
+      <main className="flex-1 lg:pl-[272px] pl-safe pr-safe pb-mobile-nav lg:pb-0 flex flex-col min-w-0 overflow-x-clip bg-[#faf6f4]">
         {planAccess?.trialExpired ? (
           <div
             role="alert"
@@ -601,7 +601,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* ─── Phone + tablet bottom navigation (priority + More) ── */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#EEDFE3] bg-white/95 backdrop-blur-md">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 pb-safe pl-safe pr-safe border-t border-[#EEDFE3] bg-white/95 shadow-[0_-8px_28px_rgba(59,10,24,.07)] backdrop-blur-xl">
         <div className="flex items-center justify-around h-14">
           {mobileItems.map(({ to, label, icon: Icon }) => {
             const active = isActive(to);
