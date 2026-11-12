@@ -7,7 +7,7 @@ export function VerifiedBadge({ className, compact }: { className?: string; comp
     <span
       title="Verified freelancer — email confirmed"
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded-full border border-[#F0D1D8] bg-[#FAF0F2] px-2 py-0.5 text-[10px] font-semibold text-[#650019]",
+        "inline-flex shrink-0 items-center gap-1 rounded-full border border-[#F0D1D8] bg-[#FAF0F2] px-2 py-0.5 text-[11px] font-semibold text-[#650019]",
         className
       )}
     >

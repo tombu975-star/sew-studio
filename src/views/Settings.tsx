@@ -534,7 +534,7 @@ export default function Settings() {
                   {overheadRecoveryBasis > 0 ? `${recoveryRate.toFixed(1)}%` : "Not set"}
                 </span>
               </div>
-              <p className="text-[11px] text-stone-400">
+              <p className="text-xs text-stone-400">
                 {overheadRecoveryBasis > 0
                   ? "Applied to every order: overhead margin = fabric cost × this rate."
                   : "Until this is set, the flat overhead amount below is added to each order instead."}

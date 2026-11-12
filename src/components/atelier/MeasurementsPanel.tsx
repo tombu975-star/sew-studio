@@ -100,7 +100,7 @@ export function MeasurementsPanel({
       {/* Header */}
       <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[#EEDFE3] px-5 py-4 sm:px-6">
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-stone-400">
             Body measurement record
           </p>
           <h2 className="mt-1 font-display text-xl font-semibold leading-tight text-[#2F151B]">
@@ -156,7 +156,7 @@ export function MeasurementsPanel({
             )}
           >
             {formatDate(m.dateTaken)}
-            {i === 0 && <span className="ml-1.5 text-[10px] uppercase tracking-wider text-stone-400">latest</span>}
+            {i === 0 && <span className="ml-1.5 text-[11px] uppercase tracking-wider text-stone-400">latest</span>}
           </button>
         ))}
       </div>
@@ -172,7 +172,7 @@ export function MeasurementsPanel({
       {/* Indicative size */}
       {size && (
         <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-[#EEDFE3] bg-[#FAF0F2] px-5 py-3 sm:px-6">
-          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">Indicative size</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-stone-400">Indicative size</p>
           <p className="text-sm tabular-nums text-[#2F151B]">
             <span className="font-semibold">EU {size.row.eu}</span>
             <span className="mx-2 text-stone-300">/</span>UK {size.row.uk}
@@ -191,7 +191,7 @@ export function MeasurementsPanel({
         <div className="hidden md:block">
           <div className="sticky top-4 rounded-lg border border-[#EEDFE3] bg-[#FAF0F2] p-4">
             <BodyDiagram variant={diagramVariant} />
-            <p className="mt-3 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-stone-400">
+            <p className="mt-3 text-center text-[11px] font-medium uppercase tracking-[0.14em] text-stone-400">
               {diagramVariant === "female" ? "Women's" : "Men's"} reference
             </p>
           </div>
@@ -202,7 +202,7 @@ export function MeasurementsPanel({
           const fields = MEASUREMENT_FIELDS.filter((f) => f.group === group);
           return (
             <div key={group}>
-              <h3 className="border-b border-[#2F151B] pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#2F151B]">
+              <h3 className="border-b border-[#2F151B] pb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#2F151B]">
                 {group}
               </h3>
               <table className="w-full text-sm">
@@ -223,7 +223,7 @@ export function MeasurementsPanel({
                           {shown}
                           <span className="font-normal text-stone-400">{suffix}</span>
                         </td>
-                        <td className="w-16 py-2 pl-3 text-right text-[11px] tabular-nums">
+                        <td className="w-16 py-2 pl-3 text-right text-xs tabular-nums">
                           {d != null && d !== 0 ? (
                             <span className={cn(Math.abs(d) >= 2 ? "font-medium text-[#800020]" : "text-stone-400")}>
                               {d > 0 ? "+" : "−"}
@@ -244,13 +244,13 @@ export function MeasurementsPanel({
 
       {current.notes && (
         <div className="border-t border-[#EEDFE3] px-5 py-4 sm:px-6">
-          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">Fitting notes</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-stone-400">Fitting notes</p>
           <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-stone-600">{current.notes}</p>
         </div>
       )}
 
       {previous && (
-        <p className="border-t border-[#EEDFE3] px-5 py-2.5 text-[11px] text-stone-400 sm:px-6">
+        <p className="border-t border-[#EEDFE3] px-5 py-2.5 text-xs text-stone-400 sm:px-6">
           Change column compares with the session on {formatDate(previous.dateTaken)}. Shifts of 2 cm or more are highlighted.
         </p>
       )}
@@ -270,7 +270,7 @@ export function MeasurementsPanel({
           <div className="px-5 pb-5 sm:px-6">
             <div className="mb-5 rounded-lg border border-[#EEDFE3] bg-[#FAF0F2] p-4 md:hidden">
               <BodyDiagram variant={diagramVariant} className="mx-auto max-w-[180px]" />
-              <p className="mt-3 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-stone-400">
+              <p className="mt-3 text-center text-[11px] font-medium uppercase tracking-[0.14em] text-stone-400">
                 {diagramVariant === "female" ? "Women's" : "Men's"} reference
               </p>
             </div>
@@ -297,7 +297,7 @@ export function MeasurementsPanel({
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="px-5 py-3 sm:px-6">
-      <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-stone-400">{label}</dt>
+      <dt className="text-[11px] font-medium uppercase tracking-[0.16em] text-stone-400">{label}</dt>
       <dd className="mt-0.5 truncate font-medium text-[#2F151B]">{value}</dd>
     </div>
   );

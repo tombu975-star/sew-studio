@@ -88,7 +88,7 @@ export function ImageUpload({
             </button>
           )}
         </div>
-        <p className="mt-1.5 text-[11px] text-stone-400">{busy ? "Uploading…" : hint}</p>
+        <p className="mt-1.5 text-xs text-stone-400">{busy ? "Uploading…" : hint}</p>
       </div>
       <input
         ref={inputRef}

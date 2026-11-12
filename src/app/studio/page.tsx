@@ -38,6 +38,7 @@ const Certificate = dynamic(() => import("@/views/Certificate").then((m) => m.de
 const Messages = dynamic(() => import("@/views/Messages").then((m) => m.default), { ssr: false });
 const MyJobs = dynamic(() => import("@/views/MyJobs").then((m) => m.default), { ssr: false });
 const Settings = dynamic(() => import("@/views/Settings").then((m) => m.default), { ssr: false });
+const Webinars = dynamic(() => import("@/views/Webinars").then((m) => m.default), { ssr: false });
 const Payments = dynamic(() => import("@/views/Payments").then((m) => m.default), { ssr: false });
 const Projection = dynamic(() => import("@/views/Projection").then((m) => m.default), { ssr: false });
 const AccraRuns = dynamic(() => import("@/views/AccraRuns").then((m) => m.default), { ssr: false });
@@ -116,6 +117,7 @@ function ViewSwitch({ view }: { view: ReturnType<typeof useNav.getState>["view"]
     case "style-assist": return <StyleAssist />;
     case "quote": return <QuickQuote />;
     case "payments": return <Payments />;
+    case "webinars": return <Webinars />;
     case "projection": return <Projection />;
     case "accra-runs": return <AccraRuns />;
     case "assets": return <Assets />;

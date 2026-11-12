@@ -125,7 +125,7 @@ function ScoreBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold border rounded-md tabular-nums",
+        "inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-semibold border rounded-md tabular-nums",
         TONE_BADGE[tone],
         className
       )}
@@ -142,7 +142,7 @@ function LetterGradeBadge({ pct }: { pct: number }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide border rounded-md",
+        "inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide border rounded-md",
         TONE_BADGE[tone]
       )}
     >
@@ -435,7 +435,7 @@ export default function Tasks() {
             avgPct != null ? (
               <LetterGradeBadge pct={avgPct} />
             ) : (
-              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+              <span className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
                 No grades yet
               </span>
             )
@@ -443,7 +443,7 @@ export default function Tasks() {
         >
           <div className="flex flex-wrap items-end gap-x-10 gap-y-5">
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+              <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
                 {traineeMode ? "Your average" : "Studio average"}
               </span>
               <div className="font-display font-semibold text-[#2F151B] leading-none tabular-nums flex items-baseline gap-1">
@@ -472,7 +472,7 @@ export default function Tasks() {
 
             {graderMode && (
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+                <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
                   Graded
                 </span>
                 <div className="font-display font-semibold text-[#2F151B] leading-none tabular-nums flex items-baseline gap-1.5">
@@ -487,7 +487,7 @@ export default function Tasks() {
             )}
 
             <div className="flex flex-col gap-1 ml-auto">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+              <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
                 {traineeMode ? "Graded assignments" : "Graded assignments"}
               </span>
               <span className="font-display font-semibold text-[#2F151B] tabular-nums leading-none" style={{ fontSize: "clamp(28px, 3.5vw, 40px)" }}>
@@ -506,7 +506,7 @@ export default function Tasks() {
         <SectionCard bodyClassName="py-3" className="mb-5">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+              <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
                 {graderMode ? "Trainee" : "Staff"}
               </span>
               <Select value={staffFilter} onValueChange={setStaffFilter}>
@@ -531,7 +531,7 @@ export default function Tasks() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+              <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
                 Priority
               </span>
               <Select
@@ -619,7 +619,7 @@ export default function Tasks() {
                         col === "Done" && "text-[#4A6B53]"
                       )}
                     />
-                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#FAF0F2] border border-[#EEDFE3] text-[10px] font-semibold text-stone-600 tabular-nums">
+                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#FAF0F2] border border-[#EEDFE3] text-[11px] font-semibold text-stone-600 tabular-nums">
                       {count}
                     </span>
                   </div>
@@ -809,7 +809,7 @@ function TaskCard({
         <div className="flex items-center gap-2 min-w-0">
           {showStaff && staffName ? (
             <span className="inline-flex items-center gap-1.5 min-w-0">
-              <span className="w-5 h-5 rounded-full bg-[#800020]/10 text-[#800020] text-[10px] font-semibold flex items-center justify-center shrink-0">
+              <span className="w-5 h-5 rounded-full bg-[#800020]/10 text-[#800020] text-[11px] font-semibold flex items-center justify-center shrink-0">
                 {initial}
               </span>
               <span className="text-xs text-stone-500 truncate">
@@ -817,12 +817,12 @@ function TaskCard({
               </span>
             </span>
           ) : !showStaff ? (
-            <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-stone-400">
+            <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-stone-400">
               <span className="w-1.5 h-1.5 rounded-full bg-[#800020]/40" />
               Your assignment
             </span>
           ) : (
-            <span className="text-[10px] uppercase tracking-wide text-stone-400">
+            <span className="text-[11px] uppercase tracking-wide text-stone-400">
               Unassigned
             </span>
           )}
@@ -831,7 +831,7 @@ function TaskCard({
         {task.dueDate && (
           <span
             className={cn(
-              "inline-flex items-center gap-1 text-[11px] shrink-0",
+              "inline-flex items-center gap-1 text-xs shrink-0",
               overdue ? "text-amber-700 font-medium" : "text-stone-500"
             )}
           >
@@ -851,7 +851,7 @@ function TaskCard({
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <ScoreBadge score={task.score!} max={task.maxScore!} />
             {task.gradedBy && (
-              <span className="text-[10px] text-stone-500 tabular-nums">
+              <span className="text-[11px] text-stone-500 tabular-nums">
                 by {task.gradedBy.fullName}
                 {task.gradedAt ? ` · ${shortDate(task.gradedAt)}` : ""}
               </span>
@@ -883,7 +883,7 @@ function TaskCard({
             showGradeControl && "justify-between"
           )}
         >
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-stone-500">
+          <span className="inline-flex items-center gap-1.5 text-xs text-stone-500">
             <Clock className="w-3 h-3 text-amber-600" />
             Awaiting grade
           </span>
@@ -903,7 +903,7 @@ function TaskCard({
 
       {/* Status row */}
       <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#EEDFE3]/70">
-        <span className="text-[10px] uppercase tracking-[0.16em] text-stone-400">
+        <span className="text-[11px] uppercase tracking-[0.16em] text-stone-400">
           Status
         </span>
         {canChangeStatus ? (
@@ -1247,7 +1247,7 @@ function GradeForm({
           <div className="grid gap-1.5">
             <Label htmlFor="grade-score">
               Score
-              <span className="ml-1 text-[10px] font-normal text-stone-400">
+              <span className="ml-1 text-[11px] font-normal text-stone-400">
                 0 – {safeMax || "—"}
               </span>
             </Label>
@@ -1265,7 +1265,7 @@ function GradeForm({
 
         {/* Live percentage + letter grade preview */}
         <div className="rounded-md bg-[#FAF0F2] border border-[#EEDFE3] px-3 py-2.5 flex items-center justify-between gap-2">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+          <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
             Percentage · Grade
           </span>
           <div className="flex items-center gap-2.5">
@@ -1293,7 +1293,7 @@ function GradeForm({
             placeholder="Constructive notes for the trainee…"
             rows={4}
           />
-          <p className="text-[10px] text-stone-400">
+          <p className="text-[11px] text-stone-400">
             Visible to the trainee on their assignment card.
           </p>
         </div>

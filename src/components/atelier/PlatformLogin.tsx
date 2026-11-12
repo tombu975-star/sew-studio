@@ -37,7 +37,7 @@ export function PlatformLogin({
             sizes="(max-width: 767px) 100vw, (max-width: 1023px) 48vw, 55vw"
             className="object-cover object-[center_22%] sm:object-[center_38%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#230A10]/55 via-[#3B0010]/10 to-[#230A10]/75 max-sm:hidden" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#230A10]/70 via-[#3B0010]/45 to-[#230A10]/80 max-sm:hidden" />
           {/* Phones: red-tinted photo that melts into the panel, like the reference */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#3D101A]/45 via-[#5C1626]/55 to-[#5C1626] sm:hidden" />
           <svg
@@ -66,7 +66,7 @@ export function PlatformLogin({
             </header>
 
             <div className="hidden max-w-[540px] pt-10 sm:block">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/75">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">
                 {eyebrow ?? "Made for the art of making"}
               </p>
               <h1 className="mt-3 font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
@@ -89,7 +89,7 @@ export function PlatformLogin({
               <BrandLogo width={168} />
             </div>
             {children ?? <LoginPage />}
-            <footer className="mt-3 text-center text-xs leading-relaxed text-white/70 [@media(max-height:700px)]:hidden sm:mt-4 sm:text-[#897076]">
+            <footer className="mt-3 text-center text-xs leading-relaxed text-white/70 [@media(max-height:700px)]:hidden sm:mt-4 sm:text-[#6F565D]">
               <p>{settings.loginFooter}</p>
               {settings.releaseNotes && (
                 <p className="mx-auto mt-2 hidden max-w-[360px] sm:block" aria-label="Latest release notes">

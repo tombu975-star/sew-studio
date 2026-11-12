@@ -151,7 +151,7 @@ export default function MyJobs() {
         title={`Active jobs · ${activeJobs.length}`}
         className="mb-6"
         action={
-          <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+          <span className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
             Tap to open
           </span>
         }
@@ -294,7 +294,7 @@ function ActiveJobRow({
             <StatusBadge status={order.status} />
             <span
               className={cn(
-                "inline-flex items-center gap-1 text-[11px]",
+                "inline-flex items-center gap-1 text-xs",
                 overdue ? "text-amber-700 font-medium" : "text-stone-500"
               )}
             >
@@ -334,7 +334,7 @@ function OpenTaskRow({ task }: { task: TaskWithOrder }) {
         <StatusBadge status={task.priority} />
         <span
           className={cn(
-            "inline-flex items-center gap-1 text-[11px]",
+            "inline-flex items-center gap-1 text-xs",
             overdue ? "text-amber-700 font-medium" : "text-stone-500"
           )}
         >
@@ -384,7 +384,7 @@ function CompletedCard({
         </p>
         <div className="flex items-center justify-between gap-2 mt-2">
           <StatusBadge status={order.status} />
-          <span className="inline-flex items-center gap-1 text-[10px] text-stone-400 tabular-nums">
+          <span className="inline-flex items-center gap-1 text-[11px] text-stone-400 tabular-nums">
             <CalendarDays className="w-3 h-3" />
             {order.deliveryDate ? shortDate(order.deliveryDate) : "—"}
           </span>

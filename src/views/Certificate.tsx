@@ -244,14 +244,14 @@ function OwnerCertificate() {
             <div className="hidden md:flex items-center gap-2 rounded-full border border-[#EEDFE3] bg-white pl-2 pr-3 py-1.5 elevate-sm">
               <span
                 className={cn(
-                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-display font-semibold",
+                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-display font-semibold",
                   gradientFor(user.fullName)
                 )}
               >
                 {initialOf(user.fullName)}
               </span>
               <div className="leading-tight">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
                   {user.role === "trainer" ? "Trainer" : "Owner"}
                 </div>
                 <div className="text-xs font-medium text-[#2F151B]">
@@ -312,7 +312,7 @@ function OwnerCertificate() {
                       <span className="flex items-center gap-2">
                         <span
                           className={cn(
-                            "w-5 h-5 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-display font-semibold",
+                            "w-5 h-5 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-display font-semibold",
                             gradientFor(t.fullName)
                           )}
                         >
@@ -360,7 +360,7 @@ function OwnerCertificate() {
                       </span>
                       <span
                         className={cn(
-                          "block text-[10px] uppercase tracking-[0.16em]",
+                          "block text-[11px] uppercase tracking-[0.16em]",
                           active ? "text-white/70" : "text-stone-400"
                         )}
                       >
@@ -642,7 +642,7 @@ function IssuePanel({
             <div className="font-display font-semibold text-[#2F151B] text-lg leading-tight">
               {trainee.fullName}
             </div>
-            <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400 mt-1">
+            <div className="text-xs uppercase tracking-[0.18em] text-stone-400 mt-1">
               No certificate issued
             </div>
           </div>
@@ -712,7 +712,7 @@ function SummaryStat({
 }) {
   return (
     <div className="rounded-lg border border-[#EEDFE3] bg-white p-3">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+      <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
         {label}
       </div>
       <div
@@ -867,7 +867,7 @@ function IssueDialog({
               <button
                 type="button"
                 onClick={() => setSkillsAchieved(prefilledSkills)}
-                className="text-[11px] text-[#800020] hover:underline"
+                className="text-xs text-[#800020] hover:underline"
               >
                 Reset to proficient skills
               </button>
@@ -1004,7 +1004,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
           >
             Madam Studio
           </div>
-          <div className="text-[10px] uppercase tracking-[0.24em] text-stone-500 mt-1">
+          <div className="text-[11px] uppercase tracking-[0.24em] text-stone-500 mt-1">
             Bespoke Atelier · Accra
           </div>
         </div>
@@ -1017,7 +1017,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
           >
             Certificate of Apprenticeship
           </h1>
-          <p className="text-[11px] sm:text-xs uppercase tracking-[0.22em] text-stone-500 mt-3">
+          <p className="text-xs sm:text-xs uppercase tracking-[0.22em] text-stone-500 mt-3">
             This is to certify that
           </p>
         </div>
@@ -1057,7 +1057,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
         {/* Skills chips */}
         {skills.length > 0 && (
           <div className="mt-6 sm:mt-7 w-full max-w-[640px]">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500 mb-2.5">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-stone-500 mb-2.5">
               Mastered skills
             </div>
             <div className="flex flex-wrap justify-center gap-1.5">
@@ -1079,7 +1079,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
           <div className="grid grid-cols-3 items-end gap-4 sm:gap-6">
             {/* Issued by */}
             <div className="text-left">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500 mb-2">
+              <div className="text-[11px] uppercase tracking-[0.22em] text-stone-500 mb-2">
                 Issued by
               </div>
               <div className="h-px bg-[#2F151B]/40 w-full max-w-[180px] mb-1.5" />
@@ -1089,7 +1089,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
               >
                 {cert.issuedBy?.fullName ?? "—"}
               </div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mt-0.5">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400 mt-0.5">
                 Mentor
               </div>
             </div>
@@ -1109,7 +1109,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
                   >
                     MS
                   </span>
-                  <span className="text-[8px] uppercase tracking-[0.16em] text-[#800020] mt-0.5">
+                  <span className="text-[11px] uppercase tracking-[0.16em] text-[#800020] mt-0.5">
                     {year}
                   </span>
                 </div>
@@ -1118,14 +1118,14 @@ function CertificateCard({ cert }: { cert: Certificate }) {
 
             {/* Certificate number */}
             <div className="text-right">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500 mb-2">
+              <div className="text-[11px] uppercase tracking-[0.22em] text-stone-500 mb-2">
                 Certificate No.
               </div>
               <div className="h-px bg-[#2F151B]/40 w-full max-w-[180px] ml-auto mb-1.5" />
               <div className="font-mono text-[#2F151B] text-xs sm:text-sm tabular-nums break-all">
                 {cert.certificateNo}
               </div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mt-0.5">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400 mt-0.5">
                 {formatDate(cert.issuedAt)} · Date issued
               </div>
             </div>

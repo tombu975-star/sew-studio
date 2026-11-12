@@ -183,7 +183,7 @@ export default function TrueCosting() {
                     <td className="px-4 py-3 text-right tabular-nums">
                       <span className="font-medium text-[#2F151B]">{formatCurrency(r.price, currency)}</span>
                       {r.diff !== 0 && (
-                        <span className="block text-[11px] text-stone-400">
+                        <span className="block text-xs text-stone-400">
                           {r.diff > 0 ? "+" : "−"}
                           {formatCurrency(Math.abs(r.diff), currency)} vs suggested
                         </span>
@@ -196,7 +196,7 @@ export default function TrueCosting() {
                       )}
                     >
                       {r.achieved == null ? "—" : `${r.achieved.toFixed(0)}%`}
-                      {r.belowCost && <span className="block text-[11px] font-normal">below cost</span>}
+                      {r.belowCost && <span className="block text-xs font-normal">below cost</span>}
                     </td>
                   </tr>
                 ))}
@@ -224,7 +224,7 @@ function Tile({
 }) {
   return (
     <div className="rounded-xl border border-[#E6D4D8] bg-white p-4 shadow-xs">
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
         <Icon className="w-4 h-4 text-stone-400" /> {label}
       </div>
       <p className={cn("mt-2 font-display text-2xl font-semibold tabular-nums", warn ? "text-amber-700" : "text-[#800020]")}>{value}</p>

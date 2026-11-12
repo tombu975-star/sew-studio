@@ -165,14 +165,14 @@ export function PlanSettingsPanel() {
               }`}
             >
               {plan.key === "pro" && (
-                <span className="absolute -top-2.5 right-4 inline-flex items-center gap-1 rounded-full bg-[#8E3232] px-2.5 py-1 text-[10px] font-semibold text-white">
+                <span className="absolute -top-2.5 right-4 inline-flex items-center gap-1 rounded-full bg-[#8E3232] px-2.5 py-1 text-[11px] font-semibold text-white">
                   <Sparkles className="size-3" /> Popular
                 </span>
               )}
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-base font-semibold text-[#2F151B]">{plan.name}</h3>
                 {isCurrent && (
-                  <span className="rounded-full bg-[#8E3232]/10 px-2 py-1 text-[10px] font-semibold text-[#8E3232]">
+                  <span className="rounded-full bg-[#8E3232]/10 px-2 py-1 text-[11px] font-semibold text-[#8E3232]">
                     Your plan
                   </span>
                 )}
@@ -188,7 +188,7 @@ export function PlanSettingsPanel() {
                     {highlight}
                   </li>
                 ))}
-                <li className="border-t border-stone-100 pt-3 text-[11px] leading-relaxed text-stone-500">
+                <li className="border-t border-stone-100 pt-3 text-xs leading-relaxed text-stone-500">
                   Tools: {plan.features
                     .map((key) => MENU_DEFINITIONS.find((item) => item.key === key)?.label)
                     .filter(Boolean)

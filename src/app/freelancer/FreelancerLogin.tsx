@@ -101,7 +101,7 @@ export function FreelancerLogin({ onLoggedIn }: { onLoggedIn: (p: FreelancerProf
     >
       <PhoneTabs mode={mode} onSwitch={switchMode} />
       <section key={mode} id={`panel-${mode}`} role="tabpanel" aria-labelledby={`tab-${mode}`} className="animate-fade-in">
-        <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#800020] sm:block">
+        <p className="hidden text-xs font-semibold uppercase tracking-[0.2em] text-[#800020] sm:block">
           {registering ? "Join the network" : "Freelancer portal"}
         </p>
         <h2 className="font-serif text-2xl font-medium tracking-tight text-[#2F151B] max-sm:sr-only sm:mt-3 sm:text-4xl">

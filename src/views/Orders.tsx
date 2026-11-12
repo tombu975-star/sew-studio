@@ -291,7 +291,7 @@ export default function Orders() {
                   )}
                 </colgroup>
                 <thead>
-                  <tr className="border-b border-[#EEDFE3] bg-[#FCF8F9]/60 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+                  <tr className="border-b border-[#EEDFE3] bg-[#FCF8F9]/60 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
                     <th className="px-4 py-3 text-left font-semibold">Invoice</th>
                     <th className="px-3 py-3 text-left font-semibold">Customer</th>
                     <th className="px-3 py-3 text-left font-semibold">Garment</th>
@@ -333,7 +333,7 @@ export default function Orders() {
                           <div className="flex items-center gap-2.5 min-w-0">
                             <div
                               className={cn(
-                                "w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-semibold shrink-0",
+                                "w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-semibold shrink-0",
                                 AVATAR_GRADIENTS[hashIndex(o.customer?.id || o.id, AVATAR_GRADIENTS.length)]
                               )}
                             >
@@ -344,7 +344,7 @@ export default function Orders() {
                                 {o.customer?.name || "—"}
                               </div>
                               {o.priority === "High" && (
-                                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] text-[#800020] font-semibold">
+                                <span className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.15em] text-[#800020] font-semibold">
                                   <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
                                   Priority
                                 </span>
@@ -355,7 +355,7 @@ export default function Orders() {
                         <td className="px-3 py-3.5">
                           <div className="truncate text-[#2F151B]">{o.garmentDesign || "—"}</div>
                           {o.assignedStaff && (
-                            <div className="truncate text-[11px] text-stone-400">
+                            <div className="truncate text-xs text-stone-400">
                               {o.assignedStaff.fullName}
                             </div>
                           )}
@@ -425,7 +425,7 @@ export default function Orders() {
                         </div>
                         <StatusBadge status={o.status} />
                       </div>
-                      <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-stone-400">
+                      <div className="mt-2 flex items-center justify-between gap-3 text-xs text-stone-400">
                         <span className="tabular-nums">{invoiceNumber(o, invoicePrefix)}</span>
                         <span
                           className={cn(
@@ -440,15 +440,15 @@ export default function Orders() {
                       {canSeeMoney && (
                         <div className="mt-2.5 grid grid-cols-3 gap-2 rounded-md bg-[#FCF8F9] px-3 py-2 text-[12px] tabular-nums">
                           <div>
-                            <div className="text-[9px] uppercase tracking-wide text-stone-400">Amount</div>
+                            <div className="text-[11px] uppercase tracking-wide text-stone-400">Amount</div>
                             <div className="font-medium text-[#2F151B]">{formatCurrency(o.sellingPrice)}</div>
                           </div>
                           <div>
-                            <div className="text-[9px] uppercase tracking-wide text-stone-400">Paid</div>
+                            <div className="text-[11px] uppercase tracking-wide text-stone-400">Paid</div>
                             <div className="text-stone-600">{formatCurrency(o.paid)}</div>
                           </div>
                           <div className="text-right">
-                            <div className="text-[9px] uppercase tracking-wide text-stone-400">Balance</div>
+                            <div className="text-[11px] uppercase tracking-wide text-stone-400">Balance</div>
                             <div className={cn("font-semibold", settled ? "text-emerald-700" : balance > 0 ? "text-[#800020]" : "text-stone-400")}>
                               {settled ? "Settled" : formatCurrency(balance)}
                             </div>

@@ -125,9 +125,9 @@
   --color-stone-100: #F7EFF1;
   --color-stone-200: #EEE0E3;
   --color-stone-300: #DFCBCF;
-  --color-stone-400: #85696F;
-  --color-stone-500: #765C62;
-  --color-stone-600: #71555B;
+  --color-stone-400: #7B6067;
+  --color-stone-500: #6A5258;
+  --color-stone-600: #5A444A;
   --color-stone-700: #583F45;
   --color-stone-800: #3E282D;
   --color-stone-900: #2F151B;
@@ -154,7 +154,7 @@
   --secondary: #F7EFF1;
   --secondary-foreground: #2F151B;
   --muted: #F7EFF1;
-  --muted-foreground: #776267;
+  --muted-foreground: #6A5258;
   --accent: #F7EDEF;
   --accent-foreground: #800020;
   --destructive: #B42318;
@@ -375,12 +375,13 @@
   }
   input::placeholder,
   textarea::placeholder {
-    color: #B1979D;
+    color: #84696F;
+    opacity: 1;
   }
   ::selection { background: rgb(131 33 56 / 0.16); }
   table thead th {
-    color: #776267;
-    font-size: 0.7rem;
+    color: #6A5258;
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -425,7 +426,7 @@
    ──────────────────────────────────────────────────────────────── */
 :root {
   --atelier-ink: #2F151B;
-  --atelier-muted: #806B70;
+  --atelier-muted: #6F565D;
   --atelier-burgundy: #650019;
   --atelier-burgundy-2: #800020;
   --atelier-rose: #FAF0F2;
@@ -536,7 +537,7 @@ main [class*="rounded-full"][class*="text-"] { letter-spacing: .005em; }
    tracking and public-facing pages. */
 :root {
   --atelier-ink: #2F151B;
-  --atelier-muted: #80666D;
+  --atelier-muted: #6F565D;
   --atelier-burgundy: #800020;
   --atelier-burgundy-2: #650019;
   --atelier-burgundy-deep: #3B0010;

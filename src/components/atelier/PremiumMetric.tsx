@@ -74,7 +74,7 @@ export function PremiumMetric({
         {trend && trendLabel && (
           <span
             className={cn(
-              "mb-0.5 inline-flex items-center gap-0.5 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium",
+              "mb-0.5 inline-flex items-center gap-0.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium",
               trend === "up" && "bg-[#4A6B53]/12 text-[#2F5A3A]",
               trend === "down" && "bg-[#8E3232]/10 text-[#8E3232]",
               trend === "flat" && "bg-stone-100 text-stone-500"

@@ -164,7 +164,7 @@ export function PortalClient() {
             <h1 className="font-display font-semibold mt-4 animate-fade-in-up" style={{ fontSize: "clamp(28px, 6vw, 38px)" }}>
               Track your order
             </h1>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-white/60 mt-2 animate-fade-in-up">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-white/75 mt-2 animate-fade-in-up">
               Sewsiness · Client Portal
             </p>
           </div>
@@ -204,7 +204,7 @@ export function PortalClient() {
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
               </button>
             </form>
-            <p className="text-center text-[11px] text-stone-400 mt-8 leading-relaxed">
+            <p className="text-center text-xs text-stone-400 mt-8 leading-relaxed">
               Don't have a link? Ask the studio to send you your order tracking link.
             </p>
           </div>
@@ -220,7 +220,7 @@ export function PortalClient() {
           <Scissors className="w-5 h-5 text-[#800020]" />
         </div>
         <Loader2 className="w-5 h-5 animate-spin text-[#800020]" />
-        <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400">Loading your orders…</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-stone-400">Loading your orders…</p>
       </div>
     );
   }
@@ -258,7 +258,7 @@ export function PortalClient() {
             </div>
             <span className="font-display text-lg font-semibold">{data.shop.name}</span>
           </div>
-          <p className="text-[10px] uppercase tracking-[0.28em] text-white/55 mb-2">Client Portal</p>
+          <p className="text-[11px] uppercase tracking-[0.28em] text-white/70 mb-2">Client Portal</p>
           <h1 className="font-display font-semibold leading-tight" style={{ fontSize: "clamp(28px, 5vw, 38px)" }}>
             Hello, {data.customer.name.split(" ")[0]} 👋
           </h1>
@@ -302,7 +302,7 @@ export function PortalClient() {
                           <p className="text-sm font-medium text-[#2F151B] truncate">{n.title}</p>
                           {channel && ChannelIcon && (
                             <span
-                              className={`inline-flex items-center gap-1 px-1.5 h-[18px] rounded-full border text-[9px] font-semibold uppercase tracking-wide ${channel.class}`}
+                              className={`inline-flex items-center gap-1 px-1.5 h-[18px] rounded-full border text-[11px] font-semibold uppercase tracking-wide ${channel.class}`}
                             >
                               <ChannelIcon className="w-2.5 h-2.5" />
                               {channel.label}
@@ -310,20 +310,20 @@ export function PortalClient() {
                           )}
                           {direction && (
                             <span
-                              className={`inline-flex items-center px-1.5 h-[18px] rounded-full border text-[9px] font-semibold uppercase tracking-wide ${direction.class}`}
+                              className={`inline-flex items-center px-1.5 h-[18px] rounded-full border text-[11px] font-semibold uppercase tracking-wide ${direction.class}`}
                             >
                               {direction.label}
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-stone-400 shrink-0">{timeAgo(n.sentAt || n.createdAt)}</span>
+                        <span className="text-[11px] text-stone-400 shrink-0">{timeAgo(n.sentAt || n.createdAt)}</span>
                       </div>
                       <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{n.body}</p>
                       {n.order && (
-                        <p className="text-[10px] text-stone-400 mt-1 truncate">→ {n.order.garmentDesign}</p>
+                        <p className="text-[11px] text-stone-400 mt-1 truncate">→ {n.order.garmentDesign}</p>
                       )}
                       {n.recipient && (
-                        <p className="text-[10px] text-stone-400 mt-1 truncate">
+                        <p className="text-[11px] text-stone-400 mt-1 truncate">
                           {channel ? `via ${channel.label} · ` : ""}{n.recipient}
                         </p>
                       )}
@@ -370,18 +370,18 @@ export function PortalClient() {
                       <div className="border-t border-[#EEDFE3] p-4 space-y-5 animate-fade-in-up">
                         {/* Status stepper */}
                         <div>
-                          <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-3">Order journey</p>
+                          <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500 mb-3">Order journey</p>
                           <StatusStepper current={order.status} />
                         </div>
 
                         {/* Delivery + payment summary */}
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-1">Delivery date</p>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500 mb-1">Delivery date</p>
                             <p className="text-sm text-[#2F151B] font-medium">{formatDate(order.deliveryDate)}</p>
                           </div>
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-1">Payment</p>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500 mb-1">Payment</p>
                             <p className="text-sm text-[#2F151B] font-medium tabular-nums">
                               {formatCurrency(paid)} <span className="text-stone-400">of {formatCurrency(order.sellingPrice)}</span>
                             </p>
@@ -391,7 +391,7 @@ export function PortalClient() {
                         {/* Payments */}
                         {order.payments && order.payments.length > 0 && (
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-2">Payments</p>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500 mb-2">Payments</p>
                             <div className="space-y-1.5">
                               {order.payments.map((p) => (
                                 <div key={p.id} className="flex items-center justify-between text-xs">
@@ -406,7 +406,7 @@ export function PortalClient() {
                         {/* Fittings */}
                         {order.fittings && order.fittings.length > 0 && (
                           <div>
-                            <p className="text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-2">Fittings</p>
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500 mb-2">Fittings</p>
                             <div className="space-y-1.5">
                               {order.fittings.map((f) => (
                                 <div key={f.id} className="flex items-center justify-between text-xs">
@@ -452,12 +452,12 @@ export function PortalClient() {
               <div className="rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] p-3.5">
                 <div className="flex items-center gap-1.5 text-stone-400 mb-1.5">
                   <Percent className="w-3.5 h-3.5" />
-                  <span className="text-[10px] uppercase tracking-[0.16em]">Deposit</span>
+                  <span className="text-[11px] uppercase tracking-[0.16em]">Deposit</span>
                 </div>
                 <p className="text-lg font-semibold text-[#2F151B] font-display">
                   {data.shop.policies.depositPercent}%
                 </p>
-                <p className="text-[11px] text-stone-400 mt-0.5">
+                <p className="text-xs text-stone-400 mt-0.5">
                   {data.shop.policies.fullBalanceBeforePickup
                     ? "Balance due before pickup"
                     : "Remainder due on delivery"}
@@ -466,24 +466,24 @@ export function PortalClient() {
               <div className="rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] p-3.5">
                 <div className="flex items-center gap-1.5 text-stone-400 mb-1.5">
                   <ScissorsIcon className="w-3.5 h-3.5" />
-                  <span className="text-[10px] uppercase tracking-[0.16em]">Fittings</span>
+                  <span className="text-[11px] uppercase tracking-[0.16em]">Fittings</span>
                 </div>
                 <p className="text-lg font-semibold text-[#2F151B] font-display">
                   {data.shop.policies.fittingsIncluded} included
                 </p>
-                <p className="text-[11px] text-stone-400 mt-0.5">
+                <p className="text-xs text-stone-400 mt-0.5">
                   {data.shop.policies.alterationsWindowDays}-day alterations window
                 </p>
               </div>
               <div className="rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] p-3.5">
                 <div className="flex items-center gap-1.5 text-stone-400 mb-1.5">
                   <Wallet className="w-3.5 h-3.5" />
-                  <span className="text-[10px] uppercase tracking-[0.16em]">Quotes</span>
+                  <span className="text-[11px] uppercase tracking-[0.16em]">Quotes</span>
                 </div>
                 <p className="text-lg font-semibold text-[#2F151B] font-display">
                   {data.shop.policies.quoteValidDays} days
                 </p>
-                <p className="text-[11px] text-stone-400 mt-0.5">Rush fee {data.shop.policies.rushFeePercent}%</p>
+                <p className="text-xs text-stone-400 mt-0.5">Rush fee {data.shop.policies.rushFeePercent}%</p>
               </div>
             </div>
 
@@ -519,7 +519,7 @@ export function PortalClient() {
           </SectionCard>
         )}
 
-        <p className="text-center text-[11px] text-stone-400 pt-2 pb-6">
+        <p className="text-center text-xs text-stone-400 pt-2 pb-6">
           {data.shop.name} · Client Portal
         </p>
       </div>

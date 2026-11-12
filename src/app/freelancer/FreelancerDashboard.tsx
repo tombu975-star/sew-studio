@@ -85,7 +85,7 @@ export function FreelancerDashboard({
             </span>
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-semibold text-[#2F151B]">Freelancer portal</p>
-              <p className="flex items-center gap-1.5 truncate text-[11px] text-stone-500">{profile.fullName}{profile.verified && <VerifiedBadge compact />}</p>
+              <p className="flex items-center gap-1.5 truncate text-xs text-stone-500">{profile.fullName}{profile.verified && <VerifiedBadge compact />}</p>
             </div>
           </div>
           <nav className="hidden items-center gap-1 md:flex" aria-label="Sections">
@@ -140,7 +140,7 @@ export function FreelancerDashboard({
                 className="relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-2 py-1.5">
                 {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#800020]" />}
                 <Icon className={cn("size-5", active ? "text-[#800020]" : "text-stone-400")} strokeWidth={active ? 2 : 1.5} />
-                <span className={cn("text-[10px] leading-tight", active ? "font-semibold text-[#800020]" : "text-stone-400")}>{label}</span>
+                <span className={cn("text-[11px] leading-tight", active ? "font-semibold text-[#800020]" : "text-stone-400")}>{label}</span>
               </button>
             );
           })}
@@ -243,7 +243,7 @@ function MyJobs({ profile, onBrowse }: { profile: FreelancerProfile; onBrowse: (
               <SectionCard key={j.id}>
                 <div className="mb-2 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    {j.shop?.name && <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-blue-600">{j.shop.name}</p>}
+                    {j.shop?.name && <p className="text-xs font-semibold uppercase tracking-[0.1em] text-blue-600">{j.shop.name}</p>}
                     <p className="mt-0.5 text-sm text-stone-800">{j.taskDescription}</p>
                   </div>
                   <StatusBadge status={j.status} className="shrink-0" />

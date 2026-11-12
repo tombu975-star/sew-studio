@@ -112,7 +112,7 @@ export default function Projection() {
 
             <SectionCard title="Your projected position" description="An estimate based on the work currently in progress.">
               <div className="rounded-xl border border-[#EEDFE3] bg-[#FCF8F9] p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[.16em] text-stone-500">Margin after production costs</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[.16em] text-stone-500">Margin after production costs</p>
                 <p className="mt-2 text-2xl font-semibold tracking-tight text-[#35121D]">{fmt(projection.grossMargin)}</p>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#EADDE0]"><div className="h-full rounded-full bg-[#800020]" style={{ width: `${Math.max(0, Math.min(100, marginPercent))}%` }}/></div>
                 <p className="mt-2 text-xs text-stone-500">{marginPercent}% of booked revenue after estimated costs</p>
@@ -152,7 +152,7 @@ export default function Projection() {
             {projection.active.length ? (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[680px] text-left text-sm">
-                  <thead><tr className="border-b border-[#EEDFE3] text-[10px] uppercase tracking-[.14em] text-stone-500"><th className="px-3 py-3 font-semibold">Order / client</th><th className="px-3 py-3 font-semibold">Stage</th><th className="px-3 py-3 font-semibold">Due date</th><th className="px-3 py-3 text-right font-semibold">Order value</th><th className="px-3 py-3 text-right font-semibold">Balance</th></tr></thead>
+                  <thead><tr className="border-b border-[#EEDFE3] text-[11px] uppercase tracking-[.14em] text-stone-500"><th className="px-3 py-3 font-semibold">Order / client</th><th className="px-3 py-3 font-semibold">Stage</th><th className="px-3 py-3 font-semibold">Due date</th><th className="px-3 py-3 text-right font-semibold">Order value</th><th className="px-3 py-3 text-right font-semibold">Balance</th></tr></thead>
                   <tbody>{projection.active.slice().sort((a,b) => (a.deliveryDate || "9999").localeCompare(b.deliveryDate || "9999")).map((o) => {
                     const paid = (o.payments || []).reduce((n,p) => n + (Number(p.amount) || 0), 0);
                     return <tr key={o.id} className="border-b border-[#F4ECEE] last:border-0"><td className="px-3 py-3"><p className="font-medium text-[#35121D]">{o.garmentDesign || "Custom order"}</p><p className="mt-0.5 text-xs text-stone-500">{o.customer?.name || "Client not specified"}</p></td><td className="px-3 py-3"><span className="inline-flex rounded-full bg-[#F7EEF0] px-2.5 py-1 text-xs font-medium text-[#6B1D32]">{o.status}</span></td><td className="px-3 py-3 text-xs text-stone-600">{o.deliveryDate ? new Date(o.deliveryDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Not set"}</td><td className="px-3 py-3 text-right font-medium tabular-nums">{fmt(Number(o.sellingPrice) || 0)}</td><td className="px-3 py-3 text-right tabular-nums text-stone-600">{fmt(Math.max(0, (Number(o.sellingPrice) || 0) - paid))}</td></tr>;

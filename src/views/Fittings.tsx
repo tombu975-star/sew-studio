@@ -274,7 +274,7 @@ function DateChip({ iso }: { iso: string }) {
   const d = new Date(iso);
   if (isNaN(d.getTime())) {
     return (
-      <div className="w-11 h-11 rounded-md bg-[#FAF0F2] border border-[#EEDFE3] flex items-center justify-center text-[10px] text-stone-400">
+      <div className="w-11 h-11 rounded-md bg-[#FAF0F2] border border-[#EEDFE3] flex items-center justify-center text-[11px] text-stone-400">
         —
       </div>
     );
@@ -283,7 +283,7 @@ function DateChip({ iso }: { iso: string }) {
   const day = d.getDate();
   return (
     <div className="w-11 h-11 shrink-0 rounded-md bg-[#FAF0F2] border border-[#EEDFE3] flex flex-col items-center justify-center leading-none">
-      <span className="text-[9px] uppercase tracking-[0.14em] text-stone-400 mt-1">
+      <span className="text-[11px] uppercase tracking-[0.14em] text-stone-400 mt-1">
         {month}
       </span>
       <span className="font-display font-semibold text-[#2F151B] text-base mt-0.5">
@@ -342,7 +342,7 @@ function FittingRow({
             {formatDate(fitting.date)}
           </span>
           {overdue && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
               <AlertCircle className="w-3 h-3" />
               Overdue
             </span>

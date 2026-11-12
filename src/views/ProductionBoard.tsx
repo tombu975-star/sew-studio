@@ -234,19 +234,19 @@ export default function ProductionBoard() {
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#F8EDF0] text-[#800020]"><ClipboardCheck className="size-5"/></span>
-          <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-stone-500">Active orders</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
+          <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-stone-500">Active orders</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
         </div>
         <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-700"><Clock3 className="size-5"/></span>
-          <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-stone-500">Due soon</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => o.deliveryDate && new Date(o.deliveryDate).getTime() >= Date.now() && new Date(o.deliveryDate).getTime() <= Date.now() + 7 * 86400000 && !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
+          <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-stone-500">Due soon</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => o.deliveryDate && new Date(o.deliveryDate).getTime() >= Date.now() && new Date(o.deliveryDate).getTime() <= Date.now() + 7 * 86400000 && !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
         </div>
         <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-rose-50 text-rose-700"><AlertCircle className="size-5"/></span>
-          <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-stone-500">Overdue</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => o.deliveryDate && isOverdue(o.deliveryDate) && !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
+          <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-stone-500">Overdue</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => o.deliveryDate && isOverdue(o.deliveryDate) && !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
         </div>
         <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-700"><CheckCircle2 className="size-5"/></span>
-          <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-stone-500">Completed</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => ["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
+          <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-stone-500">Completed</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => ["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
         </div>
       </div>
 
@@ -361,10 +361,10 @@ function Column({
     >
       {/* Header */}
       <div className="px-4 py-3.5 border-b border-[#E8DDE0] flex items-center justify-between bg-white/80 rounded-t-2xl">
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#51343C]">
+        <h3 className="text-xs font-bold uppercase tracking-[0.16em] text-[#51343C]">
           {col.title}
         </h3>
-        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-semibold text-[#2F151B] tabular-nums bg-white border border-[#EEDFE3] rounded-full">
+        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold text-[#2F151B] tabular-nums bg-white border border-[#EEDFE3] rounded-full">
           {cards.length}
         </span>
       </div>
@@ -372,7 +372,7 @@ function Column({
       {/* Cards */}
       <div className="max-h-[calc(100dvh-330px)] min-h-[220px] overflow-y-auto scroll-slim space-y-3 p-3">
         {cards.length === 0 ? (
-          <div className="text-[11px] text-stone-500 text-center py-8 italic">
+          <div className="text-xs text-stone-500 text-center py-8 italic">
             Drop orders here
           </div>
         ) : (
@@ -454,13 +454,13 @@ function Card({
         <div className="flex items-center gap-2 min-w-0">
           <div
             className={cn(
-              "w-5 h-5 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-semibold shrink-0",
+              "w-5 h-5 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-semibold shrink-0",
               grad
             )}
           >
             {initials(order.customer?.name || "?")}
           </div>
-          <div className="text-[11px] text-stone-500 truncate font-medium">
+          <div className="text-xs text-stone-500 truncate font-medium">
             {order.customer?.name || "—"}
           </div>
         </div>
@@ -493,7 +493,7 @@ function Card({
         <StatusBadge status={order.status} />
         {order.priority === "High" && (
           <span
-            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-[#800020] font-semibold"
+            className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wide text-[#800020] font-semibold"
             title="High priority"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[#800020]" />
@@ -505,7 +505,7 @@ function Card({
       {/* Paid progress bar */}
       {order.sellingPrice > 0 && (
         <div className="mt-2.5">
-          <div className="flex justify-between text-[9px] uppercase tracking-wide text-stone-400 mb-0.5">
+          <div className="flex justify-between text-[11px] uppercase tracking-wide text-stone-400 mb-0.5">
             <span>Paid</span>
             <span className="tabular-nums">{paidPct}%</span>
           </div>
@@ -543,7 +543,7 @@ function Card({
       <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-[#EEDFE3]/70">
         <span
           className={cn(
-            "text-[11px] flex items-center gap-1 tabular-nums",
+            "text-xs flex items-center gap-1 tabular-nums",
             overdue ? "text-amber-700 font-semibold" : "text-stone-500"
           )}
         >
@@ -552,7 +552,7 @@ function Card({
         </span>
         <span
           className={cn(
-            "text-[10px] tabular-nums",
+            "text-[11px] tabular-nums",
             paidPct >= 100 && order.sellingPrice > 0
               ? "text-emerald-700 font-semibold"
               : "text-stone-400"

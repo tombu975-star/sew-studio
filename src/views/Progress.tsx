@@ -246,14 +246,14 @@ function OwnerProgress() {
             <div className="hidden md:flex items-center gap-2 rounded-full border border-[#EEDFE3] bg-white pl-2 pr-3 py-1.5 elevate-sm">
               <span
                 className={cn(
-                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-display font-semibold",
+                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-display font-semibold",
                   gradientFor(user.fullName)
                 )}
               >
                 {initialOf(user.fullName)}
               </span>
               <div className="leading-tight">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
                   {user.role === "trainer" ? "Trainer" : "Owner"}
                 </div>
                 <div className="text-xs font-medium text-[#2F151B]">
@@ -352,7 +352,7 @@ function OwnerProgress() {
                       </span>
                       <span
                         className={cn(
-                          "block text-[10px] uppercase tracking-[0.16em]",
+                          "block text-[11px] uppercase tracking-[0.16em]",
                           active ? "text-white/70" : "text-stone-400"
                         )}
                       >
@@ -777,7 +777,7 @@ function SkillMasteryCard({
                       {group.skill}
                     </span>
                     <StatusBadge status={group.latest.status} />
-                    <span className="text-[11px] text-stone-400 tabular-nums">
+                    <span className="text-xs text-stone-400 tabular-nums">
                       {group.logs.length}{" "}
                       {group.logs.length === 1 ? "entry" : "entries"}
                     </span>
@@ -795,7 +795,7 @@ function SkillMasteryCard({
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
                     Latest
                   </div>
                   <div className="text-xs text-stone-500 tabular-nums">
@@ -855,7 +855,7 @@ function TrainingLogRow({
       <div className="flex items-start gap-4">
         {/* Date column */}
         <div className="shrink-0 w-16 text-center pt-0.5">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
             {new Date(log.date).toLocaleDateString("en-GB", {
               month: "short",
             })}
@@ -863,7 +863,7 @@ function TrainingLogRow({
           <div className="font-display font-semibold text-[#2F151B] text-lg leading-none tabular-nums">
             {new Date(log.date).getDate()}
           </div>
-          <div className="text-[10px] text-stone-400 tabular-nums mt-0.5">
+          <div className="text-[11px] text-stone-400 tabular-nums mt-0.5">
             {new Date(log.date).getFullYear()}
           </div>
         </div>
@@ -874,7 +874,7 @@ function TrainingLogRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             {log.skill && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#800020] bg-[#800020]/8 border border-[#800020]/15 px-1.5 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-[#800020] bg-[#800020]/8 border border-[#800020]/15 px-1.5 py-0.5 rounded-md">
                 <Scissors className="w-3 h-3" /> {log.skill}
               </span>
             )}
@@ -886,7 +886,7 @@ function TrainingLogRow({
             </p>
           )}
           {log.mentor && (
-            <p className="text-[11px] text-stone-400 mt-2 inline-flex items-center gap-1.5">
+            <p className="text-xs text-stone-400 mt-2 inline-flex items-center gap-1.5">
               <GraduationCap className="w-3 h-3" /> with {log.mentor.fullName}
             </p>
           )}
@@ -904,7 +904,7 @@ function TrainingLogRow({
             >
               <SelectTrigger
                 size="sm"
-                className="h-7 w-[120px] text-[11px] bg-white"
+                className="h-7 w-[120px] text-xs bg-white"
                 aria-label="Update status"
               >
                 <SelectValue />
@@ -1010,7 +1010,7 @@ function MyTasksCard({
                   {task.dueDate && (
                     <span
                       className={cn(
-                        "text-[11px] tabular-nums inline-flex items-center gap-1",
+                        "text-xs tabular-nums inline-flex items-center gap-1",
                         overdue ? "text-[#8E3232] font-medium" : "text-stone-500"
                       )}
                     >
@@ -1082,7 +1082,7 @@ function OrdersContributedCard({
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-stone-400 mt-0.5 tabular-nums">
+                <p className="text-xs text-stone-400 mt-0.5 tabular-nums">
                   {shortDate(order.orderDate)}
                 </p>
               </div>
@@ -1188,7 +1188,7 @@ function LogForm({
       <div className="grid gap-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+            <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
               Skill
             </Label>
             <Select value={skill} onValueChange={setSkill}>
@@ -1205,7 +1205,7 @@ function LogForm({
             </Select>
           </div>
           <div className="grid gap-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+            <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
               Status
             </Label>
             <Select
@@ -1228,7 +1228,7 @@ function LogForm({
 
         {finalSkillIsOther && (
           <div className="grid gap-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+            <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
               Skill name
             </Label>
             <Input
@@ -1241,7 +1241,7 @@ function LogForm({
         )}
 
         <div className="grid gap-1.5">
-          <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+          <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
             Title <span className="text-[#800020]">*</span>
           </Label>
           <Input
@@ -1253,7 +1253,7 @@ function LogForm({
         </div>
 
         <div className="grid gap-1.5">
-          <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+          <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
             Note
           </Label>
           <Textarea
@@ -1266,7 +1266,7 @@ function LogForm({
         </div>
 
         <div className="grid gap-1.5">
-          <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+          <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
             Date
           </Label>
           <Input
@@ -1330,7 +1330,7 @@ function MentorTrainingCard({
             <UserIcon className="w-5 h-5 text-[#800020]" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
               Mentor
             </div>
             <div className="font-medium text-[#2F151B] mt-0.5 truncate">
@@ -1345,7 +1345,7 @@ function MentorTrainingCard({
             <Clock className="w-5 h-5 text-[#800020]" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
               Programme length
             </div>
             <div className="font-medium text-[#2F151B] mt-0.5 tabular-nums">
@@ -1369,10 +1369,10 @@ function MentorTrainingCard({
             className="h-2 bg-[#EEDFE3]/80 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-[#800020] [&>[data-slot=progress-indicator]]:to-[#650019]"
           />
           <div className="flex items-center justify-between mt-2">
-            <p className="text-[11px] text-stone-400">
+            <p className="text-xs text-stone-400">
               {startedAt ? `Started ${formatDate(startedAt)}` : "Start date not set"}
             </p>
-            <span className="text-[11px] text-stone-400 tabular-nums">
+            <span className="text-xs text-stone-400 tabular-nums">
               {trainingPercent}%
             </span>
           </div>
@@ -1404,7 +1404,7 @@ function OverallAverageCard({
     <SectionCard title="Overall average" bodyClassName="p-5" accent>
       {avgPctValue === null ? (
         <div className="flex flex-col items-start">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
             No grades yet
           </div>
           <div
@@ -1419,7 +1419,7 @@ function OverallAverageCard({
         </div>
       ) : (
         <div className="flex flex-col items-start">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
             Across {gradedCount} graded{" "}
             {gradedCount === 1 ? "assignment" : "assignments"}
           </div>
@@ -1573,7 +1573,7 @@ function AssignmentRow({
           {task.dueDate && (
             <span
               className={cn(
-                "text-[11px] tabular-nums inline-flex items-center gap-1",
+                "text-xs tabular-nums inline-flex items-center gap-1",
                 overdue ? "text-[#8E3232] font-medium" : "text-stone-500"
               )}
             >
@@ -1594,7 +1594,7 @@ function AssignmentRow({
               <LetterPill pct={pct ?? 0} />
             </div>
           ) : awaiting ? (
-            <span className="text-[11px] text-stone-400 italic">
+            <span className="text-xs text-stone-400 italic">
               Awaiting grade
             </span>
           ) : null}
@@ -1604,14 +1604,14 @@ function AssignmentRow({
       {/* Feedback */}
       {graded && task.feedback && (
         <div className="mt-3 rounded-md bg-[#800020]/[0.04] border-l-2 border-[#800020]/30 pl-3 pr-3 py-2">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-[#800020] mb-1 inline-flex items-center gap-1">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-[#800020] mb-1 inline-flex items-center gap-1">
             <Sparkles className="w-3 h-3" /> Mentor feedback
           </div>
           <p className="text-xs text-stone-600 whitespace-pre-wrap leading-relaxed">
             {task.feedback}
           </p>
           {task.gradedBy && (
-            <p className="text-[10px] text-stone-400 mt-1.5">
+            <p className="text-[11px] text-stone-400 mt-1.5">
               — {task.gradedBy.fullName}
               {task.gradedAt ? ` · ${formatDate(task.gradedAt)}` : ""}
             </p>
@@ -1741,7 +1741,7 @@ function GradeForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+            <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
               Max score
             </Label>
             <Input
@@ -1753,7 +1753,7 @@ function GradeForm({
             />
           </div>
           <div className="grid gap-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+            <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
               Score <span className="text-[#800020]">*</span>
             </Label>
             <Input
@@ -1781,7 +1781,7 @@ function GradeForm({
         )}
 
         <div className="grid gap-1.5">
-          <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+          <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
             Competency unit (evidence)
           </Label>
           <Select value={competencyUnitId} onValueChange={setCompetencyUnitId}>
@@ -1797,7 +1797,7 @@ function GradeForm({
               ))}
             </SelectContent>
           </Select>
-          <p className="text-[11px] text-stone-400">
+          <p className="text-xs text-stone-400">
             {programId
               ? "Optional — tag this grade as evidence toward a competency unit in the trainee's program, for their portfolio."
               : "This trainee isn't enrolled in a training program yet, so there's nothing to tag this grade against."}
@@ -1805,7 +1805,7 @@ function GradeForm({
         </div>
 
         <div className="grid gap-1.5">
-          <Label className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+          <Label className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
             Feedback
           </Label>
           <Textarea
@@ -1852,7 +1852,7 @@ function ScoreBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold border rounded-md tabular-nums",
+        "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold border rounded-md tabular-nums",
         tone
       )}
     >
@@ -1872,7 +1872,7 @@ function LetterPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide border rounded-md",
+        "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide border rounded-md",
         LETTER_TONES[letter],
         className
       )}

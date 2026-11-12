@@ -82,7 +82,7 @@ export const DEFAULT_WEBSITE_CONTENT: WebsiteContent = {
       { icon: "calendar", title: "Fittings", text: "Schedule fittings and keep alterations on track." },
       { icon: "message", title: "Client updates", text: "Keep clients informed as their order moves through each stage." },
       { icon: "sparkles", title: "Style Assist", text: "AI-supported style ideas to inspire your next design." },
-      { icon: "graduation", title: "Training and certificates", text: "Curriculum, progress tracking and certificates for apprentices." },
+      { icon: "graduation", title: "Webinars and training", text: "Live webinars, curriculum, progress tracking and certificates for apprentices." },
       { icon: "shield", title: "Role-based access", text: "Owners, staff and trainees each see only what they need." },
     ],
   },

@@ -28,6 +28,7 @@ import {
   Crown,
   Clock3,
   Calculator,
+  Radio,
   Wallet,
   Truck,
   Package,
@@ -107,6 +108,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
       label: "Learning",
       items: [
         { to: "curriculum", label: "Curriculum", icon: BookOpen },
+        { to: "webinars", label: "Webinars & Training", icon: Radio },
         { to: "progress", label: "Progress", icon: GraduationCap },
         { to: "portfolio", label: "Portfolio", icon: ImageIcon },
         { to: "certificate", label: "Certificates", icon: Award },
@@ -140,6 +142,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
       label: "Learning",
       items: [
         { to: "curriculum", label: "Curriculum", icon: BookOpen },
+        { to: "webinars", label: "Webinars & Training", icon: Radio },
         { to: "progress", label: "Trainee Progress", icon: GraduationCap },
         { to: "portfolio", label: "Portfolio", icon: ImageIcon },
       ],
@@ -166,7 +169,10 @@ const SECTIONS: Record<Role, NavSection[]> = {
     },
     {
       label: "Work",
-      items: [{ to: "portfolio", label: "Portfolio", icon: ImageIcon }],
+      items: [
+        { to: "portfolio", label: "Portfolio", icon: ImageIcon },
+        { to: "webinars", label: "Webinars & Training", icon: Radio },
+      ],
     },
   ],
   // TRAINEE — focused learning journey
@@ -187,6 +193,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
       label: "My Journey",
       items: [
         { to: "curriculum", label: "My Curriculum", icon: BookOpen },
+        { to: "webinars", label: "Webinars & Training", icon: Radio },
         { to: "progress", label: "My Progress", icon: GraduationCap },
         { to: "portfolio", label: "Portfolio", icon: ImageIcon },
         { to: "certificate", label: "Certificate", icon: Award },
@@ -273,6 +280,7 @@ const VIEW_META: Record<ViewKey, { label: string; icon: IconType }> = {
   community: { label: "Community", icon: MessageSquare },
   progress: { label: "Trainee Progress", icon: GraduationCap },
   curriculum: { label: "Curriculum", icon: BookOpen },
+  webinars: { label: "Webinars & Training", icon: Radio },
   portfolio: { label: "Portfolio", icon: ImageIcon },
   certificate: { label: "Certificate", icon: Award },
   messages: { label: "Messages", icon: Send },
@@ -391,7 +399,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {shopDisplayName}
               </p>
               <span
-                className="inline-flex items-center text-[10px] font-medium mt-1 px-1.5 py-0.5 rounded-sm"
+                className="inline-flex items-center text-[11px] font-medium mt-1 px-1.5 py-0.5 rounded-sm"
                 style={{ backgroundColor: "#581A28", color: "#E1CDD1" }}
               >
                 {ROLE_LABELS[role]} portal
@@ -443,7 +451,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             const renderSection = (section: NavSection, si: number) => (
               <div key={section.label} className={cn(si > 0 && "mt-4 lg:mt-[18px]")}>
                 {si > 0 && <div className="lg:hidden h-px bg-sidebar-border mx-3 mb-3" aria-hidden="true" />}
-                <p className="hidden lg:block text-[11px] font-medium text-slate-400 px-3 mb-1.5">{section.label}</p>
+                <p className="hidden lg:block text-xs font-medium text-slate-400 px-3 mb-1.5">{section.label}</p>
                 <div className="space-y-0.5">{section.items.map(renderItem)}</div>
               </div>
             );
@@ -452,7 +460,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <>
                 {collapse && basicItems.length > 0 && (
                   <div>
-                    <p className="hidden lg:block text-[11px] font-medium text-slate-400 px-3 mb-1.5">Everyday</p>
+                    <p className="hidden lg:block text-xs font-medium text-slate-400 px-3 mb-1.5">Everyday</p>
                     <div className="space-y-0.5">{basicItems.map(renderItem)}</div>
                   </div>
                 )}
@@ -504,7 +512,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <p className="text-[13px] font-medium text-sidebar-foreground truncate">
                     {user.fullName}
                   </p>
-                  <p className="text-[11px] text-sidebar-foreground/50 group-hover:text-sidebar-primary transition-colors">
+                  <p className="text-xs text-sidebar-foreground/50 group-hover:text-sidebar-primary transition-colors">
                     My profile
                   </p>
                 </div>
@@ -620,7 +628,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 />
                 <span
                   className={cn(
-                    "text-[9px] leading-tight transition-colors truncate w-full text-center",
+                    "text-[11px] leading-tight transition-colors truncate w-full text-center",
                     active ? "text-[#800020] font-semibold" : "text-stone-400"
                   )}
                 >
@@ -638,7 +646,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn("w-5 h-5 shrink-0", moreOpen ? "text-[#800020]" : "text-stone-400")}
                 strokeWidth={1.5}
               />
-              <span className="text-[9px] leading-tight text-stone-400">More</span>
+              <span className="text-[11px] leading-tight text-stone-400">More</span>
             </button>
           )}
         </div>
@@ -681,7 +689,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       : "text-stone-600 hover:bg-[#FCF8F9]"
                   )}
                 >
-                  <div className="w-7 h-7 rounded-full bg-[#800020] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-[#800020] text-white flex items-center justify-center text-[11px] font-semibold shrink-0">
                     {(user?.fullName || "?").charAt(0).toUpperCase()}
                   </div>
                   <span className="flex-1 text-left truncate">{user?.fullName || "My profile"}</span>
@@ -696,7 +704,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 if (sectionMore.length === 0) return null;
                 return (
                   <div key={section.label} className="mb-4">
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-stone-400 px-3 mb-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-400 px-3 mb-1.5">
                       {section.label}
                     </p>
                     <div className="space-y-0.5">

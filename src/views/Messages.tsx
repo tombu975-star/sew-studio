@@ -344,7 +344,7 @@ export default function Messages() {
       <SectionCard className="mb-6" bodyClassName="py-3">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400 hidden sm:inline">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-stone-400 hidden sm:inline">
               Filter
             </span>
           </div>
@@ -372,7 +372,7 @@ export default function Messages() {
             />
           </div>
           {filtered.length !== messages.length && (
-            <span className="text-[11px] text-stone-400 shrink-0 tabular-nums">
+            <span className="text-xs text-stone-400 shrink-0 tabular-nums">
               {filtered.length} of {messages.length}
             </span>
           )}
@@ -441,7 +441,7 @@ function MessageRow({ message }: { message: CustomerNotification }) {
           <div className="flex items-center flex-wrap gap-2 mb-1.5">
             <span
               className={cn(
-                "inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide border rounded-md",
+                "inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide border rounded-md",
                 channel.badge
               )}
             >
@@ -450,18 +450,18 @@ function MessageRow({ message }: { message: CustomerNotification }) {
             </span>
             <span
               className={cn(
-                "inline-flex items-center px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide border rounded-md",
+                "inline-flex items-center px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide border rounded-md",
                 direction.class
               )}
             >
               {direction.label}
             </span>
             {message.recipient && (
-              <span className="text-[11px] text-stone-500 tabular-nums truncate">
+              <span className="text-xs text-stone-500 tabular-nums truncate">
                 {message.recipient}
               </span>
             )}
-            <span className="ml-auto text-[11px] text-stone-400 shrink-0 tabular-nums">
+            <span className="ml-auto text-xs text-stone-400 shrink-0 tabular-nums">
               {timeAgo(message.sentAt || message.createdAt)}
             </span>
           </div>
@@ -478,23 +478,23 @@ function MessageRow({ message }: { message: CustomerNotification }) {
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 mt-2.5">
             {message.customer && (
               <span className="inline-flex items-center gap-1.5 min-w-0">
-                <span className="w-5 h-5 rounded-full bg-[#800020] text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
+                <span className="w-5 h-5 rounded-full bg-[#800020] text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
                   {initial}
                 </span>
-                <span className="text-[11px] text-stone-600 truncate">
+                <span className="text-xs text-stone-600 truncate">
                   {message.customer.name}
                 </span>
               </span>
             )}
             {message.order && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-stone-400 truncate min-w-0">
+              <span className="inline-flex items-center gap-1 text-xs text-stone-400 truncate min-w-0">
                 <span className="text-stone-300">·</span>
                 <span className="truncate">{message.order.garmentDesign}</span>
               </span>
             )}
             <span
               className={cn(
-                "ml-auto inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide border rounded-md",
+                "ml-auto inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide border rounded-md",
                 delivery.class,
                 failed && "ring-1 ring-red-200"
               )}
@@ -634,7 +634,7 @@ function SendMessageDialog({
               </SelectContent>
             </Select>
             {selectedCustomer && (
-              <p className="text-[10px] text-stone-400 leading-relaxed">
+              <p className="text-[11px] text-stone-400 leading-relaxed">
                 {[
                   selectedCustomer.whatsapp &&
                     `WhatsApp ${selectedCustomer.whatsapp}`,
@@ -651,7 +651,7 @@ function SendMessageDialog({
           <div className="grid gap-1.5">
             <Label htmlFor="msg-order">
               Linked order{" "}
-              <span className="text-[10px] font-normal text-stone-400">
+              <span className="text-[11px] font-normal text-stone-400">
                 (optional)
               </span>
             </Label>
@@ -695,7 +695,7 @@ function SendMessageDialog({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-[10px] text-stone-400">
+            <p className="text-[11px] text-stone-400">
               Auto-detect picks WhatsApp → SMS → email → in-app based on the
               customer&apos;s contact details.
             </p>

@@ -446,7 +446,7 @@ export default function OrderDetail() {
             {/* Paid progress bar */}
             {order.sellingPrice > 0 && (
               <div className="mb-5">
-                <div className="flex justify-between text-[10px] uppercase tracking-[0.18em] text-stone-500 mb-1.5">
+                <div className="flex justify-between text-[11px] uppercase tracking-[0.18em] text-stone-500 mb-1.5">
                   <span>Payment progress</span>
                   <span className="tabular-nums">{paidPct}%</span>
                 </div>
@@ -463,7 +463,7 @@ export default function OrderDetail() {
             )}
 
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-2.5">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-2.5">
                 Payments
               </div>
               {order.payments && order.payments.length > 0 ? (
@@ -487,7 +487,7 @@ export default function OrderDetail() {
                             <div className="text-sm font-semibold text-[#2F151B] tabular-nums">
                               {formatCurrency(p.amount, currency)}
                             </div>
-                            <div className="text-[11px] text-stone-400">
+                            <div className="text-xs text-stone-400">
                               {formatDate(p.date)}
                               {p.method ? ` · ${p.method}` : ""}
                               {p.note ? ` · ${p.note}` : ""}
@@ -544,7 +544,7 @@ export default function OrderDetail() {
                 />
               </div>
               <div className="rounded-md border border-[#EEDFE3] bg-[#FAF0F2] p-3.5 text-[12px] text-stone-600 leading-relaxed">
-                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-1.5">
+                <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-stone-500 font-semibold mb-1.5">
                   <Sparkles className="w-3 h-3 text-[#800020]" />
                   Note
                 </div>
@@ -678,7 +678,7 @@ export default function OrderDetail() {
           <span className="text-xs text-stone-500 group-hover:text-[#800020] font-medium">
             Add a design image
           </span>
-          <span className="text-[10px] text-stone-400">
+          <span className="text-[11px] text-stone-400">
             Paste a photo or illustration URL
           </span>
         </button>
@@ -700,7 +700,7 @@ export default function OrderDetail() {
             >
               <div
                 className={cn(
-                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-semibold",
+                  "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-semibold",
                   custGrad
                 )}
               >
@@ -726,7 +726,7 @@ export default function OrderDetail() {
                 Delivery{" "}
                 {order.deliveryDate ? formatDate(order.deliveryDate) : "—"}
                 {overdue && (
-                  <span className="text-[10px] uppercase tracking-wide ml-1 flex items-center gap-1">
+                  <span className="text-[11px] uppercase tracking-wide ml-1 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" /> overdue
                   </span>
                 )}
@@ -832,7 +832,7 @@ export default function OrderDetail() {
                       <div className="text-sm font-medium text-[#2F151B] truncate">
                         {t.title}
                       </div>
-                      <div className="text-[11px] text-stone-400 mt-0.5">
+                      <div className="text-xs text-stone-400 mt-0.5">
                         {t.dueDate ? `Due ${shortDate(t.dueDate)}` : "No due date"}
                         {t.staff ? ` · ${t.staff.fullName}` : ""}
                       </div>
@@ -1069,7 +1069,7 @@ function Stat({
 }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-semibold">
+      <div className="text-[11px] uppercase tracking-[0.18em] text-stone-500 font-semibold">
         {label}
       </div>
       {valueNode ? (
@@ -1087,7 +1087,7 @@ function Stat({
           {value}
         </div>
       )}
-      {sub && <div className="text-[10px] text-stone-400 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[11px] text-stone-400 mt-0.5">{sub}</div>}
     </div>
   );
 }

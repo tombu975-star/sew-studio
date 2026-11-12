@@ -78,7 +78,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500 flex items-center gap-1">
+      <Label className="text-xs font-medium uppercase tracking-[0.14em] text-stone-500 flex items-center gap-1">
         {label}
         {required && <span className="text-[#800020]">*</span>}
       </Label>
@@ -108,7 +108,7 @@ function StatusPill({ status }: { status: UnitStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium",
+        "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
         STATUS_STYLE[status].pill
       )}
     >
@@ -391,7 +391,7 @@ function CourseHeader({
           />
         </Stat>
         <Stat label="Average score" value={avg == null ? "Not graded" : `${avg}%`}>
-          <p className="text-[11px] text-slate-500">Pass {PASS_MARK}%</p>
+          <p className="text-xs text-slate-500">Pass {PASS_MARK}%</p>
         </Stat>
         <Stat label="Time in programme" value={hasStarted ? `Week ${weekNow}/${program.durationWeeks}` : "Not started"}>
           {hasStarted && <Bar label="Time elapsed" value={(weekNow / program.durationWeeks) * 100} tone="green" />}
@@ -926,7 +926,7 @@ function ProgramCard({
                     </div>
                     <div className="w-28 shrink-0">
                       <Bar label={`${user.fullName} completion`} value={p.completionPct} tone={p.completionPct === 100 ? "green" : "blue"} />
-                      <p className="mt-1 text-right text-[11px] tabular-nums text-slate-500">{p.completionPct}%</p>
+                      <p className="mt-1 text-right text-xs tabular-nums text-slate-500">{p.completionPct}%</p>
                     </div>
                   </li>
                 ))}

@@ -16,7 +16,7 @@ export function PageHeader({
   return (
     <div className="mb-6 animate-fade-in-up">
       {eyebrow && (
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600 mb-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-blue-600 mb-2">
           {eyebrow}
         </p>
       )}

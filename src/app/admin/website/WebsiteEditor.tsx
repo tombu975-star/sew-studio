@@ -77,7 +77,7 @@ export function WebsiteEditor() {
       <form onSubmit={save} className="mx-auto max-w-4xl space-y-5">
         <a href="/admin" className="text-sm font-medium text-[#782F43] hover:underline">← Back to platform admin</a>
         <header>
-          <p className="text-[11px] font-semibold uppercase tracking-[.16em] text-[#9A6A42]">Public website</p>
+          <p className="text-xs font-semibold uppercase tracking-[.16em] text-[#85563A]">Public website</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Website content</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500">Edit the text, portals, features and questions shown on the public home page. Changes go live as soon as you save.</p>
           <a href="/" target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[#782F43] hover:underline">View website <ExternalLink className="size-3.5" /></a>

@@ -23,6 +23,7 @@ export type ViewKey =
   | "community"
   | "progress"
   | "curriculum"
+  | "webinars"
   | "portfolio"
   | "certificate"
   | "messages"

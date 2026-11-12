@@ -229,7 +229,7 @@ export default function NewOrder() {
                     </SelectContent>
                   </Select>
                   {customers && customers.length === 0 && (
-                    <p className="text-[11px] text-stone-400 mt-1">
+                    <p className="text-xs text-stone-400 mt-1">
                       No customers found. Add one from the Customers view.
                     </p>
                   )}
@@ -347,7 +347,7 @@ export default function NewOrder() {
                   <div className="flex items-center justify-between gap-3">
                     <dt className="text-stone-500">
                       Studio overhead share
-                      <span className="block text-[11px] text-stone-400">
+                      <span className="block text-xs text-stone-400">
                         {overheadRate > 0 ? `${overheadRate.toFixed(1)}% of materials cost, added automatically` : "Flat per-order overhead from Settings"}
                       </span>
                     </dt>
@@ -371,7 +371,7 @@ export default function NewOrder() {
                       onChange={(e) => setMarkupInput(e.target.value)}
                       className="rounded-md mt-1.5 tabular-nums"
                     />
-                    <p className="text-[11px] text-stone-400 mt-1">Starts from the default set in Settings.</p>
+                    <p className="text-xs text-stone-400 mt-1">Starts from the default set in Settings.</p>
                   </div>
                   <div>
                     <Label>Suggested price ({currency})</Label>
@@ -396,7 +396,7 @@ export default function NewOrder() {
                     className="rounded-md mt-1.5 tabular-nums"
                   />
                   {priceEdited && trueCost > 0 ? (
-                    <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-stone-500">
+                    <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-stone-500">
                       <span>
                         {priceDiff === 0
                           ? "Matches the suggested price."
@@ -414,7 +414,7 @@ export default function NewOrder() {
                       </button>
                     </p>
                   ) : (
-                    <p className="mt-1 text-[11px] text-stone-400">Filled in from the costs above. Type over it to set your own price.</p>
+                    <p className="mt-1 text-xs text-stone-400">Filled in from the costs above. Type over it to set your own price.</p>
                   )}
                 </div>
               </div>
@@ -480,7 +480,7 @@ export default function NewOrder() {
                 </div>
             </dl>
             <div className={cn("mt-4 flex items-center justify-between gap-3 rounded-md border p-3", estMargin >= 0 ? "bg-emerald-50/60 border-emerald-200" : "bg-amber-50/60 border-amber-200")}>
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-stone-500">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] font-semibold text-stone-500">
                 <TrendingUp className={cn("w-4 h-4", estMargin >= 0 ? "text-emerald-600" : "text-amber-600")} />
                 Est. margin
               </div>
@@ -488,7 +488,7 @@ export default function NewOrder() {
                 <AnimatedNumber value={estMargin} format="currency" currency={currency} duration={400} />
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-stone-400">Selling price − true cost (materials, labour, other costs and overhead).</p>
+            <p className="mt-2 text-[11px] text-stone-400">Selling price − true cost (materials, labour, other costs and overhead).</p>
           </SectionCard>
 
           <SectionCard title="Measurements on file" action={<Ruler className="w-4 h-4 text-stone-400" />}>
@@ -509,7 +509,7 @@ export default function NewOrder() {
                   <p className="text-xs text-stone-400">{customerId ? "None recorded yet." : "Select a customer to see their measurements."}</p>
                 )}
             {latestMeasurement && (
-              <p className="mt-3 text-[10px] text-stone-400">Last measured {formatDate(latestMeasurement.dateTaken)}</p>
+              <p className="mt-3 text-[11px] text-stone-400">Last measured {formatDate(latestMeasurement.dateTaken)}</p>
             )}
           </SectionCard>
 

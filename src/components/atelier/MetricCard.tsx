@@ -22,7 +22,7 @@ export function MetricCard({
         className
       )}
     >
-      <span className="text-[10px] font-semibold tracking-[0.16em] text-stone-500">
+      <span className="text-[11px] font-semibold tracking-[0.16em] text-stone-500">
         {label}
       </span>
       <div className="mt-3">

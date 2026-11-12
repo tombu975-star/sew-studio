@@ -183,7 +183,7 @@ export default function UserProfile() {
               <UserRound className="size-6" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400">Account</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-stone-400">Account</p>
               <h1 className="font-display text-2xl font-semibold text-[#2F151B]">Profile</h1>
             </div>
           </div>
@@ -224,7 +224,7 @@ export default function UserProfile() {
                 </span>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mb-1">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-stone-400 mb-1">
                   {isSelf ? "My profile" : "Team profile"}
                 </p>
                 <h1 className="font-display text-2xl font-semibold text-[#2F151B] truncate">{profile.fullName}</h1>
@@ -290,7 +290,7 @@ export default function UserProfile() {
                     />
                   </div>
                   <div className="sm:col-span-2 flex items-center justify-between gap-3 pt-1">
-                    <p className="text-[11px] text-stone-400">
+                    <p className="text-xs text-stone-400">
                       {isSelf ? "Only you can see and change these." : "Visible to studio owners and trainers."}
                     </p>
                     <PremiumButton type="submit" loading={saving}>
@@ -300,9 +300,9 @@ export default function UserProfile() {
                 </form>
               ) : (
                 <dl className="grid gap-5 sm:grid-cols-2">
-                  <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Email</dt><dd className="mt-1 text-sm text-[#2F151B]">{profile.email}</dd></div>
-                  <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Phone</dt><dd className="mt-1 text-sm text-[#2F151B]">{profile.phone || "Not provided"}</dd></div>
-                  <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Gender</dt><dd className="mt-1 text-sm text-[#2F151B]">{profile.gender || "Not provided"}</dd></div>
+                  <div><dt className="text-[11px] uppercase tracking-[0.15em] text-stone-400">Email</dt><dd className="mt-1 text-sm text-[#2F151B]">{profile.email}</dd></div>
+                  <div><dt className="text-[11px] uppercase tracking-[0.15em] text-stone-400">Phone</dt><dd className="mt-1 text-sm text-[#2F151B]">{profile.phone || "Not provided"}</dd></div>
+                  <div><dt className="text-[11px] uppercase tracking-[0.15em] text-stone-400">Gender</dt><dd className="mt-1 text-sm text-[#2F151B]">{profile.gender || "Not provided"}</dd></div>
                 </dl>
               )}
             </SectionCard>
@@ -311,10 +311,10 @@ export default function UserProfile() {
               <SectionCard title="Training" action={<GraduationCap className="size-4 text-stone-400" />}>
                 <dl className="grid gap-5 sm:grid-cols-2">
                   {profile.trainingDurationWeeks && (
-                    <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Duration</dt><dd className="mt-1 text-sm text-[#2F151B]">{profile.trainingDurationWeeks} weeks</dd></div>
+                    <div><dt className="text-[11px] uppercase tracking-[0.15em] text-stone-400">Duration</dt><dd className="mt-1 text-sm text-[#2F151B]">{profile.trainingDurationWeeks} weeks</dd></div>
                   )}
                   {profile.trainingStartedAt && (
-                    <div><dt className="text-[10px] uppercase tracking-[0.15em] text-stone-400">Started</dt><dd className="mt-1 text-sm text-[#2F151B]">{formatDate(profile.trainingStartedAt)}</dd></div>
+                    <div><dt className="text-[11px] uppercase tracking-[0.15em] text-stone-400">Started</dt><dd className="mt-1 text-sm text-[#2F151B]">{formatDate(profile.trainingStartedAt)}</dd></div>
                   )}
                 </dl>
               </SectionCard>
@@ -389,7 +389,7 @@ export default function UserProfile() {
                         className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm text-[#2F151B] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10"
                       />
                     </label>
-                    <p className="text-[11px] text-stone-400 sm:col-span-2">Use at least 8 characters.</p>
+                    <p className="text-xs text-stone-400 sm:col-span-2">Use at least 8 characters.</p>
                     <div className="sm:col-span-2 flex items-center justify-end gap-2">
                       <PremiumButton
                         type="button"

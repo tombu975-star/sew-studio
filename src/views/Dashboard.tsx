@@ -596,10 +596,10 @@ function MainDashboard() {
         <section aria-label="Quick actions" className="mb-5 rounded-2xl border border-[#EADDE0] bg-white p-4 shadow-sm md:p-5 animate-fade-in-up">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9A6B28]">Keep your studio moving</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#865A1D]">Keep your studio moving</p>
               <h2 className="mt-1 font-display text-lg font-semibold text-[#3B0010]">Quick actions</h2>
             </div>
-            <span className="hidden rounded-full bg-[#FBF3DC] px-3 py-1 text-[11px] font-medium text-[#805B17] sm:inline-flex">
+            <span className="hidden rounded-full bg-[#FBF3DC] px-3 py-1 text-xs font-medium text-[#805B17] sm:inline-flex">
               Your atelier, one place
             </span>
           </div>
@@ -621,9 +621,9 @@ function MainDashboard() {
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold">{label}</span>
-                  <span className={`mt-0.5 block text-[10px] leading-snug ${primary ? "text-white/70" : "text-[#80666D]"}`}>{detail}</span>
+                  <span className={`mt-0.5 block text-[11px] leading-snug ${primary ? "text-white/70" : "text-[#80666D]"}`}>{detail}</span>
                 </span>
-                <ArrowRight className={`ml-auto hidden size-4 shrink-0 transition group-hover:translate-x-0.5 sm:block ${primary ? "text-white/70" : "text-[#9A6B28]"}`} />
+                <ArrowRight className={`ml-auto hidden size-4 shrink-0 transition group-hover:translate-x-0.5 sm:block ${primary ? "text-white/70" : "text-[#865A1D]"}`} />
               </button>
             ))}
           </div>
@@ -688,7 +688,7 @@ function MainDashboard() {
               action={
                 <button
                   onClick={() => go("orders")}
-                  className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                  className="text-xs text-[#800020] font-medium hover:underline flex items-center gap-1"
                 >
                   View all
                   <ChevronRight className="w-3 h-3" />
@@ -758,7 +758,7 @@ function MainDashboard() {
             action={
               <button
                 onClick={() => go("fittings")}
-                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                className="text-xs text-[#800020] font-medium hover:underline flex items-center gap-1"
               >
                 All fittings
                 <ChevronRight className="w-3 h-3" />
@@ -808,7 +808,7 @@ function MainDashboard() {
           action={
             <button
               onClick={() => go("tasks")}
-              className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+              className="text-xs text-[#800020] font-medium hover:underline flex items-center gap-1"
             >
               {staff ? "Open" : "All tasks"}
               <ChevronRight className="w-3 h-3" />
@@ -859,7 +859,7 @@ function MainDashboard() {
                       {user.fullName || user.email}
                     </p>
                     <p
-                      className={`text-[11px] ${
+                      className={`text-xs ${
                         overCapacity ? "text-[#8E3232] font-medium" : "text-stone-400"
                       }`}
                     >
@@ -876,7 +876,7 @@ function MainDashboard() {
                     </div>
                   </div>
                   <span
-                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-[11px] font-semibold text-white bg-[#800020] rounded-full"
+                    className="inline-flex items-center justify-center min-w-7 h-6 px-2 text-xs font-semibold text-white bg-[#800020] rounded-full"
                     title={`${openTasks} open task${openTasks !== 1 ? "s" : ""}`}
                   >
                     {openTasks}
@@ -897,7 +897,7 @@ function MainDashboard() {
             <SectionCard
               title="Income Trend"
               action={
-                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+                <span className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
                   Last 6 months · Total{" "}
                   <span className="text-[#2F151B] font-semibold tabular-nums">
                     {formatCurrency(m.totalReceived6m)}
@@ -939,12 +939,12 @@ function MainDashboard() {
                     />
                     <XAxis
                       dataKey="label"
-                      tick={{ fontSize: 11, fill: "#8B7076" }}
+                      tick={{ fontSize: 12, fill: "#6F565D" }}
                       axisLine={{ stroke: "#EEDFE3" }}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 11, fill: "#8B7076" }}
+                      tick={{ fontSize: 12, fill: "#6F565D" }}
                       axisLine={false}
                       tickLine={false}
                       width={76}
@@ -1123,7 +1123,7 @@ function HealthMetric({
     <div className="rounded-lg border border-[#EEDFE3] p-3.5 bg-white hover:border-[#800020]/20 transition">
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-3.5 h-3.5 text-stone-400" />
-        <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">
+        <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
           {label}
         </span>
       </div>
@@ -1180,7 +1180,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
       action={
         <button
           onClick={() => go("progress")}
-          className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+          className="text-xs text-[#800020] font-medium hover:underline flex items-center gap-1"
         >
           All trainees
           <ChevronRight className="w-3 h-3" />
@@ -1220,7 +1220,7 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                   <p className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#800020] transition-colors">
                     {t.fullName || t.email}
                   </p>
-                  <p className="text-[11px] text-stone-400">
+                  <p className="text-xs text-stone-400">
                     {stats.total === 0
                       ? "No logs yet"
                       : `${stats.total} log${stats.total !== 1 ? "s" : ""}`}
@@ -1228,17 +1228,17 @@ function TrainerTraineesCard({ users }: { users: User[] }) {
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {stats.proficient > 0 && (
-                    <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full tabular-nums">
+                    <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full tabular-nums">
                       {stats.proficient}P
                     </span>
                   )}
                   {stats.practicing > 0 && (
-                    <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 text-[10px] font-semibold text-sky-700 bg-sky-50 border border-sky-200 rounded-full tabular-nums">
+                    <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 text-[11px] font-semibold text-sky-700 bg-sky-50 border border-sky-200 rounded-full tabular-nums">
                       {stats.practicing}p
                     </span>
                   )}
                   {stats.learning > 0 && (
-                    <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full tabular-nums">
+                    <span className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full tabular-nums">
                       {stats.learning}L
                     </span>
                   )}
@@ -1424,7 +1424,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("progress")}
-                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                className="text-xs text-[#800020] font-medium hover:underline flex items-center gap-1"
               >
                 View progress
                 <ChevronRight className="w-3 h-3" />
@@ -1461,7 +1461,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                       <div className="text-sm font-medium text-[#2F151B] truncate">
                         {s.skill}
                       </div>
-                      <div className="text-[11px] text-stone-400 tabular-nums">
+                      <div className="text-xs text-stone-400 tabular-nums">
                         {s.count} {s.count === 1 ? "entry" : "entries"}
                         {s.proficient > 0 && ` · ${s.proficient} proficient`}
                       </div>
@@ -1486,7 +1486,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("orders")}
-                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                className="text-xs text-[#800020] font-medium hover:underline flex items-center gap-1"
               >
                 All orders
                 <ChevronRight className="w-3 h-3" />
@@ -1525,7 +1525,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
                         <div className="text-sm font-medium text-[#2F151B] truncate group-hover:text-[#800020] transition-colors">
                           {o.garmentDesign || "Untitled garment"}
                         </div>
-                        <div className="text-[11px] text-stone-400 truncate">
+                        <div className="text-xs text-stone-400 truncate">
                           {o.customer?.name || "—"}
                           {o.deliveryDate
                             ? ` · due ${shortDate(o.deliveryDate)}`
@@ -1554,7 +1554,7 @@ function TraineeDashboard({ userId }: { userId: string }) {
             action={
               <button
                 onClick={() => go("community")}
-                className="text-[11px] text-[#800020] font-medium hover:underline flex items-center gap-1"
+                className="text-xs text-[#800020] font-medium hover:underline flex items-center gap-1"
               >
                 Wall
                 <ChevronRight className="w-3 h-3" />
@@ -1586,13 +1586,13 @@ function TraineeDashboard({ userId }: { userId: string }) {
                     className="w-full text-left px-5 py-3.5 hover:bg-[#FAF0F2] transition group"
                   >
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-full bg-[#800020] flex items-center justify-center text-[10px] font-semibold text-white shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-[#800020] flex items-center justify-center text-[11px] font-semibold text-white shrink-0">
                         {(p.authorName || "?").charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-[11px] text-stone-500 truncate">
+                      <span className="text-xs text-stone-500 truncate">
                         {p.authorName}
                       </span>
-                      <span className="text-[10px] text-stone-400 ml-auto shrink-0">
+                      <span className="text-[11px] text-stone-400 ml-auto shrink-0">
                         {timeAgo(p.createdAt)}
                       </span>
                     </div>

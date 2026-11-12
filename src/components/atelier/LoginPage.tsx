@@ -130,7 +130,7 @@ export function LoginPage() {
       <PhoneTabs mode={mode} onSwitch={switchMode} />
       {mode === "login" ? (
         <section key="login" id="panel-login" role="tabpanel" aria-labelledby="tab-login" className="animate-fade-in">
-          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#800020] sm:block">
+          <p className="hidden text-xs font-semibold uppercase tracking-[0.2em] text-[#800020] sm:block">
             Your studio, in good hands
           </p>
           <h2 className="font-serif text-[28px] font-medium tracking-tight text-[#2F151B] max-sm:sr-only sm:mt-3 sm:text-[42px]">
@@ -222,7 +222,7 @@ export function LoginPage() {
         </section>
       ) : (
         <section key="register" id="panel-register" role="tabpanel" aria-labelledby="tab-register" className="animate-fade-in">
-          <p className="hidden text-[11px] font-semibold uppercase tracking-[0.2em] text-[#800020] sm:block">
+          <p className="hidden text-xs font-semibold uppercase tracking-[0.2em] text-[#800020] sm:block">
             Start creating
           </p>
           <h2 className="font-serif text-2xl font-medium tracking-tight text-[#2F151B] max-sm:sr-only sm:mt-3 sm:text-4xl">
@@ -433,7 +433,7 @@ export function PhoneTabs({ mode, onSwitch }: { mode: Mode; onSwitch: (m: Mode) 
       onClick={() => onSwitch(m)}
       className={cn(
         "relative pb-1.5 text-[15px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#5C1626]",
-        mode === m ? "font-semibold text-white" : "font-medium text-white/65"
+        mode === m ? "font-semibold text-white" : "font-medium text-white/75"
       )}
     >
       {label}

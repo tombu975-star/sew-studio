@@ -219,7 +219,7 @@ export default function QuickQuote() {
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-[11px] text-stone-500 tabular-nums">
+            <p className="text-xs text-stone-500 tabular-nums">
               {formatCurrency(calc.fabricBase)} / yard
             </p>
           </div>
@@ -255,7 +255,7 @@ export default function QuickQuote() {
                   )}
                 </SelectContent>
               </Select>
-              <p className="text-[11px] text-stone-500 tabular-nums">
+              <p className="text-xs text-stone-500 tabular-nums">
                 Multiplier {COMPLEXITY_LABEL[complexity]}
               </p>
             </div>
@@ -336,7 +336,7 @@ export default function QuickQuote() {
             <Separator />
 
             <div className="mt-1 p-4 rounded-md border border-[#800020]/15 bg-gradient-to-br from-[#800020]/5 to-transparent">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[#800020]">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-[#800020]">
                 Total
               </p>
               <p
@@ -353,7 +353,7 @@ export default function QuickQuote() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] text-[#4A6B53]">
+            <div className="flex items-center justify-between text-xs text-[#4A6B53]">
               <span className="inline-flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
                 Est. margin
@@ -372,7 +372,7 @@ export default function QuickQuote() {
               Convert to Order
             </PremiumButton>
 
-            <p className="text-[11px] text-stone-400 text-center">
+            <p className="text-xs text-stone-400 text-center">
               Estimate only — final price may vary after consultation.
             </p>
           </SectionCard>

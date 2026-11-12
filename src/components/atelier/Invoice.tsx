@@ -84,7 +84,7 @@ export function Invoice({
           </div>
 
           <div className="sm:text-right">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-stone-400">
+            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-400">
               Invoice
             </div>
             <div className="mt-1 font-display text-2xl font-semibold tabular-nums text-[#2F151B] break-all">
@@ -108,7 +108,7 @@ export function Invoice({
         {/* Bill to / order */}
         <section className="mt-8 grid gap-6 sm:grid-cols-2 sm:gap-8 border-t border-[#EEDFE3] pt-6">
           <div className="min-w-0">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
               Billed to
             </h3>
             <div className="mt-2 text-sm font-semibold text-[#2F151B] break-words">
@@ -122,7 +122,7 @@ export function Invoice({
           </div>
 
           <div className="sm:text-right">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
               Garment
             </h3>
             <div className="mt-2 text-sm font-semibold text-[#2F151B] break-words">
@@ -137,14 +137,14 @@ export function Invoice({
 
         {/* Line items */}
         <section className="mt-8">
-          <div className="hidden sm:grid grid-cols-[2rem_minmax(0,1fr)_3.5rem_7rem_7.5rem] gap-3 border-y border-[#2F151B] py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2F151B]">
+          <div className="hidden sm:grid grid-cols-[2rem_minmax(0,1fr)_3.5rem_7rem_7.5rem] gap-3 border-y border-[#2F151B] py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2F151B]">
             <span>#</span>
             <span>Description</span>
             <span className="text-right">Qty</span>
             <span className="text-right">Unit price</span>
             <span className="text-right">Amount</span>
           </div>
-          <div className="sm:hidden border-y border-[#2F151B] py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2F151B] flex justify-between">
+          <div className="sm:hidden border-y border-[#2F151B] py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2F151B] flex justify-between">
             <span>Description</span>
             <span>Amount</span>
           </div>
@@ -199,7 +199,7 @@ export function Invoice({
                 balance > 0 ? "bg-[#800020] text-white" : "bg-emerald-700 text-white"
               )}
             >
-              <dt className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+              <dt className="text-xs font-semibold uppercase tracking-[0.18em]">
                 Balance due
               </dt>
               <dd className="font-display text-xl font-semibold tabular-nums">
@@ -209,7 +209,7 @@ export function Invoice({
             <div className="mt-3 flex justify-end">
               <span
                 className={cn(
-                  "inline-block -rotate-2 rounded border-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em]",
+                  "inline-block -rotate-2 rounded border-2 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em]",
                   PAY_STYLE[state]
                 )}
               >
@@ -222,7 +222,7 @@ export function Invoice({
         {/* Payments received */}
         <section className="mt-8 border-t border-[#EEDFE3] pt-6">
           <div className="flex items-center justify-between gap-3 mb-3">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
               Payments received
             </h3>
             {paymentAction && <div className="print:hidden">{paymentAction}</div>}
@@ -256,7 +256,7 @@ export function Invoice({
         {/* Fittings */}
         {fittings.length > 0 && (
           <section className="mt-6">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
               Fitting appointments
             </h3>
             <p className="mt-2 text-[13px] text-stone-600">
@@ -268,10 +268,10 @@ export function Invoice({
         {/* Terms */}
         {terms.length > 0 && (
           <section className="mt-8 border-t border-[#EEDFE3] pt-6">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-400">
               Terms &amp; conditions
             </h3>
-            <ul className="mt-2 space-y-1 text-[11px] leading-relaxed text-stone-500 list-disc pl-4">
+            <ul className="mt-2 space-y-1 text-xs leading-relaxed text-stone-500 list-disc pl-4">
               {terms.map((t, i) => (
                 <li key={i} className="break-words">{t}</li>
               ))}
@@ -280,7 +280,7 @@ export function Invoice({
         )}
 
         {/* Signatures */}
-        <section className="mt-10 grid grid-cols-2 gap-8 text-[11px] text-stone-500">
+        <section className="mt-10 grid grid-cols-2 gap-8 text-xs text-stone-500">
           <div>
             <div className="h-10 border-b border-stone-400" />
             <div className="mt-1.5">Customer signature</div>

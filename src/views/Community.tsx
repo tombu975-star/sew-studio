@@ -351,7 +351,7 @@ export default function Community() {
           <div className="grid gap-1.5">
             <Label htmlFor="cm-title" className="justify-between">
               <span>Title</span>
-              <span className="text-stone-400 font-normal text-[11px]">
+              <span className="text-stone-400 font-normal text-xs">
                 optional
               </span>
             </Label>
@@ -380,7 +380,7 @@ export default function Community() {
         <div className="flex items-center justify-between gap-3 pt-1">
           <span
             className={cn(
-              "text-[11px] tabular-nums",
+              "text-xs tabular-nums",
               overLimit ? "text-[#800020] font-medium" : "text-stone-400"
             )}
           >
@@ -549,14 +549,14 @@ function PostCard({
                 </span>
                 <span
                   className={cn(
-                    "inline-flex items-center px-1.5 py-0.5 text-[10px] uppercase tracking-wide border rounded font-medium",
+                    "inline-flex items-center px-1.5 py-0.5 text-[11px] uppercase tracking-wide border rounded font-medium",
                     role.className
                   )}
                 >
                   {role.label}
                 </span>
               </div>
-              <p className="text-[11px] text-stone-400 mt-0.5">
+              <p className="text-xs text-stone-400 mt-0.5">
                 {timeAgo(post.createdAt)}
               </p>
             </div>
@@ -565,7 +565,7 @@ function PostCard({
           <div className="flex items-center gap-1.5 shrink-0">
             <span
               className={cn(
-                "inline-flex items-center gap-1 px-2 py-0.5 text-[10px] uppercase tracking-wide font-medium border rounded",
+                "inline-flex items-center gap-1 px-2 py-0.5 text-[11px] uppercase tracking-wide font-medium border rounded",
                 typeMeta.chip
               )}
             >
@@ -658,7 +658,7 @@ function PostCard({
               {post.comments.map((c) => (
                 <li key={c.id} className="flex items-start gap-2.5">
                   <div
-                    className="w-7 h-7 rounded-full bg-[#800020]/85 text-white flex items-center justify-center text-[10px] font-medium shrink-0"
+                    className="w-7 h-7 rounded-full bg-[#800020]/85 text-white flex items-center justify-center text-[11px] font-medium shrink-0"
                     aria-hidden
                   >
                     {initialOf(c.authorName)}
@@ -668,7 +668,7 @@ function PostCard({
                       <span className="text-xs font-medium text-[#2F151B]">
                         {c.authorName}
                       </span>
-                      <span className="text-[10px] text-stone-400">
+                      <span className="text-[11px] text-stone-400">
                         {timeAgo(c.createdAt)}
                       </span>
                     </div>

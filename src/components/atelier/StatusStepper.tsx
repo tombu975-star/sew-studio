@@ -31,7 +31,7 @@ export function StatusStepper({
                 />
                 <span
                   className={cn(
-                    "text-[9px] leading-tight text-center font-medium",
+                    "text-[11px] leading-tight text-center font-medium",
                     active
                       ? "text-[#B45309]"
                       : done

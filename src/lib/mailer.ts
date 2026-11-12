@@ -49,7 +49,7 @@ export function renderHtml(subject: string, body: string): string {
       const m = p.match(/^(https?:\/\/\S+)$/);
       if (m) {
         const href = esc(m[1]);
-        return `<p style="margin:22px 0"><a href="${href}" style="background:#541625;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;display:inline-block">Open the link</a></p><p style="margin:0;font-size:12px;color:#8B7076;word-break:break-all">${href}</p>`;
+        return `<p style="margin:22px 0"><a href="${href}" style="background:#541625;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;display:inline-block">Open the link</a></p><p style="margin:0;font-size:12px;color:#6F565D;word-break:break-all">${href}</p>`;
       }
       return `<p style="margin:0 0 14px;line-height:1.6">${esc(p).replace(/\n/g, "<br>")}</p>`;
     })

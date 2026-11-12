@@ -283,8 +283,8 @@ export default function CustomerProfile() {
                 <StatusBadge status={customer.customerType} />
               )}
               {customer.entrySource && (
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FAF0F2] border border-[#EEDFE3] px-2 py-0.5 text-[11px] text-stone-600">
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FAF0F2] border border-[#EEDFE3] px-2 py-0.5 text-xs text-stone-600">
+                  <span className="text-[11px] uppercase tracking-[0.15em] text-stone-400">
                     Source
                   </span>
                   <span className="font-medium text-[#2F151B]">
@@ -292,7 +292,7 @@ export default function CustomerProfile() {
                   </span>
                 </span>
               )}
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#800020]/8 border border-[#800020]/20 px-2 py-0.5 text-[11px] text-[#800020]">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#800020]/8 border border-[#800020]/20 px-2 py-0.5 text-xs text-[#800020]">
                 <Sparkles className="w-3 h-3" />
                 <span className="font-semibold">
                   <AnimatedNumber value={customer.loyaltyPoints ?? 0} /> pts
@@ -407,7 +407,7 @@ export default function CustomerProfile() {
                   >
                     <div className="flex items-center gap-2">
                       <Stars value={f.rating} />
-                      <span className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
+                      <span className="text-[11px] uppercase tracking-[0.15em] text-stone-400">
                         {f.type}
                       </span>
                       <span className="text-xs text-stone-400 ml-auto">
@@ -573,7 +573,7 @@ export default function CustomerProfile() {
                           {c.conceptName}
                         </div>
                         {typeof c.matchPercent === "number" && (
-                          <span className="shrink-0 inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.15em] bg-[#800020]/10 text-[#800020] px-2 py-0.5 rounded-md border border-[#800020]/25 font-semibold">
+                          <span className="shrink-0 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.15em] bg-[#800020]/10 text-[#800020] px-2 py-0.5 rounded-md border border-[#800020]/25 font-semibold">
                             {c.matchPercent}% match
                           </span>
                         )}
@@ -581,7 +581,7 @@ export default function CustomerProfile() {
                       <div className="flex items-center gap-2 mb-3 flex-wrap">
                         <StatusBadge status={c.status} />
                         {c.garmentType && (
-                          <span className="text-[10px] uppercase tracking-[0.15em] text-stone-400">
+                          <span className="text-[11px] uppercase tracking-[0.15em] text-stone-400">
                             {c.garmentType}
                           </span>
                         )}
@@ -709,7 +709,7 @@ function Fact({
 }) {
   return (
     <div>
-      <dt className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+      <dt className="text-[11px] uppercase tracking-[0.18em] text-stone-400">
         {label}
       </dt>
       <dd className="text-sm text-[#2F151B] mt-1">{value || "—"}</dd>
@@ -734,7 +734,7 @@ function ChipList({
   );
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400 mb-1.5">
+      <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400 mb-1.5">
         {label}
       </div>
       {items.length === 0 ? (
@@ -812,7 +812,7 @@ function NotesCard({
             <Save className="w-3.5 h-3.5" /> Save
           </PremiumButton>
         ) : (
-          <span className="inline-flex items-center gap-1 text-[11px] text-stone-400">
+          <span className="inline-flex items-center gap-1 text-xs text-stone-400">
             <Check className="w-3 h-3" /> Saved
           </span>
         )
@@ -833,7 +833,7 @@ function NotesCard({
         rows={6}
         className="rounded-md resize-none"
       />
-      <p className="text-[10px] text-stone-400 mt-2 uppercase tracking-[0.15em]">
+      <p className="text-[11px] text-stone-400 mt-2 uppercase tracking-[0.15em]">
         Auto-saves on blur
       </p>
     </SectionCard>
@@ -1255,7 +1255,7 @@ function AddMeasurementDialog({
           <div className="space-y-6 px-6 py-5">
             {FIELD_GROUPS.map((group) => (
               <fieldset key={group}>
-                <legend className="mb-2 w-full border-b border-[#2F151B] pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#2F151B]">
+                <legend className="mb-2 w-full border-b border-[#2F151B] pb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#2F151B]">
                   {group}
                 </legend>
                 <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-2">
@@ -1287,7 +1287,7 @@ function AddMeasurementDialog({
                             {fieldUnit}
                           </span>
                         </div>
-                        <p id={`m-${f.key}-hint`} className={"mt-1 text-[11px] leading-snug " + (warn ? "text-amber-700" : "text-stone-400")}>
+                        <p id={`m-${f.key}-hint`} className={"mt-1 text-xs leading-snug " + (warn ? "text-amber-700" : "text-stone-400")}>
                           {warn ?? f.how}
                         </p>
                       </div>

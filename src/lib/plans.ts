@@ -84,7 +84,7 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     features: allFeatures,
     highlights: [
       "Every studio and learning workspace",
-      "Accra Runs, Inventory, community, curriculum and certificates",
+      "Accra Runs, Inventory, webinars and training, community, curriculum and certificates",
       "Unlimited studio members",
     ],
   },

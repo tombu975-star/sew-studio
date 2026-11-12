@@ -99,7 +99,7 @@ export function OpenJobsPanel({ canApply = true }: { canApply?: boolean }) {
         <SectionCard key={j.id}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-blue-600">{j.shop.name}{j.fromTask ? " · Studio task" : ""}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.1em] text-blue-600">{j.shop.name}{j.fromTask ? " · Studio task" : ""}</p>
               <p className="mt-0.5 text-sm text-stone-800">{j.taskDescription}</p>
             </div>
             {j.myApplication && <StatusBadge status={j.myApplication.status} className="shrink-0" />}

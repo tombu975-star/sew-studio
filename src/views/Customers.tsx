@@ -415,7 +415,7 @@ export default function Customers() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FAF0F2] border border-[#EEDFE3] px-2.5 py-1 text-[11px] text-stone-600">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FAF0F2] border border-[#EEDFE3] px-2.5 py-1 text-xs text-stone-600">
                     <span className="font-semibold tabular-nums text-[#2F151B]">
                       {c._orderCount}
                     </span>
@@ -661,7 +661,7 @@ function AddCustomerDialog({
                     type="button"
                     onClick={() => toggleStyle(style)}
                     className={
-                      "text-[11px] px-2.5 py-1 rounded-md border transition-all " +
+                      "text-xs px-2.5 py-1 rounded-md border transition-all " +
                       (active
                         ? "bg-[#800020]/10 border-[#800020]/40 text-[#800020]"
                         : "bg-white border-[#EEDFE3] text-stone-600 hover:border-[#800020]/30")
