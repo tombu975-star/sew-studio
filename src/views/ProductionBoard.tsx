@@ -92,7 +92,13 @@ export default function ProductionBoard() {
     useSensor(KeyboardSensor)
   );
 
-  const { data: orders, isLoading } = useQuery<Order[]>({
+  const {
+    data: orders,
+    isLoading,
+    isError: ordersError,
+    error: ordersErrorValue,
+    refetch: refetchOrders,
+  } = useQuery<Order[]>({
     queryKey: ["orders"],
     queryFn: () => apiGet<Order[]>("/api/orders"),
   });
@@ -161,9 +167,13 @@ export default function ProductionBoard() {
       if (ctx?.prev) qc.setQueryData(["orders"], ctx.prev);
       toast.error(e.message);
     },
-    onSuccess: () => {
+    onSuccess: (_updated, variables) => {
       qc.invalidateQueries({ queryKey: ["orders"] });
       qc.invalidateQueries({ queryKey: ["order"] });
+      const destination = BOARD_COLUMNS.find((column) =>
+        column.statuses.includes(variables.status)
+      );
+      toast.success(destination ? `Moved to ${destination.title}` : "Order updated");
     },
   });
 
@@ -184,7 +194,6 @@ export default function ProductionBoard() {
     if (col.statuses.includes(order.status)) return; // already in this column
     const newStatus = col.statuses[0];
     statusMut.mutate({ id: orderId, status: newStatus });
-    toast.success(`Moved to ${col.title}`);
   }
 
   const activeOrder = activeId ? flatOrders.get(activeId) : null;
@@ -222,7 +231,18 @@ export default function ProductionBoard() {
       />
 
       {/* Board */}
-      {isLoading ? (
+      {ordersError ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 sm:p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-rose-700" />
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-semibold text-[#2F151B]">We couldn't load your production board</h3>
+              <p className="mt-1 text-sm text-stone-600">{ordersErrorValue instanceof Error ? ordersErrorValue.message : "Check your connection and try again."}</p>
+              <PremiumButton className="mt-3" onClick={() => void refetchOrders()}>Try again</PremiumButton>
+            </div>
+          </div>
+        </div>
+      ) : isLoading ? (
         <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-slim">
           {BOARD_COLUMNS.map((col) => (
             <div
@@ -260,13 +280,15 @@ export default function ProductionBoard() {
           onDragEnd={handleDragEnd}
           onDragCancel={() => setActiveId(null)}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-slim">
+          <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-5 snap-x snap-mandatory scroll-slim sm:mx-0 sm:gap-4 sm:px-0">
             {columns.map((col) => (
               <Column
                 key={col.key}
                 col={col}
                 cards={col.cards}
                 onOpen={(id) => go("order", { id })}
+                onMove={(id, status) => statusMut.mutate({ id, status })}
+                isUpdating={statusMut.isPending}
               />
             ))}
           </div>
@@ -278,6 +300,8 @@ export default function ProductionBoard() {
                 dragging
                 overlay
                 onClick={() => {}}
+                onMove={() => {}}
+                isUpdating
               />
             ) : null}
           </DragOverlay>
@@ -295,17 +319,21 @@ function Column({
   col,
   cards,
   onOpen,
+  onMove,
+  isUpdating,
 }: {
   col: ColumnDef;
   cards: CardOrder[];
   onOpen: (id: string) => void;
+  onMove: (id: string, status: string) => void;
+  isUpdating: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: col.key });
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "w-[85vw] max-w-80 sm:w-80 shrink-0 snap-start rounded-xl border bg-[#FCF8F9]/60 elevate-sm flex flex-col transition-colors",
+        "w-[82vw] max-w-[340px] sm:w-[300px] lg:w-[312px] xl:w-[320px] shrink-0 snap-start rounded-2xl border bg-[#FCF8F9]/70 elevate-sm flex flex-col transition-colors",
         isOver
           ? "border-[#800020]/50 ring-2 ring-[#800020]/15"
           : "border-[#EEDFE3]"
@@ -329,7 +357,13 @@ function Column({
           </div>
         ) : (
           cards.map((o) => (
-            <Card key={o.id} order={o} onClick={() => onOpen(o.id)} />
+            <Card
+              key={o.id}
+              order={o}
+              onClick={() => onOpen(o.id)}
+              onMove={onMove}
+              isUpdating={isUpdating}
+            />
           ))
         )}
       </div>
@@ -344,11 +378,15 @@ function Card({
   onClick,
   dragging,
   overlay,
+  onMove,
+  isUpdating = false,
 }: {
   order: CardOrder;
   onClick: () => void;
   dragging?: boolean;
   overlay?: boolean;
+  onMove: (id: string, status: string) => void;
+  isUpdating?: boolean;
 }) {
   const {
     attributes,
@@ -356,7 +394,7 @@ function Card({
     setNodeRef,
     transform,
     isDragging,
-  } = useDraggable({ id: order.id });
+  } = useDraggable({ id: order.id, disabled: overlay });
 
   const style: React.CSSProperties = {
     transform: transform ? CSS.Translate.toString(transform) : undefined,
@@ -386,7 +424,7 @@ function Card({
       {...attributes}
       onClick={onClick}
       className={cn(
-        "rounded-lg bg-white border border-[#EEDFE3] p-3.5 elevate-sm lift cursor-grab active:cursor-grabbing",
+        "rounded-xl bg-white border border-[#EEDFE3] p-3.5 elevate-sm lift cursor-grab active:cursor-grabbing touch-pan-y",
         (dragging || overlay) && "shadow-lg border-[#800020]/40",
         overlay && "rotate-1"
       )}
@@ -460,6 +498,24 @@ function Card({
               style={{ width: `${paidPct}%` }}
             />
           </div>
+        </div>
+      )}
+
+      {/* Mobile-friendly status control: drag remains available on larger screens. */}
+      {!overlay && (
+        <div className="mt-3" onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
+          <label className="sr-only" htmlFor={`move-${order.id}`}>Move {order.garmentDesign} to another stage</label>
+          <select
+            id={`move-${order.id}`}
+            value={order.status}
+            disabled={isUpdating}
+            onChange={(event) => onMove(order.id, event.target.value)}
+            className="w-full min-h-10 rounded-lg border border-[#EEDFE3] bg-[#FCF8F9] px-3 text-xs font-medium text-[#4B2630] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10 disabled:opacity-60"
+          >
+            {BOARD_COLUMNS.flatMap((column) => column.statuses).map((status) => (
+              <option key={status} value={status}>{`Move to: ${status}`}</option>
+            ))}
+          </select>
         </div>
       )}
 

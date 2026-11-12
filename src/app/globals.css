@@ -596,9 +596,13 @@ header, nav {
   -webkit-backdrop-filter: saturate(140%) blur(14px);
   backdrop-filter: saturate(140%) blur(14px);
 }
-main h1, main h2 {
+main h1:not(.text-white), main h2:not(.text-white) {
   color: #3B0010;
 }
+
+/* Dark marketing panels must keep their light editorial headings legible. */
+main .site-dark-panel h1,
+main .site-dark-panel h2 { color: #fff !important; }
 main h1 { font-weight: 700; }
 main h2 { font-weight: 650; }
 main a:not([class*="bg-"]) { text-underline-offset: 3px; }
