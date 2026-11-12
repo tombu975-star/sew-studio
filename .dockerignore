@@ -1,0 +1,6 @@
+upload
+tool-results
+node_modules
+.next
+*.zip
+*.patch
