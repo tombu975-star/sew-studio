@@ -34,7 +34,7 @@ function SiteHeader() {
           {NAV.map(([href, label]) => <Link key={href} href={href} className="text-[13px] font-semibold text-[#765d63] transition hover:text-[#800020]">{label}</Link>)}
         </nav>
         <div className="flex items-center gap-2.5">
-          <a href={`${SITE.appUrl}studio`} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#800020] px-5 text-[13px] font-bold text-white shadow-[0_8px_20px_rgba(128,0,32,.18)] transition hover:-translate-y-0.5 hover:bg-[#650019]">
+          <a href={SITE.studioUrl} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#800020] px-5 text-[13px] font-bold text-white shadow-[0_8px_20px_rgba(128,0,32,.18)] transition hover:-translate-y-0.5 hover:bg-[#650019]">
             Enter your studio <ArrowUpRight className="size-4" />
           </a>
           <details className="group relative lg:hidden">

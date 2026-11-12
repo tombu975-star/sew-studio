@@ -185,7 +185,6 @@ function MainDashboard() {
   const { go } = useNav();
   const { user } = useAuth();
   const {
-    ownerLabel,
     isStaff,
     isOwner,
     isTrainer,
@@ -533,7 +532,7 @@ function MainDashboard() {
         <PageHeader
           eyebrow={`Welcome · ${today}`}
           eyebrowIcon={CalendarDays}
-          title={`${ownerLabel}'s Atelier`}
+          title={data?.settings?.studioName || user?.shop?.name || "Your Studio"}
           subtitle="Start with these four steps. The rest of the tools are there when you need them."
         />
         <FirstSteps {...firstStepsProps} className="animate-fade-in-up" />
@@ -562,7 +561,7 @@ function MainDashboard() {
         eyebrowIcon={CalendarDays}
         title={
           owner
-            ? `${ownerLabel}'s Atelier`
+            ? (data?.settings?.studioName || user?.shop?.name || "Your Studio")
             : trainer
             ? "Mentor's Workbench"
             : "Your Workbench"

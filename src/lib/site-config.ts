@@ -8,6 +8,8 @@ export const SITE = {
   line: "The brand behind the business of sewing",
   /** The app. Used by the "Create your studio account" buttons. */
   appUrl: "https://sew-studio-production-n.up.railway.app/",
+  /** Canonical studio-entry destination used by every public-site CTA. */
+  studioUrl: "https://sew-studio-production-n.up.railway.app/studio",
   /**
    * Link to the free webinar sign-up form. Leave empty until the form is
    * ready: the button then shows "Sign-up opens soon" instead of a dead link.

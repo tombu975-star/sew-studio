@@ -17,7 +17,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { LayoutGrid, AlertCircle, GripVertical, Scissors } from "lucide-react";
+import { LayoutGrid, AlertCircle, GripVertical, Scissors, ClipboardCheck, Clock3, CheckCircle2 } from "lucide-react";
 
 import { apiGet, apiPatch } from "@/lib/api";
 import { useNav } from "@/stores/nav";
@@ -230,6 +230,26 @@ export default function ProductionBoard() {
         }
       />
 
+      {/* Operational snapshot */}
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#F8EDF0] text-[#800020]"><ClipboardCheck className="size-5"/></span>
+          <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-stone-500">Active orders</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-700"><Clock3 className="size-5"/></span>
+          <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-stone-500">Due soon</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => o.deliveryDate && new Date(o.deliveryDate).getTime() >= Date.now() && new Date(o.deliveryDate).getTime() <= Date.now() + 7 * 86400000 && !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-rose-50 text-rose-700"><AlertCircle className="size-5"/></span>
+          <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-stone-500">Overdue</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => o.deliveryDate && isOverdue(o.deliveryDate) && !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-700"><CheckCircle2 className="size-5"/></span>
+          <div><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-stone-500">Completed</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => ["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
+        </div>
+      </div>
+
       {/* Board */}
       {ordersError ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 sm:p-6">
@@ -333,15 +353,15 @@ function Column({
     <div
       ref={setNodeRef}
       className={cn(
-        "w-[82vw] max-w-[340px] sm:w-[300px] lg:w-[312px] xl:w-[320px] shrink-0 snap-start rounded-2xl border bg-[#FCF8F9]/70 elevate-sm flex flex-col transition-colors",
+        "w-[82vw] max-w-[340px] sm:w-[310px] lg:w-[320px] xl:w-[330px] shrink-0 snap-start rounded-2xl border bg-[#FBF8F8] shadow-[0_5px_18px_rgba(53,18,29,.045)] flex flex-col transition-all",
         isOver
-          ? "border-[#800020]/50 ring-2 ring-[#800020]/15"
-          : "border-[#EEDFE3]"
+          ? "border-[#800020]/55 ring-2 ring-[#800020]/10 bg-[#F9F0F2]"
+          : "border-[#E8DDE0]"
       )}
     >
       {/* Header */}
-      <div className="px-4 py-3 border-b border-[#EEDFE3]/70 flex items-center justify-between">
-        <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-500">
+      <div className="px-4 py-3.5 border-b border-[#E8DDE0] flex items-center justify-between bg-white/80 rounded-t-2xl">
+        <h3 className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#51343C]">
           {col.title}
         </h3>
         <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-semibold text-[#2F151B] tabular-nums bg-white border border-[#EEDFE3] rounded-full">
@@ -350,7 +370,7 @@ function Column({
       </div>
 
       {/* Cards */}
-      <div className="max-h-[72vh] overflow-y-auto scroll-slim space-y-2.5 p-2.5">
+      <div className="max-h-[calc(100dvh-330px)] min-h-[220px] overflow-y-auto scroll-slim space-y-3 p-3">
         {cards.length === 0 ? (
           <div className="text-[11px] text-stone-500 text-center py-8 italic">
             Drop orders here
@@ -424,7 +444,7 @@ function Card({
       {...attributes}
       onClick={onClick}
       className={cn(
-        "rounded-xl bg-white border border-[#EEDFE3] p-3.5 elevate-sm lift cursor-grab active:cursor-grabbing touch-pan-y",
+        "rounded-xl bg-white border border-[#E9DEE1] p-3.5 shadow-[0_2px_9px_rgba(53,18,29,.045)] transition-all hover:-translate-y-0.5 hover:border-[#D8B8C0] hover:shadow-[0_8px_20px_rgba(53,18,29,.08)] cursor-grab active:cursor-grabbing touch-pan-y",
         (dragging || overlay) && "shadow-lg border-[#800020]/40",
         overlay && "rotate-1"
       )}

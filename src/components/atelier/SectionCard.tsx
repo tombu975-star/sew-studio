@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
  */
 export function SectionCard({
   title,
+  description,
   action,
   className,
   bodyClassName,
@@ -15,6 +16,7 @@ export function SectionCard({
   accent,
 }: {
   title?: string;
+  description?: string;
   action?: React.ReactNode;
   className?: string;
   bodyClassName?: string;
@@ -31,9 +33,10 @@ export function SectionCard({
     >
       {title && (
         <div className="flex items-center justify-between gap-3 px-5 min-h-12 py-3 border-b border-[#F0E4E7]">
-          <h3 className="text-sm font-semibold tracking-tight text-slate-800">
-            {title}
-          </h3>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold tracking-tight text-slate-800">{title}</h3>
+            {description && <p className="mt-1 text-xs leading-5 text-stone-500">{description}</p>}
+          </div>
           {action}
         </div>
       )}
