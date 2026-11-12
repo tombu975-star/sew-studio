@@ -40,7 +40,7 @@ import { useAuth } from "@/stores/auth";
 import { useMenuSettings } from "@/stores/menu-settings";
 import { menuForView } from "@/lib/menu-config";
 import { cn } from "@/lib/utils";
-import { BrandMark } from "@/components/atelier/BrandMark";
+import { BrandLogo, BrandMark } from "@/components/atelier/BrandMark";
 import { ForcePasswordChange } from "@/components/atelier/ForcePasswordChange";
 import { getPlanEntitlements } from "@/lib/plans";
 import { ExportButtons } from "@/components/atelier/ExportButtons";
@@ -524,22 +524,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ─── Mobile top bar ──────────────────────────────────────── */}
       <header className="lg:hidden sticky top-0 z-30 pt-safe pl-safe pr-safe border-b border-[#EEDFE3] bg-white/95 backdrop-blur-md">
-        {/* Three equal columns keep the title dead-centre regardless of what
-            sits on either side (spacer left, profile avatar right). */}
-        <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-3 px-4 h-14">
-          <span aria-hidden="true" className="w-11 h-11" />
+        {/* Logo on the left, page title in the middle, profile avatar on the
+            right. The two outer columns are equal so the title stays centred. */}
+        <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_4.75rem] items-center gap-2 px-4 h-14">
           <button
             onClick={() => go("dashboard")}
-            className="flex items-center justify-center gap-2 min-w-0 justify-self-center max-w-full"
+            aria-label="Sewsiness home"
             title={shopDisplayName}
+            className="flex h-11 items-center justify-self-start"
           >
-            <div className="grid size-8 shrink-0 place-items-center rounded-lg border border-[#EEDFE3] bg-white shadow-sm">
-              <BrandMark size={25} />
-            </div>
-            <span className="font-display text-base font-semibold text-[#2F151B] truncate min-w-0">
-              {activeMeta.label}
-            </span>
+            <BrandLogo width={72} />
           </button>
+          <span className="font-display text-base font-semibold text-[#2F151B] truncate min-w-0 text-center">
+            {activeMeta.label}
+          </span>
           <button
             onClick={() => go("profile")}
             className="w-11 h-11 rounded-full bg-[#FCF8F9] text-[#800020] flex items-center justify-center text-sm font-semibold shrink-0 ring-2 justify-self-end"
