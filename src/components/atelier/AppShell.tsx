@@ -45,6 +45,14 @@ import { BrandLogo, BrandMark } from "@/components/atelier/BrandMark";
 import { ForcePasswordChange } from "@/components/atelier/ForcePasswordChange";
 import { getPlanEntitlements } from "@/lib/plans";
 import { ExportButtons } from "@/components/atelier/ExportButtons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type IconType = React.ComponentType<{ className?: string; strokeWidth?: number }>;
 
@@ -225,6 +233,15 @@ const SECTIONS: Record<Role, NavSection[]> = {
   ],
 };
 
+// Short labels for the phone bottom bar so nothing is cut off.
+const SHORT_LABEL: Partial<Record<ViewKey, string>> = {
+  dashboard: "Home",
+  customers: "Clients",
+  "my-jobs": "Jobs",
+  community: "Community",
+  progress: "Progress",
+};
+
 // Mobile: top 5 priority items per role (rest in a "More" sheet)
 const MOBILE_PRIORITY: Record<Role, ViewKey[]> = {
   // Owners start with the everyday four; every other tool is under "More".
@@ -270,7 +287,7 @@ const VIEW_META: Record<ViewKey, { label: string; icon: IconType }> = {
   fittings: { label: "Fittings", icon: CalendarDays },
   tasks: { label: "Tasks", icon: CheckSquare },
   "style-assist": { label: "Style Assist", icon: Sparkles },
-  quote: { label: "Quick Quote", icon: Zap },
+  quote: { label: "Quotes", icon: Zap },
   costing: { label: "True Costing", icon: Calculator },
   payments: { label: "Payments", icon: Wallet },
   projection: { label: "Business Projection", icon: LineChart },
@@ -415,7 +432,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           {(() => {
             const BASICS = ["dashboard", "customers", "orders", "board"] as ViewKey[];
-            const collapse = role === "madam";
+            const collapse = false; // every destination stays visible, grouped by section
             const basicItems = collapse ? allItems.filter((i) => BASICS.includes(i.to)) : [];
             const laterSections = collapse
               ? sections
@@ -559,6 +576,52 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ─── Main ────────────────────────────────────────────────── */}
       <main className="flex-1 lg:pl-[272px] pl-safe pr-safe pb-mobile-nav lg:pb-0 flex flex-col min-w-0 overflow-x-clip bg-[#faf6f4]">
+        {/* Desktop top bar: studio name, today's date and the account menu. */}
+        <div data-topbar className="hidden lg:flex sticky top-0 z-20 h-16 shrink-0 items-center justify-between gap-4 border-b border-[#EEDFE3] bg-[#faf6f4]/90 px-8 backdrop-blur-md">
+          <div className="min-w-0">
+            <p className="font-display text-lg font-semibold leading-tight text-[#2F151B] truncate">{activeMeta.label}</p>
+            <p className="text-xs text-stone-500 truncate">
+              {shopDisplayName} · {new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
+            </p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className="flex items-center gap-2.5 rounded-full border border-[#EEDFE3] bg-white py-1 pl-1 pr-3 text-left transition-colors hover:bg-[#FCF8F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C79A45]"
+              aria-label="Account menu"
+            >
+              <span
+                className="flex size-8 items-center justify-center rounded-full bg-[#800020] text-xs font-semibold text-white"
+                style={{ boxShadow: `0 0 0 2px #fff, 0 0 0 4px ${roleAccent}` }}
+              >
+                {(user?.fullName || "?").charAt(0).toUpperCase()}
+              </span>
+              <span className="hidden xl:block min-w-0">
+                <span className="block max-w-[10rem] truncate text-[13px] font-medium text-[#2F151B]">{user?.fullName}</span>
+                <span className="block text-[11px] text-stone-500">{ROLE_LABELS[role]}</span>
+              </span>
+              <ChevronDown className="size-4 text-stone-400" aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="font-normal">
+                <span className="block truncate text-sm font-medium">{user?.fullName}</span>
+                <span className="block truncate text-xs text-stone-500">{user?.email}</span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => go("profile")}>
+                <UserRound className="size-4" /> My profile
+              </DropdownMenuItem>
+              {role === "madam" && (
+                <DropdownMenuItem onSelect={() => go("settings")}>
+                  <SettingsIcon className="size-4" /> Settings
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => logout()}>
+                <LogOut className="size-4" /> Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         {planAccess?.trialExpired ? (
           <div
             role="alert"
@@ -617,7 +680,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 key={to}
                 onClick={() => go(to)}
-                className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 relative min-w-0 flex-1 max-w-[72px]"
+                className="flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 h-full relative min-w-0 flex-1"
               >
                 {active && (
                   <span className="absolute top-0 w-8 h-0.5 bg-[#800020] rounded-full" />
@@ -632,7 +695,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     active ? "text-[#800020] font-semibold" : "text-stone-400"
                   )}
                 >
-                  {label}
+                  {SHORT_LABEL[to] ?? label}
                 </span>
               </button>
             );
@@ -640,7 +703,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {moreItems.length > 0 && (
             <button
               onClick={() => setMoreOpen(true)}
-              className="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 h-full shrink-0 min-w-0 flex-1 max-w-[72px]"
+              className="flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 h-full min-w-0 flex-1"
             >
               <MoreHorizontal
                 className={cn("w-5 h-5 shrink-0", moreOpen ? "text-[#800020]" : "text-stone-400")}

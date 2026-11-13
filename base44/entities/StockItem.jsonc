@@ -1,0 +1,63 @@
+{
+  "name": "StockItem",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Item"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "Fabric",
+        "Trims & Notions",
+        "Embellishments",
+        "Packing",
+        "Tools & Consumables",
+        "Other"
+      ],
+      "default": "Fabric"
+    },
+    "unit": {
+      "type": "string",
+      "title": "Unit",
+      "enum": [
+        "Yards",
+        "Metres",
+        "Pieces",
+        "Rolls",
+        "Kg",
+        "Other"
+      ],
+      "default": "Yards"
+    },
+    "quantity": {
+      "type": "number",
+      "title": "Quantity On Hand",
+      "default": 0
+    },
+    "reorder_level": {
+      "type": "number",
+      "title": "Reorder Level",
+      "description": "When quantity falls to this level, the item is flagged low"
+    },
+    "unit_cost": {
+      "type": "number",
+      "title": "Cost Per Unit"
+    },
+    "supplier_id": {
+      "type": "string",
+      "title": "Preferred Supplier",
+      "ref": "Supplier"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

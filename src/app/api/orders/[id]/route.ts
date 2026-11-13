@@ -1,3 +1,4 @@
+import { cleanImageRef } from "@/lib/image-ref";
 import { NextRequest, NextResponse } from "next/server";
 import type { Database } from "@/lib/db/database.types";
 import { getTenant } from "@/lib/db/session";
@@ -87,7 +88,13 @@ export async function PATCH(
   if (body.deliveryDate !== undefined)
     data.delivery_date = body.deliveryDate ? new Date(body.deliveryDate).toISOString() : null;
   if (body.status !== undefined) data.status = body.status;
-  if (body.designImage !== undefined) data.design_image = body.designImage || null;
+  if (body.designImage !== undefined) {
+    const image = cleanImageRef(body.designImage);
+    if (image === undefined) {
+      return NextResponse.json({ error: "The picture must be an uploaded image or a web link." }, { status: 400 });
+    }
+    data.design_image = image;
+  }
   if (body.sellingPrice !== undefined) data.selling_price = Number(body.sellingPrice) || 0;
   if (body.fabricCost !== undefined) data.fabric_cost = Number(body.fabricCost) || 0;
   if (body.labourCost !== undefined) data.labour_cost = Number(body.labourCost) || 0;

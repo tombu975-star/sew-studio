@@ -652,7 +652,7 @@ main [class*="rounded-2xl"][class*="border"]:hover {
   border-radius: 0 4px 4px 0;
   background: #e6c58d;
 }
-.studio-shell > main > div {
+.studio-shell > main > div:not([data-topbar]) {
   min-height: calc(100dvh - 1px);
 }
 .studio-shell > header {
@@ -718,3 +718,33 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 @media (min-width: 1024px) {
   .studio-shell main > div[class*="max-w-"] { padding-left: 28px; padding-right: 28px; }
 }
+
+
+/* ---- Public website: swing tag settles once on load; tape-measure rule ---- */
+@keyframes tag-settle {
+  0%   { transform: rotate(7deg); }
+  35%  { transform: rotate(-3deg); }
+  62%  { transform: rotate(1.6deg); }
+  82%  { transform: rotate(-.6deg); }
+  100% { transform: rotate(0deg); }
+}
+.tag-settle { transform-origin: 50% 0; animation: tag-settle 2.4s cubic-bezier(.3,.6,.3,1) .35s both; }
+@media (prefers-reduced-motion: reduce) { .tag-settle { animation: none; } }
+
+.ruler-rule {
+  height: 14px;
+  background-image:
+    repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, currentColor 0 1.5px, transparent 1.5px 90px);
+  background-size: 100% 6px, 100% 14px;
+  background-repeat: no-repeat;
+}
+
+/* Lining numerals: the display serif defaults to old-style figures, which make
+   a 0 look like a letter "o" in totals and counts. */
+.font-display, h1, h2, h3, h4,
+[class*="font-display"], [class*="tabular"] {
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+}
+body { font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1; }

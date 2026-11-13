@@ -1,0 +1,34 @@
+{
+  "name": "AssetMaintenance",
+  "type": "object",
+  "properties": {
+    "asset_id": {
+      "type": "string",
+      "title": "Asset",
+      "ref": "Asset"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "performed_by": {
+      "type": "string",
+      "title": "Done By"
+    },
+    "artisan_id": {
+      "type": "string",
+      "title": "Artisan",
+      "ref": "Artisan"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Service / Repair Notes",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "asset_id",
+    "date"
+  ]
+}

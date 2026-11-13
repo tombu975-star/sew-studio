@@ -29,6 +29,7 @@ const Fittings = dynamic(() => import("@/views/Fittings").then((m) => m.default)
 const Tasks = dynamic(() => import("@/views/Tasks").then((m) => m.default), { ssr: false });
 const StyleAssist = dynamic(() => import("@/views/StyleAssist").then((m) => m.default), { ssr: false });
 const QuickQuote = dynamic(() => import("@/views/QuickQuote").then((m) => m.default), { ssr: false });
+const TrueCosting = dynamic(() => import("@/views/TrueCosting").then((m) => m.default), { ssr: false });
 const Team = dynamic(() => import("@/views/Team").then((m) => m.default), { ssr: false });
 const Community = dynamic(() => import("@/views/Community").then((m) => m.default), { ssr: false });
 const Progress = dynamic(() => import("@/views/Progress").then((m) => m.default), { ssr: false });
@@ -116,6 +117,7 @@ function ViewSwitch({ view }: { view: ReturnType<typeof useNav.getState>["view"]
     case "tasks": return <Tasks />;
     case "style-assist": return <StyleAssist />;
     case "quote": return <QuickQuote />;
+    case "costing": return <TrueCosting />;
     case "payments": return <Payments />;
     case "webinars": return <Webinars />;
     case "projection": return <Projection />;

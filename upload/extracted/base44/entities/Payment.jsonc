@@ -1,0 +1,67 @@
+{
+  "name": "Payment",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "title": "Order",
+      "ref": "Order"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "enum": [
+        "Deposit",
+        "Instalment",
+        "Final"
+      ]
+    },
+    "method": {
+      "type": "string",
+      "title": "Method",
+      "enum": [
+        "Cash",
+        "Mobile Money",
+        "Bank"
+      ]
+    },
+    "entry_log": {
+      "type": "string",
+      "title": "Entry Source",
+      "description": "How this record got into the app",
+      "enum": [
+        "Self-Entered",
+        "Apprentice-Logged",
+        "Assisted Call",
+        "Assisted WhatsApp"
+      ],
+      "default": "Self-Entered"
+    },
+    "logged_by": {
+      "type": "string",
+      "title": "Logged By",
+      "description": "Who entered this record (staff name or 'Sewsiness Assisted')"
+    },
+    "assisted_call_id": {
+      "type": "string",
+      "title": "Assisted Call",
+      "ref": "AssistedCallLog"
+    }
+  },
+  "required": [
+    "order_id",
+    "amount",
+    "date",
+    "type",
+    "method"
+  ]
+}

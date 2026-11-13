@@ -1,0 +1,56 @@
+{
+  "name": "StockMovement",
+  "type": "object",
+  "properties": {
+    "item_id": {
+      "type": "string",
+      "title": "Stock Item",
+      "ref": "StockItem"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "enum": [
+        "Stock In",
+        "Stock Out",
+        "Adjustment"
+      ]
+    },
+    "quantity": {
+      "type": "number",
+      "title": "Quantity"
+    },
+    "unit_cost": {
+      "type": "number",
+      "title": "Cost Per Unit",
+      "description": "Purchase price per unit, captured on stock-in"
+    },
+    "order_id": {
+      "type": "string",
+      "title": "Used On Order",
+      "ref": "Order",
+      "description": "The order this stock was taken out for"
+    },
+    "supplier_id": {
+      "type": "string",
+      "title": "Supplier",
+      "ref": "Supplier"
+    },
+    "note": {
+      "type": "string",
+      "title": "Note",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "item_id",
+    "date",
+    "type",
+    "quantity"
+  ]
+}

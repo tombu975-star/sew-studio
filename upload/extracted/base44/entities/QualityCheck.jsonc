@@ -1,0 +1,51 @@
+{
+  "name": "QualityCheck",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "title": "Order",
+      "ref": "Order"
+    },
+    "stage": {
+      "type": "string",
+      "title": "Stage",
+      "enum": [
+        "Cutting",
+        "Sewing",
+        "Finishing",
+        "Final"
+      ]
+    },
+    "inspector_id": {
+      "type": "string",
+      "title": "Inspector",
+      "ref": "User"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "result": {
+      "type": "string",
+      "title": "Result",
+      "enum": [
+        "Pass",
+        "Needs Rework"
+      ],
+      "default": "Pass"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "order_id",
+    "stage",
+    "date",
+    "result"
+  ]
+}

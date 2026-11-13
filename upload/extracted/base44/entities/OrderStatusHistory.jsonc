@@ -1,0 +1,48 @@
+{
+  "name": "OrderStatusHistory",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "title": "Order",
+      "ref": "Order"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Enquiry",
+        "Quoted",
+        "Consultation",
+        "Confirmed",
+        "Deposit Paid",
+        "In Production",
+        "Fitting",
+        "Alterations",
+        "Ready",
+        "Collected/Delivered",
+        "Completed"
+      ]
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "changed_by": {
+      "type": "string",
+      "title": "Changed By",
+      "ref": "User"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "order_id",
+    "status",
+    "date"
+  ]
+}

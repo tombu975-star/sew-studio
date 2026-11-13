@@ -1,3 +1,4 @@
+import { cleanImageRef } from "@/lib/image-ref";
 import { NextResponse } from "next/server";
 import type { Database } from "@/lib/db/database.types";
 import { getTenant } from "@/lib/db/session";
@@ -19,14 +20,14 @@ export async function PATCH(req: Request) {
   if ("gender" in body) data.gender = typeof body.gender === "string" && body.gender.trim() ? body.gender.trim() : null;
 
   if ("avatarUrl" in body) {
-    const raw = typeof body.avatarUrl === "string" ? body.avatarUrl.trim() : "";
-    if (raw && !/^https?:\/\//i.test(raw)) {
+    const image = cleanImageRef(body.avatarUrl);
+    if (image === undefined) {
       return NextResponse.json(
-        { error: "Profile picture must be a web link starting with http:// or https://" },
+        { error: "The profile picture must be an uploaded image or a web link." },
         { status: 400 }
       );
     }
-    data.avatar_url = raw ? raw.slice(0, 1000) : null;
+    data.avatar_url = image;
   }
 
   if (data.phone) {

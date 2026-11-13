@@ -1,3 +1,4 @@
+import { cleanImageRef } from "@/lib/image-ref";
 import { getTenant } from "@/lib/db/session";
 import { createAdminClient } from "@/lib/db/adminClient";
 import type { Database } from "@/lib/db/database.types";
@@ -141,11 +142,11 @@ export async function PATCH(
     }
     if (gender !== undefined) data.gender = gender || null;
     if (avatarUrl !== undefined) {
-      const raw = typeof avatarUrl === "string" ? avatarUrl.trim() : "";
-      if (raw && !/^https?:\/\//i.test(raw)) {
-        return Response.json({ error: "Profile picture must be an http(s) link." }, { status: 400 });
+      const image = cleanImageRef(avatarUrl);
+      if (image === undefined) {
+        return Response.json({ error: "The profile picture must be an uploaded image or a web link." }, { status: 400 });
       }
-      data.avatar_url = raw ? raw.slice(0, 1000) : null;
+      data.avatar_url = image;
     }
     if (canAccessOrders !== undefined) data.can_access_orders = Boolean(canAccessOrders);
     if (canAccessBoard !== undefined) data.can_access_board = Boolean(canAccessBoard);

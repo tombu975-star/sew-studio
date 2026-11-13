@@ -1,3 +1,4 @@
+import { cleanImageRef } from "@/lib/image-ref";
 import { NextRequest, NextResponse } from "next/server";
 import type { Database } from "@/lib/db/database.types";
 import { getTenant } from "@/lib/db/session";
@@ -80,6 +81,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Customer not found in this shop" }, { status: 404 });
   }
 
+  const designImage = cleanImageRef(body.designImage);
+  if (designImage === undefined) {
+    return NextResponse.json({ error: "The picture must be an uploaded image or a web link." }, { status: 400 });
+  }
+
   const data: Database["public"]["Tables"]["orders"]["Insert"] = {
     shop_id: ctx.shopId,
     customer_id: body.customerId,
@@ -101,6 +107,7 @@ export async function POST(req: NextRequest) {
         : Math.max(0, Number(body.suggestedPrice) || 0),
     notes: body.notes || null,
     priority: body.priority || "Medium",
+    design_image: designImage,
   };
 
   if (body.assignedStaffId) {

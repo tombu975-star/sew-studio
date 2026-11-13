@@ -1,0 +1,29 @@
+{
+  "name": "AccraRunTrip",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Trip Date"
+    },
+    "shopper_id": {
+      "type": "string",
+      "title": "Shopper",
+      "ref": "User"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Planned",
+        "Logged"
+      ],
+      "default": "Planned"
+    }
+  },
+  "required": [
+    "date",
+    "status"
+  ]
+}

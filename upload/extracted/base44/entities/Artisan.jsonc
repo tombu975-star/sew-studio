@@ -1,0 +1,43 @@
+{
+  "name": "Artisan",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "trade": {
+      "type": "string",
+      "title": "Trade",
+      "enum": [
+        "Machine Repairer",
+        "Electrician",
+        "Plumber",
+        "Carpenter",
+        "Other"
+      ],
+      "default": "Machine Repairer"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone"
+    },
+    "location": {
+      "type": "string",
+      "title": "Location"
+    },
+    "rate_notes": {
+      "type": "string",
+      "title": "Rate / Notes",
+      "format": "textarea"
+    },
+    "last_used_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Last Used"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

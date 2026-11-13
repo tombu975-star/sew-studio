@@ -574,7 +574,7 @@ function MainDashboard() {
             : "Your orders, fittings and tasks across the studio — keep production moving today."
         }
         actions={
-          canCreateOrders() ? (
+          canCreateOrders() && !owner ? (
             <PremiumButton
               variant="primary"
               size="md"
@@ -1092,8 +1092,8 @@ function MainDashboard() {
         </>
       )}
 
-      {/* ---------- Mobile floating New Order ---------- */}
-      {canCreateOrders() && (
+      {/* ---------- Mobile floating New Order (owners use the Quick actions panel) ---------- */}
+      {canCreateOrders() && !owner && (
         <button
           onClick={() => go("new-order")}
           className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#800020] text-white flex items-center justify-center shadow-lg hover:bg-[#650019] transition"

@@ -1,0 +1,58 @@
+{
+  "name": "OrderMaterial",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "title": "Order",
+      "ref": "Order"
+    },
+    "item_name": {
+      "type": "string",
+      "title": "Item Name"
+    },
+    "quantity": {
+      "type": "number",
+      "title": "Quantity"
+    },
+    "unit_cost": {
+      "type": "number",
+      "title": "Unit Cost"
+    },
+    "total_cost": {
+      "type": "number",
+      "title": "Total Cost"
+    },
+    "supplier_id": {
+      "type": "string",
+      "title": "Supplier",
+      "ref": "Supplier"
+    },
+    "entry_log": {
+      "type": "string",
+      "title": "Entry Source",
+      "description": "How this record got into the app",
+      "enum": [
+        "Self-Entered",
+        "Apprentice-Logged",
+        "Assisted Call",
+        "Assisted WhatsApp"
+      ],
+      "default": "Self-Entered"
+    },
+    "logged_by": {
+      "type": "string",
+      "title": "Logged By",
+      "description": "Who entered this record (staff name or 'Sewsiness Assisted')"
+    },
+    "assisted_call_id": {
+      "type": "string",
+      "title": "Assisted Call",
+      "ref": "AssistedCallLog"
+    }
+  },
+  "required": [
+    "order_id",
+    "item_name"
+  ]
+}

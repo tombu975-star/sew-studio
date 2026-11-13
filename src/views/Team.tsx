@@ -1,5 +1,6 @@
 "use client";
 
+import { ImageUpload } from "@/components/atelier/ImageUpload";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -2489,12 +2490,13 @@ function EditMemberDialog({
               </Select>
             </Field>
           </div>
-          <Field label="Profile picture link (optional)">
-            <Input
+          <Field label="Profile picture (optional)">
+            <ImageUpload
+              kind="avatar"
               value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="https://…"
-              className="h-10 bg-white border-[#EEDFE3] rounded-md"
+              onChange={setAvatarUrl}
+              label="Upload picture"
+              hint="Photo from your phone or computer · JPG, PNG or WebP"
             />
           </Field>
           <p className="text-xs text-stone-400 -mt-1">

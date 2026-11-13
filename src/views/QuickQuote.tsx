@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Zap, ShoppingBag, TrendingUp } from "lucide-react";
+import { Zap, ShoppingBag, TrendingUp, Save } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { SavedQuotes } from "@/components/quotes/SavedQuotes";
+import { apiErrorMessage, apiGet, apiPost } from "@/lib/api";
+import { useAuth } from "@/stores/auth";
+import type { Customer } from "@/lib/types";
 import { PageHeader } from "@/components/atelier/PageHeader";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { AnimatedNumber } from "@/components/atelier/AnimatedNumber";
@@ -156,6 +162,32 @@ export default function QuickQuote() {
     };
   }, [garment, fabric, yards, complexity, embellishment, rush]);
 
+  const qc = useQueryClient();
+  const shopName = useAuth((a) => a.user?.shop?.name);
+  const [quoteCustomerId, setQuoteCustomerId] = useState("");
+  const [validDays, setValidDays] = useState("14");
+  const { data: customers = [] } = useQuery<Customer[]>({
+    queryKey: ["customers"],
+    queryFn: () => apiGet<Customer[]>("/api/customers"),
+  });
+  const saveQuote = useMutation({
+    mutationFn: () => {
+      const until = new Date(Date.now() + Number(validDays) * 864e5).toISOString().slice(0, 10);
+      const c = customers.find((x) => x.id === quoteCustomerId);
+      return apiPost("/api/quotes", {
+        garment: `${garment} — ${fabric}`,
+        customerId: quoteCustomerId || null,
+        customerName: c?.name,
+        total: calc.total,
+        deposit: calc.suggestedDeposit,
+        validUntil: until,
+        inputs: { garment, fabric, yards, complexity, embellishment, rush },
+      });
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["quotes"] }); toast.success("Quote saved"); },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+
   const handleConvert = () => {
     go("new-order", {
       params: { garment: `${garment} — ${fabric}` },
@@ -167,8 +199,8 @@ export default function QuickQuote() {
       <PageHeader
         eyebrow="Instant pricing"
         eyebrowIcon={Zap}
-        title="Quick Quote"
-        subtitle="Estimate a garment price in seconds."
+        title="Quotes"
+        subtitle="Price a garment, save the quote and follow it to an order."
         actions={
           <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#800020]/8 border border-[#800020]/15 text-[#800020]">
             <Zap className="w-4 h-4" />
@@ -372,11 +404,43 @@ export default function QuickQuote() {
               Convert to Order
             </PremiumButton>
 
+            <div className="grid gap-2 border-t border-[#EEDFE3] pt-3">
+              <Label htmlFor="qq-customer">Save for customer (optional)</Label>
+              <select
+                id="qq-customer"
+                value={quoteCustomerId}
+                onChange={(e) => setQuoteCustomerId(e.target.value)}
+                className="h-10 w-full rounded-md border border-input bg-white px-3 text-sm"
+              >
+                <option value="">No customer yet</option>
+                {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <Label htmlFor="qq-valid">Valid for</Label>
+              <select
+                id="qq-valid"
+                value={validDays}
+                onChange={(e) => setValidDays(e.target.value)}
+                className="h-10 w-full rounded-md border border-input bg-white px-3 text-sm"
+              >
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="30">30 days</option>
+              </select>
+              <PremiumButton variant="secondary" size="md" className="w-full" onClick={() => saveQuote.mutate()} disabled={saveQuote.isPending || calc.total <= 0}>
+                <Save className="w-4 h-4" />
+                {saveQuote.isPending ? "Saving…" : "Save quote"}
+              </PremiumButton>
+            </div>
+
             <p className="text-xs text-stone-400 text-center">
               Estimate only — final price may vary after consultation.
             </p>
           </SectionCard>
         </div>
+      </div>
+
+      <div className="mt-5">
+        <SavedQuotes shopName={shopName} />
       </div>
     </div>
   );

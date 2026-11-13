@@ -1,0 +1,49 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "staff_id": {
+      "type": "string",
+      "title": "Staff Member",
+      "ref": "User"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Due Date"
+    },
+    "priority": {
+      "type": "string",
+      "title": "Priority",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "default": "Medium"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "To Do",
+        "In Progress",
+        "Done"
+      ],
+      "default": "To Do"
+    },
+    "order_id": {
+      "type": "string",
+      "title": "Linked Order",
+      "ref": "Order"
+    }
+  },
+  "required": [
+    "title",
+    "status"
+  ]
+}

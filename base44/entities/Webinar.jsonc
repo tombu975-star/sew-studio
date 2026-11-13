@@ -1,0 +1,16 @@
+{
+  "name": "Webinar",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string", "title": "Session Title" },
+    "description": { "type": "string", "title": "Description", "format": "textarea" },
+    "presenter": { "type": "string", "title": "Presenter" },
+    "starts_at": { "type": "string", "title": "Start Date and Time", "format": "date-time" },
+    "duration_minutes": { "type": "number", "title": "Duration in Minutes", "default": 60 },
+    "meeting_url": { "type": "string", "title": "Live Meeting URL", "format": "url" },
+    "registration_url": { "type": "string", "title": "Registration or Replay URL", "format": "url" },
+    "status": { "type": "string", "title": "Status", "enum": ["Scheduled", "Live", "Completed", "Cancelled"], "default": "Scheduled" },
+    "audience": { "type": "string", "title": "Audience", "default": "Everyone" }
+  },
+  "required": ["title"]
+}

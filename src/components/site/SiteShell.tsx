@@ -35,7 +35,7 @@ function SiteHeader() {
         </nav>
         <div className="flex items-center gap-2.5">
           <a href={SITE.studioUrl} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#800020] px-5 text-[13px] font-bold text-white shadow-[0_8px_20px_rgba(128,0,32,.18)] transition hover:-translate-y-0.5 hover:bg-[#650019]">
-            Enter your studio <ArrowUpRight className="size-4" />
+            <span className="whitespace-nowrap"><span className="hidden sm:inline">Enter your studio</span><span className="sm:hidden">Sign in</span></span> <ArrowUpRight className="size-4" />
           </a>
           <details className="group relative lg:hidden">
             <summary aria-label="Open menu" className="grid size-11 cursor-pointer list-none place-items-center rounded-full border border-[#eadde0] bg-white text-[#800020] [&::-webkit-details-marker]:hidden"><Menu className="size-5" /></summary>
@@ -62,9 +62,9 @@ function SiteFooter() {
 }
 
 export function SiteShell({ children }: { children: ReactNode }) {
-  return <div className={`${serif.variable} ${sans.variable} min-h-dvh bg-[#FCF8F5] font-[family-name:var(--font-sans-site)] text-[#2F151B] antialiased`}><SiteHeader /><main>{children}</main><SiteFooter /></div>;
+  return <div className={`${serif.variable} ${sans.variable} min-h-dvh bg-[#FCF8F5] font-[family-name:var(--font-sans-site)] text-[#2F151B] antialiased`}><SiteHeader /><div id="main" role="main">{children}</div><SiteFooter /></div>;
 }
 
 export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
-  return <SiteShell><article className="mx-auto max-w-3xl px-5 py-16 sm:py-24"><p className={eyebrow}>Sewsiness / Legal</p><h1 className={`${heading} mt-3 text-5xl font-semibold`}>{title}</h1><p className="mt-3 text-sm text-[#80666D]">Last updated {SITE.lastUpdated}</p><div className="mt-10 space-y-8 text-[.97rem] leading-8 text-[#5f4b50] [&_a]:font-semibold [&_a]:text-[#800020] [&_a]:underline [&_h2]:font-[family-name:var(--font-serif)] [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-[#800020] [&_h2+*]:mt-3 [&_li]:mt-1.5 [&_ul]:list-disc [&_ul]:pl-5">{children}</div></article></SiteShell>;
+  return <SiteShell><article className="mx-auto max-w-3xl px-5 py-16 sm:py-24"><p className={eyebrow}>Sewsiness / Legal</p><h1 className={`${heading} mt-3 text-5xl font-semibold`}>{title}</h1><p className="mt-3 text-sm text-[#80666D]">Last updated {SITE.lastUpdated}</p><div className="mt-10 space-y-8 text-[.97rem] leading-8 text-[#5f4b50] [&_a]:font-semibold [&_a]:text-[rgb(128,0,32)] [&_a]:underline [&_h2]:font-[family-name:var(--font-serif)] [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-[rgb(128,0,32)] [&_h2+*]:mt-3 [&_li]:mt-1.5 [&_ul]:list-disc [&_ul]:pl-5">{children}</div></article></SiteShell>;
 }

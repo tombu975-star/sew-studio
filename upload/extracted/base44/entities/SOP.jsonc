@@ -1,0 +1,228 @@
+{
+  "name": "SOP",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "SOP Name"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "Customer Management",
+        "Consultation & Order Management",
+        "Measurements",
+        "Design",
+        "Pricing & Money",
+        "Production",
+        "Fabric & Materials",
+        "Quality Control",
+        "Fitting & Alterations",
+        "Delivery",
+        "Staff",
+        "Training",
+        "Customer Service",
+        "Special Situations",
+        "RTW",
+        "Business Review",
+        "Other"
+      ],
+      "default": "Production"
+    },
+    "is_template": {
+      "type": "boolean",
+      "title": "Starter Template",
+      "default": false,
+      "description": "Starter library SOP \u2014 Madam can duplicate and customise it without changing this master copy"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Draft",
+        "Active",
+        "Archived"
+      ],
+      "default": "Draft"
+    },
+    "version": {
+      "type": "number",
+      "title": "Version",
+      "default": 1
+    },
+    "summary": {
+      "type": "string",
+      "title": "Summary",
+      "format": "textarea",
+      "description": "Legacy short summary (older SOPs) \u2014 new SOPs should use Purpose instead"
+    },
+    "purpose": {
+      "type": "string",
+      "title": "Purpose",
+      "format": "textarea"
+    },
+    "scope": {
+      "type": "string",
+      "title": "Scope",
+      "format": "textarea"
+    },
+    "when_to_use": {
+      "type": "string",
+      "title": "When To Use",
+      "format": "textarea"
+    },
+    "responsible_role": {
+      "type": "string",
+      "title": "Responsible Role",
+      "enum": [
+        "Madam",
+        "Staff",
+        "Trainee",
+        "Trainer",
+        "Any"
+      ],
+      "default": "Any"
+    },
+    "responsible_person": {
+      "type": "string",
+      "title": "Responsible Person",
+      "ref": "User"
+    },
+    "required_information": {
+      "type": "string",
+      "title": "Required Information",
+      "format": "textarea"
+    },
+    "required_materials": {
+      "type": "string",
+      "title": "Required Materials / Tools",
+      "format": "textarea"
+    },
+    "steps": {
+      "type": "array",
+      "title": "Step-by-Step Procedure",
+      "items": {
+        "type": "string"
+      }
+    },
+    "checklist_items": {
+      "type": "array",
+      "title": "Checklist",
+      "items": {
+        "type": "string"
+      }
+    },
+    "completion_criteria": {
+      "type": "string",
+      "title": "Completion Criteria",
+      "format": "textarea"
+    },
+    "evidence_required": {
+      "type": "array",
+      "title": "Evidence Required",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Photo",
+          "Document",
+          "Notes"
+        ]
+      }
+    },
+    "requires_manager_approval": {
+      "type": "boolean",
+      "title": "Requires Manager Approval",
+      "default": false
+    },
+    "requires_trainer_approval": {
+      "type": "boolean",
+      "title": "Requires Trainer Approval",
+      "default": false
+    },
+    "requires_customer_approval": {
+      "type": "boolean",
+      "title": "Requires Customer Approval",
+      "default": false
+    },
+    "requires_qc_approval": {
+      "type": "boolean",
+      "title": "Requires Quality-Control Approval",
+      "default": false
+    },
+    "common_problems": {
+      "type": "string",
+      "title": "Common Problems",
+      "format": "textarea"
+    },
+    "exception_conditions": {
+      "type": "string",
+      "title": "Exception Conditions",
+      "format": "textarea"
+    },
+    "escalation_procedure": {
+      "type": "string",
+      "title": "Escalation Procedure",
+      "format": "textarea"
+    },
+    "related_training": {
+      "type": "string",
+      "title": "Related Training",
+      "format": "textarea"
+    },
+    "related_notes": {
+      "type": "string",
+      "title": "Related SOPs / Features",
+      "format": "textarea",
+      "description": "Free text \u2014 related SOPs, orders, customers, staff etc."
+    },
+    "review_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Review Date"
+    },
+    "last_reviewed_by": {
+      "type": "string",
+      "title": "Last Reviewed By",
+      "ref": "User"
+    },
+    "attachment_url": {
+      "type": "string",
+      "title": "Attachment",
+      "format": "url"
+    },
+    "version_history": {
+      "type": "array",
+      "title": "Version History",
+      "items": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "changed_by": {
+            "type": "string"
+          },
+          "changed_date": {
+            "type": "string"
+          },
+          "change_summary": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By",
+      "ref": "User"
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}

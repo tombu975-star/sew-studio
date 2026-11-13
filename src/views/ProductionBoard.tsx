@@ -17,7 +17,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { LayoutGrid, AlertCircle, GripVertical, Scissors, ClipboardCheck, Clock3, CheckCircle2 } from "lucide-react";
+import { LayoutGrid, AlertCircle, GripVertical, ClipboardCheck, Clock3, CheckCircle2 } from "lucide-react";
 
 import { apiGet, apiPatch } from "@/lib/api";
 import { useNav } from "@/stores/nav";
@@ -300,6 +300,27 @@ export default function ProductionBoard() {
           onDragEnd={handleDragEnd}
           onDragCancel={() => setActiveId(null)}
         >
+          {/* Phones: tap a stage to jump to it, so no stage hides off-screen. */}
+          <div role="group" aria-label="Jump to stage" className="mb-3 flex gap-2 overflow-x-auto pb-1 scroll-slim lg:hidden">
+            {columns.map((col) => (
+              <button
+                key={col.key}
+                type="button"
+                onClick={() =>
+                  document
+                    .getElementById(`board-col-${col.key}`)
+                    ?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" })
+                }
+                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[#EEDFE3] bg-white px-3.5 text-xs font-medium text-[#2F151B] active:bg-[#FAF0F2]"
+              >
+                {col.title}
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FAF0F2] px-1.5 text-[11px] font-semibold tabular-nums text-[#800020]">
+                  {col.cards.length}
+                </span>
+              </button>
+            ))}
+          </div>
+
           <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-5 snap-x snap-mandatory scroll-slim sm:mx-0 sm:gap-4 sm:px-0">
             {columns.map((col) => (
               <Column
@@ -352,6 +373,7 @@ function Column({
   return (
     <div
       ref={setNodeRef}
+      id={`board-col-${col.key}`}
       className={cn(
         "w-[82vw] max-w-[340px] sm:w-[310px] lg:w-[320px] xl:w-[330px] shrink-0 snap-start rounded-2xl border bg-[#FBF8F8] shadow-[0_5px_18px_rgba(53,18,29,.045)] flex flex-col transition-all",
         isOver
@@ -467,25 +489,20 @@ function Card({
         <GripVertical className="w-3.5 h-3.5 text-stone-300 shrink-0 mt-0.5" />
       </div>
 
-      {/* Style picture */}
-      <div className="mt-2.5 h-24 w-full rounded-md overflow-hidden bg-[#FAF0F2] border border-[#EEDFE3] flex items-center justify-center">
-        {order.designImage ? (
-           
+      {/* Garment, with a small picture only when the order has one */}
+      <div className="mt-2.5 flex items-start gap-2.5">
+        {order.designImage && (
           <img
             src={order.designImage}
             alt={`${order.garmentDesign} style`}
             loading="lazy"
             draggable={false}
-            className="w-full h-full object-cover"
+            className="size-12 shrink-0 rounded-md border border-[#EEDFE3] object-cover"
           />
-        ) : (
-          <Scissors className="w-5 h-5 text-stone-300" />
         )}
-      </div>
-
-      {/* Garment */}
-      <div className="text-[13px] text-[#2F151B] font-medium leading-snug line-clamp-2 mt-2">
-        {order.garmentDesign}
+        <div className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-[#2F151B] line-clamp-2">
+          {order.garmentDesign}
+        </div>
       </div>
 
       {/* Status + priority */}

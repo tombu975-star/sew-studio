@@ -1,0 +1,29 @@
+{
+  "name": "AssistedCallLog",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Call Date"
+    },
+    "agent_name": {
+      "type": "string",
+      "title": "Taken By",
+      "description": "Staff member or 'Sewsiness Assisted' agent who handled the call"
+    },
+    "owner_spoken_to": {
+      "type": "string",
+      "title": "Business Owner Spoken To"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Call Notes",
+      "format": "textarea"
+    }
+  },
+  "required": [
+    "date",
+    "agent_name"
+  ]
+}
