@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPool } from "@/lib/db/pool";
 import { sendEmail } from "@/lib/mailer";
+import { SITE } from "@/lib/site-config";
 import { clean, isEmail, isPastSession, tooManyRequests } from "@/lib/public-trainings";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,7 +31,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!t) return NextResponse.json({ error: "This session is not open for sign-up." }, { status: 404 });
 
   const past = isPastSession({ status: t.status, startsAt: t.starts_at ? new Date(t.starts_at).toISOString() : null, durationMinutes: t.duration_minutes });
-  if (past && !t.replay_url) return NextResponse.json({ error: "This session has finished." }, { status: 410 });
+  const onsite = t.delivery === "onsite";
+  if (past && !t.replay_url && !(onsite && t.media_id)) return NextResponse.json({ error: "This session has finished." }, { status: 410 });
 
   const insert = await pool.query(
     `insert into public.system_training_registrations (training_id, full_name, email, phone, about_you)
@@ -43,13 +45,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     "select 1 from public.system_training_registrations where training_id = $1 and lower(email) = $2", [id, email])).rowCount! > 0;
   if (insert.rowCount === 0 && !alreadyIn) return NextResponse.json({ error: "Sorry, this session is full." }, { status: 409 });
 
-  const link: string | null = past ? t.replay_url : t.meeting_url;
+  const base = (process.env.NEXT_PUBLIC_APP_URL || SITE.appUrl).replace(/\/$/, "");
+  const link: string | null = onsite ? `${base}/academy/live/${id}` : past ? t.replay_url : t.meeting_url;
   const when = t.starts_at ? new Date(t.starts_at).toUTCString().replace("GMT", "UTC") : "date to be announced";
   if (!alreadyIn) {
     void sendEmail({
       to: email, type: "training-registration",
       subject: `You are signed up: ${t.title}`,
-      body: `Hello ${fullName},\n\nYou are signed up for "${t.title}" (${when}).\n\n${link ? `${past ? "Watch the replay" : "Join here"}: ${link}\n\n` : "We will send the joining link before the session starts.\n\n"}See you there,\nThe Sewsiness team`,
+      body: `Hello ${fullName},\n\nYou are signed up for "${t.title}" (${when}).\n\n${link ? `${past ? "Watch the replay" : "Join here"}: ${link}${onsite ? "\n(You will sign in with a code we email you. No password needed.)" : ""}\n\n` : "We will send the joining link before the session starts.\n\n"}See you there,\nThe Sewsiness team`,
     }).catch(() => undefined);
   }
   return NextResponse.json({ ok: true, alreadyRegistered: alreadyIn, title: t.title, startsAt: t.starts_at, link, linkKind: past ? "replay" : "join" });

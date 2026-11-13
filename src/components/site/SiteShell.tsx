@@ -23,7 +23,7 @@ const sans = localFont({
 
 export const heading = "font-[family-name:var(--font-serif)] tracking-tight";
 export const eyebrow = "text-xs font-bold uppercase tracking-[0.22em] text-[#800020]";
-const NAV = [["/#who", "Our story"], ["/#app", "The platform"], ["/training", "Training"], ["/#products", "Resources"], ["/#contact", "Contact"]] as const;
+const NAV = [["/#who", "Our story"], ["/#app", "The platform"], ["/academy", "Academy"], ["/#products", "Resources"], ["/#contact", "Contact"]] as const;
 
 function SiteHeader() {
   return (
@@ -55,7 +55,7 @@ function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.4fr_1fr_1fr]">
         <div><div className="inline-flex rounded-xl bg-white px-3 py-2"><BrandLogo width={142} /></div><p className="mt-4 max-w-sm text-sm leading-7 text-white/75">{SITE.line}. Thoughtful tools, practical business skills and a community for people who make clothes.</p><p className="mt-6 text-xs text-white/70">© {new Date().getFullYear()} Sewsiness. All rights reserved.</p></div>
         <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#e5bd83]">Get in touch</p><div className="mt-4 space-y-3 text-sm text-white/70"><a className="block hover:text-white" href={`mailto:${CONTACT.generalEmail}`}>{CONTACT.generalEmail}</a><a className="block hover:text-white" href={`mailto:${CONTACT.supportEmail}`}>{CONTACT.supportEmail}</a><a className="block hover:text-white" href={CONTACT.whatsappLink}>WhatsApp {CONTACT.whatsappDisplay}</a></div></div>
-        <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#e5bd83]">Explore</p><div className="mt-4 space-y-3 text-sm text-white/70"><Link className="block hover:text-white" href="/#app">The platform</Link><Link className="block hover:text-white" href="/training">Free training</Link><Link className="block hover:text-white" href="/privacy">Privacy</Link><Link className="block hover:text-white" href="/terms">Terms</Link><a className="block hover:text-white" href={CONTACT.community}>WhatsApp community</a></div></div>
+        <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#e5bd83]">Explore</p><div className="mt-4 space-y-3 text-sm text-white/70"><Link className="block hover:text-white" href="/#app">The platform</Link><Link className="block hover:text-white" href="/academy">Free Academy</Link><Link className="block hover:text-white" href="/privacy">Privacy</Link><Link className="block hover:text-white" href="/terms">Terms</Link><a className="block hover:text-white" href={CONTACT.community}>WhatsApp community</a></div></div>
       </div>
     </footer>
   );

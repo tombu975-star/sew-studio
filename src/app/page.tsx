@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { SiteShell, heading } from "@/components/site/SiteShell";
 import { TrainingSessions } from "@/components/site/TrainingSessions";
+import { ContinueLearning } from "@/components/academy/ContinueLearning";
+import { listPublishedCourses } from "@/lib/academy/data";
 import {
   CostBars, ExampleNote, RulerRule, ShoppingTicks, Sparkline, StagePills, StockGauges, SwingTag,
 } from "@/components/site/Visuals";
@@ -44,6 +46,7 @@ const PROMISES = [
 
 export default async function HomePage() {
   const upcoming = (await loadPublicTrainings()).filter((s) => !isPastSession(s)).slice(0, 3);
+  const courses = await listPublishedCourses(3);
   const [costing, clients, accra, projection, inventory] = APP_FEATURES;
 
   return (
@@ -217,13 +220,19 @@ export default async function HomePage() {
 
           <article className="relative overflow-hidden rounded-[2rem] border border-[#EADDE0] bg-white p-8 sm:p-12">
             <RulerRule className="absolute inset-x-8 top-0 text-[#C79A45]/60 sm:inset-x-12" />
-            <span className="inline-flex rounded-full bg-[#F7EDF0] px-3.5 py-1.5 text-xs font-bold text-[#800020]">Sponsored by Sewsiness</span>
+            <span className="inline-flex rounded-full bg-[#F7EDF0] px-3.5 py-1.5 text-xs font-bold text-[#800020]">Sewsiness Academy</span>
             <h3 className={`${heading} mt-6 text-4xl font-semibold text-[#35121d] sm:text-5xl`}>Free training</h3>
             <p className="mt-4 max-w-sm text-[15px] leading-7 text-[#6F565D]">
-              New fashion graduates: join our free webinar series on getting your first paying clients. Sponsored by Sewsiness.
+              Video courses, live classes with a class chat, and certificates anyone can check. All of it runs here on Sewsiness, and you sign in with just your email.
             </p>
-            <Link href="/training" className={`${pill} mt-8 border border-[#D9BDC4] text-[#800020] hover:bg-[#FBF3F5]`}>
-              {upcoming.length > 0 ? "Reserve your free place" : "Sign up"} <ArrowUpRight className="size-4" />
+            {courses.length > 0 && (
+              <ul className="mt-6 max-w-sm divide-y divide-dashed divide-[#C79A45]/60 border-y border-dashed border-[#C79A45]/60">
+                {courses.map((c) => <li key={c.id}><Link href={`/academy/${c.slug}`} className="flex items-center justify-between gap-3 py-3 text-sm font-semibold text-[#35121d] hover:text-[#800020]">{c.title}<span className="shrink-0 text-xs font-normal text-[#6F565D]">{c.lessonCount} lessons</span></Link></li>)}
+              </ul>
+            )}
+            <div className="mt-6"><ContinueLearning /></div>
+            <Link href="/academy" className={`${pill} mt-8 border border-[#D9BDC4] text-[#800020] hover:bg-[#FBF3F5]`}>
+              {upcoming.length > 0 ? "See courses and live classes" : "Open the Academy"} <ArrowUpRight className="size-4" />
             </Link>
           </article>
         </div>
@@ -232,7 +241,7 @@ export default async function HomePage() {
           <div className={`${wrap} mt-14`}>
             <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
               <h3 className={`${heading} text-3xl font-semibold text-[#35121d]`}>Coming up</h3>
-              <Link href="/training" className="text-sm font-bold text-[#800020] underline">All free sessions</Link>
+              <Link href="/academy#live" className="text-sm font-bold text-[#800020] underline">All live classes</Link>
             </div>
             <TrainingSessions sessions={upcoming} />
           </div>

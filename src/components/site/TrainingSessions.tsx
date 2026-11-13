@@ -80,8 +80,8 @@ export function TrainingSessions({ sessions, emptyText }: { sessions: PublicTrai
                 <DialogDescription>{result.title}<br />{when(result.startsAt)}</DialogDescription>
               </DialogHeader>
               {result.link ? (
-                <a href={result.link} target="_blank" rel="noreferrer noopener" className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-[#800020] px-6 text-sm font-bold text-white hover:bg-[#650019]">
-                  {result.linkKind === "replay" ? "Watch the replay" : "Open the joining link"} <ExternalLink className="size-4" />
+                <a href={result.link} {...(result.link.includes("/academy/") ? {} : { target: "_blank", rel: "noreferrer noopener" })} className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-[#800020] px-6 text-sm font-bold text-white hover:bg-[#650019]">
+                  {result.linkKind === "replay" ? "Watch the replay" : "Open the class room"} <ExternalLink className="size-4" />
                 </a>
               ) : <p className="mt-6 text-sm text-[#5f4b50]">We will email you the joining link before the session starts.</p>}
               <p className="mt-4 text-xs text-[#6F565D]">We have also emailed you these details. Check your spam folder if you do not see it.</p>

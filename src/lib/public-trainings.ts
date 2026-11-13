@@ -7,7 +7,7 @@ export const TRAINING_STATUSES = ["Scheduled", "Live", "Completed", "Cancelled"]
 export type PublicTraining = {
   id: string; title: string; description: string; presenter: string; kind: string;
   startsAt: string | null; durationMinutes: number; status: string;
-  spotsLeft: number | null; hasReplay: boolean;
+  spotsLeft: number | null; hasReplay: boolean; onsite: boolean;
 };
 
 export const clean = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
@@ -28,8 +28,8 @@ export const isEmail = (v: string) => v.length <= 254 && /^[^\s@<>]+@[^\s@<>]+\.
 export async function loadPublicTrainings(): Promise<PublicTraining[]> {
   try {
     const { rows } = await getPool().query(
-      `select t.id, t.title, t.description, t.presenter, t.kind, t.starts_at, t.duration_minutes, t.status, t.capacity,
-              (t.replay_url is not null) as has_replay,
+      `select t.id, t.title, t.description, t.presenter, t.kind, t.starts_at, t.duration_minutes, t.status, t.capacity, t.delivery,
+              (t.replay_url is not null or (t.delivery = 'onsite' and t.media_id is not null)) as has_replay,
               (select count(*)::int from public.system_training_registrations r where r.training_id = t.id) as signed_up
          from public.system_public_trainings t
         where t.published and t.status <> 'Cancelled'
@@ -39,7 +39,7 @@ export async function loadPublicTrainings(): Promise<PublicTraining[]> {
     return rows.map((r) => ({
       id: r.id, title: r.title, description: r.description ?? "", presenter: r.presenter ?? "", kind: r.kind,
       startsAt: r.starts_at ? new Date(r.starts_at).toISOString() : null, durationMinutes: r.duration_minutes, status: r.status,
-      spotsLeft: r.capacity === null ? null : Math.max(0, r.capacity - r.signed_up), hasReplay: r.has_replay,
+      spotsLeft: r.capacity === null ? null : Math.max(0, r.capacity - r.signed_up), hasReplay: r.has_replay, onsite: r.delivery === "onsite",
     }));
   } catch (error) {
     console.error("[public-trainings] could not load sessions", error);
