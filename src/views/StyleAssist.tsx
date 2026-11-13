@@ -239,7 +239,7 @@ function CustomerPicker({ onPick }: { onPick: (id: string) => void }) {
                 Select customer
               </Label>
               <Select onValueChange={onPick} disabled={isLoading || isError}>
-                <SelectTrigger className="w-full h-11 rounded-md text-sm">
+                <SelectTrigger aria-label="Choose a customer" className="w-full h-11 rounded-md text-sm">
                   <SelectValue
                     placeholder={
                       isError

@@ -215,7 +215,7 @@ export default function Orders() {
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-[190px] rounded-md h-9 text-sm bg-white">
+            <SelectTrigger aria-label="Filter by status" className="w-full md:w-[190px] rounded-md h-9 text-sm bg-white">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -229,7 +229,7 @@ export default function Orders() {
           </Select>
           {!scopeToMine && (
             <Select value={staffFilter} onValueChange={setStaffFilter}>
-              <SelectTrigger className="w-full md:w-[180px] rounded-md h-9 text-sm bg-white">
+              <SelectTrigger aria-label="Filter by staff member" className="w-full md:w-[180px] rounded-md h-9 text-sm bg-white">
                 <SelectValue placeholder="All staff" />
               </SelectTrigger>
               <SelectContent>

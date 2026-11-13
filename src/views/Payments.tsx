@@ -57,7 +57,7 @@ export default function Payments() {
         <MetricCard label="STILL OWED" value={formatCurrency(outstanding, currency)} sub={`${owing.length} order${owing.length === 1 ? "" : "s"} with a balance`} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <SectionCard title="Balances to collect">
           {isLoading ? <p className="p-6 text-sm text-stone-400">Loading…</p> : owing.length === 0 ? (
             <EmptyState icon={Wallet} title="Nothing owed" description="Every order is paid up." />

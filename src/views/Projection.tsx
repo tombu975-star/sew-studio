@@ -117,24 +117,24 @@ export default function Projection() {
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#EADDE0]"><div className="h-full rounded-full bg-[#800020]" style={{ width: `${Math.max(0, Math.min(100, marginPercent))}%` }}/></div>
                 <p className="mt-2 text-xs text-stone-500">{marginPercent}% of booked revenue after estimated costs</p>
               </div>
-              <div className="mt-3 divide-y divide-[#F0E5E7]">
+              <dl className="mt-3 divide-y divide-[#F0E5E7]">
                 <Row label="Projected margin" value={fmt(projection.grossMargin)} />
                 <Row label="Planned owner pay" value={`− ${fmt(projection.ownerPay)}`} />
                 <Row label="Estimated balance after pay" value={fmt(projection.leftAfterPay)} strong warn={projection.leftAfterPay < 0}/>
-              </div>
+              </dl>
               {projection.leftAfterPay < 0 && <p className="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-800"><AlertCircle className="mt-0.5 size-4 shrink-0"/>Your planned pay is higher than the projected margin. Review pricing, costs or the planned payout before withdrawing.</p>}
             </SectionCard>
           </div>
 
           <div className="mb-5 grid gap-4 lg:grid-cols-2">
             <SectionCard title="Production cost breakdown" description="Estimated cost of all active orders, using your true-cost settings.">
-              <div className="divide-y divide-[#F0E5E7]">
+              <dl className="divide-y divide-[#F0E5E7]">
                 <Row label="Fabric and materials" value={fmt(projection.fabric)}/>
                 <Row label="Labour" value={fmt(projection.labour)}/>
                 <Row label="Other job costs" value={fmt(projection.other)}/>
                 <Row label="Allocated overhead" value={fmt(Math.max(0, projection.cost - projection.fabric - projection.labour - projection.other))}/>
                 <Row label="Total projected cost" value={fmt(projection.cost)} strong/>
-              </div>
+              </dl>
               <p className="mt-3 text-xs leading-5 text-stone-500">Monthly overhead configured in Settings: {fmt(projection.overhead)}. Allocated overhead is included in each order’s true cost.</p>
             </SectionCard>
             <SectionCard title="Cash collection outlook" description="Track what has come in and what is still expected from active work.">
@@ -150,7 +150,7 @@ export default function Projection() {
 
           <SectionCard title="Active order forecast" description="A quick view of the orders contributing to this projection.">
             {projection.active.length ? (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" role="region" aria-label="Active orders in the projection" tabIndex={0}>
                 <table className="w-full min-w-[680px] text-left text-sm">
                   <thead><tr className="border-b border-[#EEDFE3] text-[11px] uppercase tracking-[.14em] text-stone-500"><th className="px-3 py-3 font-semibold">Order / client</th><th className="px-3 py-3 font-semibold">Stage</th><th className="px-3 py-3 font-semibold">Due date</th><th className="px-3 py-3 text-right font-semibold">Order value</th><th className="px-3 py-3 text-right font-semibold">Balance</th></tr></thead>
                   <tbody>{projection.active.slice().sort((a,b) => (a.deliveryDate || "9999").localeCompare(b.deliveryDate || "9999")).map((o) => {

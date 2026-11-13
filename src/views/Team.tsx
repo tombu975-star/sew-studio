@@ -494,7 +494,7 @@ function StaffTrainersCard({
             return (
               <div
                 key={u.id}
-                className="group flex items-center gap-4 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
+                className="group flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
               >
                 <div
                   className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
@@ -502,9 +502,9 @@ function StaffTrainersCard({
                 >
                   {initialOf(u.fullName)}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-[12rem]">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-[#2F151B] truncate">
+                    <span className="font-medium text-[#2F151B] break-words">
                       {u.fullName}
                     </span>
                     {isOwner && (
@@ -520,7 +520,7 @@ function StaffTrainersCard({
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-1">
                     {u.email && (
-                      <span className="inline-flex items-center gap-1 truncate max-w-[220px]">
+                      <span className="inline-flex items-center gap-1 max-w-full break-all">
                         <Mail className="w-3 h-3 shrink-0" /> {u.email}
                       </span>
                     )}
@@ -541,9 +541,9 @@ function StaffTrainersCard({
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex flex-wrap items-center gap-3 max-sm:w-full max-sm:pl-[3.75rem]">
                   {!isOwner && isOwnerViewer && (
-                    <label className="hidden md:flex items-center gap-2 text-xs text-stone-500 cursor-pointer">
+                    <label className="flex items-center gap-2 text-xs text-stone-500 cursor-pointer">
                       <Switch
                         checked={!!u.canManageFreelancers}
                         onCheckedChange={(v) =>

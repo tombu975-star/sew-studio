@@ -266,7 +266,7 @@ export default function Customers() {
             />
           </div>
           <Select value={sourceFilter} onValueChange={setSourceFilter}>
-            <SelectTrigger className="w-full h-11 bg-white border-[#EEDFE3] rounded-md">
+            <SelectTrigger aria-label="Filter by entry source" className="w-full h-11 bg-white border-[#EEDFE3] rounded-md">
               <SelectValue placeholder="Entry source" />
             </SelectTrigger>
             <SelectContent>
@@ -279,7 +279,7 @@ export default function Customers() {
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-full h-11 bg-white border-[#EEDFE3] rounded-md">
+            <SelectTrigger aria-label="Filter by client type" className="w-full h-11 bg-white border-[#EEDFE3] rounded-md">
               <SelectValue placeholder="Client type" />
             </SelectTrigger>
             <SelectContent>

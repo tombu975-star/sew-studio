@@ -151,7 +151,7 @@ export default function TrueCosting() {
             }
           />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" role="region" aria-label="Cost versus price by order" tabIndex={0}>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left">

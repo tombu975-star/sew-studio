@@ -33,24 +33,24 @@ export function LearningTabs({ current }: { current: ViewKey }) {
 
   return (
     <nav aria-label="Learning" className="-mx-5 mb-5 overflow-x-auto px-5 md:mx-0 md:px-0">
-      <ul className="flex min-w-max gap-1 border-b border-[#E6D4D8]">
+      <ul className="flex w-full gap-2 border-b border-[#E6D4D8] sm:min-w-max sm:gap-1">
         {tabs.map((t) => {
           const active = t.view === current;
           return (
-            <li key={t.view}>
+            <li key={t.view} className="min-w-0 flex-1 sm:flex-none">
               <button
                 type="button"
                 onClick={() => go(t.view)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "-mb-px inline-flex h-11 items-center gap-2 border-b-2 px-3.5 text-sm font-medium transition-colors",
+                  "-mb-px inline-flex h-11 w-full items-center justify-center gap-2 border-b-2 px-1 text-[13px] font-medium transition-colors sm:w-auto sm:px-3.5 sm:text-sm",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]/40 focus-visible:ring-offset-1",
                   active
                     ? "border-[#800020] text-[#3B0010]"
                     : "border-transparent text-slate-500 hover:text-[#3B0010]"
                 )}
               >
-                <t.icon className="size-4" aria-hidden="true" />
+                <t.icon className="hidden size-4 sm:block" aria-hidden="true" />
                 {t.label}
               </button>
             </li>

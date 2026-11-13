@@ -22,7 +22,7 @@ export default async function TrainingPage() {
         <div className="mx-auto max-w-7xl">
           <p className={eyebrow}>Sponsored by Sewsiness</p>
           <h1 className={`${heading} mt-4 max-w-3xl text-5xl font-semibold leading-[1.04] text-[#35121d] sm:text-6xl`}>Free training for people who sew for a living</h1>
-          <p className="mt-6 max-w-2xl text-sm leading-8 text-[#80666D] sm:text-base">Practical webinars on getting your first paying clients, pricing properly and running your business with confidence. Pick a session, sign up with your name and email, and we will send you the link. You do not need an account.</p>
+          <p className="mt-6 max-w-2xl text-sm leading-8 text-[#6F565D] sm:text-base">Practical webinars on getting your first paying clients, pricing properly and running your business with confidence. Pick a session, sign up with your name and email, and we will send you the link. You do not need an account.</p>
         </div>
       </section>
       <section className="px-5 py-16 sm:px-8 sm:py-24">
@@ -34,7 +34,7 @@ export default async function TrainingPage() {
             <div className="mt-8"><TrainingSessions sessions={past} /></div>
           </>)}
           <div className="mt-16 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-[1.6rem] border border-[#e6d6d8] bg-white p-7">
-            <p className="min-w-0 flex-1 text-sm leading-7 text-[#5f4b50]">Want to hear about new sessions first? <a href={CONTACT.community} className="font-bold text-[#800020] underline">Join the WhatsApp community</a>, or try the studio app free for two months.</p>
+            <p className="min-w-0 basis-full text-sm leading-7 text-[#5f4b50] sm:flex-1 sm:basis-0">Want to hear about new sessions first? <a href={CONTACT.community} className="font-bold text-[#800020] underline">Join the WhatsApp community</a>, or try the studio app free for two months.</p>
             <a href={SITE.studioUrl} className="inline-flex h-12 items-center gap-2 rounded-full bg-[#800020] px-6 text-sm font-bold text-white hover:bg-[#650019]">Create your account <ArrowRight className="size-4" /></a>
             <Link href="/" className="text-sm font-bold text-[#800020] underline">Back to home</Link>
           </div>

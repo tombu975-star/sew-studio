@@ -302,13 +302,13 @@ export default async function HomePage() {
               ["WhatsApp", CONTACT.whatsappDisplay, CONTACT.whatsappLink],
               ["TikTok", "@sewsiness.africa", CONTACT.tiktok],
             ].map(([k, v, href]) => (
-              <div key={k}>
-                <a href={href} className="group flex items-center justify-between gap-4 py-5">
-                  <dt className="text-sm text-[#6F565D]">{k}</dt>
-                  <dd className="flex items-center gap-2 break-all text-right text-base font-bold text-[#35121d] group-hover:text-[#800020] sm:text-lg">
+              <div key={k} className="group flex items-center justify-between gap-4 py-5">
+                <dt className="text-sm text-[#6F565D]">{k}</dt>
+                <dd className="min-w-0 text-right">
+                  <a href={href} className="inline-flex items-center gap-2 break-all text-base font-bold text-[#35121d] hover:text-[#800020] sm:text-lg">
                     {v} <ArrowUpRight className="size-4 shrink-0 opacity-50" aria-hidden="true" />
-                  </dd>
-                </a>
+                  </a>
+                </dd>
               </div>
             ))}
           </dl>

@@ -588,9 +588,9 @@ main [class*="rounded-xl"][class*="bg-white"] {
 }
 main [class*="bg-slate-50"],
 main [class*="bg-stone-50"] { background-color: #FCF8F9; }
-main [class*="bg-purple-50"],
-main [class*="bg-violet-50"],
-main [class*="bg-fuchsia-50"] { background-color: #FAF0F2; }
+main [class~="bg-purple-50"],
+main [class~="bg-violet-50"],
+main [class~="bg-fuchsia-50"] { background-color: #FAF0F2; }
 
 /* Navigation and page headers: crisp, quiet, and unmistakably branded. */
 header, nav {

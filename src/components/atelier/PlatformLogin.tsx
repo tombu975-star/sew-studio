@@ -69,7 +69,7 @@ export function PlatformLogin({
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">
                 {eyebrow ?? "Made for the art of making"}
               </p>
-              <h1 className="mt-3 font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+              <h1 className="mt-3 font-serif text-4xl font-medium text-white! leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
                 {heading ?? settings.loginHeading}
               </h1>
               <p className="mt-4 max-w-md text-sm leading-6 text-white/85 sm:text-base sm:leading-7">

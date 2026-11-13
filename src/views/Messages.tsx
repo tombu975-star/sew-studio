@@ -350,7 +350,7 @@ export default function Messages() {
           </div>
           <div className="w-full sm:w-48">
             <Select value={channelFilter} onValueChange={setChannelFilter}>
-              <SelectTrigger className="w-full bg-white h-9">
+              <SelectTrigger aria-label="Filter by channel" className="w-full bg-white h-9">
                 <SelectValue placeholder="All channels" />
               </SelectTrigger>
               <SelectContent>

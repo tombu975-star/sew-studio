@@ -213,7 +213,7 @@ export default function ProductionBoard() {
           canFilterByStaff ? (
             <div className="w-full md:w-56">
               <Select value={staffFilter} onValueChange={setStaffFilter}>
-                <SelectTrigger className="rounded-md w-full bg-white">
+                <SelectTrigger aria-label="Filter by staff member" className="rounded-md w-full bg-white">
                   <SelectValue placeholder="All staff" />
                 </SelectTrigger>
                 <SelectContent>
@@ -462,11 +462,9 @@ function Card({
     <div
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
       onClick={onClick}
       className={cn(
-        "rounded-xl bg-white border border-[#E9DEE1] p-3.5 shadow-[0_2px_9px_rgba(53,18,29,.045)] transition-all hover:-translate-y-0.5 hover:border-[#D8B8C0] hover:shadow-[0_8px_20px_rgba(53,18,29,.08)] cursor-grab active:cursor-grabbing touch-pan-y",
+        "rounded-xl bg-white border border-[#E9DEE1] p-3.5 shadow-[0_2px_9px_rgba(53,18,29,.045)] transition-all hover:-translate-y-0.5 hover:border-[#D8B8C0] hover:shadow-[0_8px_20px_rgba(53,18,29,.08)] cursor-pointer",
         (dragging || overlay) && "shadow-lg border-[#800020]/40",
         overlay && "rotate-1"
       )}
@@ -486,7 +484,16 @@ function Card({
             {order.customer?.name || "—"}
           </div>
         </div>
-        <GripVertical className="w-3.5 h-3.5 text-stone-300 shrink-0 mt-0.5" />
+        <button
+          type="button"
+          {...listeners}
+          {...attributes}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Drag ${order.garmentDesign} to another stage`}
+          className="-m-2 grid size-9 shrink-0 cursor-grab touch-none place-items-center rounded-md text-stone-400 hover:bg-[#FAF0F2] hover:text-[#800020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C79A45] active:cursor-grabbing"
+        >
+          <GripVertical className="w-3.5 h-3.5" aria-hidden="true" />
+        </button>
       </div>
 
       {/* Garment, with a small picture only when the order has one */}

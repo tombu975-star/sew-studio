@@ -44,7 +44,7 @@ export const inputClass =
   "max-sm:rounded-full max-sm:border-0 max-sm:pl-12 max-sm:shadow-[0_6px_16px_rgba(49,10,19,0.22)] max-sm:placeholder:text-[#7A6268] max-sm:focus:ring-white/35";
 
 export const phoneButton =
-  "max-sm:rounded-full max-sm:bg-white max-sm:text-[#5C1626] max-sm:shadow-[0_8px_20px_rgba(49,10,19,0.3)] max-sm:hover:bg-purple-50 max-sm:focus-visible:ring-white/60 max-sm:focus-visible:ring-offset-[#5C1626]";
+  "max-sm:rounded-full max-sm:bg-white max-sm:text-[#5C1626] max-sm:shadow-[0_8px_20px_rgba(49,10,19,0.3)] max-sm:hover:bg-[#FAF0F2] max-sm:focus-visible:ring-white/60 max-sm:focus-visible:ring-offset-[#5C1626]";
 
 export function LoginPage() {
   const { login, register, hydrate, status } = useAuth();
@@ -169,7 +169,7 @@ export function LoginPage() {
             </Field>
 
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 pt-0.5 text-xs">
-              <label className="inline-flex cursor-pointer items-center gap-2 text-[#776267] max-sm:text-white/90">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-[#776267] max-sm:text-white/90!">
                 <input
                   type="checkbox"
                   checked={rememberMe}

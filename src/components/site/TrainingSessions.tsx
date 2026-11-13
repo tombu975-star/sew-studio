@@ -37,7 +37,7 @@ export function TrainingSessions({ sessions, emptyText }: { sessions: PublicTrai
     finally { setBusy(false); }
   }
 
-  if (sessions.length === 0) return <p className="rounded-2xl border border-[#e6d6d8] bg-white p-8 text-center text-sm text-[#80666D]">{emptyText ?? "New sessions will be announced soon."}</p>;
+  if (sessions.length === 0) return <p className="rounded-2xl border border-[#e6d6d8] bg-white p-8 text-center text-sm text-[#6F565D]">{emptyText ?? "New sessions will be announced soon."}</p>;
 
   return (
     <>
@@ -52,14 +52,14 @@ export function TrainingSessions({ sessions, emptyText }: { sessions: PublicTrai
                 <Video className="size-5 text-[#800020]" aria-hidden="true" />
               </div>
               <h3 className="mt-5 font-[family-name:var(--font-serif)] text-3xl font-semibold leading-tight text-[#35121d]">{s.title}</h3>
-              {s.description && <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#80666D]">{s.description}</p>}
+              {s.description && <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#6F565D]">{s.description}</p>}
               <div className="mt-5 space-y-2 text-sm text-[#5f4b50]">
                 <p className="flex items-center gap-2"><CalendarDays className="size-4 text-[#800020]" />{when(s.startsAt)}</p>
                 <p className="flex items-center gap-2"><Clock3 className="size-4 text-[#800020]" />{s.durationMinutes} minutes{s.presenter ? ` · with ${s.presenter}` : ""}</p>
                 {s.spotsLeft !== null && !past && <p className="text-xs font-semibold text-[#800020]">{full ? "Fully booked" : `${s.spotsLeft} place${s.spotsLeft === 1 ? "" : "s"} left`}</p>}
               </div>
               <div className="mt-auto pt-6">
-                {past && !s.hasReplay ? <span className="text-sm font-semibold text-[#80666D]">This session has finished</span> : (
+                {past && !s.hasReplay ? <span className="text-sm font-semibold text-[#6F565D]">This session has finished</span> : (
                   <button type="button" disabled={full && !past} onClick={() => setActive(s)} className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#800020] px-6 text-sm font-bold text-white transition hover:bg-[#650019] disabled:cursor-not-allowed disabled:bg-[#c9aab2]">
                     {past ? "Get the replay" : full ? "Fully booked" : "Reserve your free place"}
                   </button>
@@ -84,7 +84,7 @@ export function TrainingSessions({ sessions, emptyText }: { sessions: PublicTrai
                   {result.linkKind === "replay" ? "Watch the replay" : "Open the joining link"} <ExternalLink className="size-4" />
                 </a>
               ) : <p className="mt-6 text-sm text-[#5f4b50]">We will email you the joining link before the session starts.</p>}
-              <p className="mt-4 text-xs text-[#80666D]">We have also emailed you these details. Check your spam folder if you do not see it.</p>
+              <p className="mt-4 text-xs text-[#6F565D]">We have also emailed you these details. Check your spam folder if you do not see it.</p>
             </div>
           ) : (
             <>
@@ -102,7 +102,7 @@ export function TrainingSessions({ sessions, emptyText }: { sessions: PublicTrai
                 <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
                 {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
                 <button disabled={busy} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#800020] text-sm font-bold text-white hover:bg-[#650019] disabled:opacity-60">{busy && <Loader2 className="size-4 animate-spin" />}{busy ? "Signing you up…" : "Sign me up"}</button>
-                <p className="text-center text-xs text-[#80666D]">We only use your details to run this session and tell you about it. See our <a href="/privacy" className="font-semibold text-[#800020] underline">privacy policy</a>.</p>
+                <p className="text-center text-xs text-[#6F565D]">We only use your details to run this session and tell you about it. See our <a href="/privacy" className="font-semibold text-[#800020] underline">privacy policy</a>.</p>
               </form>
             </>
           )}
