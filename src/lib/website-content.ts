@@ -179,8 +179,8 @@ export const DEFAULT_WEBSITE_CONTENT: WebsiteContent = {
     heroPrimaryCta: "Create your studio account",
     heroSecondaryCta: "See the products",
     heroNote: "Free for two months. Made for sewing businesses in Ghana and beyond.",
-    heroImage: "/site/maker.webp",
-    heroImageAlt: "A seamstress hand-stitching gold lace onto burgundy satin, a yellow tape measure around her neck",
+    heroImage: "/site/seamstress.webp",
+    heroImageAlt: "A smiling seamstress sewing a colourful wax print dress at a vintage sewing machine, with a jacket on a mannequin beside her",
     promises: [
       { title: "Price properly.", text: "Know what a job really costs before you quote it." },
       { title: "Keep good records.", text: "Clients, measurements and payments in one place." },
