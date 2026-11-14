@@ -28,6 +28,9 @@ import type { Order, Settings, User } from "@/lib/types";
 
 import { invoiceNumber } from "@/components/atelier/Invoice";
 import { PageHeader } from "@/components/atelier/PageHeader";
+import { ResponsiveForm } from "@/components/atelier/ResponsiveForm";
+import NewOrder from "@/views/NewOrder";
+import { useFormMode } from "@/hooks/use-form-mode";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumMetric } from "@/components/atelier/PremiumMetric";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
@@ -95,6 +98,8 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [staffFilter, setStaffFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const formMode = useFormMode();
+  const [newOpen, setNewOpen] = useState(false);
 
   const { data: orders, isLoading } = useQuery<Order[]>({
     queryKey: ["orders"],
@@ -170,8 +175,14 @@ export default function Orders() {
         }
         actions={
           canCreate ? (
-            <PremiumButton onClick={() => go("new-order")}>
-              <Plus className="w-4 h-4" /> New Order
+            <PremiumButton onClick={() => (formMode === "popup" ? setNewOpen(true) : go("new-order"))}>
+              <Plus className="w-4 h-4" />
+
+      {formMode === "popup" && (
+        <ResponsiveForm open={newOpen} onOpenChange={setNewOpen} title="New Custom Order" description="Book the commission, agree the price and deposit." maxWidth="sm:max-w-[680px]">
+          <NewOrder embedded onClose={() => setNewOpen(false)} onCreated={(id) => { setNewOpen(false); go("order", { id }); }} />
+        </ResponsiveForm>
+      )} New Order
             </PremiumButton>
           ) : undefined
         }
@@ -273,13 +284,13 @@ export default function Orders() {
         ) : (
           <>
             {/* Desktop: invoice register table */}
-            <div className="hidden xl:block overflow-x-auto scroll-slim">
-              <table className="w-full min-w-[900px] table-fixed border-collapse text-sm">
+            <div className="hidden md:block overflow-x-auto scroll-slim">
+              <table className="w-full lg:min-w-[900px] table-fixed border-collapse text-sm">
                 <colgroup>
                   <col className="w-[132px]" />
                   <col />
                   <col />
-                  <col className="w-[92px]" />
+                  <col className="hidden lg:table-column w-[92px]" />
                   <col className="w-[92px]" />
                   <col className="w-[150px]" />
                   {canSeeMoney && (
@@ -295,14 +306,14 @@ export default function Orders() {
                     <th className="px-4 py-3 text-left font-semibold">Invoice</th>
                     <th className="px-3 py-3 text-left font-semibold">Customer</th>
                     <th className="px-3 py-3 text-left font-semibold">Garment</th>
-                    <th className="px-3 py-3 text-left font-semibold">Ordered</th>
+                    <th className="hidden lg:table-cell px-3 py-3 text-left font-semibold">Ordered</th>
                     <th className="px-3 py-3 text-left font-semibold">Delivery</th>
                     <th className="px-3 py-3 text-left font-semibold">Status</th>
                     {canSeeMoney && (
                       <>
                         <th className="px-3 py-3 text-right font-semibold">Amount</th>
-                        <th className="px-3 py-3 text-right font-semibold">Paid</th>
-                        <th className="px-4 py-3 text-right font-semibold">Balance</th>
+                        <th className="hidden lg:table-cell px-3 py-3 text-right font-semibold">Paid</th>
+                        <th className="hidden lg:table-cell px-4 py-3 text-right font-semibold">Balance</th>
                       </>
                     )}
                   </tr>
@@ -360,7 +371,7 @@ export default function Orders() {
                             </div>
                           )}
                         </td>
-                        <td className="px-3 py-3.5 text-[12px] text-stone-500 tabular-nums whitespace-nowrap">
+                        <td className="hidden lg:table-cell px-3 py-3.5 text-[12px] text-stone-500 tabular-nums whitespace-nowrap">
                           {shortDate(o.orderDate)}
                         </td>
                         <td
@@ -382,12 +393,12 @@ export default function Orders() {
                             <td className="px-3 py-3.5 text-right font-medium tabular-nums text-[#2F151B] whitespace-nowrap">
                               {formatCurrency(o.sellingPrice)}
                             </td>
-                            <td className="px-3 py-3.5 text-right tabular-nums text-stone-600 whitespace-nowrap">
+                            <td className="hidden lg:table-cell px-3 py-3.5 text-right tabular-nums text-stone-600 whitespace-nowrap">
                               {formatCurrency(o.paid)}
                             </td>
                             <td
                               className={cn(
-                                "px-4 py-3.5 text-right font-semibold tabular-nums whitespace-nowrap",
+                                "hidden lg:table-cell px-4 py-3.5 text-right font-semibold tabular-nums whitespace-nowrap",
                                 settled ? "text-emerald-700" : balance > 0 ? "text-[#800020]" : "text-stone-400"
                               )}
                             >
@@ -403,7 +414,7 @@ export default function Orders() {
             </div>
 
             {/* Mobile: one card per invoice */}
-            <ul className="xl:hidden divide-y divide-[#EEDFE3]/70 md:divide-y-0 md:grid md:grid-cols-2 md:gap-3 md:p-4">
+            <ul className="md:hidden divide-y divide-[#EEDFE3]/70">
               {rows.map((o) => {
                 const overdue = !!o.deliveryDate && isOverdue(o.deliveryDate);
                 const balance = Math.max(0, (Number(o.sellingPrice) || 0) - o.paid);

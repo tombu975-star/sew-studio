@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/select";
 
 import { PageHeader } from "@/components/atelier/PageHeader";
+import { ResponsiveForm } from "@/components/atelier/ResponsiveForm";
 import { SectionCard } from "@/components/atelier/SectionCard";
 import { PremiumMetric } from "@/components/atelier/PremiumMetric";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
@@ -219,7 +220,9 @@ export default function Customers() {
               size="md"
               onClick={() => setAddOpen(true)}
             >
-              <UserPlus className="w-4 h-4" /> Add Customer
+              <UserPlus className="w-4 h-4" />
+
+      <AddCustomerDialog open={addOpen} onOpenChange={setAddOpen} onCreated={handleCreated} /> Add Customer
             </PremiumButton>
           ) : undefined
         }
@@ -431,11 +434,6 @@ export default function Customers() {
         </SectionCard>
       )}
 
-      <AddCustomerDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        onCreated={handleCreated}
-      />
     </div>
   );
 }
@@ -515,16 +513,7 @@ function AddCustomerDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto rounded-lg">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl text-[#2F151B]">
-            Add New Customer
-          </DialogTitle>
-          <DialogDescription className="text-stone-500">
-            Capture essential details for this client.
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveForm open={open} onOpenChange={handleOpenChange} title="Add New Customer" description="Capture essential details for this client.">
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="c-name" className="text-xs text-stone-600">
@@ -713,7 +702,6 @@ function AddCustomerDialog({
             </PremiumButton>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveForm>
   );
 }

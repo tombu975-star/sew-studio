@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { FIELD_BY_KEY, formatValue, toCm } from "@/lib/measurements";
 import { Lock } from "lucide-react";
 
-export default function NewOrder() {
+export default function NewOrder({ embedded = false, onClose, onCreated }: { embedded?: boolean; onClose?: () => void; onCreated?: (id: string) => void } = {}) {
   const { go, params } = useNav();
   const qc = useQueryClient();
   const { canCreateOrders } = useRole();
@@ -146,7 +146,8 @@ export default function NewOrder() {
     onSuccess: async (created) => {
       toast.success("Order created");
       await qc.invalidateQueries({ queryKey: ["orders"] });
-      go("order", { id: created.id });
+      if (onCreated) onCreated(created.id);
+      else go("order", { id: created.id });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -192,22 +193,26 @@ export default function NewOrder() {
   }
 
   return (
-    <div className="p-5 md:p-8 max-w-[1180px] mx-auto w-full">
-      <button
-        onClick={() => go("orders")}
-        className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
-      </button>
+    <div className={embedded ? "w-full" : "p-5 md:p-8 max-w-[1180px] mx-auto w-full"}>
+      {!embedded && (
+        <>
+          <button
+            onClick={() => go("orders")}
+            className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-[#800020] transition mb-4"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to orders
+          </button>
 
-      <PageHeader
-        eyebrow="Order booking"
-        eyebrowIcon={Pencil}
-        title="New Custom Order"
-        subtitle="Book the commission, agree the price and deposit, and hand it to production."
-      />
+          <PageHeader
+            eyebrow="Order booking"
+            eyebrowIcon={Pencil}
+            title="New Custom Order"
+            subtitle="Book the commission, agree the price and deposit, and hand it to production."
+          />
+        </>
+      )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
+      <div className={embedded ? "grid gap-5 items-start" : "grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] items-start"}>
         <div className="space-y-5">
             <SectionCard title="1. Customer" action={<UserIcon className="w-4 h-4 text-stone-400" />} className="animate-fade-in-up">
               <div className="space-y-4">
@@ -513,7 +518,7 @@ export default function NewOrder() {
             )}
           </SectionCard>
 
-          <div className="flex flex-col gap-2">
+          {!embedded && <div className="flex flex-col gap-2">
             <PremiumButton
               className="w-full"
               loading={createMut.isPending}
@@ -522,12 +527,27 @@ export default function NewOrder() {
             >
               {createMut.isPending ? "Saving…" : "Create Order"}
             </PremiumButton>
-            <PremiumButton variant="outline" className="w-full" onClick={() => go("orders")} disabled={createMut.isPending}>
+            <PremiumButton variant="outline" className="w-full" onClick={() => (onClose ? onClose() : go("orders"))} disabled={createMut.isPending}>
               Cancel
             </PremiumButton>
-          </div>
+          </div>}
         </aside>
       </div>
+      {embedded && (
+        <div className="sticky bottom-[calc(-1*max(1.5rem,env(safe-area-inset-bottom)))] z-10 -mx-4 mt-5 flex flex-col gap-2 border-t border-[#EEDFE3] bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:flex-row-reverse sm:px-6 [&>button]:min-h-11 sm:[&>button]:w-auto">
+            <PremiumButton
+              className="w-full sm:w-auto"
+              loading={createMut.isPending}
+              disabled={!valid || createMut.isPending}
+              onClick={() => createMut.mutate()}
+            >
+              {createMut.isPending ? "Saving…" : "Create Order"}
+            </PremiumButton>
+            <PremiumButton variant="outline" className="w-full sm:w-auto" onClick={() => (onClose ? onClose() : go("orders"))} disabled={createMut.isPending}>
+              Cancel
+            </PremiumButton>
+        </div>
+      )}
     </div>
   );
 }
