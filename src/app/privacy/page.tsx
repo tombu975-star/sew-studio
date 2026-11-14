@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage } from "@/components/site/SiteShell";
-import { CONTACT } from "@/lib/site-config";
+import ReactMarkdown from "react-markdown";
+import { loadWebsiteContent } from "@/lib/website-content.server";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "How Sewsiness collects, uses and protects your information.",
 };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const { contact: CONTACT, legal } = await loadWebsiteContent();
+  // An admin can replace this text from /admin/website (Legal pages). Empty = the built-in text below.
+  if (legal.privacyMarkdown.trim()) {
+    return <LegalPage title="Privacy Policy"><ReactMarkdown>{legal.privacyMarkdown}</ReactMarkdown></LegalPage>;
+  }
   return (
     <LegalPage title="Privacy Policy">
       <p>

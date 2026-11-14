@@ -4,7 +4,7 @@ import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto
 import { cookies } from "next/headers";
 import { getPool } from "@/lib/db/pool";
 import { sendEmail } from "@/lib/mailer";
-import { SITE } from "@/lib/site-config";
+import { getAppBaseUrl } from "@/lib/website-content.server";
 
 export const LEARNER_COOKIE = "sew_learner";
 const SESSION_DAYS = 60;
@@ -59,7 +59,7 @@ export async function requestSignIn(email: string, name: string, next: string) {
   await pool.query(
     `insert into public.academy_auth_codes (learner_id, code_hash, token_hash, expires_at) values ($1, $2, $3, now() + ($4 || ' minutes')::interval)`,
     [learner.id, sha(`${learner.id}:${code}`), sha(token), String(CODE_MINUTES)]);
-  const base = (process.env.NEXT_PUBLIC_APP_URL || SITE.appUrl).replace(/\/$/, "");
+  const base = await getAppBaseUrl();
   const link = `${base}/api/academy/auth/link?t=${token}&next=${encodeURIComponent(safeNext(next))}`;
   await sendEmail({
     to: email, type: "academy-sign-in", subject: `Your Sewsiness Academy code: ${code}`,

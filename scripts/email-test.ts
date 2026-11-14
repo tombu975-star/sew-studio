@@ -11,7 +11,7 @@ async function main() {
     console.error("Usage: npm run email:test -- you@example.com");
     process.exit(1);
   }
-  console.log(`Provider in use: ${emailProviderConfigured()}`);
+  console.log(`Provider in use: ${await emailProviderConfigured()}`);
   const r = await sendEmailDetailed({
     to,
     subject: "Sewsiness test email",

@@ -1,26 +1,14 @@
-// Drop-in replacement for `z-ai-web-dev-sdk`.
+// AI helper used by Style Assist and Trend Insights.
 //
-// The original SDK only reads credentials from a `.z-ai-config` file on disk
-// (project dir, home dir, or /etc) — see its README. That file only exists
-// inside the z.ai sandbox that generated this app, is gitignored, and is
-// never deployed. On Vercel (or anywhere else) `ZAI.create()` therefore
-// always throws "Configuration file not found", so every route that used it
-// (Style Assist generate/visualize, Trend Insights) failed on every request.
-//
-// This module exposes the same shape the routes already call
+// It exposes the shape the routes already call
 // (`zai.chat.completions.create(...)`, `zai.images.generations.create(...)`)
-// but backed by standard, publicly documented APIs configured with
-// environment variables you set in the Vercel dashboard:
+// backed by the public Anthropic (text) and OpenAI (images) APIs.
 //
-//   ANTHROPIC_API_KEY  — powers chat/JSON generation (Style Assist concepts,
-//                        Trend Insights). Get one at https://console.anthropic.com
-//   OPENAI_API_KEY     — powers the concept-sketch image generation in
-//                        Style Assist "visualize". Get one at
-//                        https://platform.openai.com
-//
-// Swap either implementation below for a different provider if you'd
-// rather use one you already have a key for — both are isolated to a
-// single function.
+// Keys, model names and API addresses are read from what a platform admin saved
+// in /admin/integrations, then from the Railway service variables
+// (ANTHROPIC_API_KEY, OPENAI_API_KEY, ...). See src/lib/integration-settings.ts.
+
+import { getSettings } from "@/lib/integration-settings";
 
 interface ChatMessage {
   role: string;
@@ -33,10 +21,11 @@ interface ChatCompletionsCreateOptions {
 }
 
 async function chatCompletionsCreate(opts: ChatCompletionsCreateOptions) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const cfg = await getSettings(["anthropic_api_key", "anthropic_model", "anthropic_api_url"]);
+  const apiKey = cfg.anthropic_api_key;
   if (!apiKey) {
     throw new Error(
-      "AI text generation isn't configured: set ANTHROPIC_API_KEY in your Vercel project's Environment Variables to enable Style Assist and Trend Insights.",
+      "AI text generation isn't configured. A platform admin can add an Anthropic API key under Admin > Integrations to enable Style Assist and Trend Insights.",
     );
   }
 
@@ -47,7 +36,7 @@ async function chatCompletionsCreate(opts: ChatCompletionsCreateOptions) {
   const system = hasLeadingSystem ? first.content : undefined;
   const conversation = hasLeadingSystem ? rest : opts.messages;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch(cfg.anthropic_api_url, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -55,7 +44,7 @@ async function chatCompletionsCreate(opts: ChatCompletionsCreateOptions) {
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: cfg.anthropic_model,
       max_tokens: 2000,
       ...(system ? { system } : {}),
       messages: conversation.map((m) => ({
@@ -85,21 +74,22 @@ interface ImagesGenerationsCreateOptions {
 }
 
 async function imagesGenerationsCreate(opts: ImagesGenerationsCreateOptions) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const cfg = await getSettings(["openai_api_key", "openai_image_model", "openai_api_url"]);
+  const apiKey = cfg.openai_api_key;
   if (!apiKey) {
     throw new Error(
-      "Image generation isn't configured: set OPENAI_API_KEY in your Vercel project's Environment Variables to enable Style Assist's concept sketches.",
+      "Image generation isn't configured. A platform admin can add an OpenAI API key under Admin > Integrations to enable concept sketches in Style Assist.",
     );
   }
 
-  const res = await fetch("https://api.openai.com/v1/images/generations", {
+  const res = await fetch(cfg.openai_api_url, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-image-1",
+      model: cfg.openai_image_model,
       prompt: opts.prompt,
       size: "1024x1536",
     }),

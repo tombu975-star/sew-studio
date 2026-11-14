@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage } from "@/components/site/SiteShell";
-import { CONTACT } from "@/lib/site-config";
+import ReactMarkdown from "react-markdown";
+import { loadWebsiteContent } from "@/lib/website-content.server";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Terms of Use",
   description: "The terms for using the Sewsiness website, app, training and products.",
 };
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const { contact: CONTACT, legal } = await loadWebsiteContent();
+  // An admin can replace this text from /admin/website (Legal pages). Empty = the built-in text below.
+  if (legal.termsMarkdown.trim()) {
+    return <LegalPage title="Terms of Use"><ReactMarkdown>{legal.termsMarkdown}</ReactMarkdown></LegalPage>;
+  }
   return (
     <LegalPage title="Terms of Use">
       <p>

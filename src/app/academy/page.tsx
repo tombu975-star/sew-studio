@@ -7,7 +7,7 @@ import { CourseCover } from "@/components/academy/CourseCover";
 import { ContinueLearning } from "@/components/academy/ContinueLearning";
 import { listPublishedCourses } from "@/lib/academy/data";
 import { isPastSession, loadPublicTrainings } from "@/lib/public-trainings";
-import { CONTACT } from "@/lib/site-config";
+import { loadWebsiteContent } from "@/lib/website-content.server";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AcademyPage() {
-  const [courses, trainings] = await Promise.all([listPublishedCourses(), loadPublicTrainings()]);
+  const [courses, trainings, { contact: CONTACT }] = await Promise.all([listPublishedCourses(), loadPublicTrainings(), loadWebsiteContent()]);
   const upcoming = trainings.filter((s) => !isPastSession(s));
   const replays = trainings.filter((s) => isPastSession(s) && s.hasReplay).reverse();
   return (

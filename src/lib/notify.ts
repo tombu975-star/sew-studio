@@ -1,4 +1,5 @@
 import { generatePortalToken } from "@/lib/security";
+import { getSettings } from "@/lib/integration-settings";
 import type { AppClient } from "@/lib/db/appClient";
 
 type Client = AppClient;
@@ -37,7 +38,7 @@ export function detectChannel(customer: CustomerContact): {
  * notification) or `true`/`false` for attempted-and-{succeeded,failed}, so
  * the caller can record an accurate deliveryStatus either way.
  */
-async function sendViaGoogleAppsScript(payload: {
+export async function sendViaGoogleAppsScript(payload: {
   shopId: string;
   channel: "whatsapp" | "sms" | "email" | "in_app";
   recipient: string;
@@ -46,7 +47,7 @@ async function sendViaGoogleAppsScript(payload: {
   type: string;
   customerName?: string | null;
 }): Promise<boolean | null> {
-  const url = process.env.GOOGLE_APPS_SCRIPT_URL;
+  const { apps_script_url: url, apps_script_secret: secret } = await getSettings(["apps_script_url", "apps_script_secret"]);
   if (!url || payload.channel === "in_app" || !payload.recipient) return null;
 
   try {
@@ -56,7 +57,7 @@ async function sendViaGoogleAppsScript(payload: {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        secret: process.env.GOOGLE_APPS_SCRIPT_SECRET || "",
+        secret,
         ...payload,
       }),
       signal: controller.signal,
@@ -84,7 +85,7 @@ async function sendViaGoogleAppsScript(payload: {
  * outcome, with deliveryStatus reflecting what actually happened:
  *   - "sent"        — Apps Script confirmed delivery
  *   - "failed"      — Apps Script was configured but the call failed/errored
- *   - "logged_only" — no GOOGLE_APPS_SCRIPT_URL configured, or channel is
+ *   - "logged_only" — no Apps Script address configured, or channel is
  *                     in-app-only; nothing external was attempted
  *
  * Pass `ctx.db` from a shop-session route, or the admin client from a

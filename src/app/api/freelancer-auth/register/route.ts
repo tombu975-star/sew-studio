@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/db/adminClient";
 import { createRequestClient } from "@/lib/db/requestClient";
 import { sendFreelancerVerification } from "@/lib/freelancer-verification";
 import { findIdentityConflict, identityErrorMessage, isPlausiblePhone, MESSAGES } from "@/lib/identity";
+import { getAppBaseUrl } from "@/lib/website-content.server";
 
 const SPECIALTIES = ["Beader", "Embroiderer", "Cutter", "Tailor", "Designer", "Photographer", "Other"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -109,7 +110,7 @@ export async function POST(req: Request) {
 
     // Send the verification link. Registration still succeeds if email delivery fails;
     // the freelancer can request another from their portal.
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
+    const appUrl = await getAppBaseUrl(req);
     const verification = await sendFreelancerVerification({
       freelancerId: profile.id,
       email: profile.email,

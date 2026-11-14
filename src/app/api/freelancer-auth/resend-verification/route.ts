@@ -3,6 +3,7 @@ import { getFreelancerSession } from "@/lib/db/session";
 import { getPool } from "@/lib/db/pool";
 import { sendFreelancerVerification } from "@/lib/freelancer-verification";
 import { dbErrorResponse } from "@/lib/db/errors";
+import { getAppBaseUrl } from "@/lib/website-content.server";
 
 // POST /api/freelancer-auth/resend-verification — emails a fresh link (1/minute).
 export async function POST(req: Request) {
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
     if (!p) return NextResponse.json({ error: "Not found" }, { status: 404 });
     if (p.verified_at) return NextResponse.json({ ok: true, alreadyVerified: true });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
+    const appUrl = await getAppBaseUrl(req);
     const res = await sendFreelancerVerification({ freelancerId: ctx.freelancerId, email: p.email, name: p.full_name, appUrl });
     if (res.tooSoon) {
       return NextResponse.json({ error: "A link was just sent. Please wait a minute before requesting another." }, { status: 429 });

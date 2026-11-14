@@ -4,7 +4,7 @@
 
 const MAX_EDGE = 1600;
 
-async function shrink(file: File): Promise<File | Blob> {
+export async function shrink(file: File): Promise<File | Blob> {
   // Animated GIFs and already-small files are sent as-is.
   if (file.type === "image/gif" || file.size < 300 * 1024) return file;
   try {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPool } from "@/lib/db/pool";
 import { sendEmail } from "@/lib/mailer";
-import { SITE } from "@/lib/site-config";
 import { clean, isEmail, isPastSession, tooManyRequests } from "@/lib/public-trainings";
+import { getAppBaseUrl } from "@/lib/website-content.server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     "select 1 from public.system_training_registrations where training_id = $1 and lower(email) = $2", [id, email])).rowCount! > 0;
   if (insert.rowCount === 0 && !alreadyIn) return NextResponse.json({ error: "Sorry, this session is full." }, { status: 409 });
 
-  const base = (process.env.NEXT_PUBLIC_APP_URL || SITE.appUrl).replace(/\/$/, "");
+  const base = await getAppBaseUrl(req);
   const link: string | null = onsite ? `${base}/academy/live/${id}` : past ? t.replay_url : t.meeting_url;
   const when = t.starts_at ? new Date(t.starts_at).toUTCString().replace("GMT", "UTC") : "date to be announced";
   if (!alreadyIn) {

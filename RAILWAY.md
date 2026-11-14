@@ -91,3 +91,17 @@ Check it from your machine, which prints the provider used and any exact error:
 ```bash
 railway run npm run email:test -- you@example.com
 ```
+
+## Editing the website and integrations without redeploying
+
+Platform admins (`/admin`) have two extra pages:
+
+- **Website content** (`/admin/website`): all public-site text, menu, contact
+  details, product links, legal-page text and the public app address / studio
+  sign-in address. Stored in `system_website_content`.
+- **Integrations & keys** (`/admin/integrations`): email (Resend / SMTP), the
+  Apps Script notification webhook, Anthropic / OpenAI keys, models and API
+  addresses, with test buttons. Stored in `system_integration_settings`
+  (migration `037`). A value saved there overrides the matching variable above;
+  removing it falls back to the variable. Secrets are encrypted (AES-256-GCM);
+  add `SETTINGS_ENCRYPTION_KEY` (long random text) to the service and keep it.

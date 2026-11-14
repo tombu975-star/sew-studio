@@ -6,10 +6,14 @@
 export const SITE = {
   name: "Sewsiness",
   line: "The brand behind the business of sewing",
-  /** The app. Used by the "Create your studio account" buttons. */
-  appUrl: "https://sew-studio-production-n.up.railway.app/",
-  /** Canonical studio-entry destination used by every public-site CTA. */
-  studioUrl: "https://sew-studio-production-n.up.railway.app/studio",
+  /**
+   * Public address of the app, used in emails and sign-in links. Leave empty to
+   * use the address the site is being served from (always correct). A platform
+   * admin can set it in /admin/website without redeploying.
+   */
+  appUrl: "",
+  /** Where "Create your studio account" buttons go. Empty = the /studio page on this site. */
+  studioUrl: "",
   /**
    * Link to the free webinar sign-up form. Leave empty until the form is
    * ready: the button then shows "Sign-up opens soon" instead of a dead link.
@@ -82,12 +86,6 @@ export const PRODUCT_GROUPS: { title: string; products: Product[] }[] = [
       { name: "Madam's Studio Starter", price: "Free", href: "https://selar.com/4vq13ws36g" },
       { name: "Madam's Studio System", price: "GHS 500", href: "https://selar.com/x6ler446t6" },
       { name: "Sewsiness Pro Bundle", price: "GHS 700", href: "https://selar.com/x83b1t6680" },
-    ],
-  },
-  {
-    title: "For everyone",
-    products: [
-      { name: "Financial Must-Haves Checklist", price: "Free", href: "https://selar.com/xd3v04g404" },
     ],
   },
 ];

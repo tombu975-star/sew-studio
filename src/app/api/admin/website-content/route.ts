@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSystemAdminSession } from "@/lib/db/session";
 import { getPool } from "@/lib/db/pool";
 import { resolveWebsiteContent, websiteContentSchema } from "@/lib/website-content";
+import { invalidateWebsiteContentCache } from "@/lib/website-content.server";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,7 @@ export async function PUT(request: Request) {
       [session.adminId]
     );
     await client.query("commit");
+    invalidateWebsiteContentCache();
     return NextResponse.json({ content: parsed.data, updatedAt: rows[0].updatedAt }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     await client.query("rollback").catch(() => {});
@@ -74,6 +76,7 @@ export async function DELETE() {
        values ($1, 'website.reset', 'website_content', '{}'::jsonb)`,
       [session.adminId]
     );
+    invalidateWebsiteContentCache();
     return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("[admin/website-content] reset failed", error);

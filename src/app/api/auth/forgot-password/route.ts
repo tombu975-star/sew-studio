@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRequestClient } from "@/lib/db/requestClient";
+import { getAppBaseUrl } from "@/lib/website-content.server";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
@@ -8,7 +9,7 @@ export async function POST(req: Request) {
   if (email) {
     try {
       const db = await createRequestClient();
-      const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin).replace(/\/$/, "");
+      const appUrl = await getAppBaseUrl(req);
       const { error } = await db.auth.resetPasswordForEmail(email, {
         redirectTo: `${appUrl}/auth/callback?next=/reset-password`,
       });
