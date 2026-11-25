@@ -267,7 +267,7 @@ export default function Orders() {
           )}
         </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2"><select aria-label="Delivery filter" value={deadline} onChange={e=>setDeadline(e.target.value)} className="rounded-md border bg-white p-2 text-sm"><option value="all">All deadlines</option><option value="late">Overdue</option><option value="soon">Due within 7 days</option><option value="priority">High priority</option><option value="missing">No delivery date</option></select><select aria-label="Sort orders" value={sort} onChange={e=>setSort(e.target.value)} className="rounded-md border bg-white p-2 text-sm"><option value="newest">Newest first</option><option value="deadline">Earliest delivery first</option></select></div>
-        <button type="button" onClick={clearFilters} className="mt-2 text-xs underline text-[#800020]">Reset filters</button>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm"><span role="status" className="text-stone-600">{isLoading||isError?"":`${rows.length} of ${enriched.length} orders`}</span><button type="button" onClick={clearFilters} className="text-xs font-medium underline text-[#800020]">Reset filters</button></div>
       </SectionCard>
 
       {/* Orders table */}
@@ -459,7 +459,7 @@ export default function Orders() {
                           )}
                         >
                           {overdue && <AlertCircle className="w-3 h-3" />}
-                          Due {o.deliveryDate ? shortDate(o.deliveryDate) : "—"}
+                          {overdue?"Overdue · ":"Due "}{o.deliveryDate ? shortDate(o.deliveryDate) : "Not scheduled"}
                         </span>
                       </div>
                       {canSeeMoney && (

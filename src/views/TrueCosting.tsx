@@ -173,6 +173,7 @@ export default function TrueCosting() {
       </SectionCard>}
       <SectionCard title="Orders: cost vs price and estimated profit">
         <div className="grid gap-2 p-3 sm:grid-cols-2"><input aria-label="Search costed orders" placeholder="Search garment or customer" value={search} onChange={e=>setSearch(e.target.value)} className="min-w-0 rounded-lg border p-2 text-sm"/><select aria-label="Profitability filter" value={filter} onChange={e=>setFilter(e.target.value)} className="rounded-lg border p-2 text-sm"><option value="all">All orders</option><option value="profit">Profitable</option><option value="loss">Loss-making</option><option value="even">Break-even</option></select></div>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 pb-3 text-sm text-stone-600"><span role="status">{shown.length} of {rows.length} costed orders</span><button type="button" className="min-h-10 text-[#800020] underline" onClick={()=>{setSearch("");setFilter("all")}}>Reset filters</button></div>
         {rows.length > 0 && shown.length === 0 && <p className="p-3 text-sm text-stone-500">No orders match these filters.</p>}
         {isLoading ? (
           <p className="p-6 text-sm text-stone-400">Loading…</p>
@@ -209,7 +210,7 @@ export default function TrueCosting() {
                     className="cursor-pointer border-t border-[#EEDFE3]"
                   >
                     <td className="px-4 py-3">
-                      <p className="font-medium text-[#2F151B] line-clamp-1">{r.order.garmentDesign}</p>
+                      <button type="button" className="text-left font-medium text-[#2F151B] hover:underline" onClick={e=>{e.stopPropagation();go("order",{id:r.order.id})}}>{r.order.garmentDesign}</button>
                       <p className="text-xs text-stone-500">
                         {r.order.customer?.name || "—"} · {formatDate(r.order.orderDate)}
                       </p>
@@ -264,11 +265,11 @@ function Tile({
   warn?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-[#E6D4D8] bg-white p-4 shadow-xs">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
+    <div className="rounded-lg border border-[#E4DEDD] bg-white p-4">
+      <div className="flex items-center gap-2 text-sm font-medium text-stone-600">
         <Icon className="w-4 h-4 text-stone-400" /> {label}
       </div>
-      <p className={cn("mt-2 font-display text-2xl font-semibold tabular-nums", warn ? "text-amber-700" : "text-[#800020]")}>{value}</p>
+      <p className={cn("mt-2 break-words font-sans text-2xl font-semibold tabular-nums", warn ? "text-amber-700" : "text-[#800020]")}>{value}</p>
       <p className="mt-1 text-xs text-stone-500">{note}</p>
     </div>
   );

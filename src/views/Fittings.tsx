@@ -164,7 +164,7 @@ export default function Fittings() {
         }
       />
 
-      <input aria-label="Search fittings" className="mb-4 w-full rounded-md border p-2 text-sm" placeholder="Search customer or garment" value={search} onChange={e=>{setSearch(e.target.value);setLimit(15);}}/>
+      <div className="mb-4 space-y-2"><input aria-label="Search fittings" className="w-full min-h-11 rounded-md border bg-white px-3 text-sm" placeholder="Search customer or garment" value={search} onChange={e=>{setSearch(e.target.value);setLimit(15);}}/><div className="flex items-center justify-between gap-2 text-xs text-stone-600"><span role="status">{isLoading||isError?"":`${filtered.length} matching appointments`}</span><button type="button" className="min-h-10 text-[#800020] underline" onClick={()=>{setSearch("");setLimit(15)}}>Clear search</button></div></div>
       {/* Premium stat strip */}
       <div data-keep-cols className="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6">
         <PremiumMetric
@@ -299,7 +299,7 @@ function DateChip({ iso }: { iso: string }) {
       <span className="text-[11px] uppercase tracking-[0.14em] text-stone-400 mt-1">
         {month}
       </span>
-      <span className="font-display font-semibold text-[#2F151B] text-base mt-0.5">
+      <span className="font-sans font-semibold tabular-nums text-[#2F151B] text-base mt-0.5">
         {day}
       </span>
     </div>

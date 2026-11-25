@@ -323,7 +323,7 @@ export default function Settings() {
         className="mt-6"
       >
         <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] items-start">
-          <nav aria-label="Settings sections" className="lg:sticky lg:top-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 min-w-0 rounded-xl border border-[#EEDFE3] bg-white p-2">
+          <nav aria-label="Settings sections" className="lg:sticky lg:top-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 min-w-0 rounded-lg border border-[#E4DEDD] bg-white p-2">
             {SETTINGS_TABS.map((t) => (
               <button
                 key={t.key}
@@ -346,7 +346,7 @@ export default function Settings() {
           {tab === "plan" && <div id="settings-plan"><PlanSettingsPanel /></div>}
           <div id="settings-general" className={tab === "general" ? "grid gap-5" : "hidden"}>
             <div className="pb-1">
-              <h2 className="font-display font-semibold text-[#2F151B] text-xl leading-tight">General & business details</h2>
+              <h2 className="font-sans font-semibold text-[#30272A] text-lg leading-tight">General & business details</h2>
               <p className="text-sm text-stone-500 mt-1 max-w-xl">Studio identity, contact information and the registration details printed on invoices.</p>
             </div>
         <SectionCard title="Studio identity" action={<Store className="w-4 h-4 text-stone-400" />}>
@@ -465,7 +465,7 @@ export default function Settings() {
           </div>
           <div id="settings-costing" className={tab === "costing" ? "grid gap-5" : "hidden"}>
             <div className="pb-1">
-              <h2 className="font-display font-semibold text-[#2F151B] text-xl leading-tight">Costing & overhead</h2>
+              <h2 className="font-sans font-semibold text-[#30272A] text-lg leading-tight">Costing & overhead</h2>
               <p className="text-sm text-stone-500 mt-1 max-w-xl">Monthly overheads and the overhead recovery rate applied to every order (as a percentage of non-labour cost).</p>
             </div>
         <SectionCard title="Overhead breakdown" action={<Coins className="w-4 h-4 text-stone-400" />}>
@@ -646,7 +646,7 @@ export default function Settings() {
           </div>
           <div id="settings-operations" className={tab === "operations" ? "grid gap-5" : "hidden"}>
             <div className="pb-1">
-              <h2 className="font-display font-semibold text-[#2F151B] text-xl leading-tight">Operations & alerts</h2>
+              <h2 className="font-sans font-semibold text-[#30272A] text-lg leading-tight">Operations & alerts</h2>
               <p className="text-sm text-stone-500 mt-1 max-w-xl">Capacity and outstanding-balance alerts used by the dashboard.</p>
             </div>
         <SectionCard title="Alerts &amp; capacity" action={<Gauge className="w-4 h-4 text-stone-400" />}>
@@ -684,7 +684,7 @@ export default function Settings() {
           </div>
           <div id="settings-policies" className={tab === "policies" ? "grid gap-5" : "hidden"}>
             <div className="pb-1">
-              <h2 className="font-display font-semibold text-[#2F151B] text-xl leading-tight">Pricing policies & terms</h2>
+              <h2 className="font-sans font-semibold text-[#30272A] text-lg leading-tight">Pricing policies & terms</h2>
               <p className="text-sm text-stone-500 mt-1 max-w-xl">Deposits, rush fees, fittings and the client-facing terms shown on quotes and invoices.</p>
             </div>
         {canManageQuotePricing && <SectionCard title="Garment labour prices" action={<Scissors className="size-4 text-stone-400" />}>
@@ -847,7 +847,7 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-end gap-3 rounded-xl border border-[#EEDFE3] bg-white px-3 py-2 sm:px-4 sm:py-3 sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-4 z-20 shadow-sm">
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-3 rounded-lg border border-[#E4DEDD] bg-white px-3 py-2 sm:px-4 sm:py-3 sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-4 z-20">
           <p role="status" className="mr-auto text-xs text-stone-500">{saveMutation.isPending ? "Saving…" : dirty ? "Unsaved changes" : "All changes saved"}</p>
           <PremiumButton type="submit" disabled={!dirty || !formReady} loading={saveMutation.isPending} size="lg">
             <Save className="w-4 h-4" />

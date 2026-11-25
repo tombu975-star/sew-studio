@@ -240,10 +240,7 @@
     font-family: var(--font-display);
     letter-spacing: -0.025em;
   }
-  /* Premium focus rings */
-  *:focus-visible {
-    @apply outline-none ring-2 ring-ring/30 ring-offset-2 ring-offset-background;
-  }
+  /* Focus indicators are defined once in the accessibility baseline below. */
   /* Tabular numbers for financial figures */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
@@ -470,7 +467,7 @@ main select, main textarea, main [role="combobox"] {
   box-shadow: 0 1px 2px rgba(47, 21, 27, .025);
 }
 main textarea { min-height: 104px; }
-main input:focus, main select:focus, main textarea:focus, main [role="combobox"]:focus {
+main input:not([type="checkbox"]):not([type="radio"]):focus, main select:focus, main textarea:focus, main [role="combobox"]:focus {
   border-color: var(--atelier-burgundy-2) !important;
   box-shadow: 0 0 0 3px rgba(131, 33, 56, .10) !important;
   outline: none;
@@ -654,9 +651,7 @@ main [class*="rounded-2xl"][class*="border"]:hover {
   border-radius: 0 4px 4px 0;
   background: #e6c58d;
 }
-.studio-shell > main > div:not([data-topbar]) {
-  min-height: calc(100dvh - 1px);
-}
+/* The flex shell determines content height; banners must not each occupy a viewport. */
 .studio-shell > header {
   box-shadow: 0 4px 20px rgba(59, 10, 24, .055);
 }
@@ -763,4 +758,44 @@ body { font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1; }
   [data-slot="select-trigger"],
   [role="dialog"] select,
   [role="dialog"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]) { min-height: 2.5rem; }
+}
+
+/* Studio design foundation: scoped to authenticated workspace, not marketing. */
+.studio-shell {
+  --workspace-canvas: #f7f5f3;
+  --workspace-line: #e4dedd;
+  --workspace-ink: #30272a;
+  --workspace-muted: #665c60;
+  --atelier-line: var(--workspace-line);
+  --atelier-card-shadow: 0 1px 2px rgb(35 20 25 / .045);
+}
+.studio-shell > main { background: var(--workspace-canvas); }
+.studio-shell > header, .studio-shell > nav, .studio-shell nav,
+.studio-shell [data-topbar] { backdrop-filter: none; -webkit-backdrop-filter: none; }
+.studio-shell > header { box-shadow: none; }
+.studio-shell [data-topbar] { background: #fff; }
+.studio-shell main h1, .studio-shell main h2, .studio-shell main h3,
+.studio-shell > header h1 { font-family: var(--font-body); letter-spacing: -.02em; }
+.studio-shell main h1 { font-size: clamp(1.375rem, 2vw, 1.75rem); font-weight: 650; line-height: 1.25; }
+.studio-shell main h2 { font-size: 1.125rem; font-weight: 650; line-height: 1.35; }
+.studio-shell [data-topbar] h1 { font-size: 1.125rem; }
+.studio-shell main button[class*="bg-primary"], .studio-shell main a[class*="bg-primary"],
+.studio-shell main button[class*="bg-[#800020]"], .studio-shell main a[class*="bg-[#800020]"] { box-shadow: none; }
+.studio-shell main button[class*="bg-primary"]:hover, .studio-shell main a[class*="bg-primary"]:hover { transform: none; }
+.studio-shell main [class*="rounded-xl"][class*="border"]:hover,
+.studio-shell main [class*="rounded-2xl"][class*="border"]:hover { border-color: var(--workspace-line); }
+.studio-shell main table thead th { background: #f4f1ef; color: #5b5054; text-transform: none; letter-spacing: 0; }
+.studio-shell main table tbody td { border-bottom-color: #eee9e7; }
+.studio-shell main button:focus-visible, .studio-shell main a:focus-visible { outline: 2px solid #800020; outline-offset: 2px; }
+.studio-shell main input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):focus,
+.studio-shell main textarea:focus, .studio-shell main select:focus { box-shadow: 0 0 0 2px #800020 !important; outline: none; }
+.studio-shell main [aria-invalid="true"] { border-color: #b42318 !important; }
+.studio-shell main [aria-invalid="true"]:focus { box-shadow: 0 0 0 2px #b42318 !important; }
+.studio-shell main input:disabled, .studio-shell main select:disabled, .studio-shell main textarea:disabled { background: #f1eeec; cursor: not-allowed; }
+@media (max-width: 639px) {
+  .studio-shell main textarea { font-size: 16px; }
+  .studio-shell main [data-slot="button"] { min-height: 44px; }
+}
+@media print {
+  .studio-shell > main { background: #fff; }
 }

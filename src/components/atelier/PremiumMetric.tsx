@@ -43,8 +43,8 @@ export function PremiumMetric({
   return (
     <div
       className={cn(
-        "@container relative overflow-hidden rounded-xl border p-3 shadow-xs min-[400px]:p-4 sm:p-5",
-        t ? t.card : "border-[#E6D4D8] bg-white",
+        "@container relative overflow-hidden rounded-lg border p-3 min-[400px]:p-4 sm:p-4",
+        "border-[#E4DEDD] bg-white",
         className
       )}
     >
@@ -52,7 +52,7 @@ export function PremiumMetric({
         {Icon && (
           <span
             className={cn(
-              "grid size-9 shrink-0 place-items-center rounded-lg @max-[8.5rem]:hidden",
+              "grid size-8 shrink-0 place-items-center rounded-md @max-[8.5rem]:hidden",
               t ? t.tile : accent ? "bg-[#FAEFF1] text-[#800020]" : "bg-[#F7EFF1] text-[#776267]"
             )}
           >
@@ -64,10 +64,10 @@ export function PremiumMetric({
       <div className="relative mt-3 flex flex-wrap items-end gap-x-2 gap-y-1.5">
         <div
           className={cn(
-            "font-display font-semibold leading-none tabular-nums",
-            t ? t.value : accent ? "text-[#650019]" : "text-[#3B0010]"
+            "min-w-0 break-words font-sans font-semibold leading-tight tabular-nums",
+            "text-[#30272A]"
           )}
-          style={{ fontSize: "clamp(22px, 12cqw, 36px)" }}
+          style={{ fontSize: "clamp(18px, 9cqw, 30px)" }}
         >
           {value}
         </div>
@@ -116,7 +116,7 @@ export function Sparkline({
     .join(" ");
   const color = accent ? "#800020" : "#776267";
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className={cn("relative mt-3 h-7 w-full", className)}>
+    <svg aria-hidden="true" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className={cn("relative mt-3 h-7 w-full", className)}>
       <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
       <polyline points={`0,${h} ${pts} ${w},${h}`} fill={color} opacity="0.07" />
     </svg>

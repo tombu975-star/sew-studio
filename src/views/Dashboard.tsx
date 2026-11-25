@@ -216,7 +216,8 @@ function MainDashboard() {
     if (!data) return null;
     const { orders, payments, fittings, tasks, users, customers, settings } = data;
     const now = new Date();
-    const outstandingAlertThreshold = Number(settings?.outstandingBalanceAlertThreshold) || 2000;
+    const configuredThreshold = Number(settings?.outstandingBalanceAlertThreshold ?? 2000);
+    const outstandingAlertThreshold = Number.isFinite(configuredThreshold) && configuredThreshold >= 0 ? configuredThreshold : 2000;
     const staffCapacity = Math.max(1, Number(settings?.typicalActiveOrdersPerStaff) || 4);
 
     const salesThisMonth = orders
@@ -322,8 +323,8 @@ function MainDashboard() {
       prevReceived > 0
         ? `${Math.round(
             ((receivedThisMonth - prevReceived) / prevReceived) * 100
-          )}% vs last mo`
-        : "vs last mo";
+          )}% vs prior full month`
+        : "No prior-month comparison";
 
     /* ----- Needs Attention items ----- */
     const attentionItems: string[] = [];
@@ -574,7 +575,7 @@ function MainDashboard() {
         }
         subtitle={
           owner
-            ? "A snapshot of the studio today."
+            ? "Review production deadlines, customer commitments and financial performance."
             : trainer
             ? "Your trainees, fittings and orders across the atelier."
             : "Your orders, fittings and tasks across the studio — keep production moving today."

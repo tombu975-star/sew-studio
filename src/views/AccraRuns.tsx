@@ -17,7 +17,7 @@ type Item = { id: string; description: string; obtained: boolean; plannedCost: n
 type Supplier = { id: string; name: string; phone: string | null; location: string | null; notes: string | null };
 type Trip = { id: string; tripDate: string; status: "Planned" | "Logged"; notes: string; items: Item[] };
 
-const field = "h-10 rounded-lg border border-[#D2B9BF] bg-white px-3 text-sm outline-none focus:border-[#650019] focus:ring-4 focus:ring-[#650019]/10";
+const field = "min-h-11 min-w-0 rounded-md border border-[#D2B9BF] bg-white px-3 text-sm outline-none focus:border-[#650019] focus:ring-2 focus:ring-[#650019]/20";
 
 /** Market Runs: plan a buying trip, tick items off, and record what was actually spent. */
 export default function AccraRuns() {
@@ -77,7 +77,7 @@ export default function AccraRuns() {
 
   return (
     <div className="px-4 pb-6 pt-4 sm:px-6 lg:px-8 lg:pt-5 max-w-[1000px] mx-auto w-full">
-      <PageHeader eyebrow="Studio" eyebrowIcon={Truck} title="Market Runs" subtitle="Plan a buying trip, tick off what you got, and record what you really spent." />
+      <PageHeader eyebrow="Studio" eyebrowIcon={Truck} title="Market Runs" subtitle="Plan procurement trips, track purchases and reconcile actual spending." />
       {canEdit && (
         <div className="mb-5 flex flex-wrap items-end gap-3">
           <label className="text-xs font-medium text-stone-600">Trip date<input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={`${field} mt-1 block`} /></label>

@@ -23,8 +23,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export const dynamic = "force-dynamic";
 
 const wrap = "mx-auto max-w-7xl px-5 sm:px-8";
-const h2 = `${heading} text-[2.4rem] font-semibold leading-[1.02] text-[#35121d] sm:text-5xl lg:text-[3.4rem]`;
-const pill = "inline-flex h-14 items-center justify-center gap-2.5 rounded-full px-7 text-[15px] font-bold transition hover:-translate-y-0.5";
+const h2 = `${heading} text-[2rem] font-semibold leading-[1.12] text-[#35121d] sm:text-5xl lg:text-[3.4rem]`;
+const pill = "inline-flex h-14 items-center justify-center gap-2.5 rounded-md px-7 text-[15px] font-semibold transition-colors";
 
 const AUDIENCE_ICONS = [PenTool, Scissors, Gem, Shirt];
 const PRODUCT_ICONS: Record<string, typeof Ruler> = {

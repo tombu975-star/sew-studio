@@ -395,7 +395,7 @@ export default function CustomerProfile() {
       </button>
 
       {/* Client card: identity, quick actions and key numbers in one compact block */}
-      <div className="mb-4 overflow-hidden rounded-xl border border-[#EEDFE3] surface-premium elevate-md animate-fade-in-up">
+      <div className="mb-4 overflow-hidden rounded-lg border border-[#E4DEDD] bg-white">
         <div className="p-4 sm:p-5">
           <div className="flex items-start gap-3 sm:gap-4">
             <div
@@ -406,7 +406,7 @@ export default function CustomerProfile() {
             </div>
             <div className="min-w-0 flex-1">
               <h2
-                className="font-display font-semibold leading-tight text-[#2F151B] break-words"
+                className="font-sans font-semibold leading-tight text-[#30272A] break-words"
                 style={{ fontSize: "clamp(20px, 5vw, 28px)" }}
               >
                 {customer.name}
@@ -461,7 +461,7 @@ export default function CustomerProfile() {
           </div>
 
           {/* Quick actions: one tap to call, message or start an order */}
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             {customer.phone && (
               <a href={`tel:${customer.phone.replace(/[^\d+]/g, "")}`} aria-label={`Call ${firstName}`} title="Call" className={quickAction}>
                 <Phone className="h-4 w-4" />
@@ -502,8 +502,8 @@ export default function CustomerProfile() {
         <dl data-keep-cols className={cn("grid divide-x divide-[#EEDFE3] border-t border-[#EEDFE3] bg-[#FDF9FA]", canSeeMoney ? "grid-cols-3 sm:grid-cols-4" : "grid-cols-3")}>
           {stats.map((st) => (
             <div key={st.label} className={cn("min-w-0 px-3 py-2.5 sm:px-5", st.hideOnPhone && "hidden sm:block")}>
-              <dd className="truncate text-sm font-semibold tabular-nums text-[#2F151B] sm:text-base">{st.value}</dd>
-              <dt className="text-[10px] uppercase tracking-[0.14em] text-stone-400">{st.label}</dt>
+              <dd className="break-words text-sm font-semibold tabular-nums text-[#2F151B] sm:text-base">{st.value}</dd>
+              <dt className="text-xs leading-tight text-stone-600">{st.label}</dt>
             </div>
           ))}
         </dl>
@@ -528,7 +528,7 @@ export default function CustomerProfile() {
             <TabsTrigger
               key={t.v}
               value={t.v}
-              className="min-h-10 !w-auto !min-w-max !max-w-none !shrink-0 !grow-0 !basis-auto whitespace-nowrap rounded-md px-3.5 py-2 text-sm font-medium text-stone-600 data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm sm:px-4 sm:py-1.5"
+              className="min-h-10 !w-auto !min-w-max !max-w-none !shrink-0 !grow-0 !basis-auto whitespace-nowrap rounded-md px-3.5 py-2 text-sm font-medium text-stone-600 data-[state=active]:bg-[#F5E9ED] data-[state=active]:text-[#800020] sm:px-4 sm:py-1.5"
             >
               {t.l}
               {t.n ? <span className="ml-1.5 text-xs tabular-nums opacity-70">{t.n}</span> : null}
@@ -540,16 +540,16 @@ export default function CustomerProfile() {
         <TabsContent value="overview" className="mt-4">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div><h3 className="font-display text-xl font-semibold text-[#351322]">Customer at a glance</h3><p className="text-xs text-stone-500">A connected summary of the information recorded for {firstName}.</p></div>
-            <span className="rounded-full border border-[#EEDFE3] bg-[#FDF9FA] px-3 py-1 text-xs font-medium text-[#800020]">Customer 360°</span>
+            
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {snapshotCards.map((card) => {
               const Icon = card.icon;
               return <button key={card.key} type="button" onClick={() => card.key === "personal" ? setEditOpen(true) : card.key === "fit" ? setTab("measurements") : setTab(card.key)}
-                className="group flex min-h-[170px] flex-col rounded-xl border border-[#EEDFE3] bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#C79A45] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]">
+                className="group flex min-h-[140px] flex-col rounded-lg border border-[#E4DEDD] bg-white p-4 text-left transition-colors hover:bg-[#FAF8F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800020]">
                 <div className="flex items-center gap-2.5"><span className="grid size-9 place-items-center rounded-lg bg-[#800020]/10 text-[#800020]"><Icon className="size-4.5" /></span><h4 className="text-sm font-semibold text-[#351322]">{card.title}</h4><ChevronRight className="ml-auto size-4 text-stone-400 transition group-hover:translate-x-0.5 group-hover:text-[#800020]"/></div>
                 <p className="mt-3 line-clamp-2 text-sm font-medium text-[#493A40]">{card.summary}</p>
-                <div className="mt-1 space-y-0.5">{card.lines.slice(0,3).map((line,i) => <p key={i} className="line-clamp-1 text-xs text-stone-500">{line}</p>)}</div>
+                <div className="mt-1 space-y-0.5">{card.lines.slice(0,3).map((line,i) => <p key={i} className="break-words text-xs text-stone-600">{line}</p>)}</div>
                 {card.key === "gallery" && gallery.length > 0 && <div className="mt-2 flex gap-1.5">{gallery.slice(0,3).map((image) => <img key={image.id} src={image.url} alt={image.title} loading="lazy" className="size-11 rounded-md border border-[#EEDFE3] object-cover"/>)}</div>}
                 <span className="mt-auto pt-3 text-xs font-semibold text-[#800020]">{card.action} →</span>
               </button>;

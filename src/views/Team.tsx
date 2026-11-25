@@ -264,25 +264,25 @@ export default function Team() {
         <TabsList className="bg-white border border-[#EEDFE3] rounded-lg h-auto p-1 overflow-x-auto max-w-full flex w-full justify-start sm:inline-flex sm:w-auto gap-0.5">
           <TabsTrigger
             value="staff"
-            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+            className="rounded-md data-[state=active]:bg-[#F5E9ED] data-[state=active]:text-[#800020] min-h-11 px-3 py-2 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Staff &amp; Trainers
           </TabsTrigger>
           <TabsTrigger
             value="trainees"
-            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+            className="rounded-md data-[state=active]:bg-[#F5E9ED] data-[state=active]:text-[#800020] min-h-11 px-3 py-2 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Trainees
           </TabsTrigger>
           <TabsTrigger
             value="freelancers"
-            className="rounded-md data-[state=active]:bg-[#800020] data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-1.5 text-sm font-medium text-stone-600 whitespace-nowrap"
+            className="rounded-md data-[state=active]:bg-[#F5E9ED] data-[state=active]:text-[#800020] min-h-11 px-3 py-2 text-sm font-medium text-stone-600 whitespace-nowrap"
           >
             Freelancers
           </TabsTrigger>
         </TabsList>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2"><Input aria-label="Search team" placeholder={tab==="freelancers"?"Search name, specialty or skills":"Search name, email or phone"} value={search} onChange={e=>setSearch(e.target.value)}/>{tab==="staff"&&<select aria-label="Staff role" className="rounded-md border bg-white p-2 text-sm" value={rosterRole} onChange={e=>setRosterRole(e.target.value)}><option value="all">All staff roles</option><option value="madam">Owner</option><option value="staff">Staff</option><option value="trainer">Trainer</option></select>}{tab==="freelancers"&&<select aria-label="Freelancer availability" className="rounded-md border bg-white p-2 text-sm" value={availability} onChange={e=>setAvailability(e.target.value)}><option value="all">All availability</option>{FREELANCER_STATUSES.map(v=><option key={v}>{v}</option>)}</select>}</div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2"><Input aria-label="Search team" placeholder={tab==="freelancers"?"Search name, specialty or skills":"Search name, email or phone"} value={search} onChange={e=>setSearch(e.target.value)}/>{tab==="staff"&&<select aria-label="Staff role" className="min-h-11 rounded-md border bg-white px-3 text-sm" value={rosterRole} onChange={e=>setRosterRole(e.target.value)}><option value="all">All staff roles</option><option value="madam">Owner</option><option value="staff">Staff</option><option value="trainer">Trainer</option></select>}{tab==="freelancers"&&<select aria-label="Freelancer availability" className="min-h-11 rounded-md border bg-white px-3 text-sm" value={availability} onChange={e=>setAvailability(e.target.value)}><option value="all">All availability</option>{FREELANCER_STATUSES.map(v=><option key={v}>{v}</option>)}</select>}</div>
         {((tab==="staff"&&usersQ.isError)||(tab==="trainees"&&(usersQ.isError||trainingLogsQ.isError))||(tab==="freelancers"&&freelancersQ.isError))&&<p role="alert" className="mt-3 rounded-md border p-3 text-sm">Some team information could not load. <button className="underline text-[#800020]" onClick={()=>{if(tab==="freelancers")void freelancersQ.refetch();else{void usersQ.refetch();if(tab==="trainees")void trainingLogsQ.refetch();}}}>Retry</button></p>}
         <TabsContent value="staff" className="mt-5">
           {!usersQ.isError && <StaffTrainersCard
@@ -490,7 +490,7 @@ function StaffTrainersCard({
                 className="group flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-sans font-semibold text-base shrink-0"
                   aria-hidden
                 >
                   {initialOf(u.fullName)}
@@ -660,7 +660,7 @@ function FreelancersCard({
                 className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
               >
                 <div
-                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white shrink-0 shadow-sm"
+                  className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white shrink-0"
                   aria-hidden
                 >
                   <SpecialtyIcon className="w-5 h-5" />
@@ -906,7 +906,7 @@ function TraineesCard({
                   className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-[#FCF8F9] transition-colors"
                 >
                   <div
-                    className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-display font-semibold text-lg shrink-0 shadow-sm"
+                    className="w-11 h-11 rounded-full bg-[#800020] flex items-center justify-center text-white font-sans font-semibold text-base shrink-0"
                     aria-hidden
                   >
                     {initialOf(t.fullName)}

@@ -27,7 +27,7 @@ type Detail = Asset & { maintenance: Log[] };
 const CATEGORIES = ["Machine", "Mannequin", "Iron & Pressing", "Cutting Table", "Furniture", "Tools", "Other"];
 const CONDITIONS = ["New", "Good", "Fair", "Needs Repair"];
 const STATUSES = ["In Use", "In Storage", "Under Repair", "Retired"];
-const field = "h-10 w-full rounded-lg border border-[#D2B9BF] bg-white px-3 text-sm outline-none focus:border-[#650019] focus:ring-4 focus:ring-[#650019]/10";
+const field = "min-h-11 w-full min-w-0 rounded-md border border-[#D2B9BF] bg-white px-3 text-sm outline-none focus:border-[#650019] focus:ring-2 focus:ring-[#650019]/20";
 const label = "block text-xs font-medium text-stone-600";
 
 const CONDITION_STYLE: Record<string, string> = {
@@ -98,7 +98,7 @@ export default function AssetRegister() {
         <select aria-label="Filter by status" className={field} value={status} onChange={(e) => setStatus(e.target.value)}><option value="">All Statuses</option>{STATUSES.map((c) => <option key={c}>{c}</option>)}</select>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-3"><button className="text-sm underline text-[#800020]" onClick={()=>{setSearch("");setCategory("");setStatus("");setCondition("");setService("");}}>Reset filters</button>{canEdit&&<PremiumButton variant="outline" disabled={isLoading||isError||!shown.length} onClick={exportCsv}>Export CSV</PremiumButton>}</div>
+      <div className="mb-4 flex flex-wrap items-center gap-3"><button type="button" className="min-h-11 text-sm underline text-[#800020]" onClick={()=>{setSearch("");setCategory("");setStatus("");setCondition("");setService("");}}>Reset filters</button>{canEdit&&<PremiumButton variant="outline" disabled={isLoading||isError||!shown.length} onClick={exportCsv}>Export CSV</PremiumButton>}</div>
       <SectionCard title={`${shown.length} asset${shown.length === 1 ? "" : "s"}`}>
         {isLoading ? <p className="p-6 text-sm text-stone-400">Loading…</p>
           : isError ? <p role="alert" className="p-6 text-sm text-red-700">Could not load the register. <button className="underline" onClick={()=>void refetch()}>Retry</button></p>

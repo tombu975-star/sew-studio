@@ -51,6 +51,7 @@ export async function DELETE(_req:Request,{params}:Ctx){
   const o=rows[0];
   if(o.status!=="Pending payment"||o.payment_status==="Paid"||o.payment_method!=="manual"){await client.query("ROLLBACK");return Response.json({error:"Only unpaid manual orders can be cancelled here"},{status:409})}
   await client.query("update public.rtw_orders set status='Cancelled',updated_at=now() where id=$1 and shop_id=$2",[id,ctx.shopId]);
+  await client.query("select set_config('rtw.stock_reason',$1,true)",["Order cancellation"]);
   const restored=await client.query("update public.rtw_variants v set stock=v.stock+$2 from public.rtw_products p where v.id=$1 and v.product_id=p.id and p.shop_id=$3",[o.variant_id,o.quantity,ctx.shopId]);
   if(restored.rowCount!==1){await client.query("ROLLBACK");return Response.json({error:"Stock could not be restored; cancellation not completed"},{status:409});}
   await client.query("COMMIT");return Response.json({cancelled:true});

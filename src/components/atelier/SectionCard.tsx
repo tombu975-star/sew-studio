@@ -26,13 +26,13 @@ export function SectionCard({
   return (
     <div
       className={cn(
-        "rounded-xl border border-[#E6D4D8] bg-white shadow-xs",
+        "rounded-lg border border-[#E4DEDD] bg-white",
         accent && "border-l-2 border-l-[#650019]",
         className
       )}
     >
       {title && (
-        <div className="flex items-center justify-between gap-3 px-5 min-h-12 py-3 border-b border-[#F0E4E7]">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 min-h-12 py-3 border-b border-[#E4DEDD]">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold tracking-tight text-slate-800">{title}</h3>
             {description && <p className="mt-1 text-xs leading-5 text-stone-500">{description}</p>}
@@ -40,7 +40,7 @@ export function SectionCard({
           {action}
         </div>
       )}
-      <div className={cn("p-5", bodyClassName)}>{children}</div>
+      <div className={cn("p-4", bodyClassName)}>{children}</div>
     </div>
   );
 }

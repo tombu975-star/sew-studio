@@ -117,6 +117,7 @@ export default function ProductionBoard() {
   // client-side, and nothing here needs to wait on auth to hydrate.
   const canFilterByStaff = canSeeBusiness();
   const [staffFilter, setStaffFilter] = useState("all");
+  const [search,setSearch]=useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -143,6 +144,7 @@ export default function ProductionBoard() {
   const columns = useMemo(() => {
     const list = (orders || [])
       .filter((o) => staffFilter === "all" || o.assignedStaffId === staffFilter)
+      .filter(o=>`${o.garmentDesign} ${o.customer?.name??""}`.toLowerCase().includes(search.trim().toLowerCase()))
       .map((o) => ({
         ...o,
         paid:
@@ -164,7 +166,7 @@ export default function ProductionBoard() {
           return ad.localeCompare(bd);
         }),
     }));
-  }, [orders, staffFilter]);
+  }, [orders, staffFilter, search]);
 
   const flatOrders = useMemo(() => {
     const map = new Map<string, Order & { paid?: number }>();
@@ -225,7 +227,7 @@ export default function ProductionBoard() {
   function handleDragEnd(e: DragEndEvent) {
     setActiveId(null);
     const { active, over } = e;
-    if (!over) return;
+    if (!over || statusMut.isPending) return;
     const orderId = String(active.id);
     const targetKey = String(over.id);
     const col = BOARD_COLUMNS.find((c) => c.key === targetKey);
@@ -274,26 +276,29 @@ export default function ProductionBoard() {
         }
       />
 
+      <div className="mb-4 flex flex-wrap items-center gap-3"><input aria-label="Search production orders" placeholder="Search garment or customer" value={search} onChange={e=>setSearch(e.target.value)} className="min-h-11 min-w-0 flex-1 rounded-md border bg-white px-3 text-sm"/><button type="button" onClick={()=>{setSearch("");setStaffFilter("all")}} className="min-h-11 text-sm text-[#800020] underline">Reset filters</button></div>
+      {!isLoading&&!ordersError&&<p role="status" className="mb-3 text-sm text-stone-600">{columns.reduce((n,c)=>n+c.cards.length,0)} matching orders · Overview totals include all accessible orders</p>}
       {/* Operational snapshot */}
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
+      {!isLoading&&!ordersError&&<div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="flex items-center gap-3 rounded-lg border border-[#E4DEDD] bg-white p-3.5">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#F8EDF0] text-[#800020]"><ClipboardCheck className="size-5"/></span>
           <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-stone-500">Active orders</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
+        <div className="flex items-center gap-3 rounded-lg border border-[#E4DEDD] bg-white p-3.5">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-700"><Clock3 className="size-5"/></span>
           <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-stone-500">Due soon</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => o.deliveryDate && new Date(o.deliveryDate).getTime() >= Date.now() && new Date(o.deliveryDate).getTime() <= Date.now() + 7 * 86400000 && !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
+        <div className="flex items-center gap-3 rounded-lg border border-[#E4DEDD] bg-white p-3.5">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-rose-50 text-rose-700"><AlertCircle className="size-5"/></span>
           <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-stone-500">Overdue</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => o.deliveryDate && isOverdue(o.deliveryDate) && !["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-[#EEDFE3] bg-white p-3.5 shadow-[0_2px_10px_rgba(53,18,29,.03)]">
+        <div className="flex items-center gap-3 rounded-lg border border-[#E4DEDD] bg-white p-3.5">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-700"><CheckCircle2 className="size-5"/></span>
           <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-stone-500">Completed</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-[#35121D]">{(orders || []).filter((o) => ["Collected/Delivered", "Completed"].includes(o.status)).length}</p></div>
         </div>
       </div>
 
+      }
       {/* Board */}
       {ordersError ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 sm:p-6">
@@ -372,7 +377,7 @@ export default function ProductionBoard() {
                 col={col}
                 cards={col.cards}
                 onOpen={(id) => go("order", { id })}
-                onMove={(id, value) => statusMut.mutate({ id, move: moveFromValue(value) })}
+                onMove={(id, value) => {if(!statusMut.isPending)statusMut.mutate({ id, move: moveFromValue(value) })}}
                 isUpdating={statusMut.isPending}
               />
             ))}
@@ -419,15 +424,15 @@ function Column({
       ref={setNodeRef}
       id={`board-col-${col.key}`}
       className={cn(
-        "w-[82vw] max-w-[340px] sm:w-[310px] lg:w-[320px] xl:w-[330px] shrink-0 snap-start rounded-2xl border bg-[#FBF8F8] shadow-[0_5px_18px_rgba(53,18,29,.045)] flex flex-col transition-all",
+        "w-[82vw] max-w-[340px] sm:w-[310px] lg:w-[320px] xl:w-[330px] shrink-0 snap-start rounded-lg border bg-[#F7F5F3] flex flex-col transition-colors",
         isOver
           ? "border-[#800020]/55 ring-2 ring-[#800020]/10 bg-[#F9F0F2]"
           : "border-[#E8DDE0]"
       )}
     >
       {/* Header */}
-      <div className="px-4 py-3.5 border-b border-[#E8DDE0] flex items-center justify-between bg-white/80 rounded-t-2xl">
-        <h3 className="text-xs font-bold uppercase tracking-[0.16em] text-[#51343C]">
+      <div className="px-4 py-3.5 border-b border-[#E8DDE0] flex items-center justify-between bg-white rounded-t-lg">
+        <h3 className="text-sm font-semibold text-[#51343C]">
           {col.title}
         </h3>
         <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold text-[#2F151B] tabular-nums bg-white border border-[#EEDFE3] rounded-full">

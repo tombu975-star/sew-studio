@@ -37,14 +37,14 @@ function SiteHeader({ content }: { content: WebsiteContent }) {
   const { site, nav } = content;
   const studioUrl = resolveStudioUrl(site);
   return (
-    <header className="sticky top-0 z-40 border-b border-[#eadde0]/80 bg-[#FCF8F5]/95 shadow-[0_4px_24px_rgba(59,10,24,.04)] backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-[#eadde0] bg-[#FCF8F5]">
       <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-5 px-5 sm:px-8">
         <Link href="/" aria-label={`${site.name} home`} className="shrink-0"><BrandLogo width={132} /></Link>
         <nav aria-label="Main navigation" className="hidden items-center gap-7 lg:flex">
           {[...nav.items.filter((item)=>item.href!=="/ready-to-wear"),{href:"/ready-to-wear",label:"Ready to Wear"}].map((item) => <NavLink key={`${item.href}-${item.label}`} href={item.href} className="text-[13px] font-semibold text-[#765d63] transition hover:text-[#800020]">{item.label}</NavLink>)}
         </nav>
         <div className="flex items-center gap-2.5">
-          <a href={studioUrl} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#800020] px-5 text-[13px] font-bold text-white shadow-[0_8px_20px_rgba(128,0,32,.18)] transition hover:-translate-y-0.5 hover:bg-[#650019]">
+          <a href={studioUrl} className="inline-flex h-11 items-center gap-2 rounded-md bg-[#800020] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#650019]">
             <span className="whitespace-nowrap"><span className="hidden sm:inline">{nav.enterLabel}</span><span className="sm:hidden">{nav.enterLabelShort}</span></span> <ArrowUpRight className="size-4" />
           </a>
           <MobileMenu items={[...nav.items.filter((item)=>item.href!=="/ready-to-wear"),{href:"/ready-to-wear",label:"Ready to Wear"}]} />

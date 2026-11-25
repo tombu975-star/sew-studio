@@ -1,0 +1,32 @@
+name: Security lockfile update
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    if: github.repository == 'believersmale-ai/sew-studio' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Resolve compatible updates
+        run: npm audit fix --package-lock-only --ignore-scripts || test -s package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit --incremental false
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - name: Commit validated dependency changes
+        run: |
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "Apply compatible dependency security updates"
+          git push origin HEAD:refs/heads/security/dependency-update-${{ github.run_id }}
+      - name: Check remaining production vulnerabilities
+        run: npm audit --omit=dev --audit-level=high

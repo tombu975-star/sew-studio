@@ -416,7 +416,7 @@ export default function Tasks() {
       />
 
       <div className="mb-4 grid gap-2 sm:grid-cols-2"><Input aria-label="Search tasks" placeholder="Search task, notes or garment" value={search} onChange={e=>setSearch(e.target.value)}/><select aria-label="Task deadline" className="rounded-md border p-2 text-sm" value={deadline} onChange={e=>setDeadline(e.target.value)}><option value="all">All deadlines</option><option value="overdue">Overdue tasks</option><option value="missing">No deadline</option></select></div>
-      {isError&&<p role="alert" className="mb-4 text-sm">Task data unavailable. <button className="underline" onClick={()=>void refetch()}>Retry</button></p>}
+      <div className="mb-4 flex items-center justify-between gap-2 text-sm text-stone-600"><span role="status">{isLoading||isError?"":`${filtered.length} matching tasks`}</span><button type="button" className="min-h-10 text-xs text-[#800020] underline" onClick={()=>{setSearch("");setDeadline("all")}}>Clear search and deadline</button></div>
       {/* Premium stat strip */}
       <div data-keep-cols className="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6">
         <PremiumMetric
@@ -458,7 +458,7 @@ export default function Tasks() {
               <span className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
                 {traineeMode ? "Your average" : "Studio average"}
               </span>
-              <div className="font-display font-semibold text-[#2F151B] leading-none tabular-nums flex items-baseline gap-1">
+              <div className="font-sans font-semibold text-[#2F151B] leading-none tabular-nums flex items-baseline gap-1">
                 {avgPct != null ? (
                   <>
                     <span
@@ -762,7 +762,7 @@ function TaskCard({
   const showAwaiting = isDone && !isGraded;
 
   return (
-    <div className="rounded-lg bg-white border border-[#EEDFE3] p-3.5 elevate-sm lift flex flex-col gap-2.5">
+    <div className="rounded-md bg-white border border-[#E4DEDD] p-3.5 flex flex-col gap-2.5">
       <div className="flex items-start justify-between gap-2">
         <button
           onClick={onClick}
@@ -783,7 +783,7 @@ function TaskCard({
               onClick={onEdit}
               aria-label="Edit task"
               title="Edit task"
-              className="size-10 sm:size-7 rounded-md flex items-center justify-center text-stone-400 hover:text-[#800020] hover:bg-[#800020]/5 transition"
+              className="size-11 sm:size-9 rounded-md flex items-center justify-center text-stone-400 hover:text-[#800020] hover:bg-[#800020]/5 transition"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
