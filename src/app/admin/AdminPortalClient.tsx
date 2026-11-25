@@ -158,13 +158,6 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (admin: AdminProfile) => void 
           <span className="grid size-12 place-items-center rounded-2xl border border-white/20 bg-white/10"><ShieldCheck className="size-6 text-[#E9C68D]" /></span>
           <div><p className="text-lg font-bold tracking-[.14em]">SEWSINESS</p><p className="text-xs tracking-[.13em] text-white/65">FASHION ATELIER MANAGEMENT</p></div>
         </div>
-        <SectionCard>
-          <div className="mb-6"><h1 className="font-sans text-2xl font-semibold text-slate-900">System admin</h1><p className="mt-1 text-sm text-slate-500">Sign in to manage your platform.</p></div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <label className="block text-xs font-medium text-slate-600">Email<input type="email" required autoComplete="username" autoFocus value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1.5 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#527564] focus:ring-2 focus:ring-[#527564]/30" /></label>
-            <label className="block text-xs font-medium text-slate-600">Password<input type="password" required autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-1.5 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-[#527564] focus:ring-2 focus:ring-[#527564]/30" /></label>
-            {error && <p role="alert" className="flex items-center gap-2 text-sm text-red-700"><AlertCircle className="size-4 shrink-0" />{error}</p>}
-            <button type="submit" disabled={loading} className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#315B4A] text-sm font-medium text-white transition hover:bg-[#244638] disabled:opacity-60">{loading && <Loader2 className="size-4 animate-spin" />}{loading ? "Signing in…" : "Sign in securely"}</button>
         <div className="relative z-10 max-w-lg">
           <span className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#E9C68D]/40 px-4 py-2 text-xs font-semibold tracking-[.14em] text-[#E9C68D]"><Sparkles className="size-3.5" /> PLATFORM OPERATIONS</span>
           <h1 className="font-display text-4xl font-semibold leading-[1.12] tracking-tight text-white xl:text-5xl 2xl:text-6xl"><span className="text-white">A clearer view.</span><br /><span className="text-[#E9C68D]">Better control.</span></h1>
