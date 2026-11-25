@@ -102,7 +102,14 @@ export async function POST(req: Request) {
     }
     // One account per email (Gmail aliases included) and per phone number.
     const conflict = await findIdentityConflict(admin, { email: emailNorm, phone });
-    if (conflict) return Response.json({ error: conflict.message }, { status: 409 });
+    if (conflict) {
+      return Response.json({
+        error: conflict.field === "email"
+          ? "This email already has a Sewsiness account. Cross-studio invitations are not yet enabled. Do not create a second account or change the existing password."
+          : conflict.message,
+        code: conflict.field === "email" ? "EXISTING_ACCOUNT_MEMBERSHIP_REQUIRED" : "IDENTITY_CONFLICT",
+      }, { status: 409 });
+    }
 
     // A mentor can only be assigned when creating a trainee, and must be a
     // trainer/madam in the same shop.

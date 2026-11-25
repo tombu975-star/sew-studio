@@ -32,6 +32,8 @@ export type ViewKey =
   | "my-jobs"
   | "profile"
   | "ready-to-wear"
+  | "about-studio"
+  | "studio-sop"
   | "settings";
 
 interface NavState {
