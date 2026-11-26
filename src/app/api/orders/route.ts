@@ -3,7 +3,8 @@ import { cleanImageRef } from "@/lib/image-ref";
 import { NextRequest, NextResponse } from "next/server";
 import type { Database } from "@/lib/db/database.types";
 import { getTenant } from "@/lib/db/session";
-import { serializeOrder } from "@/lib/db/serializers";
+import {orderOverheadMargin,overheadRecoveryRatePercent} from "@/lib/format";
+import { serializeSettings, serializeOrder } from "@/lib/db/serializers";
 
 const ORDER_SELECT =
   "*, customer:customers(*), assigned_staff:profiles!orders_assigned_staff_id_fkey(*), payments(*), fittings(*)";
@@ -123,6 +124,14 @@ export async function POST(req: NextRequest) {
 
   const quoteLines = typeof body.quoteCostLines==="string" ? (()=>{try{return validLines(JSON.parse(body.quoteCostLines))}catch{return null}})() : null;
   if(body.quoteCostLines && (!quoteLines || !quoteLines.length))return NextResponse.json({error:"Invalid quote cost breakdown."},{status:400});
+  const {data:rawSettings,error:settingsError}=await ctx.db.from("settings").select("*").eq("shop_id",ctx.shopId).maybeSingle();
+  if(settingsError)return NextResponse.json({error:"Unable to read costing settings"},{status:500});
+  const costing=rawSettings?serializeSettings(rawSettings):null;
+  const method=costing?.overheadAllocationMethod??"material";
+  const rate=overheadRecoveryRatePercent(costing);
+  if(method==="revenue" && !(Number(costing?.overheadRevenueBasis)>0))return NextResponse.json({error:"Enter expected monthly sales revenue in Settings."},{status:400});
+  const overhead=orderOverheadMargin({fabricCost:Number(body.fabricCost)||0,labourCost:Number(body.labourCost)||0,otherCost:Number(body.otherCost)||0,markupPercent:data.markup_percent},costing);
+  Object.assign(data,{overhead_allocation_method:method,overhead_rate_snapshot:rate,overhead_amount_snapshot:overhead});
   const { data: created, error } = await ctx.db
     .from("orders")
     .insert(data)
@@ -131,11 +140,12 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Preserve the agreed price and original cost assumptions, independent of later Settings changes.
-  const estimatedLines = quoteLines ?? [
+  const estimatedLines = (quoteLines ?? [
     {key:"materials",label:"Fabric / materials",amount:Math.max(0,Number(body.fabricCost)||0)},
     {key:"labour",label:"Labour",amount:Math.max(0,Number(body.labourCost)||0)},
     {key:"other",label:"Other production costs",amount:Math.max(0,Number(body.otherCost)||0)},
-  ];
+  ]).filter(line=>line.key!=="overhead");
+  estimatedLines.push({key:"overhead",label:"Studio overhead allocation",amount:overhead});
   const {error:snapshotError}=await ctx.db.from("order_cost_reconciliations").insert({
     shop_id:ctx.shopId,order_id:created.id,quoted_price:Math.max(0,Number(body.sellingPrice)||0),estimated_lines:estimatedLines
   });

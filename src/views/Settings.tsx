@@ -124,6 +124,8 @@ export default function Settings() {
   const [newItemName, setNewItemName] = useState("");
   const [newItemAmount, setNewItemAmount] = useState("");
   const [overheadAmount, setOverheadAmount] = useState<number>(0);
+  const [overheadAllocationMethod,setOverheadAllocationMethod]=useState<'material'|'revenue'>('material');
+  const [overheadRevenueBasis,setOverheadRevenueBasis]=useState(0);
   const [overheadRecoveryBasis, setOverheadRecoveryBasis] = useState<number>(0);
   const [selfPayout, setSelfPayout] = useState<number>(0);
   const [defaultMarkupPercent, setDefaultMarkupPercent] = useState<number>(30);
@@ -160,6 +162,8 @@ export default function Settings() {
     setCurrency(data.currency ?? "GHS");
     setOverheadAmount(data.overheadAmount ?? 0);
     setOverheadRecoveryBasis(data.overheadRecoveryBasis ?? 0);
+    setOverheadAllocationMethod(data.overheadAllocationMethod ?? 'material');
+    setOverheadRevenueBasis(data.overheadRevenueBasis ?? 0);
     setSelfPayout(data.selfPayout ?? 0);
     setDefaultMarkupPercent(data.defaultMarkupPercent ?? 30);
 
@@ -201,7 +205,7 @@ export default function Settings() {
   const effectiveOverheadPerOrder = overheadItemsTotal > 0 ? overheadItemsTotal : overheadAmount;
   // Standard overhead recovery rate = total overhead ÷ direct-cost base (excl. labour).
   const recoveryRate =
-    overheadRecoveryBasis > 0 ? (effectiveOverheadPerOrder / overheadRecoveryBasis) * 100 : 0;
+    (overheadAllocationMethod==='revenue'?overheadRevenueBasis:overheadRecoveryBasis)>0 ? effectiveOverheadPerOrder/(overheadAllocationMethod==='revenue'?overheadRevenueBasis:overheadRecoveryBasis)*100 : 0;
 
   function addOverheadItem() {
     const name = newItemName.trim();
@@ -223,6 +227,8 @@ export default function Settings() {
         currency,
         overheadAmount,
         overheadRecoveryBasis,
+        overheadAllocationMethod,
+        overheadRevenueBasis,
         selfPayout,
         defaultMarkupPercent,
         contactPhone: contactPhone.trim(),
@@ -313,7 +319,7 @@ export default function Settings() {
           e.preventDefault();
           if (!studioName.trim()) { setTab("general"); toast.error("Enter your studio name."); return; }
           if (contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) { setTab("general"); toast.error("Enter a valid contact email."); return; }
-          const limits: [number, number, number, string, SettingsTab][] = [[overheadAmount,0,100000000,"Overhead","costing"],[overheadRecoveryBasis,0,100000000,"Recovery basis","costing"],[selfPayout,0,100000000,"Owner payout","costing"],[defaultMarkupPercent,0,1000,"Markup","costing"],[outstandingBalanceAlertThreshold,0,100000000,"Balance alert","operations"],[typicalActiveOrdersPerStaff,1,10000,"Staff capacity","operations"],[depositPercent,0,100,"Deposit","policies"],[rushFeePercent,0,100,"Rush fee","policies"],[quoteValidDays,0,3650,"Quote validity","policies"],[fittingsIncluded,0,1000,"Fittings","policies"],[alterationsWindowDays,0,3650,"Alterations window","policies"]];
+          const limits: [number, number, number, string, SettingsTab][] = [[overheadAmount,0,100000000,"Overhead","costing"],[overheadRecoveryBasis,0,100000000,"Recovery basis","costing"],[overheadRevenueBasis,0,100000000,"Monthly revenue","costing"],[selfPayout,0,100000000,"Owner payout","costing"],[defaultMarkupPercent,0,1000,"Markup","costing"],[outstandingBalanceAlertThreshold,0,100000000,"Balance alert","operations"],[typicalActiveOrdersPerStaff,1,10000,"Staff capacity","operations"],[depositPercent,0,100,"Deposit","policies"],[rushFeePercent,0,100,"Rush fee","policies"],[quoteValidDays,0,3650,"Quote validity","policies"],[fittingsIncluded,0,1000,"Fittings","policies"],[alterationsWindowDays,0,3650,"Alterations window","policies"]];
           const invalid = limits.find(([value,min,max]) => !Number.isFinite(value) || value < min || value > max);
           if (invalid) { setTab(invalid[4]); toast.error(`${invalid[3]} must be between ${invalid[1]} and ${invalid[2]}.`); return; }
           const pricingError = canManageQuotePricing && ("quoteGarmentLabour" in changed || "quoteComplexityLevels" in changed) ? validateQuotePricing(garmentLabour, complexityLevels) : null;
@@ -544,7 +550,7 @@ export default function Settings() {
 
             <div className="rounded-lg border border-[#EEDFE3] bg-[#FAF0F2] p-4 grid gap-3">
               <div>
-                <p className="text-sm font-semibold text-[#2F151B]">Overhead recovery rate</p>
+                <p className="text-sm font-semibold text-[#2F151B]">Overhead recovery rate</p><label className="block text-sm">Allocation method<select className="block w-full rounded-md border p-3" value={overheadAllocationMethod} onChange={e=>setOverheadAllocationMethod(e.target.value==="revenue"?"revenue":"material")}><option value="material">Material-based</option><option value="revenue">Revenue-based</option></select></label>
                 <p className="text-xs text-stone-500 mt-0.5">
                   The standard way to make every order carry its fair share of overhead: divide your
                   monthly overhead by your average monthly direct costs (fabric &amp; materials —
@@ -552,7 +558,7 @@ export default function Settings() {
                   fabric cost as an overhead margin, so bigger jobs carry more and small jobs less.
                 </p>
               </div>
-              <div className="grid gap-1.5">
+              {overheadAllocationMethod==="revenue"?<div className="space-y-2"><p className="text-xs">Best when clients often bring their own fabric, or when your work is mostly skill and time.</p><Label htmlFor="revenue-basis">Expected average monthly sales revenue ({currency})</Label><Input id="revenue-basis" type="number" min={0} step="0.01" value={overheadRevenueBasis||""} onChange={e=>setOverheadRevenueBasis(Math.max(0,Number(e.target.value)||0))}/><p>{overheadRevenueBasis>0?recoveryRate.toFixed(1)+"%":"Enter expected monthly sales revenue."}</p>{recoveryRate>100&&<p role="alert">Recovery rate exceeds 100%. Check your estimates.</p>}</div>:<><div className="grid gap-1.5">
                 <Label htmlFor="recovery-basis">Average monthly direct costs, excluding labour ({currency})</Label>
                 <Input
                   id="recovery-basis"
@@ -577,6 +583,7 @@ export default function Settings() {
                   ? "Applied to every order: overhead margin = fabric cost × this rate."
                   : "Until this is set, the flat overhead amount below is added to each order instead."}
               </p>
+              </>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

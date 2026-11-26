@@ -200,13 +200,14 @@ export default function QuickQuote() {
     const rushPercent = rushPercentOverride ?? pricingSettings?.rushFeePercent ?? 25;
     const rushPremium = rush ? Math.round(subtotal * Math.max(0, rushPercent) / 100) : 0;
     const wastage = fabricCost * Math.max(0, wastagePct) / 100;
-    const overhead = orderOverheadMargin({ fabricCost: fabricCost + wastage }, pricingSettings);
     const itemTotal = items.reduce((sum,x) => sum + x.quantity * x.unitCost, 0);
     const acceptedExtras = extras.filter(x => x.accepted);
     const extrasCost = acceptedExtras.reduce((sum,x) => sum + x.cost, 0);
     const extrasPrice = acceptedExtras.reduce((sum,x) => sum + x.price, 0);
-    const trueCost = fabricCost + wastage + labour + embellishmentCost + Math.max(0, otherCosts) + itemTotal + (clientFabric ? Math.max(0,handlingCost) : 0) + extrasCost + overhead;
     const markup = markupOverride ?? defaultMarkupPercent(pricingSettings);
+    const directOther = embellishmentCost + Math.max(0,otherCosts)+itemTotal+(clientFabric?Math.max(0,handlingCost):0)+extrasCost;
+    const overhead = orderOverheadMargin({fabricCost:fabricCost+wastage,labourCost:labour,otherCost:directOther,markupPercent:markup},pricingSettings);
+    const trueCost = fabricCost+wastage+labour+directOther+overhead;
     const recommendedBase = Math.round((trueCost - extrasCost) * (1 + Math.max(0,markup) / 100) + rushPremium);
     const recommendedPrice = recommendedBase + extrasPrice;
     const finalPrice = (finalOverride ?? recommendedBase) + extrasPrice;

@@ -64,13 +64,16 @@ export async function PATCH(req: Request) {
     if ("ownerGender" in body && !["Male", "Female"].includes(body.ownerGender)) return Response.json({ error: "Select a valid owner gender." }, { status: 400 });
     if ("contactEmail" in body && (typeof body.contactEmail !== "string" || (body.contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.contactEmail.trim())))) return Response.json({ error: "Enter a valid contact email." }, { status: 400 });
     if ("fullBalanceBeforePickup" in body && typeof body.fullBalanceBeforePickup !== "boolean") return Response.json({ error: "Invalid balance policy." }, { status: 400 });
-    const numericLimits: Record<string, [number, number]> = { overheadAmount:[0,100000000], overheadRecoveryBasis:[0,100000000], selfPayout:[0,100000000], defaultMarkupPercent:[0,1000], outstandingBalanceAlertThreshold:[0,100000000], typicalActiveOrdersPerStaff:[1,10000], depositPercent:[0,100], rushFeePercent:[0,100], quoteValidDays:[0,3650], fittingsIncluded:[0,1000], alterationsWindowDays:[0,3650] };
+    if (("overheadAllocationMethod" in body || "overheadRevenueBasis" in body) && ctx.role !== "madam") return Response.json({error:"Owner access required"},{status:403});
+    if ("overheadAllocationMethod" in body && !["material","revenue"].includes(body.overheadAllocationMethod)) return Response.json({error:"Invalid allocation method"},{status:400});
+    const numericLimits: Record<string, [number, number]> = { overheadAmount:[0,100000000], overheadRecoveryBasis:[0,100000000], overheadRevenueBasis:[0,100000000], selfPayout:[0,100000000], defaultMarkupPercent:[0,1000], outstandingBalanceAlertThreshold:[0,100000000], typicalActiveOrdersPerStaff:[1,10000], depositPercent:[0,100], rushFeePercent:[0,100], quoteValidDays:[0,3650], fittingsIncluded:[0,1000], alterationsWindowDays:[0,3650] };
     for (const [key, [min,max]] of Object.entries(numericLimits)) {
       if (key in body && (typeof body[key] !== "number" || !Number.isFinite(body[key]) || body[key] < min || body[key] > max)) return Response.json({ error: `Invalid ${key}: expected a number between ${min} and ${max}.` }, { status: 400 });
     }
     if ("overheadItems" in body && (!Array.isArray(body.overheadItems) || body.overheadItems.some((item: any) => typeof item?.name !== "string" || !item.name.trim() || typeof item.amount !== "number" || !Number.isFinite(item.amount) || item.amount < 0))) return Response.json({ error: "Invalid overhead items." }, { status: 400 });
     const data: Database["public"]["Tables"]["settings"]["Update"] = {};
     const fieldMap: Record<string, string> = {
+      overheadAllocationMethod: "overhead_allocation_method",
       ownerGender: "owner_gender",
       studioName: "studio_name",
       currency: "currency",
@@ -89,6 +92,7 @@ export async function PATCH(req: Request) {
     const numericFieldMap: Record<string, string> = {
       overheadAmount: "overhead_amount",
       overheadRecoveryBasis: "overhead_recovery_basis",
+      overheadRevenueBasis: "overhead_revenue_basis",
       selfPayout: "self_payout",
     };
     for (const [key, column] of Object.entries(numericFieldMap)) {

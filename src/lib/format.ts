@@ -29,7 +29,7 @@ export const overheadPerOrder = monthlyOverheadTotal;
  */
 export function overheadRecoveryRatePercent(settings: Settings | null | undefined) {
   if (!settings) return 0;
-  const basis = Number(settings.overheadRecoveryBasis) || 0;
+  const basis = Number(settings.overheadAllocationMethod === 'revenue' ? settings.overheadRevenueBasis : settings.overheadRecoveryBasis) || 0;
   if (basis <= 0) return 0;
   return (monthlyOverheadTotal(settings) / basis) * 100;
 }
@@ -46,10 +46,15 @@ export function overheadRecoveryRatePercent(settings: Settings | null | undefine
  * regresses for studios that haven't set this up.
  */
 export function orderOverheadMargin(
-  order: { fabricCost?: number | null },
+  order: { fabricCost?: number | null; labourCost?: number | null; otherCost?: number | null; markupPercent?: number | null; overheadAmountSnapshot?: number | null },
   settings: Settings | null | undefined
 ) {
+  if (order.overheadAmountSnapshot != null) return Number(order.overheadAmountSnapshot);
   const rate = overheadRecoveryRatePercent(settings);
+  if (settings?.overheadAllocationMethod === 'revenue') {
+    const direct = (Number(order.fabricCost)||0)+(Number(order.labourCost)||0)+(Number(order.otherCost)||0);
+    return direct * (1 + (order.markupPercent ?? defaultMarkupPercent(settings))/100) * rate/100;
+  }
   if (rate <= 0) return monthlyOverheadTotal(settings);
   const fabric = Number(order?.fabricCost) || 0;
   return fabric * (rate / 100);

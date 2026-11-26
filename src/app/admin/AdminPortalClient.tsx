@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ADMIN_AREAS } from "@/lib/admin-access";
+import StudioHandbook from "@/views/StudioHandbook";
 import { AdminQuickLinks } from "./AdminQuickLinks";
 import {
   Activity,
@@ -217,7 +218,7 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (admin: AdminProfile) => void 
   );
 }
 
-type AdminSection = "overview" | "studios" | "features";
+type AdminSection = "overview" | "studios" | "features" | "handbook";
 type StudioFilter = "all" | "active" | "suspended" | "setup";
 
 function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: () => void }) {
@@ -296,6 +297,7 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
     { id: "overview" as const, label: "Overview", icon: LayoutDashboard },
     { id: "studios" as const, label: "Studios", icon: Building2, count: shops.length },
     { id: "features" as const, label: "Feature controls", icon: SlidersHorizontal },
+    ...(admin.isSuper === true ? [{id:"handbook" as const,label:"Sewsiness handbook",icon:ListChecks,count:undefined}] : []),
   ];
 
   return (
@@ -332,6 +334,7 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
           {section === "overview" && <Overview shops={shops} activeCount={active.length} suspendedCount={suspended.length} members={totalMembers} orders={totalOrders} recent={recent} onboarding={onboarding} incompleteOwners={incompleteOwners} plans={plans} loading={loading} onStudios={() => openSection("studios")} onFeatures={() => openSection("features")} onSelectStudio={setSelectedId} />}
           {section === "studios" && <StudioDirectory shops={filtered} allCount={shops.length} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} loading={loading} onSelect={setSelectedId} />}
           {section === "features" && <MenuManagement />}
+          {section === "handbook" && admin.isSuper === true && <><h2 className="font-semibold">About Sewsiness</h2><StudioHandbook section="about" adminMode/><h2 className="font-semibold">Official SOPs</h2><StudioHandbook section="sop" adminMode/></>}
         </main>
       </div>
       {selectedId && <ShopDetailPanel shopId={selectedId} onClose={() => setSelectedId(null)} onChanged={() => void reload()} />}

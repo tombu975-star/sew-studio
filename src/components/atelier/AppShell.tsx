@@ -80,7 +80,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
   madam: [
     {
       label: "Overview",
-      items: [{ to: "dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "about-studio", label: "About Our Studio", icon: Store }, { to: "studio-sop", label: "Studio SOPs", icon: BookOpen }],
+      items: [{ to: "dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "about-studio", label: "About Sewsiness", icon: Store }, { to: "studio-sop", label: "Sewsiness SOPs", icon: BookOpen }],
     },
     {
       label: "Studio",
@@ -142,7 +142,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
   trainer: [
     {
       label: "Overview",
-      items: [{ to: "dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "about-studio", label: "About Our Studio", icon: Store }, { to: "studio-sop", label: "Studio SOPs", icon: BookOpen }],
+      items: [{ to: "dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "about-studio", label: "About Sewsiness", icon: Store }, { to: "studio-sop", label: "Sewsiness SOPs", icon: BookOpen }],
     },
     {
       label: "Studio",
@@ -171,7 +171,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
   staff: [
     {
       label: "Overview",
-      items: [{ to: "dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "about-studio", label: "About Our Studio", icon: Store }, { to: "studio-sop", label: "Studio SOPs", icon: BookOpen }],
+      items: [{ to: "dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "about-studio", label: "About Sewsiness", icon: Store }, { to: "studio-sop", label: "Sewsiness SOPs", icon: BookOpen }],
     },
     {
       label: "Studio",
@@ -198,7 +198,7 @@ const SECTIONS: Record<Role, NavSection[]> = {
   trainee: [
     {
       label: "Overview",
-      items: [{ to: "dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "about-studio", label: "About Our Studio", icon: Store }, { to: "studio-sop", label: "Studio SOPs", icon: BookOpen }],
+      items: [{ to: "dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "about-studio", label: "About Sewsiness", icon: Store }, { to: "studio-sop", label: "Sewsiness SOPs", icon: BookOpen }],
     },
     {
       label: "Studio",
@@ -318,8 +318,8 @@ const VIEW_META: Record<ViewKey, { label: string; icon: IconType }> = {
   "my-jobs": { label: "My Jobs", icon: Briefcase },
   profile: { label: "My Profile", icon: UserRound },
   "ready-to-wear": { label: "Ready-to-Wear Shop", icon: Store },
-  "about-studio": { label: "About Our Studio", icon: Store },
-  "studio-sop": { label: "Studio SOPs", icon: BookOpen },
+  "about-studio": { label: "About Sewsiness", icon: Store },
+  "studio-sop": { label: "Sewsiness SOPs", icon: BookOpen },
   settings: { label: "Settings", icon: SettingsIcon },
 };
 

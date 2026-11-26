@@ -81,15 +81,15 @@ export default function NewOrder({ embedded = false, onClose, onCreated }: { emb
   });
   const currency = settings?.currency || "GHS";
   // Standard method: overhead margin = % of the order's non-labour (fabric) cost.
+  const markupPercent = markupInput !== null ? Math.max(0, Number(markupInput) || 0) : defaultMarkupPercent(settings);
   const overhead = useMemo(
-    () => orderOverheadMargin({ fabricCost: Number(fabricCost) || 0 }, settings),
-    [fabricCost, settings]
+    () => orderOverheadMargin({ fabricCost: Number(fabricCost) || 0, labourCost:Number(labourCost)||0,otherCost:Number(otherCost)||0,markupPercent }, settings),
+    [fabricCost,labourCost,otherCost,markupPercent, settings]
   );
   const overheadRate = useMemo(() => overheadRecoveryRatePercent(settings), [settings]);
 
   // True Costing: materials + labour + other costs + studio overhead share,
   // then the mark-up on top gives the suggested price.
-  const markupPercent = markupInput !== null ? Math.max(0, Number(markupInput) || 0) : defaultMarkupPercent(settings);
   const trueCost = useMemo(
     () => (Number(fabricCost) || 0) + (Number(labourCost) || 0) + (Number(otherCost) || 0) + overhead,
     [fabricCost, labourCost, otherCost, overhead]
@@ -360,7 +360,7 @@ export default function NewOrder({ embedded = false, onClose, onCreated }: { emb
                     <dt className="text-stone-500">
                       Studio overhead share
                       <span className="block text-xs text-stone-400">
-                        {overheadRate > 0 ? `${overheadRate.toFixed(1)}% of materials cost, added automatically` : "Flat per-order overhead from Settings"}
+                        {overheadRate > 0 ? `${overheadRate.toFixed(1)}% of ${settings?.overheadAllocationMethod==="revenue"?"pre-overhead sales value":"materials cost"}, added automatically` : "Flat per-order overhead from Settings"}
                       </span>
                     </dt>
                     <dd className="font-medium tabular-nums text-[#2F151B]">{formatCurrency(overhead, currency)}</dd>

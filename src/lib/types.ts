@@ -107,6 +107,9 @@ export interface Order {
   otherCost?: number;
   /** Mark-up % on True Cost used when the order was priced; null = priced by hand. */
   markupPercent?: number | null;
+  overheadAmountSnapshot?: number | null;
+  overheadRateSnapshot?: number | null;
+  overheadAllocationMethod?: 'material' | 'revenue' | null;
   /** Price True Costing suggested when the order was booked. */
   suggestedPrice?: number | null;
   notes?: string | null;
@@ -272,6 +275,8 @@ export interface Settings {
   invoicePrefix?: string;
   // Standard overhead-recovery-rate costing (see src/lib/format.ts)
   overheadRecoveryBasis?: number;
+  overheadAllocationMethod?: 'material' | 'revenue';
+  overheadRevenueBasis?: number;
   /** Default mark-up % on True Cost, pre-filled when pricing an order. */
   defaultMarkupPercent?: number;
   quoteGarmentLabour?: import("@/lib/quote-pricing").GarmentLabourRate[];
