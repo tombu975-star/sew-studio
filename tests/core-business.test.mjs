@@ -29,3 +29,18 @@ test("image references reject executable schemes and invalid upload paths", () =
   assert.equal(cleanImageRef(" https://example.com/photo.jpg "), "https://example.com/photo.jpg");
   assert.equal(cleanImageRef("/api/files/12345678-1234-1234-1234-123456789abc"), "/api/files/12345678-1234-1234-1234-123456789abc");
 });
+
+test("revenue allocation recovers overhead on client-supplied fabric",()=>{
+ const cfg={overheadItems:[{amount:2000}],overheadAllocationMethod:"revenue",overheadRevenueBasis:20000,defaultMarkupPercent:30};
+ const order={fabricCost:0,labourCost:400,otherCost:100,markupPercent:30};
+ assert.equal(overheadRecoveryRatePercent(cfg),10);
+ assert.equal(orderOverheadMargin(order,cfg),65);
+ assert.equal(orderTrueCost(order,cfg),565);
+ assert.equal(orderOverheadMargin({...order,markupPercent:0},cfg),50);
+ assert.equal(orderOverheadMargin(order,{...cfg,overheadRevenueBasis:0}),0);
+});
+test("saved overhead including zero overrides later settings",()=>{
+ const order={fabricCost:0,labourCost:400,otherCost:100,overheadAmountSnapshot:65};
+ assert.equal(orderTrueCost(order,{...settings,overheadAllocationMethod:"revenue",overheadRevenueBasis:100}),565);
+ assert.equal(orderTrueCost({...order,overheadAmountSnapshot:0},settings),500);
+});

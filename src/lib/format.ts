@@ -53,7 +53,7 @@ export function orderOverheadMargin(
   const rate = overheadRecoveryRatePercent(settings);
   if (settings?.overheadAllocationMethod === 'revenue') {
     const direct = (Number(order.fabricCost)||0)+(Number(order.labourCost)||0)+(Number(order.otherCost)||0);
-    return direct * (1 + (order.markupPercent ?? defaultMarkupPercent(settings))/100) * rate/100;
+    return Math.round(direct * (1 + (order.markupPercent ?? defaultMarkupPercent(settings))/100) * rate)/100;
   }
   if (rate <= 0) return monthlyOverheadTotal(settings);
   const fabric = Number(order?.fabricCost) || 0;
@@ -65,7 +65,7 @@ export function orderOverheadMargin(
  *  of fabric cost under the standard method, or the flat fallback if the
  *  rate isn't configured). */
 export function orderTrueCost(
-  order: { fabricCost?: number | null; labourCost?: number | null; otherCost?: number | null },
+  order: Parameters<typeof orderOverheadMargin>[0],
   settings: Settings | null | undefined
 ) {
   const fabric = Number(order?.fabricCost) || 0;

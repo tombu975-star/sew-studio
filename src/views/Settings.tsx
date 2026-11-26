@@ -472,7 +472,7 @@ export default function Settings() {
           <div id="settings-costing" className={tab === "costing" ? "grid gap-5" : "hidden"}>
             <div className="pb-1">
               <h2 className="font-sans font-semibold text-[#30272A] text-lg leading-tight">Costing & overhead</h2>
-              <p className="text-sm text-stone-500 mt-1 max-w-xl">Monthly overheads and the overhead recovery rate applied to every order (as a percentage of non-labour cost).</p>
+              <p className="text-sm text-stone-500 mt-1 max-w-xl">Monthly overheads and the selected recovery method for new orders.</p>
             </div>
         <SectionCard title="Overhead breakdown" action={<Coins className="w-4 h-4 text-stone-400" />}>
           <div className="grid gap-4 p-1">
@@ -552,10 +552,7 @@ export default function Settings() {
               <div>
                 <p className="text-sm font-semibold text-[#2F151B]">Overhead recovery rate</p><label className="block text-sm">Allocation method<select className="block w-full rounded-md border p-3" value={overheadAllocationMethod} onChange={e=>setOverheadAllocationMethod(e.target.value==="revenue"?"revenue":"material")}><option value="material">Material-based</option><option value="revenue">Revenue-based</option></select></label>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  The standard way to make every order carry its fair share of overhead: divide your
-                  monthly overhead by your average monthly direct costs (fabric &amp; materials —
-                  <strong> excluding labour</strong>). Each order then adds that percentage of its own
-                  fabric cost as an overhead margin, so bigger jobs carry more and small jobs less.
+                  {overheadAllocationMethod==="revenue" ? "Monthly overhead divided by expected monthly sales revenue. Applied to the order’s pre-overhead sales value." : "Best when most orders use fabric and materials you buy."}
                 </p>
               </div>
               {overheadAllocationMethod==="revenue"?<div className="space-y-2"><p className="text-xs">Best when clients often bring their own fabric, or when your work is mostly skill and time.</p><Label htmlFor="revenue-basis">Expected average monthly sales revenue ({currency})</Label><Input id="revenue-basis" type="number" min={0} step="0.01" value={overheadRevenueBasis||""} onChange={e=>setOverheadRevenueBasis(Math.max(0,Number(e.target.value)||0))}/><p>{overheadRevenueBasis>0?recoveryRate.toFixed(1)+"%":"Enter expected monthly sales revenue."}</p>{recoveryRate>100&&<p role="alert">Recovery rate exceeds 100%. Check your estimates.</p>}</div>:<><div className="grid gap-1.5">

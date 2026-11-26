@@ -465,6 +465,9 @@ export interface Database {
           labour_cost: number;
           other_cost: number;
           markup_percent: Nullable<number>;
+          overhead_allocation_method: Nullable<'material' | 'revenue'>;
+          overhead_rate_snapshot: Nullable<number>;
+          overhead_amount_snapshot: Nullable<number>;
           suggested_price: Nullable<number>;
           notes: Nullable<string>;
           priority: string;
@@ -772,6 +775,8 @@ export interface Database {
           tax_id: string;
           invoice_prefix: string;
           overhead_recovery_basis: number;
+          overhead_allocation_method: 'material' | 'revenue';
+          overhead_revenue_basis: number;
           default_markup_percent: number;
           quote_garment_labour: { name: string; baseLabour: number }[] | null;
           quote_complexity_levels: { name: string; multiplier: number }[] | null;
