@@ -334,7 +334,7 @@ function AdminDashboard({ admin, onLogout }: { admin: AdminProfile; onLogout: ()
           {section === "overview" && <Overview shops={shops} activeCount={active.length} suspendedCount={suspended.length} members={totalMembers} orders={totalOrders} recent={recent} onboarding={onboarding} incompleteOwners={incompleteOwners} plans={plans} loading={loading} onStudios={() => openSection("studios")} onFeatures={() => openSection("features")} onSelectStudio={setSelectedId} />}
           {section === "studios" && <StudioDirectory shops={filtered} allCount={shops.length} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} loading={loading} onSelect={setSelectedId} />}
           {section === "features" && <MenuManagement />}
-          {section === "handbook" && admin.isSuper === true && <><h2 className="font-semibold">About Sewsiness</h2><StudioHandbook section="about" adminMode/><h2 className="font-semibold">Official SOPs</h2><StudioHandbook section="sop" adminMode/></>}
+          {section === "handbook" && admin.isSuper === true && <><h2 className="font-semibold">About Sewsiness</h2><StudioHandbook section="about" adminMode/><h2 className="font-semibold">Official SOPs</h2><StudioHandbook section="sop" adminMode/><h2 className="font-semibold">Privacy Policy draft</h2><StudioHandbook section="privacy" adminMode/></>}
         </main>
       </div>
       {selectedId && <ShopDetailPanel shopId={selectedId} onClose={() => setSelectedId(null)} onChanged={() => void reload()} />}

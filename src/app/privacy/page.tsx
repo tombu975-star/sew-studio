@@ -1,3 +1,4 @@
+import {getPool} from "@/lib/db/pool";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage } from "@/components/site/SiteShell";
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
 
 export default async function PrivacyPage() {
   const { contact: CONTACT, legal } = await loadWebsiteContent();
+  const {rows}=await getPool().query("select content from private.platform_handbook where section=$1",["privacy"]);
+  const draft=String(rows[0]?.content??"");
+  // Keep the existing public policy until an administrator explicitly removes the draft status after approval.
+  if(draft.trim() && !draft.includes("proposed for management approval")) return <LegalPage title="Privacy Policy"><ReactMarkdown>{draft}</ReactMarkdown></LegalPage>;
   // An admin can replace this text from /admin/website (Legal pages). Empty = the built-in text below.
   if (legal.privacyMarkdown.trim()) {
     return <LegalPage title="Privacy Policy"><ReactMarkdown>{legal.privacyMarkdown}</ReactMarkdown></LegalPage>;
