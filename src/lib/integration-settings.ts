@@ -35,6 +35,9 @@ export interface SettingDef {
 }
 
 export const SETTING_DEFS: SettingDef[] = [
+  { key: "email_provider", env: "EMAIL_PROVIDER", group: "email", kind: "text", label: "Email provider", default: "auto", help: "Use apps-script, smtp, resend, auto or disabled. Explicit selection never falls back." },
+  { key: "invitation_email_enabled", env: "INVITATION_EMAIL_ENABLED", group: "notifications", kind: "bool", label: "Send studio invitation emails", default: "false" },
+  { key: "invitation_sms_enabled", env: "INVITATION_SMS_ENABLED", group: "notifications", kind: "bool", label: "Send studio invitation SMS", default: "false", help: "Requires a configured SMS handler in the Apps Script web app." },
   // ── Email ────────────────────────────────────────────────────────────────
   { key: "email_from", env: "EMAIL_FROM", group: "email", kind: "text", label: "Sender (From)", placeholder: "Sewsiness <no-reply@yourdomain.com>", help: "Shown as the sender of every email. For Resend the domain must be verified there." },
   { key: "resend_api_key", env: "RESEND_API_KEY", group: "email", kind: "secret", label: "Resend API key", help: "Option A (recommended for a custom domain). Used first when set." },

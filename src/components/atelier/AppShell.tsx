@@ -1,4 +1,5 @@
 "use client";
+import {StudioNotificationCentre} from "@/components/atelier/StudioInvitations";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -734,6 +735,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             Menu availability could not be loaded. Some features may be unavailable.
           </div>
         )}
+        <StudioNotificationCentre/>
         <div key={view} className="w-full max-w-[1480px] mx-auto flex-1 flex flex-col min-w-0 animate-fade-in">
           {children}
         </div>

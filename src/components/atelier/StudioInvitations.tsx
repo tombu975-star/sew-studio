@@ -1,0 +1,19 @@
+"use client";
+import {useCallback,useEffect,useState} from "react";
+import {Bell} from "lucide-react";
+type Invitation={id:string;role:string;status:string;studio_name:string};
+async function api(method:string,body?:object){
+ const res=await fetch("/api/studio-invitations",{method,cache:"no-store",headers:{"Content-Type":"application/json"},...(body?{body:JSON.stringify(body)}:{})});
+ const data=await res.json();if(!res.ok)throw new Error(data.error||"Invitation request failed");return data;
+}
+export function InviteExistingAccount(){
+ const [email,setEmail]=useState("");const [role,setRole]=useState("staff");const [busy,setBusy]=useState(false);const [message,setMessage]=useState("");
+ return <section className="mb-6 rounded-xl border bg-white p-4 space-y-3"><h2 className="font-semibold">Invite existing Sewsiness account</h2><p className="text-sm text-stone-600">An invitation appears in their Notification Centre. No email delivery or new password is needed.</p><form className="flex flex-wrap items-end gap-3" onSubmit={async e=>{e.preventDefault();setBusy(true);setMessage("");try{await api("POST",{email,role});setEmail("");setMessage("Invitation sent to their Notification Centre.");}catch(e){setMessage(e instanceof Error?e.message:"Unable to invite");}finally{setBusy(false);}}}><label className="flex-1 min-w-[180px] text-sm">Existing account email<input required type="email" maxLength={254} className="block w-full rounded-md border p-2" value={email} onChange={e=>setEmail(e.target.value)}/></label><label className="text-sm">Role<select className="block rounded-md border p-2" value={role} onChange={e=>setRole(e.target.value)}><option value="staff">Staff</option><option value="trainer">Trainer</option><option value="trainee">Trainee</option></select></label><button disabled={busy} className="rounded-md bg-[#800020] text-white px-4 py-2 min-h-11">{busy?"Sending…":"Send invitation"}</button></form><p role="status" className="text-sm">{message}</p></section>;
+}
+export function StudioNotificationCentre(){
+ const [items,setItems]=useState<Invitation[]>([]);const [open,setOpen]=useState(false);const [error,setError]=useState("");const [busy,setBusy]=useState(false);
+ const load=useCallback(async()=>{try{setItems(await api("GET"));setError("");}catch{setError("Could not load invitations.");}},[]);
+ useEffect(()=>{void load();const timer=window.setInterval(load,30000);window.addEventListener("focus",load);return()=>{window.clearInterval(timer);window.removeEventListener("focus",load);};},[load]);
+ const count=items.filter(i=>i.status==="pending").length;
+ return <section className="mx-4 mt-3 md:mx-8"><button type="button" aria-expanded={open} onClick={()=>{setOpen(!open);if(!open)void load();}} className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm"><Bell className="size-4"/> Notification Centre {count>0&&<span className="rounded-full bg-[#800020] text-white px-2">{count}</span>}</button>{open&&<div className="mt-2 rounded-xl border bg-white p-4 space-y-3"><h2 className="font-semibold">Studio invitations</h2>{error&&<p role="alert">{error} <button onClick={load} className="underline">Retry</button></p>}{!items.length&&!error&&<p className="text-sm text-stone-500">No studio invitations.</p>}{items.map(i=><div key={i.id} className="border-t pt-3"><p className="font-medium">{i.studio_name}</p><p className="text-sm capitalize">Invited role: {i.role}</p>{i.status==="pending"?<div className="flex gap-2 mt-2">{["accept","decline"].map(action=><button key={action} disabled={busy} className="rounded-md border px-3 py-2 capitalize" onClick={async()=>{setBusy(true);try{await api("PATCH",{id:i.id,action});await load();}catch(e){setError(e instanceof Error?e.message:"Unable to respond");}finally{setBusy(false);}}}>{action}</button>)}</div>:<p className="text-sm">Accepted — awaiting membership activation. Access has not yet been granted.</p>}</div>)}</div>}</section>;
+}

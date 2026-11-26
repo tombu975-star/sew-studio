@@ -1,4 +1,5 @@
 "use client";
+import {InviteExistingAccount} from "@/components/atelier/StudioInvitations";
 
 import { ImageUpload } from "@/components/atelier/ImageUpload";
 import { useMemo, useState } from "react";
@@ -235,6 +236,7 @@ export default function Team() {
 
       />
 
+      {role.isOwner() && <InviteExistingAccount/>}
       {/* Premium stat strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <PremiumMetric

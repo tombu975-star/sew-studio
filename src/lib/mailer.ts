@@ -35,7 +35,7 @@ const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 const EMAIL_KEYS = [
-  "email_from", "resend_api_key", "resend_api_url",
+  "email_provider", "email_from", "resend_api_key", "resend_api_url",
   "smtp_host", "smtp_port", "smtp_secure", "smtp_user", "smtp_pass",
   "apps_script_url", "apps_script_secret",
 ] as const;
@@ -69,9 +69,15 @@ function fromAddress(c: EmailConfig): string | null {
 }
 
 function pickProvider(c: EmailConfig): MailResult["provider"] {
+  const appsReady = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(c.apps_script_url) && c.apps_script_secret.length >= 32;
+  if (c.email_provider === "disabled") return "none";
+  if (c.email_provider === "apps-script") return appsReady ? "apps-script" : "none";
+  if (c.email_provider === "resend") return c.resend_api_key ? "resend" : "none";
+  if (c.email_provider === "smtp") return c.smtp_host && c.smtp_user && c.smtp_pass ? "smtp" : "none";
+  if (c.email_provider !== "auto") return "none";
   if (c.resend_api_key) return "resend";
   if (c.smtp_host && c.smtp_user && c.smtp_pass) return "smtp";
-  if (c.apps_script_url) return "apps-script";
+  if (appsReady) return "apps-script";
   return "none";
 }
 
@@ -115,7 +121,7 @@ async function viaSmtp(m: MailInput, c: EmailConfig, base: string): Promise<Mail
   }
 }
 
-async function viaAppsScript(m: MailInput, c: EmailConfig): Promise<MailResult> {
+async function viaAppsScript(m: MailInput, c: EmailConfig, base: string): Promise<MailResult> {
   const res = await fetch(c.apps_script_url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -127,6 +133,7 @@ async function viaAppsScript(m: MailInput, c: EmailConfig): Promise<MailResult> 
       title: m.subject,
       body: m.body,
       type: m.type,
+      htmlBody: renderHtml(m.subject, m.body, base),
     }),
     signal: AbortSignal.timeout(10_000),
   });
@@ -149,7 +156,7 @@ export async function sendEmailDetailed(m: MailInput): Promise<MailResult> {
   }
   try {
     const base = await getAppBaseUrl();
-    const result = await (provider === "resend" ? viaResend(m, config, base) : provider === "smtp" ? viaSmtp(m, config, base) : viaAppsScript(m, config));
+    const result = await (provider === "resend" ? viaResend(m, config, base) : provider === "smtp" ? viaSmtp(m, config, base) : viaAppsScript(m, config, base));
     if (!result.ok) console.error(`[mailer] ${result.provider} could not send a "${m.type}" email: ${result.error}`);
     return result;
   } catch (err) {

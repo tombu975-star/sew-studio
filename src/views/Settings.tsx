@@ -552,35 +552,40 @@ export default function Settings() {
               <div>
                 <p className="text-sm font-semibold text-[#2F151B]">Overhead recovery rate</p><label className="block text-sm">Allocation method<select className="block w-full rounded-md border p-3" value={overheadAllocationMethod} onChange={e=>setOverheadAllocationMethod(e.target.value==="revenue"?"revenue":"material")}><option value="material">Material-based</option><option value="revenue">Revenue-based</option></select></label>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  {overheadAllocationMethod==="revenue" ? "Monthly overhead divided by expected monthly sales revenue. Applied to the order’s pre-overhead sales value." : "Best when most orders use fabric and materials you buy."}
+                  {overheadAllocationMethod==="revenue" ? "Monthly overhead divided by expected monthly sales revenue. Applied to the order’s price before overhead (materials, labour, other costs and mark-up)." : "Best when most orders use fabric and materials you buy."}
                 </p>
               </div>
-              {overheadAllocationMethod==="revenue"?<div className="space-y-2"><p className="text-xs">Best when clients often bring their own fabric, or when your work is mostly skill and time.</p><Label htmlFor="revenue-basis">Expected average monthly sales revenue ({currency})</Label><Input id="revenue-basis" type="number" min={0} step="0.01" value={overheadRevenueBasis||""} onChange={e=>setOverheadRevenueBasis(Math.max(0,Number(e.target.value)||0))}/><p>{overheadRevenueBasis>0?recoveryRate.toFixed(1)+"%":"Enter expected monthly sales revenue."}</p>{recoveryRate>100&&<p role="alert">Recovery rate exceeds 100%. Check your estimates.</p>}</div>:<><div className="grid gap-1.5">
-                <Label htmlFor="recovery-basis">Average monthly direct costs, excluding labour ({currency})</Label>
-                <Input
-                  id="recovery-basis"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={overheadRecoveryBasis}
-                  onChange={(e) => setOverheadRecoveryBasis(Math.max(0, Number(e.target.value) || 0))}
-                />
+              {overheadAllocationMethod === "revenue" ? (
+                <div className="grid gap-1.5">
+                  <p className="text-xs text-stone-500">Best when clients often bring their own fabric, or when your work is mostly skill and time.</p>
+                  <Label htmlFor="revenue-basis">Expected average monthly sales revenue ({currency})</Label>
+                  <p id="revenue-basis-help" className="text-xs text-stone-600">The total money you expect customers to pay you in a month, with all orders added together.</p>
+                  <Input id="revenue-basis" aria-describedby="revenue-basis-help" type="number" min={0} step="0.01" value={overheadRevenueBasis || ""} onChange={e => setOverheadRevenueBasis(Math.max(0, Number(e.target.value) || 0))} />
+                </div>
+              ) : (
+                <div className="grid gap-1.5">
+                  <Label htmlFor="recovery-basis">Average monthly direct costs, excluding labour ({currency})</Label>
+                  <p id="recovery-basis-help" className="text-xs text-stone-600">What you spend on fabric and accessories in an average month, not including labour.</p>
+                  <Input id="recovery-basis" aria-describedby="recovery-basis-help" type="number" min={0} step="0.01" value={overheadRecoveryBasis} onChange={e => setOverheadRecoveryBasis(Math.max(0, Number(e.target.value) || 0))} />
+                </div>
+              )}
+              <div className="rounded-md bg-white border border-[#EEDFE3] px-3 py-3 space-y-2" aria-live="polite">
+                {(overheadAllocationMethod === "revenue" ? overheadRevenueBasis : overheadRecoveryBasis) > 0 ? (
+                  <>
+                    <p className="text-sm font-semibold text-[#800020] tabular-nums">
+                      Overhead recovery rate: {recoveryRate.toFixed(1)}% <span className="font-normal text-stone-600">({formatCurrency(effectiveOverheadPerOrder, currency)} ÷ {formatCurrency(overheadAllocationMethod === "revenue" ? overheadRevenueBasis : overheadRecoveryBasis, currency)})</span>
+                    </p>
+                    <p className="text-xs text-stone-600">
+                      {overheadAllocationMethod === "revenue"
+                        ? `Each order adds ${recoveryRate.toFixed(1)}% of its price before overhead. An order priced at ${formatCurrency(2600, currency)} before overhead carries ${formatCurrency(2600 * recoveryRate / 100, currency)}.`
+                        : `Each order adds ${recoveryRate.toFixed(1)}% of its material cost. An order with ${formatCurrency(400, currency)} of materials carries ${formatCurrency(400 * recoveryRate / 100, currency)}.`}
+                    </p>
+                    {recoveryRate > 40 && <p role="status" className="text-xs text-amber-800 bg-amber-50 rounded-md p-2">Your overhead is high compared with your {overheadAllocationMethod === "revenue" ? "expected sales" : "expected material spending"}. Please check both figures.</p>}
+                  </>
+                ) : (
+                  <p className="text-xs text-stone-600">Overhead recovery rate: Not set. {overheadAllocationMethod === "revenue" ? "Enter expected monthly sales revenue." : "Enter average monthly material costs. Until this is set, the existing fallback overhead applies."}</p>
+                )}
               </div>
-              <div className="flex items-center justify-between gap-4 rounded-md bg-white border border-[#EEDFE3] px-3 py-2.5">
-                <span className="text-xs font-medium text-stone-500">
-                  {formatCurrency(effectiveOverheadPerOrder, currency)} overhead ÷{" "}
-                  {overheadRecoveryBasis > 0 ? formatCurrency(overheadRecoveryBasis, currency) : "direct costs"}
-                </span>
-                <span className="text-sm font-semibold text-[#800020] tabular-nums">
-                  {overheadRecoveryBasis > 0 ? `${recoveryRate.toFixed(1)}%` : "Not set"}
-                </span>
-              </div>
-              <p className="text-xs text-stone-400">
-                {overheadRecoveryBasis > 0
-                  ? "Applied to every order: overhead margin = fabric cost × this rate."
-                  : "Until this is set, the flat overhead amount below is added to each order instead."}
-              </p>
-              </>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
