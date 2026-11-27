@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 const wrap = "mx-auto max-w-7xl px-5 sm:px-8";
 const h2 = `${heading} text-[2rem] font-semibold leading-[1.12] text-[#35121d] sm:text-5xl lg:text-[3.4rem]`;
-const pill = "inline-flex h-14 items-center justify-center gap-2.5 rounded-md px-7 text-[15px] font-semibold transition-colors";
+const pill = "inline-flex h-12 items-center justify-center gap-2.5 rounded-lg px-5 sm:h-14 sm:px-7 text-[15px] font-semibold transition-colors";
 
 const AUDIENCE_ICONS = [PenTool, Scissors, Gem, Shirt];
 const PRODUCT_ICONS: Record<string, typeof Ruler> = {
@@ -51,15 +51,15 @@ export default async function HomePage() {
       {/* ───────── Hero ───────── */}
       <section className="relative isolate overflow-hidden bg-[#2b0813] text-white">
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(70%_80%_at_85%_30%,rgba(128,0,32,.55),transparent_70%)]" />
-        <div className={`${wrap} grid items-center gap-x-10 gap-y-20 pb-32 pt-14 sm:pt-20 lg:grid-cols-[1.15fr_.85fr] lg:pb-36 lg:pt-20`}>
+        <div className={`${wrap} grid items-center gap-x-10 gap-y-10 pb-16 pt-9 sm:gap-y-20 sm:pb-32 sm:pt-20 lg:grid-cols-[1.15fr_.85fr] lg:pb-36 lg:pt-20`}>
           <div>
-            <h1 className={`${heading} text-[3.1rem] font-semibold leading-[.96] text-white sm:text-7xl lg:text-[5.6rem]`}>
+            <h1 className={`${heading} text-[2.5rem] font-semibold leading-[1.02] text-white sm:text-7xl lg:text-[5.6rem]`}>
               {home.heroHeadline}
             </h1>
-            <p className="mt-7 max-w-lg text-base leading-8 text-white/75 sm:text-lg">
+            <p className="mt-4 max-w-lg text-sm leading-6 sm:mt-7 sm:leading-8 text-white/75 sm:text-lg">
               {home.heroText}
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-2 sm:mt-9 sm:flex-row">
               <a href={studioUrl} className={`${pill} bg-[#F4E8D5] text-[#4b1424] shadow-xl hover:bg-white`}>
                 {home.heroPrimaryCta} <ArrowRight className="size-4" />
               </a>
@@ -67,8 +67,8 @@ export default async function HomePage() {
                 {home.heroSecondaryCta}
               </a>
             </div>
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center"><Link href="/ready-to-wear" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e6c58d] px-6 py-3 text-sm font-bold text-[#35121d] transition hover:bg-white"><Shirt className="size-4"/> Shop ready-to-wear dresses <ArrowRight className="size-4"/></Link><Link href="/ready-to-wear/track" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10">Track my order</Link></div>
-            {home.heroNote && <p className="mt-6 text-sm text-white/60">{home.heroNote}</p>}
+            <div className="mt-2 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:items-center"><Link href="/ready-to-wear" className={`${pill} bg-[#e6c58d] text-[#35121d] hover:bg-white`}><Shirt className="size-4"/> Shop ready-to-wear dresses <ArrowRight className="size-4"/></Link><Link href="/ready-to-wear/track" className="hidden text-sm font-semibold text-white underline sm:inline-flex">Track my order</Link></div>
+            {home.heroNote && <p className="mt-4 text-xs leading-5 text-white/70 sm:mt-6 sm:text-sm">{home.heroNote}</p>}
           </div>
 
           {/* arch portrait with the swing tag hanging off its corner */}

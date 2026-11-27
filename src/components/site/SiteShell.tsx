@@ -47,7 +47,7 @@ function SiteHeader({ content }: { content: WebsiteContent }) {
           <a href={studioUrl} className="hidden h-11 items-center gap-1.5 rounded-lg bg-[#800020] px-3 text-[13px] sm:px-4 font-semibold text-white transition-colors hover:bg-[#650019] xl:inline-flex">
             <span className="whitespace-nowrap"><span className="hidden sm:inline">{nav.enterLabel}</span><span className="sm:hidden">{nav.enterLabelShort}</span></span> <ArrowUpRight className="hidden size-4 sm:block" />
           </a>
-          <MobileMenu signInHref={studioUrl} signInLabel={nav.enterLabelShort} items={[...nav.items.filter((item)=>item.href!=="/ready-to-wear"),{href:"/ready-to-wear",label:"Ready to Wear"}]} />
+          <MobileMenu signInHref={studioUrl} signInLabel={nav.enterLabelShort} items={[...nav.items.filter((item)=>item.href!=="/ready-to-wear"),{href:"/ready-to-wear",label:"Ready to Wear"},{href:"/ready-to-wear/track",label:"Track my order"}]} />
         </div>
       </div>
     </header>
