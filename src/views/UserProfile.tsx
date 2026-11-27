@@ -16,6 +16,7 @@ import {
   LogOut,
   Eye,
   EyeOff,
+  ChevronDown,
 } from "lucide-react";
 import { PremiumButton } from "@/components/atelier/PremiumButton";
 import { SectionCard } from "@/components/atelier/SectionCard";
@@ -173,7 +174,7 @@ export default function UserProfile() {
   const accent = ROLE_ACCENT[profile?.role || ""] || "#800020";
 
   return (
-    <div className="mx-auto w-full max-w-[900px] p-5 md:p-8">
+    <div className="mx-auto w-full max-w-[900px] min-w-0 px-1 py-3 sm:px-4 md:p-6">
       {selectedId && (
         <button onClick={() => go("team")} className="mb-5 inline-flex items-center gap-2 text-sm text-stone-500 hover:text-[#800020] transition-colors">
           <ArrowLeft className="size-4" /> Team
@@ -205,12 +206,12 @@ export default function UserProfile() {
         <>
           {/* ─── Premium profile header banner ──────────────────── */}
           <div
-            className="relative overflow-hidden rounded-2xl border border-[#EEDFE3] elevate-sm mb-6"
+            className="relative overflow-hidden rounded-2xl border border-[#EEDFE3] elevate-sm mb-3"
             style={{
               background: "#ffffff",
             }}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center gap-5 p-6">
+            <div className="flex items-center gap-3 p-4 sm:gap-5 sm:p-6">
               <div className="relative shrink-0">
                 {profile.avatarUrl && !avatarBroken ? (
                    
@@ -218,11 +219,11 @@ export default function UserProfile() {
                     src={profile.avatarUrl}
                     alt={`${profile.fullName} profile picture`}
                     onError={() => setAvatarBroken(true)}
-                    className="size-24 rounded-2xl object-cover border border-[#EEDFE3]"
+                    className="size-16 rounded-full object-cover sm:size-20 border border-[#EEDFE3]"
                   />
                 ) : (
                   <div
-                    className="flex size-24 items-center justify-center rounded-2xl text-white text-3xl font-semibold font-display"
+                    className="flex size-16 items-center justify-center rounded-full text-white text-2xl sm:size-20 font-semibold font-display"
                     style={{ background: accent }}
                   >
                     {initialsOf(profile.fullName || profile.email)}
@@ -236,7 +237,7 @@ export default function UserProfile() {
                 <p className="text-[11px] uppercase tracking-[0.18em] text-stone-400 mb-1">
                   {isSelf ? "My profile" : "Team profile"}
                 </p>
-                <h2 className="font-display text-2xl font-semibold text-[#2F151B] truncate">{profile.fullName}</h2>
+                <h2 className="font-display text-lg sm:text-2xl font-semibold text-[#2F151B] break-words">{profile.fullName}</h2>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span
                     className="rounded-full border px-3 py-1 text-xs font-medium"
@@ -252,25 +253,23 @@ export default function UserProfile() {
                   )}
                 </div>
               </div>
-              {isSelf && (
-                <PremiumButton variant="outline" size="sm" onClick={() => logout()} className="shrink-0">
-                  <LogOut className="size-3.5" /> Sign out
-                </PremiumButton>
-              )}
+
             </div>
           </div>
 
-          <div className="grid gap-5">
-            <SectionCard title={isSelf ? "Your details" : "Member details"}>
+          <div className="grid min-w-0 gap-3">
+            <details className="group min-w-0 rounded-xl border border-[#EEDFE3] bg-white" open={!isSelf || undefined}>
+              <summary className="flex cursor-pointer list-none items-center gap-3 p-4 text-sm font-semibold text-[#2F151B]"><UserRound className="size-5 text-[#800020]" /><span className="flex-1">{isSelf ? "Personal & professional information" : "Member details"}</span><ChevronDown className="size-4 group-open:rotate-180" /></summary>
+              <div className="border-t border-[#EEDFE3] p-4">
               {showEditForm ? (
-                <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
+                <form onSubmit={save} className="grid min-w-0 gap-3 sm:grid-cols-2">
                   <label className="text-xs font-medium text-stone-600">
                     Full name
                     <input required value={fullName} onChange={(event) => setFullName(event.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm text-[#2F151B] outline-none focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/10" />
                   </label>
                   <label className="text-xs font-medium text-stone-600">
                     Email
-                    <span className="mt-2 flex h-11 items-center gap-2 rounded-md border border-[#EEDFE3] bg-stone-50 px-3 text-sm font-normal text-stone-500"><Mail className="size-4" />{profile.email}</span>
+                    <span className="mt-2 flex min-h-11 min-w-0 items-center gap-2 break-all rounded-md border border-[#EEDFE3] bg-stone-50 px-3 text-sm font-normal text-stone-500"><Mail className="size-4 shrink-0" /><span className="min-w-0 break-all">{profile.email}</span></span>
                   </label>
                   <label className="text-xs font-medium text-stone-600">
                     Phone
@@ -288,6 +287,7 @@ export default function UserProfile() {
                       <option value="Other">Other</option>
                     </select>
                   </label>
+                  <div className="sm:col-span-2 border-t border-[#EEDFE3] pt-3 text-sm font-semibold text-[#2F151B]">Professional profile</div>
                   <label className="text-xs font-medium text-stone-600">Certification / qualifications<input maxLength={500} value={certification} onChange={e=>setCertification(e.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm" /></label>
                   <label className="text-xs font-medium text-stone-600">Years of experience<input type="number" min={0} max={80} value={yearsExperience} onChange={e=>setYearsExperience(e.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm" /></label>
                   <label className="text-xs font-medium text-stone-600">Country of location<input maxLength={100} autoComplete="country-name" value={country} onChange={e=>setCountry(e.target.value)} className="mt-2 h-11 w-full rounded-md border border-[#EEDFE3] px-3 text-sm" /></label>
@@ -301,9 +301,9 @@ export default function UserProfile() {
                       hint="A clear, front-facing photo works best · JPG, PNG or WebP · up to 5 MB"
                     />
                   </div>
-                  <div className="sm:col-span-2 flex items-center justify-between gap-3 pt-1">
+                  <div className="sm:col-span-2 flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-xs text-stone-400">
-                      {isSelf ? "Only you can see and change these." : "Visible to studio owners and trainers."}
+                      {isSelf ? "Review your details before saving." : "Visible to studio owners and trainers."}
                     </p>
                     <PremiumButton type="submit" loading={saving}>
                       <Save className="size-4" /> Save profile
@@ -320,7 +320,8 @@ export default function UserProfile() {
                   <div><dt className="text-[11px] uppercase tracking-[0.15em] text-stone-400">Country</dt><dd className="mt-1 text-sm text-[#2F151B]">{profile.country || "Not provided"}</dd></div>
                 </dl>
               )}
-            </SectionCard>
+              </div>
+            </details>
 
             {(profile.trainingDurationWeeks || profile.trainingStartedAt) && (
               <SectionCard title="Training" action={<GraduationCap className="size-4 text-stone-400" />}>
@@ -341,7 +342,7 @@ export default function UserProfile() {
                 action={<KeyRound className="size-4 text-stone-400" />}
               >
                 {!showPasswordForm ? (
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-stone-500">Change the password you use to sign in.</p>
                     <PremiumButton type="button" variant="outline" size="sm" onClick={() => setShowPasswordForm(true)}>
                       Change password
@@ -405,7 +406,7 @@ export default function UserProfile() {
                       />
                     </label>
                     <p className="text-xs text-stone-400 sm:col-span-2">Use at least 8 characters.</p>
-                    <div className="sm:col-span-2 flex items-center justify-end gap-2">
+                    <div className="sm:col-span-2 flex flex-wrap items-center justify-end gap-2">
                       <PremiumButton
                         type="button"
                         variant="ghost"
@@ -426,6 +427,7 @@ export default function UserProfile() {
                 )}
               </SectionCard>
             )}
+            {isSelf && <PremiumButton variant="outline" onClick={() => logout()} className="w-full"><LogOut className="size-4" /> Sign out</PremiumButton>}
           </div>
         </>
       )}
