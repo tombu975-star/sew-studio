@@ -38,16 +38,16 @@ function SiteHeader({ content }: { content: WebsiteContent }) {
   const studioUrl = resolveStudioUrl(site);
   return (
     <header className="sticky top-0 z-40 border-b border-[#eadde0] bg-[#FCF8F5]">
-      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-5 px-5 sm:px-8">
-        <Link href="/" aria-label={`${site.name} home`} className="shrink-0"><BrandLogo width={132} /></Link>
-        <nav aria-label="Main navigation" className="hidden items-center gap-7 lg:flex">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:h-[72px] sm:gap-4 sm:px-8">
+        <Link href="/" aria-label={`${site.name} home`} className="shrink-0"><BrandLogo width={116} className="!w-[96px] sm:!w-[116px]" /></Link>
+        <nav aria-label="Main navigation" className="hidden min-w-0 flex-wrap items-center justify-center gap-x-4 gap-y-1 xl:flex">
           {[...nav.items.filter((item)=>item.href!=="/ready-to-wear"),{href:"/ready-to-wear",label:"Ready to Wear"}].map((item) => <NavLink key={`${item.href}-${item.label}`} href={item.href} className="text-[13px] font-semibold text-[#765d63] transition hover:text-[#800020]">{item.label}</NavLink>)}
         </nav>
-        <div className="flex items-center gap-2.5">
-          <a href={studioUrl} className="inline-flex h-11 items-center gap-2 rounded-md bg-[#800020] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#650019]">
-            <span className="whitespace-nowrap"><span className="hidden sm:inline">{nav.enterLabel}</span><span className="sm:hidden">{nav.enterLabelShort}</span></span> <ArrowUpRight className="size-4" />
+        <div className="flex shrink-0 items-center gap-2">
+          <a href={studioUrl} className="hidden h-11 items-center gap-1.5 rounded-lg bg-[#800020] px-3 text-[13px] sm:px-4 font-semibold text-white transition-colors hover:bg-[#650019] xl:inline-flex">
+            <span className="whitespace-nowrap"><span className="hidden sm:inline">{nav.enterLabel}</span><span className="sm:hidden">{nav.enterLabelShort}</span></span> <ArrowUpRight className="hidden size-4 sm:block" />
           </a>
-          <MobileMenu items={[...nav.items.filter((item)=>item.href!=="/ready-to-wear"),{href:"/ready-to-wear",label:"Ready to Wear"}]} />
+          <MobileMenu signInHref={studioUrl} signInLabel={nav.enterLabelShort} items={[...nav.items.filter((item)=>item.href!=="/ready-to-wear"),{href:"/ready-to-wear",label:"Ready to Wear"}]} />
         </div>
       </div>
     </header>
@@ -58,14 +58,35 @@ function SiteFooter({ content }: { content: WebsiteContent }) {
   const { site, contact, footer } = content;
   return (
     <footer className="bg-[#260711] text-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.4fr_1fr_1fr]">
-        <div><div className="inline-flex rounded-xl bg-white px-3 py-2"><BrandLogo width={142} /></div><p className="mt-4 max-w-sm text-sm leading-7 text-white/75">{site.line}.{footer.blurb ? ` ${footer.blurb}` : ""}</p><p className="mt-6 text-xs text-white/70">© {new Date().getFullYear()} {site.name}. All rights reserved.</p></div>
-        <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#e5bd83]">Get in touch</p><div className="mt-4 space-y-3 text-sm text-white/70">
-          {contact.generalEmail && <a className="block hover:text-white" href={`mailto:${contact.generalEmail}`}>{contact.generalEmail}</a>}
-          {contact.supportEmail && <a className="block hover:text-white" href={`mailto:${contact.supportEmail}`}>{contact.supportEmail}</a>}
-          {contact.whatsappLink && <a className="block hover:text-white" href={contact.whatsappLink}>WhatsApp {contact.whatsappDisplay}</a>}
-        </div></div>
-        <div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#e5bd83]">Explore</p><div className="mt-4 space-y-3 text-sm text-white/70"><Link className="block hover:text-white" href="/our-story">Our story</Link><Link className="block hover:text-white" href="/#app">The platform</Link><Link className="block hover:text-white" href="/academy">Free Academy</Link><Link className="block hover:text-white" href="/ready-to-wear">Ready to Wear</Link><Link className="block hover:text-white" href="/privacy">Privacy</Link><Link className="block hover:text-white" href="/terms">Terms</Link>{contact.community && <a className="block hover:text-white" href={contact.community}>WhatsApp community</a>}</div></div>
+      <div className="mx-auto max-w-7xl px-5 pt-8 sm:px-8 sm:pt-12">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-7 md:grid-cols-[1.25fr_1fr_1fr] md:gap-10">
+          <div className="col-span-2 md:col-span-1">
+            <div className="inline-flex rounded-lg bg-white px-2 py-1.5"><BrandLogo width={108} /></div>
+            <p className="mt-3 max-w-sm text-sm leading-6 text-white/75">{site.line}.{footer.blurb ? ` ${footer.blurb}` : ""}</p>
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xs font-bold uppercase tracking-[.14em] text-[#e5bd83]">Explore</h2>
+            <nav aria-label="Footer navigation" className="mt-2 flex flex-col text-sm text-white/80">
+              <Link className="py-2 hover:text-white" href="/our-story">Our story</Link>
+              <Link className="py-2 hover:text-white" href="/#app">The platform</Link>
+              <Link className="py-2 hover:text-white" href="/academy">Free Academy</Link>
+              <Link className="py-2 hover:text-white" href="/ready-to-wear">Ready to Wear</Link>
+            </nav>
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xs font-bold uppercase tracking-[.14em] text-[#e5bd83]">Get in touch</h2>
+            <div className="mt-2 flex flex-col text-sm text-white/80">
+              {contact.generalEmail && <a className="break-words py-2 hover:text-white" href={`mailto:${contact.generalEmail}`}>{contact.generalEmail}</a>}
+              {contact.supportEmail && <a className="break-words py-2 hover:text-white" href={`mailto:${contact.supportEmail}`}>{contact.supportEmail}</a>}
+              {contact.whatsappLink && <a className="py-2 hover:text-white" href={contact.whatsappLink}>WhatsApp <span className="block md:inline">{contact.whatsappDisplay}</span></a>}
+              {contact.community && <a className="py-2 hover:text-white" href={contact.community}>WhatsApp community</a>}
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-white/15 py-4 text-xs leading-5 text-white/70 sm:mt-8">
+          <p>© {new Date().getFullYear()} {site.name}. All rights reserved.</p>
+          <nav aria-label="Legal links" className="flex gap-5"><Link className="py-2 hover:text-white" href="/privacy">Privacy</Link><Link className="py-2 hover:text-white" href="/terms">Terms</Link></nav>
+        </div>
       </div>
     </footer>
   );
